@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem \"c:\\\\Users\\\\Kaan\\\\Desktop\\\\Kaan\\\\basements-app\" | Where-Object { $_.Name -ne \"node_modules\" -and $_.Name -ne \"dist\" } | Format-List Name)",
+      "PowerShell(Get-ChildItem \"c:\\\\Users\\\\Kaan\\\\Desktop\\\\Kaan\\\\basements-app\\\\src\" -Recurse | Where-Object { -not $_.PSIsContainer } | Select-Object FullName)",
+      "PowerShell(Get-ChildItem \"c:\\\\Users\\\\Kaan\\\\Desktop\\\\Kaan\\\\basements-app\\\\src\" -Recurse | ForEach-Object { $_.FullName.Replace\\(\"c:\\\\Users\\\\Kaan\\\\Desktop\\\\Kaan\\\\basements-app\\\\\", \"\"\\) })"
+    ]
+  }
+}

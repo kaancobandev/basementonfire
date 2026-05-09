@@ -1,0 +1,1058 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const tablets = [
+  { num: 'I',   title: 'Mahkeme Usulü',     summary: 'Duruşmaya katılım, gün belirleme, davacı hakları ve temsil kuralları.',
+    laws: ['Mahkemede iki taraftan biri katılmaz ise davacı tanık çağırır, hakim öğleden sonra diğer tarafın lehine hüküm verir.','İki kişi de hazır bulunursa karar günün akşamına doğru çıkar; anlaşamazlarsa bilgiler pazarda açıklanır.','Davayı her iki taraf kendince savunur.','Davalı şahıs kaçmaya çalışırsa davacı ona el koyar.','Yaşlı veya hasta olan kişiye davacı bir araba tahsis eder.','Bir patriciiye ancak bir patricii kefil olabilir; plebler için her iki grup da kefil olabilir.'] },
+  { num: 'II',  title: 'Teminat ve Hastalık', summary: 'Teminat miktarları, duruşma erteleme koşulları ve şahit bildirme zorunluluğu.',
+    laws: ['Teminat altındaki mallar için cezai tutar 500 ila 50 ekstir arasında değişir; konu kişi özgürlüğüyse teminat 50 ekstirdir.','Taraflardan biri ağır hasta ise yada yabancı davası görülecekse duruşma günü ertelenir.','Delile ihtiyacı olan kimse her üç günde bir şahidin kapısına gidip yüksek sesle bildirecektir.'] },
+  { num: 'III', title: 'Borç ve Ceza',        summary: 'Borçlu kişilerin hakları, ev hapsi koşulları ve birden fazla alacaklı durumu.',
+    laws: ['Borçlar için mahkemece 30 gün mühlet verilir; ödeyemezse kefil gelmediği müddetçe davacı borçluyu evine götürebilir.','Borçlu o ev içinde kendi imkânlarıyla yaşayabilir ya da ev sahibi her gün en az bir ekmek vermek zorundadır.','30 günlük süreç sonunda her pazar mahkemeye çıkarılır; sonunda idam edilir. Birden fazla alacaklı varsa beden parçalara ayrılır.'] },
+  { num: 'IV',  title: 'Aile Hukuku',         summary: 'Sakat doğan bebekler, boşanma hakkı, miras ve evlatlık düzenlemeleri.',
+    laws: ['Aşırı derecede sakat doğan bebekler öldürülür.','Bir adam artık evli kalmak istemiyorsa karısını evden çıkarabilir.','Baba öldükten 10 ay sonra doğan çocuk mirasa giremez; baba oğlunu 3 kez pazarda satmaya çalışır ve alıcı bulunamazsa evlat özgürlüğünü kazanır.'] },
+  { num: 'V',   title: 'Miras ve Vesayet',    summary: 'Kadın vesayeti, vasiyet bağlayıcılığı, akıl hastası mülk yönetimi ve miras paylaşımı.',
+    laws: ['Kadınlar erginliğe ulaşsa dahi akıllarının yeterli olmadığı düşünüldüğünden vesayet altındadırlar; Vesta bakireleri istisnadır.','Vasiyet bırakılmışsa bağlayıcıdır; bırakılmamışsa mallar en yakın erkek akrabaya geçer.','Deliren kişinin malları klan üyelerinin yönetimi altında olur.','Vefat edenin borçları miras alınan paya göre paylaştırılır.'] },
+  { num: 'VI',  title: 'Mülkiyet ve Satış',   summary: 'Sözleşme bağlayıcılığı, arazi zamanaşımı ve yabancılara özel hükümler.',
+    laws: ['Bir kişi söylediği biçimiyle senet yaparsa bu söz yerine getirilmelidir.','Satışı gerçekleştirilen mal ödenmez yada kefil gösterilmezse satış gerçekleşmemiş sayılır.','Arazi için zamanaşımı ile hak iddia etmek için 2 yıl; taşınırlar için 1 yıl geçmesi gerekir.','Yabancılar için zamanaşımı yoktur.','Binalarda sabitlenmiş keresteler alınamaz; alındığı ispatlanırsa iki kat tazminat ödenir.'] },
+  { num: 'VII', title: 'Arazi ve Yollar',     summary: 'Tarla sınırları, yol genişlikleri, su yolları ve ağaç hakları.',
+    laws: ['İki tarla arasında 5 ayaklık boşluk hiçbir şekilde mülkiyet hakkına konu olamaz.','Yollar düz olduğunda 8 ayak, köşelerde 16 ayak genişliğine uzar.','Herkes etrafındaki yolları onaracak; onarmazsa vatandaş yoldan istediği gibi geçebilir.','Bir ağaç 15 feet\'ten fazla uzadığında kesilebilir; komşunun ağacı rüzgarla eğilirse kaldırılır.','Ağacınızdan düşen meyveleri komşunuzun bahçesinden almanızda sorun yoktur.'] },
+  { num: 'VIII',title: 'Suçlar ve Cezalar',   summary: 'Hakaret, yaralama, hırsızlık, yalancı tanıklık ve faiz sınırı.',
+    laws: ['Onursuz sözler söyleyen veya kötü sözlü şarkı söyleyen sopayla vurularak öldürülür.','Bir kişinin uzvuna zarar verilirse taraflar anlaşmazsa aynı şekilde karşılık verilir (kısas).','Özgür kişinin kemiğini kırmak 300 parça; köle için 150 parça tazminat gerektirir.','Gece hırsız suçüstü yakalanırsa öldürülebilir; gündüz ise önce bağırılmalıdır.','Yalancı tanıklık yapanlar Tarpeian Kayasından aşağı atılacaktır.','Faiz on ikide birden fazla olamaz.'] },
+  { num: 'IX',  title: 'Kamu Hukuku',         summary: 'Kişiye özel yasa yasağı, rüşvet, idam yetkisi ve suç ispatı.',
+    laws: ['Kişiye özel kanunlar çıkarılamaz; idam yalnızca en büyük meclis tarafından kararlaştırılır.','Yargıçlar rüşvet alırlarsa idam edilecektir.','Halkın düşmanlarını tahrik etmenin cezası idamdır.','Suçu ispatlanmadan kimse öldürülemez.'] },
+  { num: 'X',   title: 'Cenaze Hukuku',       summary: 'Ölü gömme kuralları, cenaze masrafı sınırı, yas törenleri ve mezar dokunulmazlığı.',
+    laws: ['Ölüler şehire gömülemez ve yakılamaz.','Cenazelerde masraf; üç yas tutan kişi, bir mor tunik giyen ve on flüt çalan kişiyle sınırlıdır.','Kadınlar cenazede yanaklarını yırtmayacak ve ağıt yakmayacaktır.','Yakılan kişinin bedenine altın atılmayacak; fakat altın dişler yerinde kalabilir.','Mezar girişleri uzun süreli kullanımla işgal edilemez.'] },
+  { num: 'XI',  title: 'Evlilik Kısıtlaması', summary: 'Plebler ile patriciiler arasındaki evlilik yasağı.',
+    laws: ['Plebler (halk) ve patriciler (soylular) birlikte evlenemezler.'] },
+  { num: 'XII', title: 'Son Hükümler',         summary: 'Kurbanlık hayvan, köle zararı, iftira ve halkın son kararının bağlayıcılığı.',
+    laws: ['Kurbanlık hayvan satışında bedel ödenmemişse bu para kutsal ziyafet için rehin alınır.','Evin babası sahibi olduğu kölenin verdiği zararı bizzat tespit edip cezalandırabilir.','İftira ile bir şey elde eden kişiden 3 hakem aracılığıyla iki kat tazminat alınır.','Halkın son sözü yasa bağlayıcı niteliktedir.'] },
+];
+
+const figures = [
+  { name: 'Romulus',        role: 'Kurucu Kral',          era: 'MÖ 753',  emoji: '⚔️', desc: 'Roma\'nın efsanevi kurucusu. Kardeşi Remus ile kurt tarafından büyütüldükten sonra şehri kurdu ve ilk kral oldu.' },
+  { name: 'Julius Caesar',  role: 'Diktatör',              era: 'MÖ 49',   emoji: '🦅', desc: 'Galya\'yı fethetti, Rubicon Nehrini geçti ve Roma\'nın tek hâkimi oldu. MÖ 44\'te Brutus tarafından suikaste kurban gitti.' },
+  { name: 'Brutus',         role: 'Senatör / Katil',       era: 'MÖ 44',   emoji: '🗡️', desc: 'Caesar\'ın eski destekçisi ve senatörü. Cumhuriyeti kurtarmak amacıyla suikastı yönetti; ancak devlet düşmanı ilan edilerek kaçmak zorunda kaldı.' },
+  { name: 'Augustus',       role: 'İlk İmparator',         era: 'MÖ 27',   emoji: '👑', desc: 'Caesar\'ın üvey oğlu. Senatoyu ele geçirerek imparatorluğu kurdu ve Roma\'nın en parlak çağını başlattı.' },
+  { name: 'Spartacüs',      role: 'Köle Lideri',           era: 'MÖ 73',   emoji: '🔥', desc: 'Patricii baskısına karşı köle ve gladyatörleri örgütleyerek büyük isyan savaşı başlattı. Roma ordusunu defalarca yendi.' },
+  { name: 'Pompeius Magnus', role: 'General / Rakip',      era: 'MÖ 48',   emoji: '🛡️', desc: 'Triumvirliğin ortağı. Sezar ile ayrılınca Pharsalus\'ta yenildi, Mısır\'a kaçtı ve karaya çıktığı an öldürüldü.' },
+];
+---
+
+<BaseLayout title="Roma İmparatorluğu" activeNav="rome">
+<div id="rome-page">
+
+  <!-- ── GERİ BUTONU (sticky) ─────────────────────────────── -->
+  <div class="r-topbar">
+    <a href="/" class="back-btn" style="color:#e8d5b0;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+    </a>
+    <span class="r-topbar-title">Roma İmparatorluğu</span>
+    <nav class="r-era-nav">
+      <a href="#krallik"    class="r-era-btn active" data-section="krallik">Krallık</a>
+      <a href="#cumhuriyet" class="r-era-btn"         data-section="cumhuriyet">Cumhuriyet</a>
+      <a href="#imparatorluk" class="r-era-btn"       data-section="imparatorluk">İmparatorluk</a>
+    </nav>
+  </div>
+
+  <!-- ── HERO ─────────────────────────────────────────────── -->
+  <header class="r-hero">
+    <div class="r-hero-particles" id="r-particles"></div>
+    <div class="r-hero-content">
+      <div class="r-spqr-badge">S · P · Q · R</div>
+      <h1 class="r-hero-title">
+        <span class="r-title-word" style="--d:0s">ROMA</span>
+        <span class="r-title-word r-gold" style="--d:.15s">İMPARATORLUĞU</span>
+      </h1>
+      <p class="r-hero-sub">MÖ 753 — MS 476 · 1229 Yıllık Yükseliş ve Çöküş</p>
+      <div class="r-hero-stats">
+        <div class="r-stat"><span class="r-stat-num" data-target="1229">0</span><span class="r-stat-label">Yıl</span></div>
+        <div class="r-stat"><span class="r-stat-num" data-target="70">0</span><span class="r-stat-label">Lejyon</span></div>
+        <div class="r-stat"><span class="r-stat-num" data-target="5000">0</span><span class="r-stat-label">km Yol</span></div>
+        <div class="r-stat"><span class="r-stat-num" data-target="12">0</span><span class="r-stat-label">Tablet</span></div>
+      </div>
+    </div>
+    <div class="r-hero-eagle">🦅</div>
+  </header>
+
+  <!-- ── ERA TİMELİNE ─────────────────────────────────────── -->
+  <div class="r-timeline-strip">
+    {[
+      { year:'MÖ 753', event:'Roma\'nın Kuruluşu', icon:'🏛️' },
+      { year:'MÖ 509', event:'Cumhuriyete Geçiş',  icon:'📜' },
+      { year:'MÖ 450', event:'12 Levha Kanunu',     icon:'⚖️' },
+      { year:'MÖ 264', event:'I. Pön Savaşı',       icon:'⚔️' },
+      { year:'MÖ 73',  event:'Spartaküs İsyanı',    icon:'🔥' },
+      { year:'MÖ 44',  event:'Caesar Suikastı',      icon:'🗡️' },
+      { year:'MÖ 27',  event:'İmparatorluk',         icon:'👑' },
+      { year:'MS 476', event:'Batı Roma\'nın Çöküşü',icon:'💀' },
+    ].map(t => (
+      <div class="r-tl-item">
+        <div class="r-tl-dot">{t.icon}</div>
+        <div class="r-tl-year">{t.year}</div>
+        <div class="r-tl-event">{t.event}</div>
+      </div>
+    ))}
+  </div>
+
+  <div class="r-body">
+
+    <!-- ══════════════════════════════════════
+         BÖLÜM 1: ROMA KRALLIĞI
+    ══════════════════════════════════════ -->
+    <section id="krallik" class="r-section reveal">
+      <div class="r-section-badge">I</div>
+      <h2 class="r-h2">Roma Krallığı <span class="r-year-chip">MÖ 753 – 509</span></h2>
+
+      <!-- Kuruluş -->
+      <h3 class="r-h3">Kuruluş</h3>
+      <div class="r-two-col">
+        <div>
+          <p class="r-p">Roma Krallığı, Roma'nın monarşi ile yönetildiği dönemdi. Kurucuları efsaneye göre bir nehre bırakılan ve bir dişi kurt tarafından emzirilen <strong class="r-gold-text">Romulus ve Remus</strong> kardeşlerdi. Babaları savaş tanrısı <strong class="r-gold-text">Mars</strong>, anneleri ise rahibe Rhea Silvia'dır.</p>
+          <p class="r-p">İlk kurulduğunda Latinlerden oluşan küçük bir krallıktı. Kurulduğu bölge Latium, Etrüsk krallığının topraklarıydı; mimari tekniklerinden tanrılarına kadar çoğu özelliği Etrüsklerden miras aldılar.</p>
+          <p class="r-p">Romalılar pratik ve disiplinli bir kültüre sahipti. Krallığın yükselişi civar kabileleri bünyeye katmaları ve kanlı savaşları sayesinde oldu. Augustus döneminin tarihçisi Varro'nun hesaplamalarına göre kuruluş tarihi <strong class="r-gold-text">MÖ 753</strong>'e karşılık gelmektedir.</p>
+        </div>
+        <!-- Romulus & Remus animasyonlu kart -->
+        <div class="r-founding-card glass-r">
+          <div class="r-wolf-scene">
+            <span class="r-wolf">🐺</span>
+            <span class="r-baby r-baby1">👶</span>
+            <span class="r-baby r-baby2">👶</span>
+          </div>
+          <p style="text-align:center; font-size:0.85rem; color:#c5a028; margin-top:16px; font-style:italic;">
+            "Kurt tarafından emzirilen iki kardeş — Roma'nın kökeni"
+          </p>
+          <details class="r-details">
+            <summary>Latinler hakkında</summary>
+            <p>Lazio bölgesinde iskan eden, ortak dili Latince olan halktır. İlerleyen yüzyıllarda Roma'nın en büyük düşmanları bile bu nüfusa katılacaktı.</p>
+          </details>
+        </div>
+      </div>
+
+      <!-- Siyasi Yapı -->
+      <h3 class="r-h3">Siyasi Yapı ve Yönetim Şekli</h3>
+      <p class="r-p">Roma Senatosu krallıktan imparatorluğa kadar her dönemde kullanılan başlıca yönetim sistemidir. Savaş zamanlarında kralı diktatör ilan edebilir ya da savaşı kendileri idare edebilirler. "Yaşlılar meclisi" anlamına gelen bu yapı ilk kurulduğunda 100 kişiden oluşurken sonraki imparatorlar tarafından 300 kişiye çıkarıldı.</p>
+
+      <!-- Toplumsal sınıf piramidi -->
+      <div class="r-pyramid-wrap reveal">
+        <div class="r-pyramid">
+          <div class="r-pyr-level r-pyr-1"><span>⚖️ Kral / Diktatör</span></div>
+          <div class="r-pyr-level r-pyr-2"><span>🏛️ Patricii · Soylular</span></div>
+          <div class="r-pyr-level r-pyr-3"><span>🌾 Plebler · Halk</span></div>
+          <div class="r-pyr-level r-pyr-4"><span>⛓️ Köleler · Göçmenler</span></div>
+        </div>
+        <p style="text-align:center; font-size:0.8rem; color:#999; margin-top:12px;">Roma toplumsal hiyerarşisi</p>
+      </div>
+
+      <!-- Patricii vs Plebler flip cards -->
+      <div class="r-two-col r-vs-row reveal">
+        <div class="r-class-card r-patricii">
+          <div class="r-class-icon">👑</div>
+          <h4>Patricii — Soylular</h4>
+          <ul class="r-class-list">
+            <li>Senato üyeliği hakkı</li>
+            <li>Tapınak ve kamu binalarının sahibi</li>
+            <li>Orduya subay olarak girebilir</li>
+            <li>Din görevlisi olabilir</li>
+            <li>Yüksek memuriyetlere atanır</li>
+          </ul>
+        </div>
+        <div class="r-vs-label">VS</div>
+        <div class="r-class-card r-plebler">
+          <div class="r-class-icon">🌾</div>
+          <h4>Plebler — Halk</h4>
+          <ul class="r-class-list">
+            <li>Senato'ya giremezdi</li>
+            <li>Patricii ile evlenemezdi</li>
+            <li>Orduya asker olarak alınmazdı</li>
+            <li>Din görevlisi olamazdı</li>
+            <li>12 Levha Kanunu'nu kazandılar</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 12 Levha Kanunu -->
+      <h3 class="r-h3" style="margin-top:56px;" id="levha">⚖️ 12 Levha Kanunu <span class="r-year-chip">MÖ 450</span></h3>
+      <div class="glass-r" style="padding:20px 24px; border-radius:16px; margin-bottom:28px;">
+        <p class="r-p" style="margin:0;">MÖ 450'de başlanıp 2 yılda tamamlanan bu yasalar şehrin en büyük meydanı <strong class="r-gold-text">Forum Romanum</strong>'a asıldı. Böylece yüzyıllardır zengin ve güçlü olan patriciiler, fakir ve hakkı savunulmayan plebler ile resmi bir eşitlik ilkesini benimsemek zorunda kaldı. Maddeler, o zamana kadar uygulanan örf ve adetlerin yazıya dökülmüş halidir.</p>
+      </div>
+
+      <div class="r-tablets-grid">
+        {tablets.map((t, idx) => (
+          <div class="r-tablet reveal" style={`--idx:${idx}`}>
+            <button class="r-tablet-header" data-idx={idx}>
+              <span class="r-tablet-num">{t.num}</span>
+              <div>
+                <div class="r-tablet-title">{t.title}</div>
+                <div class="r-tablet-summary">{t.summary}</div>
+              </div>
+              <span class="r-tablet-arrow">▾</span>
+            </button>
+            <div class="r-tablet-body" id={`tablet-body-${idx}`} style="display:none;">
+              <ol class="r-tablet-laws">
+                {t.laws.map(law => <li>{law}</li>)}
+              </ol>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════
+         BÖLÜM 2: ROMA CUMHURİYETİ
+    ══════════════════════════════════════ -->
+    <section id="cumhuriyet" class="r-section reveal">
+      <div class="r-section-badge">II</div>
+      <h2 class="r-h2">Roma Cumhuriyeti <span class="r-year-chip">MÖ 509 – 27</span></h2>
+
+      <p class="r-p">Roma Krallığı'nın son imparatoru <strong class="r-gold-text">Lucius Tarquinius Superbus</strong>'un tahttan indirilmesiyle MÖ 509'da cumhuriyete geçildi. Romalılar barbarları dışarıda tutmak için mükemmele yakın duvarlar inşa etti, dümdüz yollar yaptı; cumhuriyet, savaşta cesur davranan askerlerine arazi kazandırıyordu.</p>
+
+      <!-- Sezar'ın Yükselişi -->
+      <h3 class="r-h3">Jül Sezar'ın Yükselişi</h3>
+      <div class="r-caesar-timeline reveal">
+        {[
+          { step:'Triumvirlik', desc:'Sezar, Pompeius ve Crassus ile üç kişilik iktidar paylaşımı kurdu. Galya fethi ve Britannya işgali bu dönemde gerçekleşti.', icon:'🤝' },
+          { step:'Rubicon',     desc:'Crassus\'un ölümü ve Pompeius ile görüş ayrılığının ardından Sezar, generallere yasak olan Rubicon Nehrini ordusuyla geçerek iç savaş başlattı.', icon:'🌊' },
+          { step:'Pharsalus',   desc:'Pompeius Yunanistan\'a kaçtı ve Pharsalus\'ta Sezar\'a yenildi. Mısır\'da yeni ordu kurmak isterken karaya çıktığı an kafası kesildi.', icon:'⚔️' },
+          { step:'Diktatörlük', desc:'Roma\'nın tek hâkimi olan Sezar, eski destekçisi Marcus Junius Brutus ve diğer senatörler tarafından suikaste uğrayarak öldürüldü.', icon:'🗡️' },
+          { step:'Augustus',    desc:'Sezar\'ın üvey oğlu Octavius Augustus, Brutus\'u devlet düşmanı ilan etti. 19 lejyonla savaşarak galip geldi ve imparatorluğun kapısını araladı.', icon:'👑' },
+        ].map((s, i) => (
+          <div class="r-cstep reveal" style={`--idx:${i}`}>
+            <div class="r-cstep-icon">{s.icon}</div>
+            <div class="r-cstep-body">
+              <h4 class="r-cstep-title">{s.step}</h4>
+              <p class="r-cstep-desc">{s.desc}</p>
+            </div>
+            {i < 4 && <div class="r-cstep-arrow">↓</div>}
+          </div>
+        ))}
+      </div>
+
+      <!-- Önemli İsimler -->
+      <h3 class="r-h3" style="margin-top:56px;">Önemli İsimler</h3>
+      <div class="r-figures-grid">
+        {figures.map(f => (
+          <div class="r-figure-card glass-r reveal">
+            <div class="r-figure-emoji">{f.emoji}</div>
+            <div class="r-figure-era">{f.era}</div>
+            <h4 class="r-figure-name">{f.name}</h4>
+            <div class="r-figure-role">{f.role}</div>
+            <p class="r-figure-desc">{f.desc}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════
+         BÖLÜM 3: ROMA İMPARATORLUĞU
+    ══════════════════════════════════════ -->
+    <section id="imparatorluk" class="r-section reveal">
+      <div class="r-section-badge">III</div>
+      <h2 class="r-h2">Roma İmparatorluğu <span class="r-year-chip">MÖ 27 – MS 476</span></h2>
+
+      <div class="r-two-col">
+        <div>
+          <p class="r-p">Romalı imparatorlar kendilerini <em class="r-gold-text">orbis terrarum</em>'u (tüm dünyayı) yönettiklerini söylüyor, yalnızca en güçlü tanrıları Jüpiter'e hesap verdiklerini düşünüyorlardı.</p>
+          <p class="r-p">Roma İmparatorluğu, Akdeniz bölgesinin en güçlü devletiydi. Adalet sistemi ve güçlü iaşe düzeniyle çevre devletlere örnek oldu.</p>
+        </div>
+        <!-- Animasyonlu arena -->
+        <div class="r-colosseum glass-r">
+          <div class="r-col-arch">🏟️</div>
+          <p style="text-align:center; font-size:0.85rem; color:#c5a028; margin-top:8px;">Colosseum — MS 72</p>
+          <div class="r-col-facts">
+            <span>50,000 seyirci kapasitesi</span>
+            <span>80 kapı girişi</span>
+            <span>6 yılda inşa edildi</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- İnteraktif Quiz -->
+      <div class="r-quiz-wrap reveal" style="margin-top:56px;">
+        <h3 class="r-h3" style="text-align:center;">⚔️ Forum Romanum Testi</h3>
+        <p style="text-align:center; font-size:0.88rem; color:#999; margin-bottom:28px;">Roma bilgini sına</p>
+
+        <div class="r-quiz glass-r" style="padding:32px; border-radius:20px; max-width:620px; margin:0 auto;">
+          <div id="r-q-progress" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+            <span id="r-q-counter" class="r-q-counter"></span>
+            <div style="display:flex; gap:8px;">
+              <div class="r-qdot" id="r-dot-0"></div>
+              <div class="r-qdot" id="r-dot-1"></div>
+              <div class="r-qdot" id="r-dot-2"></div>
+              <div class="r-qdot" id="r-dot-3"></div>
+            </div>
+          </div>
+
+          <div id="r-question-0" class="r-qblock">
+            <p class="r-qtext">Roma'nın efsanevi kurucusu aynı zamanda hangi hayvanlın emzirdiği söylenir?</p>
+            <div class="r-qopts">
+              <button class="r-qopt" data-q="0" data-i="0">Kartal</button>
+              <button class="r-qopt" data-q="0" data-i="1">Dişi Kurt</button>
+              <button class="r-qopt" data-q="0" data-i="2">Aslan</button>
+              <button class="r-qopt" data-q="0" data-i="3">Boğa</button>
+            </div>
+          </div>
+
+          <div id="r-question-1" class="r-qblock" style="display:none;">
+            <p class="r-qtext">12 Levha Kanunu hangi meydana asıldı?</p>
+            <div class="r-qopts">
+              <button class="r-qopt" data-q="1" data-i="0">Colosseum</button>
+              <button class="r-qopt" data-q="1" data-i="1">Pantheon</button>
+              <button class="r-qopt" data-q="1" data-i="2">Forum Romanum</button>
+              <button class="r-qopt" data-q="1" data-i="3">Capitoline Tepesi</button>
+            </div>
+          </div>
+
+          <div id="r-question-2" class="r-qblock" style="display:none;">
+            <p class="r-qtext">Julius Caesar'ın Rubicon Nehrini geçmesi neyi sembolize ediyordu?</p>
+            <div class="r-qopts">
+              <button class="r-qopt" data-q="2" data-i="0">Zafer kutlaması</button>
+              <button class="r-qopt" data-q="2" data-i="1">Senatoya katılım</button>
+              <button class="r-qopt" data-q="2" data-i="2">İç savaş başlatmak</button>
+              <button class="r-qopt" data-q="2" data-i="3">Galya'ya sefer</button>
+            </div>
+          </div>
+
+          <div id="r-question-3" class="r-qblock" style="display:none;">
+            <p class="r-qtext">Spartaküs hangi sınıfı temsil ediyordu?</p>
+            <div class="r-qopts">
+              <button class="r-qopt" data-q="3" data-i="0">Patricii</button>
+              <button class="r-qopt" data-q="3" data-i="1">Senato</button>
+              <button class="r-qopt" data-q="3" data-i="2">Köleler ve Gladyatörler</button>
+              <button class="r-qopt" data-q="3" data-i="3">Ordu generalleri</button>
+            </div>
+          </div>
+
+          <div id="r-result" style="display:none; text-align:center; padding:8px 0;">
+            <div id="r-result-icon" style="font-size:3.5rem; margin-bottom:12px;"></div>
+            <h4 id="r-result-title" style="font-size:1.3rem; font-weight:700; color:#c5a028; margin-bottom:8px;"></h4>
+            <p id="r-result-desc" style="font-size:0.9rem; color:#aaa; margin-bottom:20px; line-height:1.6;"></p>
+            <button id="r-restart" class="r-btn">Tekrar Dene</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /r-body -->
+
+  <footer class="r-footer">
+    <div class="r-footer-eagle">🦅</div>
+    <div class="r-footer-spqr">SENATUS POPULUSQUE ROMANUS</div>
+    <p>Hazırlayan: <strong>Kaan Çoban</strong></p>
+    <p style="font-size:0.78rem; opacity:0.5; margin-top:4px;">&copy; 2025 Basement — Savaş ve Uygarlıklar</p>
+  </footer>
+
+</div><!-- /rome-page -->
+</BaseLayout>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Quattrocento+Sans:ital,wght@0,400;0,700;1,400&display=swap');
+
+  /* ── TEMA ────────────────────────────────────────────── */
+  #rome-page {
+    --r-bg:       #0f0c08;
+    --r-surface:  #1a1510;
+    --r-gold:     #c5a028;
+    --r-gold-lt:  #e8d080;
+    --r-red:      #8b1a1a;
+    --r-border:   rgba(197,160,40,0.2);
+    --r-text:     #e8dfc8;
+    --r-muted:    #9a8c70;
+    font-family: 'Quattrocento Sans', serif;
+    background: var(--r-bg);
+    color: var(--r-text);
+    min-height: 100vh;
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  /* ── TOPBAR ──────────────────────────────────────────── */
+  .r-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(15,12,8,0.92);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--r-border);
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .r-topbar-title {
+    font-family: 'Cinzel', serif;
+    color: var(--r-gold);
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    flex: 1;
+  }
+  .r-era-nav { display: flex; gap: 6px; }
+  .r-era-btn {
+    padding: 5px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--r-border);
+    background: transparent;
+    color: var(--r-muted);
+    font-size: 0.78rem;
+    font-family: 'Cinzel', serif;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+  }
+  .r-era-btn:hover, .r-era-btn.active {
+    background: var(--r-gold);
+    color: #0f0c08;
+    border-color: var(--r-gold);
+  }
+
+  /* ── HERO ────────────────────────────────────────────── */
+  .r-hero {
+    position: relative;
+    min-height: 88vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: radial-gradient(ellipse at 50% 60%, #2a1a00 0%, #0f0c08 70%);
+  }
+  .r-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 60px, rgba(197,160,40,0.03) 60px, rgba(197,160,40,0.03) 61px),
+      repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(197,160,40,0.03) 60px, rgba(197,160,40,0.03) 61px);
+  }
+  .r-hero-particles {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .r-particle {
+    position: absolute;
+    border-radius: 50%;
+    background: var(--r-gold);
+    opacity: 0;
+    animation: r-float var(--dur) var(--delay) infinite ease-in-out;
+  }
+  @keyframes r-float {
+    0%   { opacity: 0; transform: translateY(0) scale(0.5); }
+    20%  { opacity: 0.6; }
+    80%  { opacity: 0.3; }
+    100% { opacity: 0; transform: translateY(-120px) scale(1.2); }
+  }
+
+  .r-hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 24px;
+  }
+  .r-spqr-badge {
+    font-family: 'Cinzel', serif;
+    font-size: 0.9rem;
+    letter-spacing: 8px;
+    color: var(--r-gold);
+    border: 1px solid var(--r-border);
+    display: inline-block;
+    padding: 6px 20px;
+    border-radius: 4px;
+    margin-bottom: 24px;
+    animation: r-fadein 1s ease both;
+  }
+  .r-hero-title {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(2.2rem, 8vw, 5.5rem);
+    font-weight: 900;
+    line-height: 1.1;
+    margin: 0 0 16px;
+    text-shadow: 0 0 40px rgba(197,160,40,0.4);
+  }
+  .r-title-word {
+    display: inline-block;
+    opacity: 0;
+    animation: r-rise 0.8s var(--d) cubic-bezier(.22,1,.36,1) both;
+  }
+  @keyframes r-rise { from { opacity:0; transform:translateY(40px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes r-fadein { from { opacity:0; } to { opacity:1; } }
+
+  .r-gold { color: var(--r-gold); }
+  .r-gold-text { color: var(--r-gold-lt); }
+
+  .r-hero-sub {
+    color: var(--r-muted);
+    font-size: 0.95rem;
+    letter-spacing: 2px;
+    margin-bottom: 40px;
+    opacity: 0;
+    animation: r-fadein 1s 0.6s both;
+  }
+  .r-hero-stats {
+    display: flex;
+    gap: 32px;
+    justify-content: center;
+    flex-wrap: wrap;
+    opacity: 0;
+    animation: r-fadein 1s 0.9s both;
+  }
+  .r-stat { text-align: center; }
+  .r-stat-num {
+    display: block;
+    font-family: 'Cinzel', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--r-gold);
+  }
+  .r-stat-label { font-size: 0.75rem; color: var(--r-muted); letter-spacing: 2px; }
+
+  .r-hero-eagle {
+    position: absolute;
+    bottom: 24px;
+    right: 40px;
+    font-size: 4rem;
+    opacity: 0.15;
+    animation: r-flap 3s infinite ease-in-out;
+  }
+  @keyframes r-flap { 0%,100%{transform:rotate(-5deg) scale(1)} 50%{transform:rotate(5deg) scale(1.05)} }
+
+  /* ── TIMELINE STRIP ──────────────────────────────────── */
+  .r-timeline-strip {
+    display: flex;
+    overflow-x: auto;
+    gap: 0;
+    border-bottom: 1px solid var(--r-border);
+    scrollbar-width: none;
+    position: relative;
+  }
+  .r-timeline-strip::before {
+    content: '';
+    position: absolute;
+    top: 28px;
+    left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--r-gold), transparent);
+    opacity: 0.3;
+  }
+  .r-tl-item {
+    flex-shrink: 0;
+    text-align: center;
+    padding: 16px 20px 14px;
+    border-right: 1px solid var(--r-border);
+    cursor: default;
+    transition: background 0.2s;
+    min-width: 120px;
+  }
+  .r-tl-item:hover { background: rgba(197,160,40,0.05); }
+  .r-tl-dot { font-size: 1.3rem; margin-bottom: 6px; }
+  .r-tl-year { font-family:'Cinzel',serif; font-size:0.7rem; color:var(--r-gold); margin-bottom:3px; }
+  .r-tl-event { font-size:0.7rem; color:var(--r-muted); line-height:1.3; }
+
+  /* ── BODY ────────────────────────────────────────────── */
+  .r-body {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px 24px 60px;
+  }
+
+  /* ── SECTION ─────────────────────────────────────────── */
+  .r-section { margin-bottom: 80px; padding-top: 40px; }
+  .r-section-badge {
+    display: inline-block;
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 4px;
+    border: 1px solid var(--r-gold);
+    color: var(--r-gold);
+    padding: 3px 12px;
+    border-radius: 3px;
+    margin-bottom: 12px;
+  }
+  .r-h2 {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1.5rem, 4vw, 2.2rem);
+    color: #fff;
+    margin: 0 0 28px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--r-border);
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .r-h3 {
+    font-family: 'Cinzel', serif;
+    font-size: 1.15rem;
+    color: var(--r-gold);
+    margin: 36px 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .r-year-chip {
+    font-size: 0.72rem;
+    font-family: 'Quattrocento Sans', serif;
+    background: rgba(197,160,40,0.12);
+    color: var(--r-gold);
+    border: 1px solid var(--r-border);
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: 1px;
+    font-weight: 400;
+  }
+  .r-p {
+    color: #c8b99a;
+    line-height: 1.9;
+    margin-bottom: 16px;
+    font-size: 0.95rem;
+  }
+
+  /* ── GLASS CARD ──────────────────────────────────────── */
+  .glass-r {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--r-border);
+    backdrop-filter: blur(8px);
+  }
+
+  /* ── 2-col ───────────────────────────────────────────── */
+  .r-two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    align-items: start;
+    margin-bottom: 24px;
+  }
+
+  /* ── FOUNDING CARD ───────────────────────────────────── */
+  .r-founding-card {
+    border-radius: 16px;
+    padding: 28px 24px;
+    text-align: center;
+  }
+  .r-wolf-scene {
+    font-size: 2.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+  }
+  .r-wolf { animation: r-wobble 4s infinite ease-in-out; }
+  @keyframes r-wobble { 0%,100%{transform:rotate(-3deg)} 50%{transform:rotate(3deg)} }
+  .r-baby { font-size: 1.5rem; animation: r-bounce 2s infinite ease-in-out; }
+  .r-baby1 { animation-delay: 0s; }
+  .r-baby2 { animation-delay: 0.4s; }
+  @keyframes r-bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+
+  .r-details {
+    margin-top: 16px;
+    border-top: 1px solid var(--r-border);
+    padding-top: 12px;
+  }
+  .r-details summary {
+    cursor: pointer;
+    color: var(--r-gold);
+    font-size: 0.85rem;
+    font-family: 'Cinzel', serif;
+    letter-spacing: 1px;
+  }
+  .r-details p { font-size: 0.85rem; color: var(--r-muted); margin-top: 8px; line-height: 1.6; }
+
+  /* ── PİRAMİT ─────────────────────────────────────────── */
+  .r-pyramid-wrap { margin: 32px 0; }
+  .r-pyramid { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .r-pyr-level {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    padding: 10px 16px;
+    font-family: 'Cinzel', serif;
+    letter-spacing: 1px;
+    transition: transform 0.2s;
+    cursor: default;
+  }
+  .r-pyr-level:hover { transform: scaleX(1.03); }
+  .r-pyr-1 { width: 34%; background: linear-gradient(135deg,#6b1a1a,#4a0e0e); color:#ffcc66; border:1px solid #8b1a1a; }
+  .r-pyr-2 { width: 56%; background: linear-gradient(135deg,#3d2a0a,#2a1d05); color:#c5a028; border:1px solid rgba(197,160,40,.4); }
+  .r-pyr-3 { width: 76%; background: linear-gradient(135deg,#1a1a2e,#0f0f1a); color:#8ab4e8; border:1px solid rgba(100,150,220,.3); }
+  .r-pyr-4 { width: 100%; background: rgba(255,255,255,0.03); color:var(--r-muted); border:1px solid var(--r-border); }
+
+  /* ── PATRİCİİ vs PLEBLER ─────────────────────────────── */
+  .r-vs-row { align-items: center; margin: 32px 0; }
+  .r-vs-label {
+    font-family: 'Cinzel', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--r-gold);
+    text-align: center;
+  }
+  .r-class-card {
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid var(--r-border);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .r-class-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.4); }
+  .r-patricii { background: linear-gradient(135deg, #2a1d05, #1a1205); border-color: rgba(197,160,40,0.4); }
+  .r-plebler  { background: linear-gradient(135deg, #0d1a0f, #071209); border-color: rgba(60,120,80,0.4); }
+  .r-class-icon { font-size: 2.5rem; margin-bottom: 12px; text-align: center; }
+  .r-class-card h4 { font-family:'Cinzel',serif; font-size:1rem; color:#fff; margin-bottom:12px; text-align:center; }
+  .r-class-list {
+    list-style: none;
+    padding: 0; margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .r-class-list li {
+    font-size: 0.82rem;
+    color: var(--r-muted);
+    padding-left: 16px;
+    position: relative;
+    line-height: 1.5;
+  }
+  .r-class-list li::before { content: '›'; position: absolute; left: 0; color: var(--r-gold); }
+
+  /* ── 12 LEVHA TABLETLERİ ─────────────────────────────── */
+  .r-tablets-grid { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+  .r-tablet {
+    border: 1px solid var(--r-border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: rgba(255,255,255,0.02);
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: opacity 0.5s calc(var(--idx) * 0.06s), transform 0.5s calc(var(--idx) * 0.06s);
+  }
+  .r-tablet.visible { opacity: 1; transform: translateX(0); }
+  .r-tablet-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--r-text);
+    text-align: left;
+    transition: background 0.15s;
+    font-family: inherit;
+  }
+  .r-tablet-header:hover { background: rgba(197,160,40,0.06); }
+  .r-tablet-num {
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    color: var(--r-gold);
+    width: 32px;
+    flex-shrink: 0;
+    text-align: center;
+  }
+  .r-tablet-title { font-weight: 700; font-size: 0.9rem; color: #fff; margin-bottom: 2px; }
+  .r-tablet-summary { font-size: 0.78rem; color: var(--r-muted); line-height: 1.4; }
+  .r-tablet-arrow { margin-left: auto; font-size: 0.85rem; color: var(--r-gold); transition: transform 0.25s; flex-shrink: 0; }
+  .r-tablet-arrow.open { transform: rotate(180deg); }
+  .r-tablet-body { padding: 0 16px 16px 62px; border-top: 1px solid var(--r-border); }
+  .r-tablet-laws { padding-left: 16px; margin: 12px 0 0; display: flex; flex-direction: column; gap: 8px; }
+  .r-tablet-laws li { font-size: 0.83rem; color: #a89878; line-height: 1.7; }
+
+  /* ── CAESAR TIMELINE ─────────────────────────────────── */
+  .r-caesar-timeline { display: flex; flex-direction: column; gap: 0; }
+  .r-cstep {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    position: relative;
+    opacity: 0;
+    transform: translateX(-24px);
+    transition: opacity 0.5s calc(var(--idx)*0.12s), transform 0.5s calc(var(--idx)*0.12s);
+  }
+  .r-cstep.visible { opacity: 1; transform: translateX(0); }
+  .r-cstep-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(197,160,40,0.1);
+    border: 2px solid var(--r-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+  }
+  .r-cstep-body { flex: 1; padding: 6px 0 24px; }
+  .r-cstep-title { font-family:'Cinzel',serif; font-size:1rem; color:var(--r-gold); margin-bottom:6px; }
+  .r-cstep-desc { font-size:0.88rem; color:var(--r-muted); line-height:1.8; }
+  .r-cstep-arrow { text-align: center; color: var(--r-border); font-size: 1.2rem; margin: -12px 0 -12px 24px; }
+
+  /* ── ÖNEMLİ İSİMLER ──────────────────────────────────── */
+  .r-figures-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .r-figure-card {
+    border-radius: 14px;
+    padding: 20px 16px;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: default;
+  }
+  .r-figure-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(0,0,0,0.5); }
+  .r-figure-emoji { font-size: 2.2rem; margin-bottom: 6px; }
+  .r-figure-era { font-size: 0.7rem; color: var(--r-gold); font-family:'Cinzel',serif; margin-bottom: 4px; letter-spacing:1px; }
+  .r-figure-name { font-family:'Cinzel',serif; font-size:0.95rem; color:#fff; margin:4px 0; }
+  .r-figure-role { font-size:0.72rem; color:var(--r-muted); margin-bottom:10px; }
+  .r-figure-desc { font-size:0.78rem; color:#8a7a5a; line-height:1.7; }
+
+  /* ── COLOSSEUM CARD ──────────────────────────────────── */
+  .r-colosseum {
+    border-radius: 16px;
+    padding: 28px 24px;
+    text-align: center;
+  }
+  .r-col-arch { font-size: 4rem; animation: r-glow 3s infinite; }
+  @keyframes r-glow { 0%,100%{filter:drop-shadow(0 0 0 rgba(197,160,40,0))} 50%{filter:drop-shadow(0 0 12px rgba(197,160,40,0.5))} }
+  .r-col-facts { display:flex; flex-direction:column; gap:6px; margin-top:16px; }
+  .r-col-facts span { font-size:0.8rem; color:var(--r-muted); }
+
+  /* ── QUİZ ─────────────────────────────────────────────── */
+  .r-q-counter { font-family:'Cinzel',serif; font-size:0.78rem; color:var(--r-gold); letter-spacing:2px; }
+  .r-qdot { width:10px; height:10px; border-radius:50%; background:rgba(197,160,40,0.2); transition:background 0.3s; }
+  .r-qdot.active  { background: var(--r-gold); }
+  .r-qdot.correct { background: #22c55e; }
+  .r-qdot.wrong   { background: #ef4444; }
+  .r-qtext { font-size:1rem; font-weight:600; color:#e8dfc8; margin-bottom:20px; line-height:1.65; }
+  .r-qopts { display:flex; flex-direction:column; gap:10px; }
+  .r-qopt {
+    width: 100%;
+    text-align: left;
+    padding: 13px 18px;
+    border: 1px solid rgba(197,160,40,0.2);
+    border-radius: 10px;
+    background: rgba(197,160,40,0.03);
+    color: #c8b99a;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-family: inherit;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  }
+  .r-qopt:hover:not([disabled]) {
+    background: rgba(197,160,40,0.1);
+    border-color: var(--r-gold);
+    transform: translateX(4px);
+  }
+  .r-qopt[disabled] { cursor: default; }
+  .r-qopt.correct { background: rgba(34,197,94,0.15) !important; border-color:#22c55e !important; color:#86efac; }
+  .r-qopt.wrong   { background: rgba(239,68,68,0.15) !important; border-color:#ef4444 !important; color:#fca5a5; }
+
+  .r-btn {
+    background: var(--r-gold);
+    color: #0f0c08;
+    border: none;
+    border-radius: 24px;
+    padding: 10px 28px;
+    font-weight: 700;
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .r-btn:hover { opacity: 0.85; }
+
+  /* ── FOOTER ──────────────────────────────────────────── */
+  .r-footer {
+    background: #0a0806;
+    border-top: 1px solid var(--r-border);
+    text-align: center;
+    padding: 40px 24px;
+    font-family: 'Cinzel', serif;
+    color: var(--r-muted);
+    font-size: 0.85rem;
+  }
+  .r-footer-eagle { font-size: 2.5rem; margin-bottom: 8px; opacity: 0.4; }
+  .r-footer-spqr { letter-spacing: 6px; font-size: 0.75rem; color: var(--r-gold); margin-bottom: 12px; }
+
+  /* ── REVEAL ──────────────────────────────────────────── */
+  .reveal { opacity:0; transform:translateY(30px); transition:opacity 0.7s ease-out, transform 0.7s ease-out; }
+  .reveal.visible { opacity:1; transform:translateY(0); }
+
+  /* ── RESPONSIVE ──────────────────────────────────────── */
+  @media (max-width:760px) {
+    .r-two-col, .r-vs-row   { grid-template-columns: 1fr; }
+    .r-figures-grid          { grid-template-columns: repeat(2,1fr); }
+    .r-era-nav               { display: none; }
+    .r-hero-stats            { gap: 20px; }
+    .r-vs-label              { display: none; }
+  }
+  @media (max-width:480px) {
+    .r-figures-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<script>
+// ── PARÇACIKLAR ───────────────────────────────────────────────────────────────
+const container = document.getElementById('r-particles')!;
+for (let i = 0; i < 30; i++) {
+  const el = document.createElement('div');
+  el.className = 'r-particle';
+  const size = Math.random() * 4 + 1;
+  el.style.cssText = `
+    width:${size}px; height:${size}px;
+    left:${Math.random()*100}%;
+    top:${Math.random()*100}%;
+    --dur:${Math.random()*8+4}s;
+    --delay:-${Math.random()*8}s;
+  `;
+  container.appendChild(el);
+}
+
+// ── SAYAÇLAR ─────────────────────────────────────────────────────────────────
+function countUp(el: HTMLElement, target: number, dur = 1800) {
+  const start = performance.now();
+  const update = (now: number) => {
+    const t = Math.min((now - start) / dur, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+    el.textContent = Math.floor(ease * target).toLocaleString('tr');
+    if (t < 1) requestAnimationFrame(update);
+  };
+  requestAnimationFrame(update);
+}
+
+const heroObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      document.querySelectorAll<HTMLElement>('.r-stat-num').forEach(el => {
+        countUp(el, parseInt(el.dataset.target!));
+      });
+      heroObs.disconnect();
+    }
+  });
+}, { threshold: 0.3 });
+
+const heroStats = document.querySelector('.r-hero-stats');
+if (heroStats) heroObs.observe(heroStats);
+
+// ── SCROLL REVEAL ─────────────────────────────────────────────────────────────
+const revObs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal, .r-tablet, .r-cstep').forEach(el => revObs.observe(el));
+
+// ── ERA NAV AKTIF ─────────────────────────────────────────────────────────────
+const sections = ['krallik', 'cumhuriyet', 'imparatorluk'].map(id => document.getElementById(id)!);
+const eraObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const id = e.target.id;
+      document.querySelectorAll('.r-era-btn').forEach(b => {
+        (b as HTMLElement).classList.toggle('active', (b as HTMLElement).dataset.section === id);
+      });
+    }
+  });
+}, { threshold: 0.4 });
+sections.forEach(s => eraObs.observe(s));
+
+// ── TABLET ACCORDION ──────────────────────────────────────────────────────────
+document.querySelectorAll<HTMLButtonElement>('.r-tablet-header').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const idx = btn.dataset.idx!;
+    const body  = document.getElementById(`tablet-body-${idx}`)!;
+    const arrow = btn.querySelector('.r-tablet-arrow')!;
+    const open  = body.style.display !== 'none';
+    body.style.display  = open ? 'none' : 'block';
+    arrow.classList.toggle('open', !open);
+  });
+});
+
+// ── QUİZ ─────────────────────────────────────────────────────────────────────
+const CORRECT_R = [1, 2, 2, 2]; // dişi kurt, forum romanum, iç savaş, köleler
+const TOTAL_R   = 4;
+let rQ = 0, rScore = 0;
+
+function rShowQ(n: number) {
+  for (let i = 0; i < TOTAL_R; i++) {
+    (document.getElementById(`r-question-${i}`) as HTMLElement).style.display = i === n ? 'block' : 'none';
+  }
+  (document.getElementById('r-q-counter') as HTMLElement).textContent = `SORU ${n+1} / ${TOTAL_R}`;
+  rUpdateDots();
+}
+
+function rUpdateDots(idx?: number, ok?: boolean) {
+  for (let i = 0; i < TOTAL_R; i++) {
+    const dot = document.getElementById(`r-dot-${i}`) as HTMLElement;
+    dot.className = 'r-qdot';
+    if (i === rQ && idx === undefined) dot.classList.add('active');
+    else if (i < rQ) {
+      const res = dot.dataset.result;
+      if (res) dot.classList.add(res);
+    }
+  }
+  if (idx !== undefined) {
+    const dot = document.getElementById(`r-dot-${idx}`) as HTMLElement;
+    dot.dataset.result = ok ? 'correct' : 'wrong';
+    dot.className = `r-qdot ${ok ? 'correct' : 'wrong'}`;
+  }
+}
+
+document.querySelectorAll<HTMLButtonElement>('.r-qopt').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const q = parseInt(btn.dataset.q!);
+    if (q !== rQ) return;
+    const sel = parseInt(btn.dataset.i!);
+    const ok  = sel === CORRECT_R[q];
+    if (ok) rScore++;
+
+    document.querySelectorAll<HTMLButtonElement>(`.r-qopt[data-q="${q}"]`).forEach((b, i) => {
+      b.setAttribute('disabled', 'true');
+      if (i === CORRECT_R[q]) b.classList.add('correct');
+      else if (b === btn)     b.classList.add('wrong');
+    });
+    rUpdateDots(q, ok);
+
+    setTimeout(() => {
+      rQ++;
+      if (rQ < TOTAL_R) rShowQ(rQ);
+      else rShowResult();
+    }, 850);
+  });
+});
+
+function rShowResult() {
+  document.getElementById('r-q-progress')!.style.display = 'none';
+  for (let i = 0; i < TOTAL_R; i++) (document.getElementById(`r-question-${i}`) as HTMLElement).style.display = 'none';
+  document.getElementById('r-result')!.style.display = 'block';
+
+  const data = [
+    { icon:'⚔️', title:'Gladyatör Adayı!',   desc:'Henüz Forum Romanum\'a girmek için biraz daha çalışman gerekiyor.' },
+    { icon:'🛡️', title:'Lejyon Askeri',       desc:`${TOTAL_R} sorudan ${rScore} doğru. İyi bir başlangıç!` },
+    { icon:'🏛️', title:'Roma Vatandaşı',     desc:`${TOTAL_R} sorudan ${rScore} doğru. Senatoya bir adım kaldı!` },
+    { icon:'👑', title:'Senato Üyesi!',       desc:'Tebrikler! Roma tarihini avucunun içi gibi biliyorsun.' },
+    { icon:'🦅', title:'İmparator Augustus!', desc:'Kusursuz! Roma sana boyun eğiyor, büyük lider.' },
+  ][rScore] ?? { icon:'🦅', title:'İmparator!', desc:'Mükemmel.' };
+
+  (document.getElementById('r-result-icon')  as HTMLElement).textContent = data.icon;
+  (document.getElementById('r-result-title') as HTMLElement).textContent = data.title;
+  (document.getElementById('r-result-desc')  as HTMLElement).textContent = data.desc;
+}
+
+document.getElementById('r-restart')!.addEventListener('click', () => {
+  rQ = 0; rScore = 0;
+  document.querySelectorAll<HTMLButtonElement>('.r-qopt').forEach(b => {
+    b.removeAttribute('disabled');
+    b.classList.remove('correct', 'wrong');
+  });
+  for (let i = 0; i < TOTAL_R; i++) {
+    const d = document.getElementById(`r-dot-${i}`) as HTMLElement;
+    delete d.dataset.result;
+  }
+  document.getElementById('r-result')!.style.display = 'none';
+  document.getElementById('r-q-progress')!.style.display = 'flex';
+  rShowQ(0);
+});
+
+rShowQ(0);
+</script>

@@ -1,0 +1,674 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Kara Delikler" activeNav="discover">
+  <main class="main-content" style="max-width:100%; background:#050505; color:#e0e0e0; min-height:100vh;">
+
+    <div class="page-header" style="background:rgba(0,0,0,0.8); backdrop-filter:blur(12px); border-bottom:1px solid rgba(255,69,0,0.3); color:#e0e0e0; position:sticky; top:0; z-index:50;">
+      <a href="/" class="back-btn" style="color:#e0e0e0;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      </a>
+      <span style="font-family:'Orbitron',sans-serif; color:#ff4500;">KARA DELİKLER</span>
+      <span style="font-size:0.75rem; color:#536471; margin-left:8px;">İnteraktif Makale</span>
+    </div>
+
+    <!-- Canvas arka plan — z-index 0 -->
+    <canvas id="star-canvas"></canvas>
+
+    <div class="bh-content">
+
+      <!-- Hero -->
+      <header class="bh-hero reveal">
+        <div class="bh-container">
+          <div class="accretion-disk"></div>
+          <div class="event-horizon"></div>
+        </div>
+        <h1 class="bh-title">KARA DELİKLER</h1>
+        <p class="bh-subtitle">
+          Evrenin en gizemli yapılarına doğru interaktif bir yolculuğa çıkın.<br/>
+          Işığın bile kaçamadığı noktaya hoş geldiniz.
+        </p>
+        <a href="#nedir" class="bh-scroll-hint">↓</a>
+      </header>
+
+      <!-- 1. Nedir? -->
+      <section id="nedir" class="bh-section reveal">
+        <h2 class="bh-h2">Kara Delik Nedir?</h2>
+        <div class="bh-two-col">
+          <div>
+            <p class="bh-p">
+              Kara delikler, evrendeki en yoğun nesnelerdir. Bir bowling topunu düşünün, ancak ağırlığı Everest Dağı kadar olsun. Bu yoğunluk, uzay-zaman dokusunu öylesine büker ki,
+              <strong style="color:#ff8c00;">ışık bile kaçamaz</strong>.
+            </p>
+            <p class="bh-p">
+              Dev yıldızlar yakıtlarını tükettiklerinde kendi içlerine çökerler. Bu çöküş durdurulamaz bir noktaya geldiğinde, bir kara delik doğar.
+            </p>
+          </div>
+          <div class="glass-bh" style="padding:28px; border-radius:16px; text-align:center;">
+            <h3 style="font-size:1rem; margin-bottom:12px;">Yoğunluk Deneyi</h3>
+            <p style="font-size:0.8rem; color:#888; margin-bottom:20px;">Dünya'yı bir kara delik yapmak için ne kadar sıkıştırmalıyız?</p>
+            <div id="density-demo">
+              <div id="density-before">
+                <span style="font-size:3rem;">🌍</span>
+                <p style="color:#888; font-size:0.85rem; margin-top:8px;">Dünya (12,742 km çapı)</p>
+              </div>
+              <div id="density-after" style="display:none;">
+                <div style="width:12px; height:12px; background:#3b82f6; border-radius:50%; box-shadow:0 0 24px #3b82f6; margin:0 auto 12px;"></div>
+                <p style="color:#ff4500; font-weight:700;">3 cm Çapında!</p>
+                <p style="font-size:0.75rem; color:#888; margin-top:4px;">Tüm Dünya bir bilye boyutuna inerse kara delik olur.</p>
+              </div>
+            </div>
+            <button id="density-btn" class="bh-btn" style="margin-top:16px;">Sıkıştır!</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. Anatomi -->
+      <section id="anatomisi" class="bh-section reveal">
+        <h2 class="bh-h2" style="text-align:center;">Bir Canavarın Anatomisi</h2>
+        <div class="bh-three-col">
+          <div class="glass-bh bh-card">
+            <div class="bh-card-icon">🌀</div>
+            <h3>Olay Ufku</h3>
+            <p>Geri dönüşü olmayan nokta. Burayı geçen hiçbir şey, ışık dahil, evrenin geri kalanına dönemez. Kara deliğin "yüzeyi" gibidir.</p>
+          </div>
+          <div class="glass-bh bh-card">
+            <div class="bh-card-icon">⚫</div>
+            <h3>Tekillik (Singularity)</h3>
+            <p>Merkezdeki sonsuz yoğunluk noktası. Bildiğimiz fizik yasaları burada işlemez hale gelir. Uzay ve zaman burada biter.</p>
+          </div>
+          <div class="glass-bh bh-card">
+            <div class="bh-card-icon">💿</div>
+            <h3>Toplanma Diski</h3>
+            <p>Kara deliğin etrafında ışık hızına yakın dönen gaz ve toz bulutu. Sürtünmeden dolayı milyonlarca dereceye ısınır ve parlar.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. Kara Delikler Ne Yer? -->
+      <section id="turler" class="bh-section reveal">
+        <div class="glass-bh" style="padding:40px; border-radius:20px; position:relative; overflow:hidden;">
+          <!-- Arka plan parıltısı -->
+          <div style="position:absolute; top:-40px; right:-40px; width:200px; height:200px; background:#4b0082; border-radius:50%; filter:blur(80px); opacity:0.3; pointer-events:none;"></div>
+
+          <h2 class="bh-h2" style="margin-bottom:32px;">Kara Delikler Ne Yer?</h2>
+
+          <div class="bh-two-col" style="align-items:flex-start;">
+            <!-- Sol: Metin + Spagettileşme -->
+            <div style="display:flex; flex-direction:column; gap:16px;">
+              <p class="bh-p">
+                Filmlerin aksine, kara delikler bir "elektrikli süpürge" değildir. Onlar sadece yerçekimi çok güçlü olan nesnelerdir.
+              </p>
+              <p class="bh-p">
+                Eğer Güneşimiz aniden bir kara deliğe dönüşseydi (ki kütlesi yetmez), Dünya içine çekilmezdi. Sadece karanlıkta kalırdık ve aynı yörüngede dönmeye devam ederdik.
+              </p>
+              <div style="padding:16px; border:1px solid rgba(255,69,0,0.35); border-radius:12px; background:rgba(255,69,0,0.06);">
+                <h4 style="color:#ff8c00; font-weight:700; margin-bottom:8px;">⚠ Spagettileşme Nedir?</h4>
+                <p style="font-size:0.85rem; color:#aaa; line-height:1.7;">
+                  Bir kara deliğe ayaklarınız önde düşerseniz, ayaklarınızdaki çekim kuvveti başınızdakinden o kadar fazla olur ki, bir makarna gibi uzarsınız.
+                </p>
+                <div style="text-align:center; margin-top:16px;">
+                  <span id="astronaut" title="Üzerime gel!">👩‍🚀</span>
+                  <p style="font-size:0.7rem; color:#666; margin-top:6px;">(Astronotun üzerine gelin)</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sağ: Kara delik türleri -->
+            <div style="display:flex; flex-direction:column; gap:12px;">
+              <div class="glass-bh" style="padding:16px; border-radius:12px; display:flex; align-items:center; gap:16px;">
+                <div style="width:48px; height:48px; border-radius:50%; background:#374151; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1rem; flex-shrink:0;">1</div>
+                <div>
+                  <h4 style="font-weight:700; margin-bottom:4px;">Yıldızsal Kara Delikler</h4>
+                  <p style="font-size:0.8rem; color:#888;">Güneşin 10–20 katı kütleye sahip, evrende en yaygın tür.</p>
+                </div>
+              </div>
+              <div class="glass-bh" style="padding:16px; border-radius:12px; display:flex; align-items:center; gap:16px; border-color:rgba(255,69,0,0.4);">
+                <div style="width:48px; height:48px; border-radius:50%; background:#7c2d12; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1rem; color:#fb923c; flex-shrink:0;">2</div>
+                <div>
+                  <h4 style="font-weight:700; color:#fb923c; margin-bottom:4px;">Süper Kütleli Kara Delikler</h4>
+                  <p style="font-size:0.8rem; color:#888;">Milyonlarca Güneş kütlesi! Galaksimizin kalbindeki Sagittarius A* bu türdendir.</p>
+                </div>
+              </div>
+              <div class="glass-bh" style="padding:16px; border-radius:12px; display:flex; align-items:center; gap:16px;">
+                <div style="width:48px; height:48px; border-radius:50%; background:#1e3a5f; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1rem; color:#60a5fa; flex-shrink:0;">3</div>
+                <div>
+                  <h4 style="font-weight:700; color:#60a5fa; margin-bottom:4px;">Orta Kütleli Kara Delikler</h4>
+                  <p style="font-size:0.8rem; color:#888;">Binin üzerinde Güneş kütlesi, hâlâ araştırılıyor. Nadir bulunanlar var.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. Quiz -->
+      <section id="test" class="bh-section reveal">
+        <h2 class="bh-h2" style="text-align:center;">Olay Ufku Testi</h2>
+        <div class="glass-bh" style="padding:32px; border-radius:20px; max-width:680px; margin:0 auto;">
+
+          <!-- İlerleme -->
+          <div id="quiz-progress" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+            <span id="q-counter" class="q-counter-label">SORU 1 / 3</span>
+            <div style="display:flex; gap:8px;">
+              <div class="q-dot" id="dot-0"></div>
+              <div class="q-dot" id="dot-1"></div>
+              <div class="q-dot" id="dot-2"></div>
+            </div>
+          </div>
+
+          <!-- Sorular — sadece aktif olan görünür -->
+          <div id="question-0" class="quiz-question">
+            <p class="quiz-q-text">Bir kara delik, Dünya'yı içine çeker mi?</p>
+            <div class="quiz-options">
+              <button class="quiz-opt" data-q="0" data-i="0">Evet, hemen yutar!</button>
+              <button class="quiz-opt" data-q="0" data-i="1">Hayır, sadece yörüngede döneriz.</button>
+              <button class="quiz-opt" data-q="0" data-i="2">Sadece gece olduğunda.</button>
+              <button class="quiz-opt" data-q="0" data-i="3">Dünya'dan küçük olduğu için çekemez.</button>
+            </div>
+          </div>
+
+          <div id="question-1" class="quiz-question" style="display:none;">
+            <p class="quiz-q-text">Kara deliğin merkezindeki sonsuz yoğunluk noktasına ne denir?</p>
+            <div class="quiz-options">
+              <button class="quiz-opt" data-q="1" data-i="0">Olay Ufku</button>
+              <button class="quiz-opt" data-q="1" data-i="1">Süpernova</button>
+              <button class="quiz-opt" data-q="1" data-i="2">Tekillik (Singularity)</button>
+              <button class="quiz-opt" data-q="1" data-i="3">Wormhole</button>
+            </div>
+          </div>
+
+          <div id="question-2" class="quiz-question" style="display:none;">
+            <p class="quiz-q-text">Kara deliklerin fotoğrafını çeken projenin adı nedir?</p>
+            <div class="quiz-options">
+              <button class="quiz-opt" data-q="2" data-i="0">Hubble Teleskobu</button>
+              <button class="quiz-opt" data-q="2" data-i="1">James Webb</button>
+              <button class="quiz-opt" data-q="2" data-i="2">Olay Ufku Teleskobu (EHT)</button>
+              <button class="quiz-opt" data-q="2" data-i="3">NASA Black Hole Cam</button>
+            </div>
+          </div>
+
+          <!-- Sonuç -->
+          <div id="result-box" style="display:none; text-align:center; padding:8px 0;">
+            <div id="result-icon" style="font-size:4rem; margin-bottom:16px;"></div>
+            <h3 id="result-title" style="font-size:1.4rem; font-weight:700; margin-bottom:8px;"></h3>
+            <p id="result-desc" style="color:#aaa; margin-bottom:24px; font-size:0.9rem; line-height:1.6;"></p>
+            <button id="restart-btn" class="bh-btn">Tekrar Dene</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. Sonuç -->
+      <section class="bh-section reveal" style="text-align:center; padding-bottom:80px;">
+        <h2 class="bh-h2">Hawking Radyasyonu ve Evrenin Sonu</h2>
+        <p class="bh-p" style="max-width:640px; margin:0 auto 24px; color:#aaa;">
+          Trilyonlarca yıl sonra yıldızlar söndüğünde, evrende sadece kara delikler kalacak. Stephen Hawking'in teorisine göre, onlar da çok yavaş bir şekilde radyasyon yayarak buharlaşacaklar. Ve sonunda, evren sessizliğe gömülecek.
+        </p>
+        <div class="glass-bh" style="display:inline-block; padding:12px 24px; border-radius:12px; font-size:0.85rem;">
+          <span style="color:#888;">Hazırlayan:</span>
+          <span style="color:#ff4500; font-weight:700; margin-left:6px;">Kaan Çoban</span>
+        </div>
+      </section>
+
+    </div><!-- /bh-content -->
+  </main>
+</BaseLayout>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap');
+
+  /* Canvas arka plan */
+  #star-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+    background: radial-gradient(circle at center, #1a0b2e 0%, #000000 100%);
+    pointer-events: none;
+  }
+
+  /* İçerik katmanı canvas'ın üstünde */
+  .bh-content {
+    position: relative;
+    z-index: 1;
+    font-family: 'Exo 2', sans-serif;
+    padding-bottom: 40px;
+  }
+
+  /* Hero */
+  .bh-hero {
+    min-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 80px 24px 40px;
+  }
+  .bh-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(2rem, 8vw, 5rem);
+    font-weight: 900;
+    margin: 24px 0 16px;
+    text-shadow: 0 0 30px rgba(255,69,0,0.7), 0 0 60px rgba(255,69,0,0.3);
+    color: #fff;
+  }
+  .bh-subtitle {
+    font-size: clamp(0.9rem, 2vw, 1.1rem);
+    color: #b0b0b0;
+    max-width: 580px;
+    line-height: 1.8;
+  }
+  .bh-scroll-hint {
+    margin-top: 40px;
+    font-size: 1.5rem;
+    color: #ff4500;
+    text-decoration: none;
+    animation: bounce 2s infinite;
+  }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(8px)} }
+
+  /* Kara delik animasyonu */
+  .bh-container {
+    position: relative;
+    width: 280px; height: 280px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .accretion-disk {
+    position: absolute;
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, transparent 0%, #ff8c00 40%, #ff4500 60%, transparent 100%);
+    animation: spin 2s linear infinite;
+    filter: blur(10px);
+    opacity: 0.85;
+    box-shadow: 0 0 60px #ff4500;
+  }
+  .event-horizon {
+    position: absolute;
+    width: 58%; height: 58%;
+    background: #000;
+    border-radius: 50%;
+    box-shadow: 0 0 20px #000, inset 0 0 20px rgba(255,69,0,0.6);
+    z-index: 2;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Bölüm */
+  .bh-section {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 60px 24px 20px;
+  }
+  .bh-h2 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(1.2rem, 3vw, 1.8rem);
+    color: #ff4500;
+    border-left: 4px solid #ff4500;
+    padding-left: 16px;
+    margin-bottom: 28px;
+  }
+  /* Başlığı ortaya aldığımızda kenarlık olmadan */
+  .bh-h2[style*="text-align:center"] {
+    border-left: none;
+    padding-left: 0;
+  }
+  .bh-p {
+    color: #b0b0b0;
+    line-height: 1.85;
+    margin-bottom: 14px;
+    font-size: 0.95rem;
+  }
+
+  /* Glass card */
+  .glass-bh {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    transition: transform 0.25s, box-shadow 0.25s;
+  }
+  .glass-bh:hover { box-shadow: 0 8px 28px rgba(255,69,0,0.18); }
+
+  /* İki ve üç sütun grid */
+  .bh-two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    align-items: center;
+  }
+  .bh-three-col {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  .bh-card {
+    padding: 28px;
+    text-align: center;
+    cursor: default;
+  }
+  .bh-card-icon { font-size: 2.5rem; margin-bottom: 14px; }
+  .bh-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 10px; }
+  .bh-card p  { font-size: 0.82rem; color: #888; line-height: 1.65; }
+
+  /* Astronot — hover ile spagettileşme */
+  #astronaut {
+    font-size: 3.5rem;
+    display: inline-block;
+    transition: transform 1s ease, filter 1s ease;
+    cursor: help;
+  }
+  #astronaut:hover {
+    transform: scaleY(3.5) scaleX(0.4);
+    filter: blur(1px);
+  }
+
+  /* Button */
+  .bh-btn {
+    background: #ff4500;
+    border: none;
+    border-radius: 24px;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 10px 24px;
+    cursor: pointer;
+    transition: background 0.15s;
+    font-family: inherit;
+  }
+  .bh-btn:hover { background: #e03d00; }
+
+  /* Quiz */
+  .q-counter-label {
+    font-size: 0.8rem;
+    color: #ff4500;
+    font-family: 'Orbitron', sans-serif;
+    letter-spacing: 1px;
+  }
+  .quiz-q-text {
+    font-size: 1.05rem;
+    font-weight: 600;
+    line-height: 1.65;
+    margin-bottom: 20px;
+    color: #e0e0e0;
+  }
+  .quiz-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .quiz-opt {
+    width: 100%;
+    text-align: left;
+    padding: 14px 18px;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.04);
+    color: #e0e0e0;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-family: 'Exo 2', sans-serif;
+    line-height: 1.4;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  }
+  .quiz-opt:hover:not([disabled]) {
+    background: rgba(255,255,255,0.09);
+    border-color: rgba(255,69,0,0.55);
+    transform: translateX(4px);
+  }
+  .quiz-opt[disabled] { cursor: default; }
+  .quiz-opt.correct {
+    background: rgba(34,197,94,0.15) !important;
+    border-color: #22c55e !important;
+    color: #86efac;
+  }
+  .quiz-opt.wrong {
+    background: rgba(239,68,68,0.15) !important;
+    border-color: #ef4444 !important;
+    color: #fca5a5;
+  }
+
+  /* İlerleme noktaları */
+  .q-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    transition: background 0.3s;
+  }
+  .q-dot.active  { background: #ff4500; }
+  .q-dot.correct { background: #22c55e; }
+  .q-dot.wrong   { background: #ef4444; }
+
+  /* Scroll reveal */
+  .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* Responsive */
+  @media (max-width: 767px) {
+    .bh-two-col, .bh-three-col { grid-template-columns: 1fr; }
+  }
+</style>
+
+<script>
+// ─── 1. YILDIZ ALANI ─────────────────────────────────────────────────────────
+const canvas = document.getElementById('star-canvas') as HTMLCanvasElement;
+const ctx = canvas.getContext('2d')!;
+let W = 0, H = 0;
+const mouse = { x: -1000, y: -1000 };
+
+class Star {
+  x: number; y: number;
+  size: number; baseSize: number;
+  speedX: number; speedY: number;
+  brightness: number;
+
+  constructor() {
+    this.x = Math.random() * W;
+    this.y = Math.random() * H;
+    this.size = Math.random() * 2;
+    this.baseSize = this.size;
+    this.speedX = (Math.random() - 0.5) * 0.2;
+    this.speedY = (Math.random() - 0.5) * 0.2;
+    this.brightness = Math.random();
+  }
+
+  update() {
+    // Kendi hareketi
+    this.x += this.speedX;
+    this.y += this.speedY;
+
+    // Ekran sınırlarını sar
+    if (this.x < 0) this.x = W;
+    if (this.x > W) this.x = 0;
+    if (this.y < 0) this.y = H;
+    if (this.y > H) this.y = 0;
+
+    // Fare çekimi (kara delik efekti)
+    const dx = mouse.x - this.x;
+    const dy = mouse.y - this.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const maxDist = 300;
+
+    if (dist < maxDist && dist > 0) {
+      const force = (maxDist - dist) / maxDist;
+      // Fareye doğru çek
+      this.x += (dx / dist) * force * 5;
+      this.y += (dy / dist) * force * 5;
+      // Yaklaştıkça büyü
+      this.size = this.baseSize + force * 2;
+    } else {
+      this.size = this.baseSize;
+    }
+  }
+
+  draw() {
+    ctx.fillStyle = `rgba(255, 255, 255, ${this.brightness})`;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+let stars: Star[] = [];
+
+function resize() {
+  W = window.innerWidth;
+  H = window.innerHeight;
+  canvas.width = W;
+  canvas.height = H;
+  // Yeniden başlat — yoğunluk ekrana göre
+  stars = [];
+  const count = Math.floor((W * H) / 3000);
+  for (let i = 0; i < count; i++) stars.push(new Star());
+}
+
+function animate() {
+  ctx.clearRect(0, 0, W, H);
+  for (const s of stars) { s.update(); s.draw(); }
+  requestAnimationFrame(animate);
+}
+
+window.addEventListener('resize', resize);
+window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+window.addEventListener('touchmove', e => {
+  mouse.x = e.touches[0].clientX;
+  mouse.y = e.touches[0].clientY;
+}, { passive: true });
+
+resize();
+animate();
+
+// ─── 2. SCROLL REVEAL ────────────────────────────────────────────────────────
+const revealObs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+
+// ─── 3. YOĞUNLUK DENEYİ ──────────────────────────────────────────────────────
+const densityBtn = document.getElementById('density-btn') as HTMLButtonElement;
+const densityBefore = document.getElementById('density-before') as HTMLElement;
+const densityAfter  = document.getElementById('density-after')  as HTMLElement;
+
+densityBtn.addEventListener('click', () => {
+  const showing = densityAfter.style.display !== 'none';
+  densityBefore.style.display = showing ? 'block' : 'none';
+  densityAfter.style.display  = showing ? 'none'  : 'block';
+  densityBtn.textContent = showing ? 'Sıkıştır!' : 'Geri Al';
+});
+
+// ─── 4. QUİZ ─────────────────────────────────────────────────────────────────
+// Doğru cevaplar (0-indexed)
+const CORRECT = [1, 2, 2]; // Q0→idx1, Q1→idx2, Q2→idx2
+const TOTAL = 3;
+
+let currentQ = 0;
+let score = 0;
+
+function showQuestion(n: number) {
+  for (let i = 0; i < TOTAL; i++) {
+    const el = document.getElementById(`question-${i}`) as HTMLElement;
+    el.style.display = i === n ? 'block' : 'none';
+  }
+  (document.getElementById('q-counter') as HTMLElement).textContent =
+    `SORU ${n + 1} / ${TOTAL}`;
+  updateDots();
+}
+
+function updateDots(answeredIdx?: number, isCorrect?: boolean) {
+  for (let i = 0; i < TOTAL; i++) {
+    const dot = document.getElementById(`dot-${i}`) as HTMLElement;
+    dot.className = 'q-dot';
+    if (i < currentQ) {
+      // zaten cevaplandı — class bilgisini data-result attribute'tan al
+      const prevResult = dot.dataset.result;
+      if (prevResult === 'correct') dot.classList.add('correct');
+      else if (prevResult === 'wrong') dot.classList.add('wrong');
+    } else if (i === currentQ) {
+      dot.classList.add('active');
+    }
+  }
+  // Yeni cevap işaretle
+  if (answeredIdx !== undefined) {
+    const dot = document.getElementById(`dot-${answeredIdx}`) as HTMLElement;
+    dot.dataset.result = isCorrect ? 'correct' : 'wrong';
+    dot.className = `q-dot ${isCorrect ? 'correct' : 'wrong'}`;
+  }
+}
+
+// Tüm quiz-opt butonlarına listener ekle
+document.querySelectorAll<HTMLButtonElement>('.quiz-opt').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const q = parseInt(btn.dataset.q!);
+    const selected = parseInt(btn.dataset.i!);
+    if (q !== currentQ) return; // yanlış soru gösteriliyorsa yoksay
+
+    const correct = CORRECT[q];
+    const isRight = selected === correct;
+    if (isRight) score++;
+
+    // O sorunun tüm butonlarını kilitle ve renklendir
+    document.querySelectorAll<HTMLButtonElement>(`.quiz-opt[data-q="${q}"]`).forEach((b, _i) => {
+      b.setAttribute('disabled', 'true');
+      const idx = parseInt(b.dataset.i!);
+      if (idx === correct) b.classList.add('correct');
+      else if (b === btn) b.classList.add('wrong');
+    });
+
+    updateDots(q, isRight);
+
+    setTimeout(() => {
+      currentQ++;
+      if (currentQ < TOTAL) {
+        showQuestion(currentQ);
+      } else {
+        showResult();
+      }
+    }, 850);
+  });
+});
+
+function showResult() {
+  document.getElementById('quiz-progress')!.style.display = 'none';
+  for (let i = 0; i < TOTAL; i++) {
+    (document.getElementById(`question-${i}`) as HTMLElement).style.display = 'none';
+  }
+  const rb = document.getElementById('result-box') as HTMLElement;
+  rb.style.display = 'block';
+
+  const data = [
+    { icon: '🍝', title: 'Spagetti Oldun!',    desc: 'Olay ufkuna yakalandın. Biraz daha okuyup tekrar dene!' },
+    { icon: '👩‍🚀', title: 'Uzay Kaşifi',       desc: `${TOTAL} sorudan ${score} tanesini bildin. İyi iş!` },
+    { icon: '👩‍🚀', title: 'Uzay Kaşifi',       desc: `${TOTAL} sorudan ${score} tanesini bildin. İyi iş!` },
+    { icon: '🌌', title: 'Evrenin Hakimi!',    desc: 'Tebrikler, bir kara delikten bile kaçabilecek bilgiye sahipsin!' },
+  ][score];
+
+  (document.getElementById('result-icon')  as HTMLElement).textContent = data.icon;
+  (document.getElementById('result-title') as HTMLElement).textContent = data.title;
+  (document.getElementById('result-desc')  as HTMLElement).textContent = data.desc;
+}
+
+document.getElementById('restart-btn')!.addEventListener('click', () => {
+  currentQ = 0; score = 0;
+
+  // Tüm butonları sıfırla
+  document.querySelectorAll<HTMLButtonElement>('.quiz-opt').forEach(b => {
+    b.removeAttribute('disabled');
+    b.classList.remove('correct', 'wrong');
+  });
+  // Dot result'larını sıfırla
+  for (let i = 0; i < TOTAL; i++) {
+    const dot = document.getElementById(`dot-${i}`) as HTMLElement;
+    delete dot.dataset.result;
+  }
+
+  document.getElementById('result-box')!.style.display = 'none';
+  document.getElementById('quiz-progress')!.style.display = 'flex';
+  showQuestion(0);
+});
+
+// Başlat
+showQuestion(0);
+</script>

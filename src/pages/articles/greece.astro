@@ -1,0 +1,1628 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const gods = [
+  { name: 'Zeus',     domain: 'Gökyüzü & Şimşek', emoji: '⚡', color: '#f5c518',
+    desc: 'Olimpos\'un baş tanrısı. Şimşek ve fırtınanın efendisi, tanrıların ve insanların babası.',
+    symbol: 'Yıldırım, Kartal, Meşe' },
+  { name: 'Athena',   domain: 'Bilgelik & Savaş',  emoji: '🦉', color: '#7ec8e3',
+    desc: 'Atina\'nın koruyucu tanrıçası. Bilgelik, zanaat ve savaş stratejisinin simgesi. Zeus\'un başından doğdu.',
+    symbol: 'Baykuş, Zeytin Dalı, Miğfer' },
+  { name: 'Poseidon', domain: 'Deniz & Deprem',    emoji: '🔱', color: '#1a6fa8',
+    desc: 'Denizlerin ve depremlerin efendisi. Gemicilerin duaları ona yönelirdi; öfkelenince denizleri kasırgaya döndürürdü.',
+    symbol: 'Trident, At, Boğa' },
+  { name: 'Apollo',   domain: 'Güneş & Kehanet',   emoji: '☀️', color: '#f9a620',
+    desc: 'Güneş, müzik ve kehanet tanrısı. Delphi kehanet merkezi ona adanmıştı. Artemis\'in ikiz kardeşi.',
+    symbol: 'Lir, Ok-Yay, Defne Dalı' },
+  { name: 'Ares',     domain: 'Savaş',             emoji: '⚔️', color: '#c1121f',
+    desc: 'Savaşın ve şiddetin tanrısı. Sparta\'nın özellikle sevdiği tanrıydı. Savaş meydanlarında dehşet saçardı.',
+    symbol: 'Mızrak, Kalkan, Köpek' },
+  { name: 'Hermes',   domain: 'Ticaret & Elçilik', emoji: '🪽', color: '#a8dadc',
+    desc: 'Tanrıların habercisi ve gezginlerin koruyucusu. Ölüleri yeraltına taşır; ticaret ve hırsızlığın da tanrısıydı.',
+    symbol: 'Kanatlı Sandalet, Caduceus' },
+  { name: 'Artemis',  domain: 'Av & Ay',           emoji: '🌙', color: '#b9a0c4',
+    desc: 'Av ve ay tanrıçası, Apollo\'nun ikiz kız kardeşi. Vahşi doğanın ve gençliğin koruyucusuydu.',
+    symbol: 'Ok-Yay, Geyik, Ay Hilali' },
+  { name: 'Dionysos', domain: 'Şarap & Sevinç',   emoji: '🍇', color: '#7b2d8b',
+    desc: 'Bağ, şarap ve tiyatronun tanrısı. Tragedya ve komedi oyunları ona onuruna yapılırdı.',
+    symbol: 'Üzüm Salkımı, Sarmaşık, Thyrsos' },
+];
+
+const alexTimeline = [
+  { year: 'MÖ 356', event: 'Doğum',    desc: 'Büyük İskender Makedonya\'da doğdu. Aristoteles\'in öğrencisi olarak büyük bir eğitim aldı.' },
+  { year: 'MÖ 336', event: 'Tahta',    desc: 'Babası II. Philippos suikasta kurban gidince 20 yaşında kral oldu. Yunan şehirlerini kısa sürede yeniden kontrolüne aldı.' },
+  { year: 'MÖ 334', event: 'Granikos', desc: 'Anadolu\'ya geçen İskender, Granikos Nehri\'nde Pers kuvvetlerini ilk büyük savaşta bozguna uğrattı.' },
+  { year: 'MÖ 333', event: 'İssus',    desc: 'Kral III. Darius liderliğindeki Pers ordusunu İssus\'ta yenerek Akdeniz sahillerini ele geçirdi. Darius kaçtı.' },
+  { year: 'MÖ 331', event: 'Gaugamela',desc: 'Son büyük meydan savaşında Pers İmparatorluğu\'nu çökertti. Babil ve Persepolis\'e girdi.' },
+  { year: 'MÖ 323', event: 'Vefat',    desc: '32 yaşında Babil\'de hayatını kaybetti. Kısa sürede üç kıtaya yayılan imparatorluğu ardında bıraktı.' },
+];
+
+const compareBars = [
+  { label: 'Askeri Güç',     athens: 50, sparta: 95 },
+  { label: 'Demokrasi',      athens: 95, sparta: 20 },
+  { label: 'Sanat & Mimari', athens: 90, sparta: 35 },
+  { label: 'Felsefe',        athens: 95, sparta: 25 },
+  { label: 'Deniz Gücü',     athens: 80, sparta: 45 },
+  { label: 'Ticaret',        athens: 85, sparta: 30 },
+];
+
+const sports = [
+  { sport: 'Stadion',          icon: '🏃', desc: 'Yaklaşık 192 metre uzunluğundaki pistde koşu. İlk ve en prestijli Olimpiyat dalıydı.' },
+  { sport: 'Güreş',            icon: '🤼', desc: 'Rakibin omzunu yere değdirme esasına dayanırdı. En popüler dövüş sporuydu.' },
+  { sport: 'Pentathlon',       icon: '🥇', desc: 'Koşu, atlama, disk, cirit ve güreşten oluşan beşli müsabaka. En yüce atletik şereftir.' },
+  { sport: 'Boks',             icon: '🥊', desc: 'Deri bantlarla sarılı yumruklarla yapılır; hakem "dur!" deyene kadar sürerdi.' },
+  { sport: 'Arabalı Yarış',    icon: '🐎', desc: 'Hippodromda dört atın çektiği araba ile yapılırdı. En tehlikeli ve heyecanlı etkinlikti.' },
+  { sport: 'Pankration',       icon: '💪', desc: 'Güreş + boks karışımı tam temaslı dövüş. Isırma ve göz çıkarma dışında her şey serbestti.' },
+];
+
+const quizQuestions = [
+  { q: 'İlk Olimpiyat Oyunları hangi yılda düzenlendi?',
+    opts: ['MÖ 490', 'MÖ 776', 'MÖ 600', 'MÖ 323'], correct: 1,
+    explain: 'İlk Olimpiyat Oyunları MÖ 776\'da Olympia\'da Zeus onuruna düzenlendi ve 4 yılda bir tekrarlandı.' },
+  { q: 'Atina\'nın koruyucu tanrıçası kimdir?',
+    opts: ['Hera', 'Artemis', 'Demeter', 'Athena'], correct: 3,
+    explain: 'Athena, bilgelik ve savaş tanrıçasıdır. Atinalılar ona Akropol\'deki Parthenon\'u inşa etti.' },
+  { q: 'Büyük İskender ile III. Darius\'ın ilk savaşı hangisidir?',
+    opts: ['Granikos', 'İssus', 'Gaugamela', 'Thermopylae'], correct: 1,
+    explain: 'İskender ve Darius MÖ 333\'te İssus\'ta ilk kez karşılaştı. İskender galip geldi, Darius kaçtı.' },
+  { q: 'Theseus, Minotor\'u öldürmek için nereye gitti?',
+    opts: ['Olimpos Dağı', 'Truva', 'Girit labirenti', 'Sparta'], correct: 2,
+    explain: 'Theseus, Girit Adası\'ndaki labirente girdi. Ariadne\'nin verdiği ip yumağı sayesinde geri çıkabildi.' },
+];
+---
+
+<BaseLayout title="Antik Yunan" activeNav="greece">
+<div id="greece-page">
+
+  <!-- TOPBAR -->
+  <div class="g-topbar">
+    <a href="/" class="g-back">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+    </a>
+    <span class="g-topbar-title">Antik Yunan</span>
+    <nav class="g-era-nav">
+      <button class="g-era-btn active" data-target="kurulus">Kuruluş</button>
+      <button class="g-era-btn" data-target="sehirler">Şehirler</button>
+      <button class="g-era-btn" data-target="tanrilar">Tanrılar</button>
+      <button class="g-era-btn" data-target="iskender">İskender</button>
+    </nav>
+  </div>
+
+  <!-- HERO -->
+  <section class="g-hero">
+    <div class="g-hero-particles" id="g-particles"></div>
+    <div class="g-columns-silhouette">
+      <div class="g-col-sil"></div><div class="g-col-sil"></div>
+      <div class="g-col-sil"></div><div class="g-col-sil"></div>
+      <div class="g-col-sil"></div>
+    </div>
+    <div class="g-hero-content">
+      <div class="g-hero-subtitle">MÖ 800 — MÖ 323</div>
+      <h1 class="g-hero-title">ANTİK YUNAN</h1>
+      <p class="g-hero-tagline">Demokrasinin, felsefenin ve Olimpiyatların beşiği</p>
+      <div class="g-stats-row">
+        <div class="g-stat"><span class="g-count" data-target="776">0</span><small>MÖ İlk Olimpiyat</small></div>
+        <div class="g-stat"><span class="g-count" data-target="12">0</span><small>Olympos Tanrısı</small></div>
+        <div class="g-stat"><span class="g-count" data-target="32">0</span><small>İskender'in Yaşı</small></div>
+        <div class="g-stat"><span class="g-count" data-target="150">0</span><small>Delos Üyesi</small></div>
+      </div>
+    </div>
+    <div class="g-hero-waves">
+      <svg viewBox="0 0 1200 80" preserveAspectRatio="none">
+        <path d="M0,40 C200,80 400,0 600,40 C800,80 1000,0 1200,40 L1200,80 L0,80 Z" fill="#060d1a"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- SECTION: KURULUŞ -->
+  <section class="g-section" id="kurulus">
+    <div class="g-section-inner">
+      <h2 class="g-section-title"><span>⚡</span> Kuruluş &amp; Theseus Efsanesi</h2>
+      <div class="g-intro-text">
+        <p>Atina Uygarlığı, <strong>2500 km²'lik</strong> Attika yarımadası üzerinde kurulmuştur. Pire limanı ve Sefis Nehri'nin sunduğu imkânlarla büyüyen Atina, zamanla düşünce ve demokrasinin merkezi oldu.</p>
+      </div>
+
+      <!-- Interactive Theseus -->
+      <div class="g-theseus-card">
+        <div class="g-theseus-left">
+          <div class="g-labyrinth-icon">
+            <svg viewBox="0 0 100 100" width="120" height="120">
+              <rect x="5"  y="5"  width="90" height="90" fill="none" stroke="#c9a227" stroke-width="3"/>
+              <rect x="15" y="15" width="70" height="70" fill="none" stroke="#c9a227" stroke-width="2.5"/>
+              <rect x="25" y="25" width="50" height="50" fill="none" stroke="#c9a227" stroke-width="2"/>
+              <rect x="35" y="35" width="30" height="30" fill="none" stroke="#c9a227" stroke-width="1.5"/>
+              <!-- gaps to make it a maze -->
+              <line x1="5"  y1="40" x2="15" y2="40" stroke="#060d1a" stroke-width="4"/>
+              <line x1="15" y1="65" x2="25" y2="65" stroke="#060d1a" stroke-width="4"/>
+              <line x1="25" y1="35" x2="35" y2="35" stroke="#060d1a" stroke-width="4"/>
+              <line x1="35" y1="60" x2="45" y2="60" stroke="#060d1a" stroke-width="4"/>
+              <line x1="50" y1="35" x2="50" y2="25" stroke="#060d1a" stroke-width="4"/>
+              <line x1="65" y1="50" x2="75" y2="50" stroke="#060d1a" stroke-width="4"/>
+              <circle cx="50" cy="50" r="6" fill="#8b0000"/>
+              <circle cx="50" cy="50" r="3" fill="#ff2222"/>
+            </svg>
+          </div>
+          <div class="g-theseus-items">
+            <div class="g-titem"><span>🧵</span><small>Ariadne'nin İpi</small></div>
+            <div class="g-titem"><span>⚔️</span><small>Theseus'un Kılıcı</small></div>
+            <div class="g-titem"><span>🐂</span><small>Minotor'un Gazabı</small></div>
+          </div>
+        </div>
+        <div class="g-theseus-right">
+          <h3>Theseus &amp; Minotor Efsanesi</h3>
+          <p>Girit Adası'nın derinliklerinde, insan aklının kavrayamayacağı bir labirent. İçinde yarı insan yarı boğa bir canavar: <strong>Minotor</strong>. Atina'nın gençleri ona kurban edilmektedir. Tek bir yiğit adım öne çıkar.</p>
+          <p>Kral Minos'un kızı Ariadne Theseus'a altın bir ip verir — karanlıktan çıkışın tek rehberi. Artık geri dönüş yok.</p>
+          <button class="g-labirent-btn" id="open-labirent">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Labirente Gir
+          </button>
+        </div>
+      </div>
+
+      <!-- ── LABYRINTH MODAL ─────────────────────────────── -->
+      <div class="g-labi-modal" id="labirent-modal">
+        <div class="g-labi-backdrop"></div>
+        <div class="g-labi-inner">
+
+          <button class="g-labi-close" id="labi-close-x" title="Kapat">✕</button>
+
+          <!-- NARRATION BAR -->
+          <div class="g-labi-narr" id="labi-narr">Labirentin derinliklerine iniyorsun… Altın ipi takip et!</div>
+
+          <!-- PHASE: MAZE -->
+          <div id="phase-maze">
+            <canvas id="maze-canvas" width="308" height="308"></canvas>
+            <div class="g-maze-ctrl">
+              <div class="g-ctrl-row">
+                <button class="g-dir" data-dr="-1" data-dc="0">▲</button>
+              </div>
+              <div class="g-ctrl-row">
+                <button class="g-dir" data-dr="0" data-dc="-1">◀</button>
+                <div class="g-ctrl-center">Θ</div>
+                <button class="g-dir" data-dr="0" data-dc="1">▶</button>
+              </div>
+              <div class="g-ctrl-row">
+                <button class="g-dir" data-dr="1" data-dc="0">▼</button>
+              </div>
+            </div>
+            <p class="g-labi-hint">Klavye: ← ↑ → ↓ &nbsp;|&nbsp; Altın iple yolunu takip et!</p>
+          </div>
+
+          <!-- PHASE: BATTLE -->
+          <div id="phase-battle" style="display:none">
+            <div class="g-battle-hud">
+              <div class="g-fighter-hud">
+                <span class="g-fname theseus-name">⚔️ Theseus</span>
+                <div class="g-hp-track"><div class="g-hp-fill g-hp-t" id="hp-theseus-bar"></div></div>
+                <span class="g-hp-num" id="hp-theseus-num">100</span>
+              </div>
+              <div class="g-hud-vs">VS</div>
+              <div class="g-fighter-hud">
+                <span class="g-fname mino-name">Minotor 🐂</span>
+                <div class="g-hp-track"><div class="g-hp-fill g-hp-m" id="hp-mino-bar"></div></div>
+                <span class="g-hp-num" id="hp-mino-num">100</span>
+              </div>
+            </div>
+            <canvas id="battle-canvas" width="308" height="210"></canvas>
+            <button class="g-attack-btn" id="attack-btn">⚔️ SALDIRI!</button>
+            <p class="g-labi-hint">Hızlıca tıkla — Minotor da saldırıyor!</p>
+          </div>
+
+          <!-- PHASE: DEFEAT -->
+          <div id="phase-defeat" style="display:none">
+            <div class="g-victory-wrap">
+              <div class="g-victory-trophy">💀</div>
+              <h3 class="g-victory-title" style="color:#e74c3c">Minotor Kazandı!</h3>
+              <p class="g-victory-story">Güçlü bir darbesiyle Theseus devrild. Ama cesur yürekler yenilgiyi kabul etmez. Tekrar dene!</p>
+              <button class="g-close-victory" id="retry-battle">Tekrar Dene ⚔️</button>
+            </div>
+          </div>
+
+          <!-- PHASE: VICTORY -->
+          <div id="phase-victory" style="display:none">
+            <div class="g-victory-wrap">
+              <div class="g-victory-stars" id="victory-stars"></div>
+              <div class="g-victory-trophy">🏆</div>
+              <h3 class="g-victory-title">Minotor Yenildi!</h3>
+              <p class="g-victory-story">Theseus, labirentin derinliklerinde Minotor'u devirdi. Ariadne'nin altın ipi onu karanlıktan güneş ışığına çıkardı. Gemi Atina'ya döndüğünde tüm şehir coşkuyla karşıladı kahramanını.</p>
+              <p class="g-victory-quote">"Artık kimse kurban edilmeyecek." — Theseus</p>
+              <div class="g-victory-badges">
+                <span>🧵 İpi Takip Ettin</span>
+                <span>⚔️ Minotor'u Yendin</span>
+                <span>🌅 Gün Işığına Çıktın</span>
+              </div>
+              <button class="g-close-victory" id="close-victory">Efsaneyi Kapat</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="g-info-box">
+        <h3>⚓ Attika-Delos Birliği <span class="g-badge">MÖ 477 – 404</span></h3>
+        <p>Pers tehdidine karşı kurulan, 150'yi aşkın Grek kent devletini bir araya getiren askeri-siyasi ittifak. Perikles MÖ 454'te merkezi Atina'ya taşıdı. Atina'nın donanmayı kendi çıkarları için kullanması Peloponez Savaşı'nı (MÖ 431) patlattı ve birlik MÖ 404'te çöktü.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: ŞEHİR DEVLETLERİ -->
+  <section class="g-section g-section-alt" id="sehirler">
+    <div class="g-section-inner">
+      <h2 class="g-section-title"><span>🏛️</span> Şehir Devletleri</h2>
+      <p class="g-section-lead">Antik Yunan hiçbir zaman tek bir devlet değildi. Birbiriyle rekabet eden yüzlerce <em>polis</em> (şehir devleti) vardı. İkisi öne çıktı:</p>
+
+      <div class="g-vs-container">
+        <div class="g-vs-city athens">
+          <div class="g-vs-city-header">
+            <span class="g-vs-emblem">🦉</span>
+            <h3>Atina</h3>
+            <small>Demokrasi &amp; Bilgelik</small>
+          </div>
+          <ul class="g-vs-facts">
+            <li>Dünyanın ilk demokrasisini kurdu</li>
+            <li>Platon, Sokrates, Aristoteles vatandaşıydı</li>
+            <li>Parthenon ve Akropol'ün evi</li>
+            <li>Güçlü ticaret ve deniz filosu</li>
+            <li>Özgür vatandaşlar mecliste oy kullandı</li>
+          </ul>
+        </div>
+        <div class="g-vs-divider">VS</div>
+        <div class="g-vs-city sparta">
+          <div class="g-vs-city-header">
+            <span class="g-vs-emblem">⚔️</span>
+            <h3>Sparta</h3>
+            <small>Disiplin &amp; Güç</small>
+          </div>
+          <ul class="g-vs-facts">
+            <li>7 yaşında askerî eğitim başlar (agoge)</li>
+            <li>Yunanistan'ın en güçlü kara ordusu</li>
+            <li>Kadınlar mülk ve spor haklarına sahipti</li>
+            <li>Helot köleler tarım işlerini üstlendi</li>
+            <li>Thermopylae'de 300 kişiyle efsane yazdı</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="g-compare-bars" id="compare-bars">
+        {compareBars.map(row => (
+          <div class="g-bar-row">
+            <span class="g-bar-label">{row.label}</span>
+            <div class="g-bars">
+              <div class="g-bar-track">
+                <div class="g-bar-fill athens-fill" data-width={`${row.athens}%`}></div>
+                <span class="g-bar-val">{row.athens}</span>
+              </div>
+              <div class="g-bar-track">
+                <div class="g-bar-fill sparta-fill" data-width={`${row.sparta}%`}></div>
+                <span class="g-bar-val">{row.sparta}</span>
+              </div>
+            </div>
+          </div>
+        ))}
+        <div class="g-bar-legend">
+          <span class="athens-dot">● Atina</span>
+          <span class="sparta-dot">● Sparta</span>
+        </div>
+      </div>
+
+      <div class="g-pyramid-wrap">
+        <h3 class="g-sub-title">Sosyal Hiyerarşi (Atina)</h3>
+        <div class="g-pyramid">
+          <div class="g-p-level l1"><span>Soylular (Öpatridler)</span></div>
+          <div class="g-p-level l2"><span>Burjuva (Geomoreler)</span></div>
+          <div class="g-p-level l3"><span>Özgür Yabancılar (Metekler)</span></div>
+          <div class="g-p-level l4"><span>Köleler</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: OLİMPİYATLAR -->
+  <section class="g-section" id="olimpiyat">
+    <div class="g-section-inner">
+      <h2 class="g-section-title"><span>🏟️</span> Olimpiyat Oyunları</h2>
+      <p class="g-section-lead">MÖ 776'dan MÖ 393'e kadar her dört yılda bir Olympia'da düzenlendi. Savaşan kentler bile barış ilan ederdi.</p>
+      <div class="g-olympic-grid">
+        {sports.map(s => (
+          <div class="g-sport-card">
+            <div class="g-sport-icon">{s.icon}</div>
+            <h4>{s.sport}</h4>
+            <p>{s.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: TANRILAR -->
+  <section class="g-section g-section-alt" id="tanrilar">
+    <div class="g-section-inner">
+      <h2 class="g-section-title"><span>🌩️</span> Olimpos Tanrıları</h2>
+      <p class="g-section-lead">Her tanrının kendine özgü alanı ve sembolü vardı. Kartların üzerine gel!</p>
+      <div class="g-gods-grid">
+        {gods.map(god => (
+          <div class="g-god-card">
+            <div class="g-god-inner">
+              <div class="g-god-front" style={`--gc:${god.color}`}>
+                <div class="g-god-emoji">{god.emoji}</div>
+                <h4 class="g-god-name">{god.name}</h4>
+                <small>{god.domain}</small>
+              </div>
+              <div class="g-god-back" style={`--gc:${god.color}`}>
+                <p>{god.desc}</p>
+                <div class="g-god-symbol">🔑 {god.symbol}</div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: MİMARİ -->
+  <section class="g-section" id="mimari">
+    <div class="g-section-inner">
+      <h2 class="g-section-title"><span>🏛️</span> Yunan Mimarisi</h2>
+      <p class="g-section-lead">Üç farklı sütun düzeni tüm Batı mimarisinin temelini attı. Bir tanesini seç:</p>
+      <div class="g-arch-tabs">
+        <button class="g-arch-btn active" data-arch="doric">Dorik</button>
+        <button class="g-arch-btn" data-arch="ionic">İyonik</button>
+        <button class="g-arch-btn" data-arch="corinthian">Korint</button>
+      </div>
+      <div class="g-arch-panels">
+        <div class="g-arch-panel active" id="arch-doric">
+          <div class="g-col-visual">
+            <div class="g-cap doric-cap"></div>
+            <div class="g-shaft"></div>
+            <div class="g-base doric-base"></div>
+          </div>
+          <div class="g-arch-info">
+            <h3>Dorik Düzen</h3>
+            <p>En sade ve en eski Yunan sütun düzeni. Kalın ve güçlü gövde, yastık biçiminde başlık. Güç ve denge hissi verir.</p>
+            <ul>
+              <li><strong>Örnek:</strong> Parthenon (Atina Akropolü)</li>
+              <li><strong>Karakter:</strong> Erkeksi, güçlü, geometrik</li>
+              <li><strong>Dönem:</strong> MÖ 7. yüzyıldan itibaren</li>
+              <li><strong>Oran:</strong> 4:1 yükseklik/çap</li>
+            </ul>
+          </div>
+        </div>
+        <div class="g-arch-panel" id="arch-ionic">
+          <div class="g-col-visual">
+            <div class="g-cap ionic-cap"><span class="g-scroll"></span><span class="g-scroll"></span></div>
+            <div class="g-shaft"></div>
+            <div class="g-base ionic-base"></div>
+          </div>
+          <div class="g-arch-info">
+            <h3>İyonik Düzen</h3>
+            <p>Daha ince ve zarif gövde, volüt (spiral) başlık. Dorik'e göre daha kadınsı ve dekoratif bir karaktere sahiptir.</p>
+            <ul>
+              <li><strong>Örnek:</strong> Artemis Tapınağı (Efes)</li>
+              <li><strong>Karakter:</strong> İnce, zarif, spiralli</li>
+              <li><strong>Dönem:</strong> MÖ 6. yüzyıldan itibaren</li>
+              <li><strong>Oran:</strong> 8:1 yükseklik/çap</li>
+            </ul>
+          </div>
+        </div>
+        <div class="g-arch-panel" id="arch-corinthian">
+          <div class="g-col-visual">
+            <div class="g-cap corinthian-cap">
+              <span class="g-leaf"></span><span class="g-leaf"></span>
+              <span class="g-leaf"></span><span class="g-leaf"></span>
+            </div>
+            <div class="g-shaft"></div>
+            <div class="g-base ionic-base"></div>
+          </div>
+          <div class="g-arch-info">
+            <h3>Korint Düzeni</h3>
+            <p>En süslü ve en geç ortaya çıkan düzen. Akanthus yaprağı motifleriyle bezenmiş başlık. Roma döneminde zirveye ulaştı.</p>
+            <ul>
+              <li><strong>Örnek:</strong> Olympeion / Zeus Tapınağı (Atina)</li>
+              <li><strong>Karakter:</strong> Zengin, süslü, görkemli</li>
+              <li><strong>Dönem:</strong> MÖ 5. yüzyıldan itibaren</li>
+              <li><strong>Oran:</strong> 10:1 yükseklik/çap</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: BÜYÜK İSKENDER -->
+  <section class="g-section g-section-alt" id="iskender">
+    <div class="g-section-inner">
+      <h2 class="g-section-title"><span>🗺️</span> Büyük İskender</h2>
+      <p class="g-section-lead">32 yılda dünyanın gördüğü en büyük fetih harekâtını gerçekleştirdi. Yunan kültürünü üç kıtaya taşıdı.</p>
+      <div class="g-alex-timeline">
+        {alexTimeline.map((step, i) => (
+          <div class={`g-alex-step g-alex-${i % 2 === 0 ? 'left' : 'right'}`}>
+            <div class="g-alex-year">{step.year}</div>
+            <div class="g-alex-dot"></div>
+            <div class="g-alex-content">
+              <h4>{step.event}</h4>
+              <p>{step.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: QUIZ -->
+  <section class="g-section" id="quiz">
+    <div class="g-section-inner">
+      <h2 class="g-section-title"><span>📜</span> Antik Yunan Testi</h2>
+      <div class="g-quiz-box">
+        <div class="g-quiz-progress">
+          {quizQuestions.map((_, i) => (
+            <div class="g-prog-dot" data-qidx={i}></div>
+          ))}
+        </div>
+
+        {quizQuestions.map((qObj, qi) => (
+          <div class="g-question" id={`gq-${qi}`} style={qi !== 0 ? 'display:none' : ''}>
+            <p class="g-q-text">{qi + 1}. {qObj.q}</p>
+            <div class="g-opts">
+              {qObj.opts.map((opt, oi) => (
+                <button
+                  class="g-opt"
+                  data-qi={qi}
+                  data-oi={oi}
+                  data-correct={qObj.correct}
+                  data-explain={qObj.explain}
+                >{opt}</button>
+              ))}
+            </div>
+            <div class="g-explain" id={`gexplain-${qi}`}></div>
+          </div>
+        ))}
+
+        <div class="g-result" id="g-result" style="display:none">
+          <div class="g-result-score" id="g-result-score"></div>
+          <p class="g-result-msg" id="g-result-msg"></p>
+          <button class="g-restart-btn" id="g-restart">Tekrar Dene</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Lato:wght@300;400;700&display=swap');
+
+#greece-page {
+  --g-bg: #060d1a;
+  --g-navy: #0c1e3a;
+  --g-blue: #1a3d6b;
+  --g-gold: #c9a227;
+  --g-gold-light: #e8c55a;
+  --g-marble: #e8e0d0;
+  --g-text: #c8d4e4;
+  --g-muted: #7a96b8;
+  --g-athens: #4a90d9;
+  --g-sparta: #c94a4a;
+  background: var(--g-bg);
+  color: var(--g-text);
+  font-family: 'Lato', 'Segoe UI', sans-serif;
+  min-height: 100vh;
+}
+
+/* TOPBAR */
+.g-topbar {
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; gap: 1rem;
+  background: rgba(6,13,26,.94); backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(201,162,39,.2);
+  padding: .6rem 1.5rem;
+}
+.g-back {
+  color: var(--g-gold); display: flex; align-items: center;
+  text-decoration: none; padding: .3rem; border-radius: 50%;
+  transition: background .2s;
+}
+.g-back:hover { background: rgba(201,162,39,.15); }
+.g-topbar-title {
+  font-family: 'Cinzel', serif; font-weight: 700;
+  color: var(--g-gold); font-size: 1.05rem;
+}
+.g-era-nav { display: flex; gap: .4rem; margin-left: auto; flex-wrap: wrap; }
+.g-era-btn {
+  background: none; border: 1px solid rgba(201,162,39,.3); color: var(--g-muted);
+  padding: .25rem .7rem; border-radius: 20px; font-size: .75rem; cursor: pointer;
+  transition: all .2s; font-family: 'Cinzel', serif;
+}
+.g-era-btn.active, .g-era-btn:hover {
+  border-color: var(--g-gold); color: var(--g-gold); background: rgba(201,162,39,.1);
+}
+
+/* HERO */
+.g-hero {
+  position: relative; min-height: 54vh;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(ellipse at 30% 40%, #0d2547 0%, #060d1a 70%);
+  overflow: hidden; padding: 4rem 2rem 7rem; text-align: center;
+}
+.g-hero-content { position: relative; z-index: 2; }
+.g-hero-subtitle {
+  font-family: 'Cinzel', serif; color: var(--g-muted);
+  letter-spacing: .3em; font-size: .8rem; margin-bottom: .5rem;
+}
+.g-hero-title {
+  font-family: 'Cinzel', serif; font-size: clamp(2.5rem, 8vw, 6rem);
+  color: var(--g-gold); line-height: 1; margin: 0 0 .5rem;
+  text-shadow: 0 0 60px rgba(201,162,39,.4);
+}
+.g-hero-tagline { color: var(--g-marble); font-size: 1.1rem; opacity: .8; margin-bottom: 2.5rem; }
+.g-stats-row { display: flex; gap: 2.5rem; justify-content: center; flex-wrap: wrap; }
+.g-stat { text-align: center; }
+.g-count { font-family: 'Cinzel', serif; font-size: 2.2rem; font-weight: 700; color: var(--g-gold-light); display: block; }
+.g-stat small { font-size: .75rem; color: var(--g-muted); letter-spacing: .05em; }
+
+.g-hero-waves { position: absolute; bottom: 0; left: 0; width: 100%; z-index: 1; }
+.g-hero-waves svg { display: block; width: 100%; animation: wave-shift 6s ease-in-out infinite alternate; }
+@keyframes wave-shift { 0%{transform:scaleX(1)} 100%{transform:scaleX(1.06) translateX(-2%)} }
+
+.g-columns-silhouette {
+  position: absolute; bottom: 40px; left: 0; right: 0;
+  display: flex; justify-content: space-around; align-items: flex-end;
+  z-index: 1; pointer-events: none;
+}
+.g-col-sil {
+  width: 16px; background: linear-gradient(to top, rgba(201,162,39,.35), rgba(201,162,39,.04));
+  border-radius: 2px 2px 0 0; animation: col-glow 4s ease-in-out infinite;
+}
+.g-col-sil:nth-child(1){height:110px;animation-delay:0s}
+.g-col-sil:nth-child(2){height:155px;animation-delay:.6s}
+.g-col-sil:nth-child(3){height:135px;animation-delay:1.2s}
+.g-col-sil:nth-child(4){height:160px;animation-delay:1.8s}
+.g-col-sil:nth-child(5){height:125px;animation-delay:2.4s}
+@keyframes col-glow { 0%,100%{opacity:.35} 50%{opacity:.65} }
+
+.g-hero-particles { position: absolute; inset: 0; z-index: 0; overflow: hidden; }
+.g-hero-particles span {
+  position: absolute; border-radius: 50%;
+  background: var(--g-gold-light); opacity: 0;
+  animation: pdrift linear infinite;
+}
+@keyframes pdrift {
+  0%{transform:translateY(0) translateX(0);opacity:0}
+  10%{opacity:.5}
+  90%{opacity:.2}
+  100%{transform:translateY(-90px) translateX(25px);opacity:0}
+}
+
+/* SECTIONS */
+.g-section { padding: 5rem 1.5rem; }
+.g-section-alt { background: var(--g-navy); }
+.g-section-inner { max-width: 900px; margin: 0 auto; }
+.g-section-title {
+  font-family: 'Cinzel', serif; font-size: 1.8rem; color: var(--g-gold);
+  display: flex; align-items: center; gap: .6rem;
+  margin-bottom: 1.5rem; border-bottom: 1px solid rgba(201,162,39,.2);
+  padding-bottom: .75rem;
+}
+.g-section-lead { color: var(--g-marble); opacity: .85; margin-bottom: 2rem; line-height: 1.7; }
+.g-sub-title { font-family: 'Cinzel', serif; color: var(--g-gold); margin: 2.5rem 0 1rem; font-size: 1.15rem; }
+
+.g-intro-text {
+  background: rgba(26,61,107,.3); border-left: 3px solid var(--g-gold);
+  padding: 1rem 1.5rem; border-radius: 0 8px 8px 0; margin-bottom: 2rem; line-height: 1.8;
+}
+.g-intro-text strong { color: var(--g-gold-light); }
+
+/* STORY CARD */
+.g-story-card {
+  background: rgba(12,30,58,.6); border: 1px solid rgba(201,162,39,.2);
+  border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;
+}
+.g-story-header {
+  display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(201,162,39,.15); padding-bottom: 1rem;
+}
+.g-story-icon { font-size: 2rem; }
+.g-story-header h3 { font-family: 'Cinzel', serif; color: var(--g-gold); margin: 0; font-size: 1.15rem; }
+.g-story-header small { color: var(--g-muted); }
+.g-story-steps { display: flex; flex-direction: column; gap: 1rem; }
+.g-step { display: flex; gap: 1rem; align-items: flex-start; }
+.g-step-num {
+  flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
+  background: var(--g-gold); color: #000; font-weight: 700; font-size: .85rem;
+  display: flex; align-items: center; justify-content: center;
+}
+.g-step p { margin: 0; line-height: 1.7; color: var(--g-marble); font-size: .95rem; }
+.g-step em { color: var(--g-gold-light); font-style: italic; }
+
+.g-info-box {
+  background: rgba(26,61,107,.2); border: 1px solid rgba(201,162,39,.2);
+  border-radius: 10px; padding: 1.25rem 1.5rem;
+}
+.g-info-box h3 { font-family: 'Cinzel', serif; color: var(--g-gold); margin: 0 0 .75rem; font-size: 1.05rem; }
+.g-info-box p { line-height: 1.8; color: var(--g-marble); margin: 0; font-size: .95rem; }
+.g-badge {
+  background: rgba(201,162,39,.2); color: var(--g-gold);
+  padding: .1rem .5rem; border-radius: 20px; font-size: .73rem; font-family: 'Cinzel', serif;
+}
+
+/* VS */
+.g-vs-container { display: grid; grid-template-columns: 1fr auto 1fr; gap: 1.5rem; align-items: start; margin-bottom: 2.5rem; }
+.g-vs-city { background: rgba(12,30,58,.5); border-radius: 12px; padding: 1.5rem; border: 1px solid rgba(201,162,39,.1); }
+.g-vs-city.athens { border-top: 3px solid var(--g-athens); }
+.g-vs-city.sparta  { border-top: 3px solid var(--g-sparta); }
+.g-vs-city-header { text-align: center; margin-bottom: 1rem; }
+.g-vs-emblem { font-size: 2.4rem; display: block; margin-bottom: .2rem; }
+.g-vs-city-header h3 { font-family: 'Cinzel', serif; color: var(--g-gold); margin: 0; }
+.g-vs-city-header small { color: var(--g-muted); }
+.g-vs-facts { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .5rem; }
+.g-vs-facts li { font-size: .9rem; color: var(--g-marble); padding-left: 1rem; position: relative; }
+.g-vs-facts li::before { content: '·'; position: absolute; left: 0; color: var(--g-gold); }
+.g-vs-divider { font-family: 'Cinzel', serif; font-size: 1.6rem; color: var(--g-gold); align-self: center; text-align: center; }
+
+/* BARS */
+.g-compare-bars { background: rgba(12,30,58,.4); border-radius: 12px; padding: 1.5rem; }
+.g-bar-row { display: grid; grid-template-columns: 130px 1fr; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+.g-bar-label { font-size: .85rem; color: var(--g-marble); }
+.g-bars { display: flex; flex-direction: column; gap: .4rem; }
+.g-bar-track { display: flex; align-items: center; gap: .5rem; }
+.g-bar-fill { height: 8px; border-radius: 4px; width: 0; transition: width 1.2s ease; }
+.athens-fill { background: var(--g-athens); }
+.sparta-fill  { background: var(--g-sparta); }
+.g-bar-val { font-size: .75rem; color: var(--g-muted); min-width: 24px; }
+.g-bar-legend { display: flex; gap: 1.5rem; justify-content: center; margin-top: 1rem; font-size: .85rem; }
+.athens-dot { color: var(--g-athens); }
+.sparta-dot  { color: var(--g-sparta); }
+
+/* PYRAMID */
+.g-pyramid-wrap { margin-top: 2rem; }
+.g-pyramid { display: flex; flex-direction: column; align-items: center; gap: .35rem; }
+.g-p-level {
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 4px; padding: .6rem 1rem; font-size: .85rem;
+  font-weight: 600; transition: transform .2s;
+}
+.g-p-level:hover { transform: scaleX(1.02); }
+.l1 { width: 34%; background: var(--g-gold); color: #000; }
+.l2 { width: 54%; background: #b0831e; color: #000; }
+.l3 { width: 72%; background: #7a5c14; color: var(--g-marble); }
+.l4 { width: 88%; background: #4a3810; color: var(--g-text); }
+
+/* OLYMPIC */
+.g-olympic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; }
+.g-sport-card {
+  background: rgba(12,30,58,.5); border: 1px solid rgba(201,162,39,.15);
+  border-radius: 10px; padding: 1.25rem; transition: transform .2s, border-color .2s;
+}
+.g-sport-card:hover { transform: translateY(-3px); border-color: rgba(201,162,39,.4); }
+.g-sport-icon { font-size: 2rem; margin-bottom: .5rem; }
+.g-sport-card h4 { font-family: 'Cinzel', serif; color: var(--g-gold); margin: 0 0 .5rem; font-size: .95rem; }
+.g-sport-card p { font-size: .88rem; color: var(--g-text); margin: 0; line-height: 1.6; }
+
+/* GOD CARDS */
+.g-gods-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)); gap: 1.2rem; }
+.g-god-card { perspective: 800px; height: 205px; cursor: pointer; }
+.g-god-inner { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform .65s; }
+.g-god-card:hover .g-god-inner { transform: rotateY(180deg); }
+.g-god-front, .g-god-back {
+  position: absolute; inset: 0; border-radius: 12px; backface-visibility: hidden;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 1rem; border: 1px solid rgba(255,255,255,.08);
+}
+.g-god-front {
+  background: linear-gradient(135deg, rgba(12,30,58,.95), rgba(6,13,26,.98));
+  border-top: 3px solid var(--gc, #c9a227);
+}
+.g-god-back {
+  background: rgba(6,13,26,.97); border-top: 3px solid var(--gc, #c9a227);
+  transform: rotateY(180deg);
+}
+.g-god-emoji { font-size: 2.5rem; margin-bottom: .4rem; }
+.g-god-name { font-family: 'Cinzel', serif; color: var(--g-gold); margin: 0 0 .2rem; font-size: 1.05rem; }
+.g-god-front small { color: var(--g-muted); font-size: .78rem; text-align: center; }
+.g-god-back p { font-size: .82rem; color: var(--g-marble); line-height: 1.55; text-align: center; margin: 0 0 .6rem; }
+.g-god-symbol { font-size: .76rem; color: var(--g-gold); text-align: center; }
+
+/* ARCHITECTURE */
+.g-arch-tabs { display: flex; gap: .75rem; margin-bottom: 1.5rem; }
+.g-arch-btn {
+  background: none; border: 1px solid rgba(201,162,39,.3); color: var(--g-muted);
+  padding: .4rem 1.2rem; border-radius: 20px; cursor: pointer;
+  font-family: 'Cinzel', serif; font-size: .9rem; transition: all .2s;
+}
+.g-arch-btn.active, .g-arch-btn:hover { border-color: var(--g-gold); color: var(--g-gold); background: rgba(201,162,39,.1); }
+.g-arch-panel { display: none; flex-direction: row; gap: 2rem; align-items: flex-end; }
+.g-arch-panel.active { display: flex; }
+.g-arch-info { flex: 1; }
+.g-arch-info h3 { font-family: 'Cinzel', serif; color: var(--g-gold); margin: 0 0 .75rem; }
+.g-arch-info p { color: var(--g-marble); line-height: 1.7; margin-bottom: 1rem; font-size: .95rem; }
+.g-arch-info ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: .45rem; }
+.g-arch-info li { font-size: .9rem; color: var(--g-text); padding-left: .75rem; border-left: 2px solid rgba(201,162,39,.3); }
+.g-arch-info strong { color: var(--g-gold-light); }
+
+/* column visuals */
+.g-col-visual { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; gap: 0; }
+.g-shaft { width: 38px; height: 140px; background: linear-gradient(to right, #c8bc96, #e0d8b8, #b8ae88); border-radius: 2px; }
+.g-base  { border-radius: 2px; background: #b8ae88; }
+.g-cap   { display: flex; align-items: center; justify-content: center; border-radius: 3px; background: #c8bc96; }
+.doric-cap  { width: 52px; height: 18px; }
+.doric-base { width: 68px; height: 12px; }
+.ionic-cap  { width: 50px; height: 32px; gap: 4px; border-radius: 4px; }
+.g-scroll   { width: 16px; height: 16px; border-radius: 50%; border: 3px solid #9e8c5c; display: inline-block; }
+.ionic-base { width: 62px; height: 16px; }
+.corinthian-cap { width: 50px; height: 46px; border-radius: 6px 6px 0 0; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: center; gap: 2px; padding: 0 4px 4px; overflow: hidden; background: #b8ae80; }
+.g-leaf { width: 10px; height: 22px; background: #d4c260; border-radius: 50% 50% 0 0; display: inline-block; }
+.g-leaf:nth-child(1){transform:rotate(-25deg)} .g-leaf:nth-child(2){transform:rotate(-8deg)}
+.g-leaf:nth-child(3){transform:rotate(8deg)}   .g-leaf:nth-child(4){transform:rotate(25deg)}
+
+/* ALEXANDER TIMELINE */
+.g-alex-timeline { position: relative; padding: 1rem 0; }
+.g-alex-timeline::before {
+  content: ''; position: absolute; left: 50%; top: 0; bottom: 0;
+  width: 2px; background: rgba(201,162,39,.25); transform: translateX(-50%);
+}
+.g-alex-step { display: flex; align-items: center; margin-bottom: 2.2rem; position: relative; opacity: 0; transform: translateY(20px); transition: opacity .5s, transform .5s; }
+.g-alex-step.revealed { opacity: 1; transform: translateY(0); }
+.g-alex-left  { flex-direction: row; }
+.g-alex-right { flex-direction: row-reverse; }
+.g-alex-year { font-family: 'Cinzel', serif; font-size: .82rem; color: var(--g-gold); width: calc(50% - 16px); padding-right: 1rem; text-align: right; }
+.g-alex-right .g-alex-year { padding-right: 0; padding-left: 1rem; text-align: left; }
+.g-alex-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--g-gold); flex-shrink: 0; z-index: 1; border: 2px solid var(--g-bg); }
+.g-alex-content { width: calc(50% - 16px); padding: .9rem 1.1rem; background: rgba(12,30,58,.6); border-radius: 8px; border: 1px solid rgba(201,162,39,.15); margin-left: 1rem; }
+.g-alex-right .g-alex-content { margin-left: 0; margin-right: 1rem; }
+.g-alex-content h4 { font-family: 'Cinzel', serif; color: var(--g-gold); margin: 0 0 .35rem; font-size: .92rem; }
+.g-alex-content p { font-size: .87rem; color: var(--g-text); margin: 0; line-height: 1.6; }
+
+/* QUIZ */
+.g-quiz-box { background: rgba(12,30,58,.5); border: 1px solid rgba(201,162,39,.2); border-radius: 14px; padding: 2rem; }
+.g-quiz-progress { display: flex; gap: .5rem; margin-bottom: 1.5rem; }
+.g-prog-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(201,162,39,.2); border: 1px solid rgba(201,162,39,.4); transition: background .3s; }
+.g-prog-dot[data-result="correct"] { background: #3cb371; border-color: #3cb371; }
+.g-prog-dot[data-result="wrong"]   { background: #e74c3c; border-color: #e74c3c; }
+.g-q-text { font-family: 'Cinzel', serif; color: var(--g-marble); font-size: 1.05rem; margin-bottom: 1.25rem; line-height: 1.5; }
+.g-opts { display: flex; flex-direction: column; gap: .6rem; }
+.g-opt {
+  background: rgba(26,61,107,.3); border: 1px solid rgba(201,162,39,.2);
+  color: var(--g-text); padding: .75rem 1rem; border-radius: 8px; text-align: left;
+  cursor: pointer; transition: all .2s; font-size: .95rem;
+}
+.g-opt:hover:not(:disabled) { border-color: var(--g-gold); background: rgba(201,162,39,.1); color: var(--g-marble); }
+.g-opt.correct { background: rgba(60,179,113,.15); border-color: #3cb371; color: #7dffc0; }
+.g-opt.wrong   { background: rgba(231,76,60,.1);  border-color: #e74c3c; color: #ff8080; }
+.g-explain { margin-top: 1rem; padding: .75rem 1rem; background: rgba(201,162,39,.08); border-left: 3px solid var(--g-gold); border-radius: 0 6px 6px 0; font-size: .87rem; color: var(--g-marble); display: none; line-height: 1.6; }
+.g-result { text-align: center; padding: 1rem 0; }
+.g-result-score { font-family: 'Cinzel', serif; font-size: 3rem; color: var(--g-gold); }
+.g-result-msg { color: var(--g-marble); font-size: 1.05rem; margin: .5rem 0 1.5rem; }
+.g-restart-btn {
+  background: var(--g-gold); color: #000; font-weight: 700; padding: .6rem 2rem;
+  border-radius: 24px; border: none; cursor: pointer; font-family: 'Cinzel', serif;
+  font-size: .95rem; transition: transform .2s, opacity .2s;
+}
+.g-restart-btn:hover { opacity: .9; transform: scale(1.03); }
+
+/* ─── THESEUS INTERACTIVE CARD ──────────────────────────── */
+.g-theseus-card {
+  display: flex; gap: 2rem; align-items: center;
+  background: linear-gradient(135deg, rgba(12,30,58,.7), rgba(6,13,26,.9));
+  border: 1px solid rgba(201,162,39,.25); border-radius: 16px;
+  padding: 2rem; margin-bottom: 2rem;
+  position: relative; overflow: hidden;
+}
+.g-theseus-card::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 20% 50%, rgba(139,0,0,.15) 0%, transparent 60%);
+  pointer-events: none;
+}
+.g-theseus-left { display: flex; flex-direction: column; align-items: center; gap: 1rem; flex-shrink: 0; }
+.g-labyrinth-icon { animation: labyrinth-pulse 3s ease-in-out infinite; }
+@keyframes labyrinth-pulse { 0%,100%{filter:drop-shadow(0 0 8px rgba(201,162,39,.3))} 50%{filter:drop-shadow(0 0 20px rgba(201,162,39,.7))} }
+.g-theseus-items { display: flex; flex-direction: column; gap: .4rem; }
+.g-titem { display: flex; align-items: center; gap: .5rem; font-size: .82rem; color: var(--g-muted); }
+.g-titem span { font-size: 1.1rem; }
+.g-theseus-right h3 { font-family: 'Cinzel', serif; color: var(--g-gold); font-size: 1.3rem; margin: 0 0 .75rem; }
+.g-theseus-right p { color: var(--g-marble); line-height: 1.7; font-size: .95rem; margin-bottom: .75rem; }
+.g-theseus-right strong { color: #e74c3c; }
+.g-labirent-btn {
+  display: inline-flex; align-items: center; gap: .5rem;
+  background: linear-gradient(135deg, #8b0000, #c0392b);
+  color: #fff; border: none; padding: .7rem 1.6rem; border-radius: 30px;
+  font-family: 'Cinzel', serif; font-size: 1rem; font-weight: 700; cursor: pointer;
+  box-shadow: 0 0 20px rgba(139,0,0,.5); transition: all .25s; margin-top: .5rem;
+}
+.g-labirent-btn:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(200,50,50,.7); }
+
+/* ─── LABYRINTH MODAL ────────────────────────────────────── */
+.g-labi-modal {
+  position: fixed; inset: 0; z-index: 2000;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity .3s;
+}
+.g-labi-modal.open { opacity: 1; pointer-events: all; }
+.g-labi-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(2,5,12,.96); backdrop-filter: blur(8px);
+}
+.g-labi-inner {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column; align-items: center; gap: 1rem;
+  padding: 1.5rem 1rem; max-width: 420px; width: 95vw;
+}
+.g-labi-close {
+  position: absolute; top: -10px; right: 0;
+  background: rgba(139,0,0,.6); color: #fff; border: none;
+  width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+  font-size: 1rem; transition: background .2s;
+}
+.g-labi-close:hover { background: #c0392b; }
+.g-labi-narr {
+  font-family: 'Cinzel', serif; color: var(--g-gold);
+  text-align: center; font-size: .9rem; letter-spacing: .05em;
+  min-height: 1.5em; transition: opacity .4s;
+  text-shadow: 0 0 12px rgba(201,162,39,.5);
+}
+.g-labi-hint { color: var(--g-muted); font-size: .78rem; text-align: center; margin: 0; }
+
+/* Canvas */
+#maze-canvas {
+  border: 2px solid rgba(201,162,39,.35); border-radius: 6px;
+  display: block;
+  box-shadow: 0 0 30px rgba(139,0,0,.3), 0 0 60px rgba(0,0,0,.5);
+}
+
+/* Controls */
+.g-maze-ctrl { display: flex; flex-direction: column; align-items: center; gap: .35rem; }
+.g-ctrl-row { display: flex; gap: .35rem; align-items: center; }
+.g-dir {
+  width: 44px; height: 44px; border-radius: 8px;
+  background: rgba(201,162,39,.15); border: 1px solid rgba(201,162,39,.35);
+  color: var(--g-gold); font-size: 1rem; cursor: pointer; transition: all .15s;
+}
+.g-dir:hover, .g-dir:active { background: rgba(201,162,39,.35); transform: scale(.95); }
+.g-ctrl-center {
+  width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+  font-family: 'Cinzel', serif; color: var(--g-gold); font-size: 1.1rem; font-weight: 700;
+}
+
+/* ── BATTLE HUD ── */
+.g-battle-hud {
+  display: flex; align-items: center; gap: .5rem;
+  width: 308px; margin-bottom: .6rem;
+}
+.g-fighter-hud { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.g-fname { font-family: 'Cinzel', serif; font-size: .72rem; }
+.theseus-name { color: #c9a227; }
+.mino-name    { color: #e74c3c; text-align: right; }
+.g-hp-track { height: 10px; background: rgba(255,255,255,.08); border-radius: 6px; overflow: hidden; }
+.g-hp-fill { height: 100%; width: 100%; border-radius: 6px; transition: width .25s; }
+.g-hp-t { background: linear-gradient(90deg, #7a6000, #c9a227); }
+.g-hp-m { background: linear-gradient(90deg, #7a0000, #e74c3c); }
+.g-hp-num { font-size: .7rem; color: var(--g-muted); }
+.g-hud-vs { font-family: 'Cinzel', serif; font-size: .85rem; color: var(--g-gold); padding: 0 .25rem; flex-shrink: 0; }
+#battle-canvas {
+  border: 2px solid rgba(201,162,39,.3); border-radius: 6px; display: block;
+  box-shadow: 0 0 30px rgba(139,0,0,.35);
+}
+.g-attack-btn {
+  background: linear-gradient(135deg, #8b0000, #c0392b);
+  color: #fff; border: none; padding: .9rem 2.5rem; border-radius: 30px;
+  font-family: 'Cinzel', serif; font-size: 1.1rem; font-weight: 700; cursor: pointer;
+  box-shadow: 0 0 20px rgba(200,50,50,.6); transition: transform .1s, box-shadow .1s;
+  letter-spacing: .05em;
+}
+.g-attack-btn:active { transform: scale(.93); box-shadow: 0 0 8px rgba(200,50,50,.3); }
+
+/* ── VICTORY ── */
+.g-victory-wrap { text-align: center; position: relative; }
+.g-victory-stars { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.g-victory-stars span {
+  position: absolute; font-size: 1.2rem;
+  animation: vstar 1.5s ease-out forwards;
+}
+@keyframes vstar { 0%{opacity:1;transform:translateY(0) scale(1)} 100%{opacity:0;transform:translateY(-80px) scale(.5)} }
+.g-victory-trophy { font-size: 4rem; animation: trophy-bounce .6s ease infinite alternate; }
+@keyframes trophy-bounce { 0%{transform:scale(1)} 100%{transform:scale(1.1)} }
+.g-victory-title { font-family: 'Cinzel', serif; color: var(--g-gold); font-size: 1.8rem; margin: .5rem 0; }
+.g-victory-story { color: var(--g-marble); line-height: 1.7; font-size: .9rem; max-width: 340px; margin: 0 auto .75rem; }
+.g-victory-quote { font-style: italic; color: var(--g-gold-light); font-family: 'Cinzel', serif; font-size: .88rem; margin: .5rem 0 1rem; }
+.g-victory-badges { display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center; margin-bottom: 1.25rem; }
+.g-victory-badges span {
+  background: rgba(201,162,39,.15); border: 1px solid rgba(201,162,39,.35);
+  color: var(--g-gold); padding: .3rem .7rem; border-radius: 20px; font-size: .8rem;
+}
+.g-close-victory {
+  background: var(--g-gold); color: #000; border: none;
+  padding: .6rem 2rem; border-radius: 24px;
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: .95rem; cursor: pointer;
+  transition: opacity .2s, transform .2s;
+}
+.g-close-victory:hover { opacity: .9; transform: scale(1.04); }
+
+/* RESPONSIVE */
+@media (max-width: 700px) {
+  .g-theseus-card { flex-direction: column; }
+  .g-theseus-left { flex-direction: row; justify-content: center; }
+  .g-theseus-items { flex-direction: row; }
+  .g-vs-container { grid-template-columns: 1fr; }
+  .g-vs-divider { text-align: center; }
+  .g-alex-timeline::before { left: 14px; }
+  .g-alex-step { flex-direction: row !important; }
+  .g-alex-year { width: auto; min-width: 56px; font-size: .72rem; padding-right: .5rem; padding-left: 0 !important; text-align: right !important; }
+  .g-alex-content { width: auto; flex: 1; margin-left: .7rem !important; margin-right: 0 !important; }
+  .g-arch-panel.active { flex-direction: column; align-items: center; }
+  .g-bar-row { grid-template-columns: 90px 1fr; }
+}
+</style>
+
+<script>
+(function () {
+  // Hero particles
+  const pc = document.getElementById('g-particles');
+  if (pc) {
+    for (let i = 0; i < 32; i++) {
+      const s = document.createElement('span');
+      s.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;width:${2+Math.random()*2.5}px;height:${2+Math.random()*2.5}px;animation-duration:${4+Math.random()*6}s;animation-delay:${Math.random()*5}s`;
+      pc.appendChild(s);
+    }
+  }
+
+  // Count-up
+  const countObs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      const el = e.target;
+      const target = +el.dataset.target;
+      const step = target / (1800 / 16);
+      let cur = 0;
+      const t = setInterval(() => {
+        cur = Math.min(cur + step, target);
+        el.textContent = Math.floor(cur).toString();
+        if (cur >= target) clearInterval(t);
+      }, 16);
+      countObs.unobserve(el);
+    });
+  }, { threshold: 0.5 });
+  document.querySelectorAll('.g-count').forEach(c => countObs.observe(c));
+
+  // Comparison bars
+  const barsEl = document.getElementById('compare-bars');
+  if (barsEl) {
+    const bObs = new IntersectionObserver(entries => {
+      if (!entries[0].isIntersecting) return;
+      document.querySelectorAll('.g-bar-fill').forEach(b => {
+        b.style.width = b.dataset.width;
+      });
+      bObs.disconnect();
+    }, { threshold: 0.3 });
+    bObs.observe(barsEl);
+  }
+
+  // Alexander timeline reveal
+  const aObs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); aObs.unobserve(e.target); } });
+  }, { threshold: 0.2 });
+  document.querySelectorAll('.g-alex-step').forEach(s => aObs.observe(s));
+
+  // Architecture tabs
+  document.querySelectorAll('.g-arch-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.g-arch-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.g-arch-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('arch-' + btn.dataset.arch)?.classList.add('active');
+    });
+  });
+
+  // Era nav
+  const sections = ['kurulus','sehirler','tanrilar','iskender']
+    .map(id => document.getElementById(id)).filter(Boolean);
+  const eraBtns = document.querySelectorAll('.g-era-btn');
+  const eObs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        eraBtns.forEach(b => b.classList.toggle('active', b.dataset.target === e.target.id));
+      }
+    });
+  }, { rootMargin: '-40% 0px -50% 0px' });
+  sections.forEach(s => eObs.observe(s));
+  eraBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.getElementById(btn.dataset.target)?.scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+
+  // ── LABYRINTH GAME ─────────────────────────────────────────
+  const MAZE = [
+    [0,1,0,0,0,1,0],
+    [0,1,0,1,0,0,0],
+    [0,0,0,1,1,1,0],
+    [1,1,0,0,0,1,0],
+    [0,0,0,0,0,1,0],
+    [0,1,1,1,0,0,0],
+    [0,0,0,1,0,1,0],
+  ];
+  const ROWS = 7, COLS = 7, CELL = 44;
+  const MINO = { r: 3, c: 3 };
+
+  let player = { r: 0, c: 0 };
+  let thread = [{ r: 0, c: 0 }];
+  let minoHP = 100;
+  let gamePhase = 'maze';
+  let attackCooldown = false;
+  let canvas, ctx;
+
+  function drawMaze() {
+    if (!ctx) return;
+    ctx.clearRect(0, 0, COLS * CELL, ROWS * CELL);
+
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        if (MAZE[r][c] === 1) {
+          ctx.fillStyle = '#060e1c';
+          ctx.fillRect(c*CELL, r*CELL, CELL, CELL);
+          ctx.strokeStyle = '#0d1a2e';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(c*CELL+1, r*CELL+1, CELL-2, CELL-2);
+          // stone texture
+          ctx.strokeStyle = '#0a1525';
+          ctx.strokeRect(c*CELL+4, r*CELL+4, CELL-8, CELL-8);
+        } else {
+          ctx.fillStyle = '#0c1e38';
+          ctx.fillRect(c*CELL, r*CELL, CELL, CELL);
+          ctx.strokeStyle = '#102240';
+          ctx.lineWidth = .5;
+          ctx.strokeRect(c*CELL, r*CELL, CELL, CELL);
+        }
+      }
+    }
+
+    // Ariadne's golden thread
+    if (thread.length > 1) {
+      ctx.beginPath();
+      ctx.strokeStyle = 'rgba(201,162,39,.55)';
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.setLineDash([6, 4]);
+      ctx.moveTo(thread[0].c*CELL + CELL/2, thread[0].r*CELL + CELL/2);
+      for (let i = 1; i < thread.length; i++) {
+        ctx.lineTo(thread[i].c*CELL + CELL/2, thread[i].r*CELL + CELL/2);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // Minotaur
+    if (gamePhase === 'maze') {
+      const mx = MINO.c * CELL + CELL/2, my = MINO.r * CELL + CELL/2;
+      // glow
+      const grad = ctx.createRadialGradient(mx, my, 2, mx, my, CELL);
+      grad.addColorStop(0, 'rgba(180,0,0,.4)');
+      grad.addColorStop(1, 'rgba(180,0,0,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(MINO.c*CELL, MINO.r*CELL, CELL, CELL);
+      // body
+      ctx.shadowColor = '#ff0000';
+      ctx.shadowBlur = 14;
+      ctx.fillStyle = '#7a0000';
+      ctx.beginPath();
+      ctx.arc(mx, my+2, CELL/2-5, 0, Math.PI*2);
+      ctx.fill();
+      // horns
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#aa3300';
+      [[mx-7,my-8,mx-13,my-20,mx-1,my-13],[mx+7,my-8,mx+13,my-20,mx+1,my-13]].forEach(([x1,y1,x2,y2,x3,y3]) => {
+        ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.lineTo(x3,y3); ctx.closePath(); ctx.fill();
+      });
+      // eyes
+      ctx.fillStyle = '#ff3333';
+      ctx.beginPath(); ctx.arc(mx-5, my, 2.5, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(mx+5, my, 2.5, 0, Math.PI*2); ctx.fill();
+    }
+
+    // Player (Theseus)
+    const px = player.c*CELL + CELL/2, py = player.r*CELL + CELL/2;
+    ctx.shadowColor = 'rgba(201,162,39,.8)';
+    ctx.shadowBlur = 12;
+    ctx.fillStyle = '#c9a227';
+    ctx.beginPath();
+    ctx.arc(px, py, CELL/2-5, 0, Math.PI*2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#000';
+    ctx.font = `bold ${Math.round(CELL/2.6)}px serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Θ', px, py);
+  }
+
+  function setNarr(text) {
+    const el = document.getElementById('labi-narr');
+    if (!el) return;
+    el.style.opacity = '0';
+    setTimeout(() => { el.textContent = text; el.style.opacity = '1'; }, 250);
+  }
+
+  function distToMino() {
+    return Math.abs(player.r - MINO.r) + Math.abs(player.c - MINO.c);
+  }
+
+  function tryMove(dr, dc) {
+    if (gamePhase !== 'maze') return;
+    const nr = player.r + dr, nc = player.c + dc;
+    if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) return;
+    if (MAZE[nr][nc] === 1) {
+      // wall shake
+      const canvas = document.getElementById('maze-canvas');
+      if (canvas) { canvas.style.transform = 'translateX(-3px)'; setTimeout(() => { canvas.style.transform = ''; }, 80); }
+      return;
+    }
+    player.r = nr; player.c = nc;
+    thread.push({ r: nr, c: nc });
+    drawMaze();
+
+    const d = distToMino();
+    if (d === 0) { startBattle(); return; }
+    if (d === 1) setNarr('Çok yakınsın! Nefesi hissediyorsun...');
+    else if (d <= 3) setNarr('Gözler karanlıkta parlıyor... Dikkat!');
+    else setNarr('Labirentin derinliklerine iniyorsun… Altın ipi takip et!');
+  }
+
+  // ── BATTLE ENGINE ─────────────────────────────────────────
+  const B = {
+    theseus: { hp: 100, lunge: 0, dir: 0, hit: 0, dmgDone: false },
+    mino:    { hp: 100, lunge: 0, dir: 0, hit: 0, dmgDone: false },
+    tick: 0, minoCD: 220, playerCD: false, over: false,
+    canvas: null, ctx: null, animId: null,
+  };
+  const T_BASE = 70, M_BASE = 238, LUNGE = 58;
+
+  function updateBattleHUD() {
+    const th = B.theseus.hp, mh = B.mino.hp;
+    const thEl = document.getElementById('hp-theseus-bar');
+    const mhEl = document.getElementById('hp-mino-bar');
+    const tnEl = document.getElementById('hp-theseus-num');
+    const mnEl = document.getElementById('hp-mino-num');
+    if (thEl) thEl.style.width = Math.max(0,th) + '%';
+    if (mhEl) mhEl.style.width = Math.max(0,mh) + '%';
+    if (tnEl) tnEl.textContent = Math.max(0,th);
+    if (mnEl) mnEl.textContent = Math.max(0,mh);
+  }
+
+  function battleLoop() {
+    B.tick++;
+    // Mino auto-attack countdown
+    if (!B.over) {
+      B.minoCD--;
+      if (B.minoCD <= 0) {
+        B.minoCD = 200 + Math.floor(Math.random() * 80);
+        if (B.mino.lunge === 0) startMinoLunge();
+      }
+    }
+    // Theseus lunge
+    if (B.theseus.dir !== 0) {
+      B.theseus.lunge += B.theseus.dir * 0.09;
+      if (B.theseus.lunge >= 1) {
+        B.theseus.lunge = 1; B.theseus.dir = -1;
+        if (!B.theseus.dmgDone) {
+          B.theseus.dmgDone = true;
+          const dmg = 9 + Math.floor(Math.random() * 8);
+          B.mino.hp = Math.max(0, B.mino.hp - dmg);
+          B.mino.hit = 14;
+          updateBattleHUD();
+          if (B.mino.hp <= 0 && !B.over) { B.over = true; if (B.animId) cancelAnimationFrame(B.animId); setTimeout(showVictory, 500); }
+        }
+      } else if (B.theseus.lunge <= 0 && B.theseus.dir === -1) {
+        B.theseus.lunge = 0; B.theseus.dir = 0; B.theseus.dmgDone = false; B.playerCD = false;
+      }
+    }
+    // Mino lunge
+    if (B.mino.dir !== 0) {
+      B.mino.lunge += B.mino.dir * 0.075;
+      if (B.mino.lunge >= 1) {
+        B.mino.lunge = 1; B.mino.dir = -1;
+        if (!B.mino.dmgDone) {
+          B.mino.dmgDone = true;
+          const dmg = 7 + Math.floor(Math.random() * 11);
+          B.theseus.hp = Math.max(0, B.theseus.hp - dmg);
+          B.theseus.hit = 14;
+          updateBattleHUD();
+          if (B.theseus.hp <= 0 && !B.over) { B.over = true; if (B.animId) cancelAnimationFrame(B.animId); setTimeout(showDefeat, 500); }
+        }
+      } else if (B.mino.lunge <= 0 && B.mino.dir === -1) {
+        B.mino.lunge = 0; B.mino.dir = 0; B.mino.dmgDone = false;
+      }
+    }
+    if (B.theseus.hit > 0) B.theseus.hit--;
+    if (B.mino.hit > 0) B.mino.hit--;
+    drawBattleFrame();
+    if (!B.over) B.animId = requestAnimationFrame(battleLoop);
+  }
+
+  function startMinoLunge() {
+    B.mino.lunge = 0.001; B.mino.dir = 1; B.mino.dmgDone = false;
+    setNarr('Minotor saldırıyor! Dikkat!');
+  }
+
+  function drawBattleFrame() {
+    const bc = B.ctx;
+    if (!bc) return;
+    const W = 308, H = 210;
+    bc.clearRect(0, 0, W, H);
+
+    // Background - dungeon
+    const bg = bc.createLinearGradient(0,0,0,H);
+    bg.addColorStop(0, '#060310'); bg.addColorStop(1, '#120804');
+    bc.fillStyle = bg; bc.fillRect(0, 0, W, H);
+
+    // Stone floor
+    bc.fillStyle = '#1a1008'; bc.fillRect(0, 168, W, 42);
+    bc.strokeStyle = '#241408'; bc.lineWidth = 1;
+    for (let i = 0; i < W; i += 38) {
+      bc.beginPath(); bc.moveTo(i,168); bc.lineTo(i,210); bc.stroke();
+    }
+    bc.beginPath(); bc.moveTo(0,168); bc.lineTo(W,168); bc.stroke();
+
+    // Torches
+    drawTorch(bc, 18, 55, B.tick);
+    drawTorch(bc, W-18, 55, B.tick);
+
+    // Characters
+    const tx = T_BASE + Math.round(B.theseus.lunge * LUNGE);
+    const mx = M_BASE - Math.round(B.mino.lunge * LUNGE);
+    const tFlash = B.theseus.hit > 0 && B.tick % 3 < 1;
+    const mFlash = B.mino.hit > 0 && B.tick % 3 < 1;
+    if (!tFlash) drawTheseus(bc, tx, 155, B.theseus.lunge > 0.4, B.tick);
+    if (!mFlash) drawMinotaur(bc, mx, 145, B.mino.lunge > 0.4, B.tick);
+
+    // Clash sparks when both close
+    if (B.theseus.lunge > 0.7 || B.mino.lunge > 0.7) {
+      const cx = (tx + mx) / 2, cy = 110;
+      bc.shadowColor = '#ffdd00'; bc.shadowBlur = 20;
+      bc.fillStyle = '#ffdd00';
+      for (let s = 0; s < 5; s++) {
+        const sx = cx + (Math.random()-0.5)*30, sy = cy + (Math.random()-0.5)*20;
+        bc.beginPath(); bc.arc(sx, sy, 2+Math.random()*2, 0, Math.PI*2); bc.fill();
+      }
+      bc.shadowBlur = 0;
+    }
+  }
+
+  function drawTorch(bc, x, y, tick) {
+    const f = Math.sin(tick * 0.28) * 4;
+    const g = bc.createRadialGradient(x, y+f, 1, x, y+f, 22+f);
+    g.addColorStop(0, 'rgba(255,200,60,.85)');
+    g.addColorStop(.5, 'rgba(255,90,10,.35)');
+    g.addColorStop(1, 'rgba(255,50,0,0)');
+    bc.fillStyle = g;
+    bc.beginPath(); bc.ellipse(x, y+f/2, 10+f/2, 18+f, 0, 0, Math.PI*2); bc.fill();
+    bc.fillStyle = '#4a2a0a'; bc.fillRect(x-3, y+6, 6, 14);
+  }
+
+  function drawTheseus(bc, x, y, attacking, tick) {
+    const bob = Math.sin(tick * 0.07) * 2;
+    const by = y + bob;
+    bc.lineCap = 'round'; bc.lineJoin = 'round';
+
+    // Shield (left)
+    bc.fillStyle = '#5c3d0a'; bc.strokeStyle = '#c9a227'; bc.lineWidth = 1.5;
+    bc.beginPath(); bc.ellipse(x-22, by-22, 9, 13, -0.15, 0, Math.PI*2);
+    bc.fill(); bc.stroke();
+
+    // Legs
+    bc.strokeStyle = '#8b6914'; bc.lineWidth = 4;
+    bc.beginPath();
+    bc.moveTo(x-3, by+2); bc.lineTo(x-10, by+24);
+    bc.moveTo(x+3, by+2); bc.lineTo(x+10, by+24); bc.stroke();
+
+    // Body
+    bc.fillStyle = '#8b6914'; bc.strokeStyle = '#c9a227'; bc.lineWidth = 2;
+    bc.beginPath(); bc.roundRect(x-11, by-36, 22, 40, 3); bc.fill(); bc.stroke();
+
+    // Armor line
+    bc.strokeStyle = '#f5c518'; bc.lineWidth = 1;
+    bc.beginPath(); bc.moveTo(x-11, by-18); bc.lineTo(x+11, by-18); bc.stroke();
+
+    // Sword arm
+    if (attacking) {
+      bc.strokeStyle = '#8b6914'; bc.lineWidth = 4;
+      bc.beginPath(); bc.moveTo(x+11, by-24); bc.lineTo(x+34, by-20); bc.stroke();
+      bc.strokeStyle = '#ccd0c0'; bc.lineWidth = 2.5;
+      bc.beginPath(); bc.moveTo(x+27, by-22); bc.lineTo(x+68, by-19); bc.stroke();
+      bc.strokeStyle = '#8b6914'; bc.lineWidth = 3;
+      bc.beginPath(); bc.moveTo(x+27, by-28); bc.lineTo(x+27, by-16); bc.stroke();
+      bc.strokeStyle = 'rgba(255,255,180,.6)'; bc.lineWidth = 1;
+      bc.beginPath(); bc.moveTo(x+29, by-22); bc.lineTo(x+66, by-20); bc.stroke();
+    } else {
+      bc.strokeStyle = '#8b6914'; bc.lineWidth = 4;
+      bc.beginPath(); bc.moveTo(x+11, by-24); bc.lineTo(x+20, by-8); bc.stroke();
+      bc.strokeStyle = '#ccd0c0'; bc.lineWidth = 2;
+      bc.beginPath(); bc.moveTo(x+20, by-10); bc.lineTo(x+20, by+12); bc.stroke();
+      bc.strokeStyle = '#8b6914'; bc.lineWidth = 3;
+      bc.beginPath(); bc.moveTo(x+15, by-10); bc.lineTo(x+25, by-10); bc.stroke();
+    }
+
+    // Left arm
+    bc.strokeStyle = '#8b6914'; bc.lineWidth = 4;
+    bc.beginPath(); bc.moveTo(x-11, by-24); bc.lineTo(x-19, by-14); bc.stroke();
+
+    // Neck
+    bc.fillStyle = '#d4a76a'; bc.beginPath();
+    bc.rect(x-4, by-40, 8, 6); bc.fill();
+
+    // Helmet
+    bc.fillStyle = '#8b6914'; bc.strokeStyle = '#c9a227'; bc.lineWidth = 2;
+    bc.beginPath(); bc.arc(x, by-50, 13, Math.PI, 0); bc.fill(); bc.stroke();
+    bc.beginPath(); bc.moveTo(x-13, by-50); bc.lineTo(x-13, by-40);
+    bc.moveTo(x+13, by-50); bc.lineTo(x+13, by-40); bc.stroke();
+
+    // Plume
+    bc.strokeStyle = '#e74c3c'; bc.lineWidth = 3;
+    bc.beginPath();
+    bc.moveTo(x, by-63); bc.bezierCurveTo(x-4, by-72, x-14, by-68, x-19, by-57); bc.stroke();
+
+    // Face slit
+    bc.fillStyle = '#1a0f00'; bc.fillRect(x-7, by-49, 14, 4);
+  }
+
+  function drawMinotaur(bc, x, y, attacking, tick) {
+    const bob = Math.sin(tick * 0.07 + 1.5) * 2;
+    const by = y + bob;
+    bc.lineCap = 'round'; bc.lineJoin = 'round';
+
+    bc.shadowColor = 'rgba(160,0,0,.5)'; bc.shadowBlur = 16;
+
+    // Legs (hooves)
+    bc.fillStyle = '#3a0000';
+    bc.beginPath(); bc.roundRect(x-15, by+12, 13, 28, 3); bc.fill();
+    bc.beginPath(); bc.roundRect(x+2,  by+12, 13, 28, 3); bc.fill();
+    bc.fillStyle = '#1a0000';
+    bc.beginPath(); bc.roundRect(x-15, by+32, 13, 8, 3); bc.fill();
+    bc.beginPath(); bc.roundRect(x+2,  by+32, 13, 8, 3); bc.fill();
+    bc.shadowBlur = 0;
+
+    // Body
+    bc.fillStyle = '#5a0000'; bc.strokeStyle = '#8b0000'; bc.lineWidth = 2;
+    bc.beginPath(); bc.roundRect(x-19, by-30, 38, 44, 5); bc.fill(); bc.stroke();
+    bc.strokeStyle = 'rgba(255,60,60,.2)'; bc.lineWidth = 1.5;
+    bc.beginPath(); bc.moveTo(x-6, by-22); bc.lineTo(x+7, by-8);
+    bc.moveTo(x-3, by-20); bc.lineTo(x+9, by-8); bc.stroke();
+
+    // Arms
+    if (attacking) {
+      // Strike left (toward Theseus)
+      bc.strokeStyle = '#4a0000'; bc.lineWidth = 7;
+      bc.beginPath(); bc.moveTo(x-19, by-18); bc.lineTo(x-62, by-12); bc.stroke();
+      bc.strokeStyle = '#cc3300'; bc.lineWidth = 2.5;
+      [[x-62, by-12, x-78, by-22],[x-62, by-12, x-77, by-8],[x-62, by-12, x-72, by+4]].forEach(([x1,y1,x2,y2])=>{
+        bc.beginPath(); bc.moveTo(x1,y1); bc.lineTo(x2,y2); bc.stroke();
+      });
+      bc.strokeStyle = '#4a0000'; bc.lineWidth = 7;
+      bc.beginPath(); bc.moveTo(x+19, by-18); bc.lineTo(x+32, by-32); bc.stroke();
+    } else {
+      bc.strokeStyle = '#4a0000'; bc.lineWidth = 7;
+      bc.beginPath();
+      bc.moveTo(x-19, by-18); bc.lineTo(x-36, by-28);
+      bc.moveTo(x+19, by-18); bc.lineTo(x+36, by-28); bc.stroke();
+      bc.strokeStyle = '#cc3300'; bc.lineWidth = 2.5;
+      [[-36,by-28,-48,by-36],[-36,by-28,-49,by-24],[-36,by-28,-44,by-18]].forEach(([dx,dy,ex,ey])=>{
+        bc.beginPath(); bc.moveTo(x+dx,dy); bc.lineTo(x+ex,ey); bc.stroke();
+      });
+      [[36,by-28,48,by-36],[36,by-28,49,by-24],[36,by-28,44,by-18]].forEach(([dx,dy,ex,ey])=>{
+        bc.beginPath(); bc.moveTo(x+dx,dy); bc.lineTo(x+ex,ey); bc.stroke();
+      });
+    }
+
+    // Head
+    bc.shadowColor = 'rgba(180,0,0,.4)'; bc.shadowBlur = 12;
+    bc.fillStyle = '#580000'; bc.strokeStyle = '#8b0000'; bc.lineWidth = 2;
+    bc.beginPath(); bc.ellipse(x, by-52, 21, 20, 0, 0, Math.PI*2); bc.fill(); bc.stroke();
+    bc.shadowBlur = 0;
+
+    // Snout
+    bc.fillStyle = '#3d0000';
+    bc.beginPath(); bc.ellipse(x, by-42, 11, 8, 0, 0, Math.PI*2); bc.fill();
+    bc.fillStyle = '#1a0000';
+    bc.beginPath(); bc.arc(x-4, by-40, 3, 0, Math.PI*2); bc.fill();
+    bc.beginPath(); bc.arc(x+4, by-40, 3, 0, Math.PI*2); bc.fill();
+
+    // Horns
+    bc.fillStyle = '#bb3d00'; bc.strokeStyle = '#e05000'; bc.lineWidth = 1.5;
+    [[-13,by-67,-30,by-84,-3,by-72],[13,by-67,30,by-84,3,by-72]].forEach(([x1,y1,x2,y2,x3,y3])=>{
+      bc.beginPath(); bc.moveTo(x+x1,y1); bc.lineTo(x+x2,y2); bc.lineTo(x+x3,y3);
+      bc.closePath(); bc.fill(); bc.stroke();
+    });
+
+    // Ears
+    bc.fillStyle = '#400000';
+    bc.beginPath(); bc.moveTo(x-19,by-54); bc.lineTo(x-30,by-65); bc.lineTo(x-14,by-45); bc.closePath(); bc.fill();
+    bc.beginPath(); bc.moveTo(x+19,by-54); bc.lineTo(x+30,by-65); bc.lineTo(x+14,by-45); bc.closePath(); bc.fill();
+
+    // Eyes
+    bc.shadowColor = '#ff0000'; bc.shadowBlur = 10;
+    bc.fillStyle = '#ff2222';
+    bc.beginPath(); bc.arc(x-8, by-54, 4.5, 0, Math.PI*2); bc.fill();
+    bc.beginPath(); bc.arc(x+8, by-54, 4.5, 0, Math.PI*2); bc.fill();
+    bc.shadowBlur = 0;
+    bc.fillStyle = '#000';
+    bc.beginPath(); bc.arc(x-7, by-54, 2.5, 0, Math.PI*2); bc.fill();
+    bc.beginPath(); bc.arc(x+9, by-54, 2.5, 0, Math.PI*2); bc.fill();
+  }
+
+  function startBattle() {
+    gamePhase = 'battle';
+    document.getElementById('phase-maze').style.display = 'none';
+    document.getElementById('phase-battle').style.display = 'block';
+    setNarr('MİNOTOR KARŞINDA! Saldır!');
+    B.theseus.hp = 100; B.mino.hp = 100;
+    B.theseus.lunge = 0; B.theseus.dir = 0; B.theseus.hit = 0; B.theseus.dmgDone = false;
+    B.mino.lunge = 0; B.mino.dir = 0; B.mino.hit = 0; B.mino.dmgDone = false;
+    B.tick = 0; B.minoCD = 220; B.playerCD = false; B.over = false;
+    B.canvas = document.getElementById('battle-canvas');
+    B.ctx = B.canvas?.getContext('2d') ?? null;
+    updateBattleHUD();
+    if (B.animId) cancelAnimationFrame(B.animId);
+    B.animId = requestAnimationFrame(battleLoop);
+  }
+
+  function doAttack() {
+    if (B.playerCD || B.theseus.dir !== 0 || B.over) return;
+    B.playerCD = true;
+    B.theseus.lunge = 0.001; B.theseus.dir = 1; B.theseus.dmgDone = false;
+    if (B.mino.hp <= 60 && B.mino.hp > 35) setNarr('Minotor sendeliyor!');
+    else if (B.mino.hp <= 35) setNarr('Neredeyse bitti — son vuruş!');
+    else setNarr('Theseus saldırıyor!');
+  }
+
+  function showDefeat() {
+    if (B.animId) { cancelAnimationFrame(B.animId); B.animId = null; }
+    document.getElementById('phase-battle').style.display = 'none';
+    document.getElementById('phase-defeat').style.display = 'block';
+    setNarr('Minotor zafer kazandı... Ama efsane bitmedi!');
+  }
+
+  function showVictory() {
+    gamePhase = 'victory';
+    document.getElementById('phase-battle').style.display = 'none';
+    document.getElementById('phase-victory').style.display = 'block';
+    setNarr('⚡ ZAFER! Minotor yenildi!');
+
+    // scatter stars
+    const starsEl = document.getElementById('victory-stars');
+    if (starsEl) {
+      const emojis = ['⭐','✨','🌟','💫','🏅'];
+      for (let i = 0; i < 12; i++) {
+        const s = document.createElement('span');
+        s.textContent = emojis[i % emojis.length];
+        s.style.cssText = `left:${10+Math.random()*80}%;top:${10+Math.random()*80}%;animation-delay:${Math.random()*.8}s`;
+        starsEl.appendChild(s);
+      }
+    }
+  }
+
+  function resetGame() {
+    if (B.animId) { cancelAnimationFrame(B.animId); B.animId = null; }
+    player = { r: 0, c: 0 };
+    thread = [{ r: 0, c: 0 }];
+    gamePhase = 'maze';
+    document.getElementById('phase-maze').style.display = 'block';
+    document.getElementById('phase-battle').style.display = 'none';
+    document.getElementById('phase-victory').style.display = 'none';
+    document.getElementById('phase-defeat').style.display = 'none';
+    const starsEl = document.getElementById('victory-stars');
+    if (starsEl) starsEl.innerHTML = '';
+    setNarr('Labirentin derinliklerine iniyorsun… Altın ipi takip et!');
+    drawMaze();
+  }
+
+  function openModal() {
+    const modal = document.getElementById('labirent-modal');
+    if (!modal) return;
+    modal.classList.add('open');
+    canvas = document.getElementById('maze-canvas');
+    if (canvas) {
+      ctx = canvas.getContext('2d');
+      resetGame();
+    }
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    const modal = document.getElementById('labirent-modal');
+    if (modal) modal.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('open-labirent')?.addEventListener('click', openModal);
+  document.getElementById('labi-close-x')?.addEventListener('click', closeModal);
+  document.getElementById('close-victory')?.addEventListener('click', () => { closeModal(); resetGame(); });
+  document.getElementById('attack-btn')?.addEventListener('click', doAttack);
+  document.getElementById('retry-battle')?.addEventListener('click', () => { document.getElementById('phase-defeat').style.display = 'none'; startBattle(); });
+
+  // Directional buttons
+  document.querySelectorAll('.g-dir').forEach(btn => {
+    btn.addEventListener('click', () => {
+      tryMove(+btn.dataset.dr, +btn.dataset.dc);
+    });
+  });
+
+  // Keyboard
+  document.addEventListener('keydown', e => {
+    const modal = document.getElementById('labirent-modal');
+    if (!modal?.classList.contains('open')) return;
+    if (e.key === 'Escape') { closeModal(); return; }
+    if (gamePhase === 'battle' && (e.key === ' ' || e.key === 'Enter' || e.key === 'z' || e.key === 'Z')) { e.preventDefault(); doAttack(); return; }
+    const map = { ArrowUp:[-1,0], ArrowDown:[1,0], ArrowLeft:[0,-1], ArrowRight:[0,1], w:[-1,0], s:[1,0], a:[0,-1], d:[0,1] };
+    const mv = map[e.key];
+    if (mv) { e.preventDefault(); tryMove(mv[0], mv[1]); }
+  });
+
+  // Touch swipe on canvas
+  let touchStart = null;
+  document.getElementById('maze-canvas')?.addEventListener('touchstart', e => {
+    touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  }, { passive: true });
+  document.getElementById('maze-canvas')?.addEventListener('touchend', e => {
+    if (!touchStart) return;
+    const dx = e.changedTouches[0].clientX - touchStart.x;
+    const dy = e.changedTouches[0].clientY - touchStart.y;
+    if (Math.abs(dx) > Math.abs(dy)) tryMove(0, dx > 0 ? 1 : -1);
+    else tryMove(dy > 0 ? 1 : -1, 0);
+    touchStart = null;
+  });
+
+  // ── QUIZ ───────────────────────────────────────────────────
+  let score = 0;
+  const total = document.querySelectorAll('.g-question').length;
+  const resultMsgs = [
+    'Tarih mağaralarında kaybolmuşsun — biraz daha oku!',
+    'Fena değil! Atina\'ya çırak olabilirsin.',
+    'İyi iş! Delphi kehâneti seni onaylıyor.',
+    'Mükemmel! Aristoteles\'in öğrencisi olmaya hazırsın!',
+  ];
+
+  document.querySelectorAll('.g-opt').forEach(btn => {
+    btn.addEventListener('click', function () {
+      const qi = +this.dataset.qi;
+      const oi = +this.dataset.oi;
+      const correct = +this.dataset.correct;
+      const qEl = document.getElementById('gq-' + qi);
+      qEl.querySelectorAll('.g-opt').forEach(b => { b.disabled = true; });
+      const dot = document.querySelector(`.g-prog-dot[data-qidx="${qi}"]`);
+      if (oi === correct) {
+        this.classList.add('correct');
+        score++;
+        if (dot) dot.dataset.result = 'correct';
+      } else {
+        this.classList.add('wrong');
+        qEl.querySelectorAll('.g-opt')[correct].classList.add('correct');
+        if (dot) dot.dataset.result = 'wrong';
+      }
+      const exEl = document.getElementById('gexplain-' + qi);
+      if (exEl) { exEl.textContent = this.dataset.explain; exEl.style.display = 'block'; }
+
+      setTimeout(() => {
+        const next = document.getElementById('gq-' + (qi + 1));
+        if (next) { qEl.style.display = 'none'; next.style.display = 'block'; }
+        else {
+          qEl.style.display = 'none';
+          const res = document.getElementById('g-result');
+          res.style.display = 'block';
+          document.getElementById('g-result-score').textContent = score + '/' + total;
+          document.getElementById('g-result-msg').textContent = resultMsgs[Math.min(score, resultMsgs.length - 1)];
+        }
+      }, 1500);
+    });
+  });
+
+  document.getElementById('g-restart')?.addEventListener('click', () => {
+    score = 0;
+    document.getElementById('g-result').style.display = 'none';
+    document.querySelectorAll('.g-question').forEach((q, i) => {
+      q.style.display = i === 0 ? 'block' : 'none';
+      q.querySelectorAll('.g-opt').forEach(b => { b.disabled = false; b.classList.remove('correct','wrong'); });
+      const ex = q.querySelector('.g-explain');
+      if (ex) ex.style.display = 'none';
+    });
+    document.querySelectorAll('.g-prog-dot').forEach(d => { delete d.dataset.result; });
+  });
+})();
+</script>
+</BaseLayout>

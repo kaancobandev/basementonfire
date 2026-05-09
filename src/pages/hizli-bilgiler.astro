@@ -1,0 +1,580 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { supabase, flattenFacts, type QuickFact } from '../lib/supabase';
+
+const { data: raw } = await supabase
+  .from('quick_facts')
+  .select('*, users(display_name, username)')
+  .order('created_at', { ascending: false });
+
+const posts: QuickFact[] = flattenFacts(raw ?? []);
+
+function timeAgo(d: string) {
+  const s = Math.floor((Date.now() - new Date(d).getTime()) / 1000);
+  if (s < 60)   return `${s}s`;
+  if (s < 3600) return `${Math.floor(s/60)}d`;
+  if (s < 86400) return `${Math.floor(s/3600)}sa`;
+  return `${Math.floor(s/86400)}g`;
+}
+---
+
+<BaseLayout title="Hızlı Bilgiler" activeNav="hizli-bilgiler">
+  <main class="main-content" style="max-width:600px; position:relative;">
+
+    <!-- Başlık + yükleme butonu -->
+    <div class="feed-header" style="display:flex; justify-content:space-between; align-items:center;">
+      <span>Hızlı Bilgiler</span>
+      <button id="open-upload" class="hb-upload-trigger">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        Yeni Paylaş
+      </button>
+    </div>
+
+    <!-- Instagram grid -->
+    {posts.length === 0 ? (
+      <div class="hb-empty">
+        <div style="font-size:3rem; margin-bottom:16px;">📸</div>
+        <p style="font-weight:700; font-size:1.1rem; margin-bottom:8px;">Henüz içerik yok</p>
+        <p style="color:var(--color-text-muted); font-size:0.9rem;">İlk hızlı bilgini paylaşmak için "Yeni Paylaş" butonuna bas.</p>
+      </div>
+    ) : (
+      <div class="hb-grid">
+        {posts.map(post => (
+          <button
+            class="hb-cell"
+            data-id={post.id}
+            data-type={post.media_type}
+            data-src={post.media_url}
+            data-caption={post.caption}
+            data-author={post.display_name}
+            data-handle={post.username}
+            data-likes={post.likes}
+            data-time={timeAgo(post.created_at)}
+            aria-label={post.caption}
+          >
+            {post.media_type === 'image' ? (
+              <img src={post.media_url} alt={post.caption} loading="lazy" />
+            ) : (
+              <video src={post.media_url} muted preload="metadata" />
+            )}
+
+            <!-- Hover overlay -->
+            <div class="hb-cell-overlay">
+              <span class="hb-cell-likes">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="1"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                {post.likes}
+              </span>
+              {post.media_type === 'video' && (
+                <span class="hb-cell-video-badge">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                </span>
+              )}
+            </div>
+          </button>
+        ))}
+      </div>
+    )}
+
+  </main>
+
+  <!-- ── Upload Modal ─────────────────────────────── -->
+  <div id="upload-modal" class="hb-modal-bg" style="display:none;">
+    <div class="hb-modal-box">
+      <div class="hb-modal-header">
+        <span style="font-weight:700; font-size:1rem;">Yeni Paylaşım</span>
+        <button id="close-upload" class="hb-icon-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <form id="upload-form" method="POST" action="/api/upload" enctype="multipart/form-data">
+
+        <!-- Dosya seçim alanı -->
+        <div id="drop-zone" class="hb-dropzone">
+          <input type="file" id="media-input" name="media" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/ogg" hidden required />
+          <div id="drop-placeholder">
+            <div style="font-size:2.5rem; margin-bottom:12px;">🖼️</div>
+            <p style="font-weight:600; margin-bottom:4px;">Resim veya video seç</p>
+            <p style="font-size:0.82rem; color:var(--color-text-muted);">Tıkla veya sürükle bırak · JPG PNG WEBP GIF MP4 WEBM · Max 100 MB</p>
+          </div>
+          <div id="drop-preview" style="display:none; width:100%; height:100%; position:relative;">
+            <img id="preview-img" src="" alt="önizleme" style="width:100%; height:100%; object-fit:contain; display:none;" />
+            <video id="preview-vid" src="" controls style="width:100%; height:100%; object-fit:contain; display:none;"></video>
+            <button type="button" id="clear-file" class="hb-icon-btn" style="position:absolute; top:8px; right:8px; background:rgba(0,0,0,0.5); color:white;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Hata mesajı -->
+        <p id="upload-error" style="display:none; color:#ef4444; font-size:0.85rem; margin:8px 0 0;"></p>
+
+        <!-- Açıklama -->
+        <div style="margin-top:16px;">
+          <textarea
+            name="caption"
+            id="caption-input"
+            class="hb-textarea"
+            placeholder="Hızlı bir bilgi yaz... (max 300 karakter)"
+            maxlength="300"
+            required
+          ></textarea>
+          <div id="char-count" style="text-align:right; font-size:0.78rem; color:var(--color-text-muted); margin-top:4px;">0 / 300</div>
+        </div>
+
+        <button type="submit" id="submit-btn" class="post-btn" style="margin-top:16px; width:100%;">
+          Paylaş
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Post Detay Modal ───────────────────────────── -->
+  <div id="detail-modal" class="hb-modal-bg" style="display:none;">
+    <div class="hb-detail-box">
+      <!-- Kapat -->
+      <button id="close-detail" class="hb-icon-btn" style="position:absolute; top:12px; right:12px; background:rgba(0,0,0,0.4); color:white; z-index:1;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+
+      <!-- Sol: medya -->
+      <div class="hb-detail-media">
+        <img id="detail-img" src="" alt="" style="display:none; width:100%; height:100%; object-fit:contain;" />
+        <video id="detail-vid" src="" controls style="display:none; width:100%; height:100%; object-fit:contain;"></video>
+      </div>
+
+      <!-- Sağ: bilgiler -->
+      <div class="hb-detail-info">
+        <div style="display:flex; align-items:center; gap:10px; padding:16px; border-bottom:1px solid var(--color-border);">
+          <div class="avatar" style="width:36px; height:36px; font-size:0.9rem;" id="detail-avatar">B</div>
+          <div>
+            <div style="font-weight:700; font-size:0.9rem;" id="detail-author"></div>
+            <div style="color:var(--color-text-muted); font-size:0.8rem;" id="detail-handle"></div>
+          </div>
+          <div style="margin-left:auto; font-size:0.78rem; color:var(--color-text-muted);" id="detail-time"></div>
+        </div>
+
+        <div style="padding:16px; flex:1; overflow-y:auto;">
+          <p id="detail-caption" style="font-size:0.95rem; line-height:1.7; white-space:pre-wrap;"></p>
+        </div>
+
+        <div style="padding:12px 16px; border-top:1px solid var(--color-border); display:flex; align-items:center; gap:12px;">
+          <button id="detail-like-btn" class="action-btn" style="font-size:1rem; gap:8px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="like-icon"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+            <span id="detail-likes">0</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</BaseLayout>
+
+<style>
+  /* Upload butonu */
+  .hb-upload-trigger {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: 9999px;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .hb-upload-trigger:hover { background: var(--color-primary-hover); }
+
+  /* Boş durum */
+  .hb-empty {
+    text-align: center;
+    padding: 80px 24px;
+    color: var(--color-text-muted);
+  }
+
+  /* Instagram grid — 3 sütun, kare */
+  .hb-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 3px;
+    padding: 3px;
+  }
+  .hb-cell {
+    aspect-ratio: 1;
+    position: relative;
+    overflow: hidden;
+    background: var(--color-border);
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    display: block;
+  }
+  .hb-cell img,
+  .hb-cell video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.25s;
+  }
+  .hb-cell:hover img,
+  .hb-cell:hover video { transform: scale(1.04); }
+
+  /* Hücre hover overlay */
+  .hb-cell-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .hb-cell:hover .hb-cell-overlay { opacity: 1; }
+  .hb-cell-likes {
+    color: white;
+    font-weight: 700;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .hb-cell-video-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0,0,0,0.5);
+    border-radius: 4px;
+    padding: 2px 4px;
+    display: flex;
+  }
+
+  /* Modal arkaplan */
+  .hb-modal-bg {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(4px);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  /* Upload modal kutusu */
+  .hb-modal-box {
+    background: var(--color-surface);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 480px;
+    padding: 20px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .hb-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 12px;
+  }
+  .hb-icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    border-radius: 50%;
+    transition: background 0.15s, color 0.15s;
+  }
+  .hb-icon-btn:hover { background: var(--color-border); color: var(--color-text); }
+
+  /* Dosya sürükle-bırak alanı */
+  .hb-dropzone {
+    border: 2px dashed var(--color-border);
+    border-radius: 16px;
+    height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    text-align: center;
+    overflow: hidden;
+    position: relative;
+  }
+  .hb-dropzone:hover,
+  .hb-dropzone.drag-over {
+    border-color: var(--color-primary);
+    background: #eff6ff;
+  }
+
+  /* Açıklama textarea */
+  .hb-textarea {
+    width: 100%;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 88px;
+    max-height: 180px;
+    outline: none;
+    background: var(--color-bg);
+    transition: border-color 0.15s;
+    color: var(--color-text);
+  }
+  .hb-textarea:focus { border-color: var(--color-primary); }
+
+  /* Detay modal — Instagram post görünümü */
+  .hb-detail-box {
+    background: var(--color-surface);
+    border-radius: 16px;
+    display: flex;
+    width: 100%;
+    max-width: 860px;
+    max-height: 90vh;
+    overflow: hidden;
+    position: relative;
+  }
+  .hb-detail-media {
+    flex: 1;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    max-height: 90vh;
+  }
+  .hb-detail-info {
+    width: 300px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid var(--color-border);
+    max-height: 90vh;
+  }
+
+  /* Mobil: yığılmış layout */
+  @media (max-width: 640px) {
+    .hb-detail-box  { flex-direction: column; max-width: 100%; border-radius: 20px 20px 0 0; align-self: flex-end; }
+    .hb-detail-info { width: 100%; border-left: none; border-top: 1px solid var(--color-border); }
+    .hb-detail-media { min-height: 280px; max-height: 50vh; }
+    .hb-grid { grid-template-columns: repeat(3, 1fr); }
+    .hb-modal-bg { padding: 0; align-items: flex-end; }
+    .hb-modal-box { border-radius: 20px 20px 0 0; max-height: 92vh; }
+  }
+</style>
+
+<script>
+// ── Yükleme Modal ───────────────────────────────────────────────────────────
+const uploadModal  = document.getElementById('upload-modal')!;
+const openUploadBtn  = document.getElementById('open-upload')!;
+const closeUploadBtn = document.getElementById('close-upload')!;
+
+openUploadBtn.addEventListener('click',  () => { uploadModal.style.display = 'flex'; });
+closeUploadBtn.addEventListener('click', () => closeUpload());
+uploadModal.addEventListener('click', e => { if (e.target === uploadModal) closeUpload(); });
+
+function closeUpload() {
+  uploadModal.style.display = 'none';
+  clearFile();
+  (document.getElementById('upload-error') as HTMLElement).style.display = 'none';
+  (document.getElementById('caption-input') as HTMLTextAreaElement).value = '';
+  (document.getElementById('char-count') as HTMLElement).textContent = '0 / 300';
+}
+
+// ── Dosya seçimi / sürükle-bırak ────────────────────────────────────────────
+const dropZone     = document.getElementById('drop-zone')!;
+const mediaInput   = document.getElementById('media-input') as HTMLInputElement;
+const placeholder  = document.getElementById('drop-placeholder')!;
+const previewDiv   = document.getElementById('drop-preview')!;
+const previewImg   = document.getElementById('preview-img') as HTMLImageElement;
+const previewVid   = document.getElementById('preview-vid') as HTMLVideoElement;
+const clearFileBtn = document.getElementById('clear-file')!;
+
+dropZone.addEventListener('click', e => {
+  if ((e.target as HTMLElement).closest('#clear-file')) return;
+  mediaInput.click();
+});
+
+dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  const file = e.dataTransfer?.files[0];
+  if (file) applyFile(file);
+});
+
+mediaInput.addEventListener('change', () => {
+  if (mediaInput.files?.[0]) applyFile(mediaInput.files[0]);
+});
+
+clearFileBtn.addEventListener('click', e => { e.stopPropagation(); clearFile(); });
+
+function applyFile(file: File) {
+  const url = URL.createObjectURL(file);
+  const isVideo = file.type.startsWith('video/');
+
+  previewImg.style.display = isVideo ? 'none' : 'block';
+  previewVid.style.display = isVideo ? 'block' : 'none';
+
+  if (isVideo) { previewVid.src = url; }
+  else         { previewImg.src = url; }
+
+  placeholder.style.display = 'none';
+  previewDiv.style.display  = 'block';
+}
+
+function clearFile() {
+  previewImg.src = '';
+  previewVid.src = '';
+  mediaInput.value = '';
+  previewDiv.style.display = 'none';
+  placeholder.style.display = 'flex';
+}
+
+// ── Karakter sayacı ──────────────────────────────────────────────────────────
+const captionInput = document.getElementById('caption-input') as HTMLTextAreaElement;
+const charCount    = document.getElementById('char-count')!;
+
+captionInput.addEventListener('input', () => {
+  const len = captionInput.value.length;
+  charCount.textContent = `${len} / 300`;
+  charCount.style.color = len > 270 ? '#ef4444' : 'var(--color-text-muted)';
+});
+
+// ── Upload form submit (client-side validation + yükleme göstergesi) ─────────
+const uploadForm  = document.getElementById('upload-form') as HTMLFormElement;
+const submitBtn   = document.getElementById('submit-btn') as HTMLButtonElement;
+const uploadError = document.getElementById('upload-error')!;
+
+uploadForm.addEventListener('submit', e => {
+  uploadError.style.display = 'none';
+
+  if (!mediaInput.files?.[0]) {
+    e.preventDefault();
+    showError('Lütfen bir resim veya video seç.');
+    return;
+  }
+  if (!captionInput.value.trim()) {
+    e.preventDefault();
+    showError('Açıklama boş olamaz.');
+    return;
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Yükleniyor...';
+});
+
+function showError(msg: string) {
+  uploadError.textContent = msg;
+  uploadError.style.display = 'block';
+}
+
+// ── Detay modal ──────────────────────────────────────────────────────────────
+const detailModal   = document.getElementById('detail-modal')!;
+const closeDetailBtn = document.getElementById('close-detail')!;
+const detailImg     = document.getElementById('detail-img') as HTMLImageElement;
+const detailVid     = document.getElementById('detail-vid') as HTMLVideoElement;
+const detailCaption = document.getElementById('detail-caption')!;
+const detailAuthor  = document.getElementById('detail-author')!;
+const detailHandle  = document.getElementById('detail-handle')!;
+const detailTime    = document.getElementById('detail-time')!;
+const detailAvatar  = document.getElementById('detail-avatar')!;
+const detailLikes   = document.getElementById('detail-likes')!;
+const detailLikeBtn = document.getElementById('detail-like-btn')!;
+const likeIcon      = document.getElementById('like-icon')!;
+
+let currentPostId: number | null = null;
+let liked = false;
+
+document.querySelectorAll<HTMLButtonElement>('.hb-cell').forEach(cell => {
+  cell.addEventListener('click', () => {
+    const { id, type, src, caption, author, handle, likes, time } = cell.dataset as Record<string, string>;
+    currentPostId = Number(id);
+    liked = false;
+
+    // Medyayı göster
+    if (type === 'video') {
+      detailImg.style.display = 'none';
+      detailVid.style.display = 'block';
+      detailVid.src = src;
+      detailVid.load();
+    } else {
+      detailVid.style.display = 'none';
+      detailVid.src = '';
+      detailImg.style.display = 'block';
+      detailImg.src = src;
+    }
+
+    detailCaption.textContent = caption;
+    detailAuthor.textContent  = author;
+    detailHandle.textContent  = `@${handle}`;
+    detailTime.textContent    = time;
+    detailAvatar.textContent  = author[0].toUpperCase();
+    detailLikes.textContent   = likes;
+    likeIcon.setAttribute('fill', 'none');
+    likeIcon.style.stroke = 'currentColor';
+
+    detailModal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  });
+});
+
+function closeDetail() {
+  detailModal.style.display = 'none';
+  detailVid.pause();
+  detailVid.src = '';
+  document.body.style.overflow = '';
+  currentPostId = null;
+}
+
+closeDetailBtn.addEventListener('click', closeDetail);
+detailModal.addEventListener('click', e => { if (e.target === detailModal) closeDetail(); });
+
+// Klavye ile kapat
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (detailModal.style.display !== 'none') closeDetail();
+    if (uploadModal.style.display !== 'none') closeUpload();
+  }
+});
+
+// Beğeni
+detailLikeBtn.addEventListener('click', async () => {
+  if (!currentPostId || liked) return;
+  liked = true;
+
+  likeIcon.setAttribute('fill', '#ef4444');
+  likeIcon.style.stroke = '#ef4444';
+  detailLikeBtn.style.color = '#ef4444';
+
+  try {
+    const res = await fetch(`/api/quick-facts/${currentPostId}/like`, { method: 'POST' });
+    if (res.ok) {
+      const data = await res.json() as { likes: number };
+      detailLikes.textContent = String(data.likes);
+      // Grid hücresindeki beğeni sayısını da güncelle
+      const cell = document.querySelector<HTMLButtonElement>(`.hb-cell[data-id="${currentPostId}"]`);
+      if (cell) {
+        cell.dataset.likes = String(data.likes);
+        const likeEl = cell.querySelector('.hb-cell-likes');
+        if (likeEl) likeEl.lastChild!.textContent = ' ' + data.likes;
+      }
+    }
+  } catch { liked = false; }
+});
+</script>

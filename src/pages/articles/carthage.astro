@@ -1,0 +1,398 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const chapters = [
+  {
+    icon: '⚓',
+    cardTitle: 'Liman Efsanesi',
+    cardQuestion: 'Doğal bir koy mu?',
+    backTitle: 'Mühendislik Harikası',
+    backText: 'Hayır! Anakaranın kalbi oyularak yapılan, 220 gemilik gizli bir yapay liman kompleksi.',
+    h2: 'İnsan Yapımı Bir Harika',
+    paragraphs: [
+      'Kartaca\'nın Akdeniz\'deki deniz hakimiyetinin temelinde yatan limanlarının belki de en şaşırtıcı özelliği, doğal bir coğrafi oluşum olmamalarıdır. Kartacalılar anakaranın kalbini oyarak, yüz binlerce metreküp toprak çıkararak tarihin en etkileyici yapay liman komplekslerinden birini inşa ettiler.',
+      '<strong>Ticari Liman:</strong> Dikdörtgen ilk liman, Akdeniz\'in dört bir yanından gelen tüccar gemilerine hizmet veriyordu. Burası imparatorluğun ekonomik kalbiydi.',
+      '<strong>Askeri Liman:</strong> Ticari limanın hemen arkasında, düşman gözlerinden gizli, dairesel askeri liman bulunuyordu.',
+    ],
+    quote: '"Bu liman, 220 savaş gemisini aynı anda barındırabilecek kapasitedeydi. Ortasında, gemilerin bakım ve onarım için kızaklarla çekildiği bir ada bulunuyordu."',
+  },
+  {
+    icon: '⚔️',
+    cardTitle: 'Savaşın Nedeni',
+    cardQuestion: 'Büyük bir plan mı?',
+    backTitle: 'Tesadüfler Zinciri',
+    backText: 'Büyük imparatorluk hedefleri değil, Sicilya\'daki yerel bir kriz ve karşılıklı blöfler savaşı başlattı.',
+    h2: 'Kazayla Başlayan Yüzyıllık Savaş',
+    paragraphs: [
+      'Tarihin en büyük rekabetlerinden biri olan Roma-Kartaca savaşlarının büyük imparatorluk hedeflerinin sonucu olarak başladığı düşünülür. Ancak gerçek çok daha farklıdır. Akdeniz\'in kaderini değiştirecek Birinci Pön Savaşı, Sicilya\'daki yerel bir krizin kontrolden çıkmasıyla neredeyse kazara patlak verdi.',
+      '"Mamertinler" adıyla bilinen bir grup paralı askerin Messana\'yı ele geçirmesiyle başlayan süreç, önce Kartaca\'dan, sonra Roma\'dan yardım istenmesiyle devam etti. Her iki güç de diğerinin geri çekileceğini sandı.',
+    ],
+    quote: '"Kimse, bu yerel krizin fitilini ateşlediği barut fıçısının tüm Akdeniz\'i havaya uçuracağını öngöremedi."',
+  },
+  {
+    icon: '🐘',
+    cardTitle: 'Hannibal\'in Filleri',
+    cardQuestion: 'Askeri bir zafer mi?',
+    backTitle: 'Lojistik Fiyasko',
+    backText: '37 filin neredeyse tamamı ilk kışta donarak öldü. Sadece psikolojik bir şok silahıydı.',
+    h2: 'Lojistik Bir Kabus',
+    paragraphs: [
+      'Hannibal\'in Alpleri fillerle geçişi, askeri tarihin en ikonik sahnelerinden biridir. Filler; onlarla hiç karşılaşmamış Roma atlarını ve askerlerini korkutmak için tasarlanmış bir şok silahıydı.',
+      'Bu strateji başlangıçta işe yaradı. Trebia Muharebesi\'nde filler Roma süvari kanatlarını darmadağın etti. Ancak bu neredeyse tek başarılarıydı.',
+      'İspanya\'dan yola çıkan 37 filin neredeyse tamamı Kuzey İtalya\'nın ilk zorlu kışına dayanamayarak öldü. Geriye Hannibal\'ın binek fili "Surus" kalmıştı.',
+    ],
+    quote: null,
+  },
+  {
+    icon: '🏺',
+    cardTitle: 'Çocuk Kurbanı',
+    cardQuestion: 'Roma Propagandası mı?',
+    backTitle: 'Acı Gerçek',
+    backText: 'Arkeolojik kazılar "Tophet" alanlarında binlerce yanmış bebek kemiği buldu. Bu bir ritüeldi.',
+    h2: 'Karanlık Ritüeller ve Tophet',
+    paragraphs: [
+      'Kartacalıların tanrılarına kendi çocuklarını kurban ettiklerine dair iddialar uzun yıllar Roma propagandası olarak görüldü. Ancak modern arkeoloji bu söylentilerin acı bir gerçeğe dayandığını ortaya çıkardı.',
+      'Antik Kartaca\'da "Tophet" adlı kutsal alanda yapılan kazılarda içinde yanmış kemik kalıntıları bulunan binlerce küçük küp bulundu. Analizler bu küplerin çoğunda yeni doğmuş bebeklere ait yanmış kemikler olduğunu gösterdi.',
+    ],
+    quote: '"Kent büyük bir tehlikeyle karşılaştığında, Kartacalı soylular... en soylu ailelerden 200 çocuğu alenen kurban ettiler." — Diodorus Siculus',
+  },
+  {
+    icon: '🏛️',
+    cardTitle: 'Kartaca\'nın Sonu',
+    cardQuestion: 'Askeri Tehdit mi?',
+    backTitle: 'Ekonomik Kıskançlık',
+    backText: 'Savaş sonrası ticari başarıları Roma\'yı korkuttu. Cato\'nun "Kartaca Yıkılmalı" ısrarı bu yüzdendi.',
+    h2: 'Barıştaki Başarıları Yüzünden Yok Edildiler',
+    paragraphs: [
+      'İkinci Pön Savaşı\'nın sonunda Kartaca askeri olarak çökmüştü. Ancak Kartacalılar en iyi bildikleri şeye, ticarete geri döndüler. Birkaç on yıl içinde tarım ve deniz ticareti sayesinde inanılmaz hızda toparlandılar.',
+      'Bu barışçıl diriliş onları yeniden Roma\'nın hedefi yaptı. Roma senatörü Cato her konuşmasını şu cümleyle bitirdi: "Carthago delenda est!" ("Kartaca yıkılmalıdır!").',
+      'Üçüncü Pön Savaşı\'nı tetikleyen şey askeri bir tehdit değil, Roma\'nın ekonomik rekabetten duyduğu korku ve kıskançlıktı.',
+    ],
+    quote: null,
+  },
+];
+---
+
+<BaseLayout title="Kartaca" activeNav="discover">
+  <!-- Bu sayfa tam genişlik kullanır, BaseLayout'un main-content kısıtlaması dışında -->
+  <div id="carthage-page" style="flex:1; background:#fdfbf6; min-height:100vh; overflow-y:auto;">
+
+    <!-- Sticky geri butonu -->
+    <div style="position:sticky; top:0; z-index:50; background:rgba(253,251,246,0.95); backdrop-filter:blur(8px); border-bottom:1px solid #d4b896; padding:12px 24px; display:flex; align-items:center; gap:12px;">
+      <a href="/" class="back-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      </a>
+      <span class="c-font-display" style="font-size:1rem; font-weight:700; color:#1a2634;">Kartaca</span>
+      <span style="font-size:0.75rem; color:#999; margin-left:4px;">Tarih Makalesi</span>
+    </div>
+
+    <!-- Hero - paralaks arka plan -->
+    <header class="c-hero">
+      <h1 class="c-font-deco">KARTACA</h1>
+      <p class="c-font-display c-hero-intro">
+        "Tarihin en büyük trajedilerinden biri, savaş alanındaki yenilgisiyle değil,
+        barış zamanındaki ekonomik başarısıyla kendi ölüm fermanını imzalamasıydı."
+      </p>
+    </header>
+
+    <!-- Ana konteyner -->
+    <div class="c-container">
+
+      <!-- Giriş metni -->
+      <article class="c-intro">
+        <p>
+          Kartaca denince akla hemen Hannibal, Alpleri aşan efsanevi filleri ve Roma'ya diz çöktüren o cüretkâr sefer gelir. Ancak bu destansı hikayelerin gölgesinde çok daha karmaşık, şaşırtıcı ve çoğu zaman yanlış anlaşılmış bir gerçeklik yatar. Kartaca, sadece askeri bir güç değil; mühendislik dehası, politik entrikalar, rahatsız edici dini ritüeller ve trajik sonuyla tarihe damgasını vurmuş bir medeniyetti.
+        </p>
+      </article>
+
+      <!-- Bölümler: Sol sticky kart + Sağ içerik -->
+      {chapters.map((ch) => (
+        <section class="c-chapter">
+
+          <!-- SOL: Sticky flip kart -->
+          <div class="c-card-wrapper">
+            <div class="c-flip-card">
+              <div class="c-flip-inner">
+                <!-- Ön yüz -->
+                <div class="c-flip-front">
+                  <div class="c-card-icon">{ch.icon}</div>
+                  <div class="c-card-title">{ch.cardTitle}</div>
+                  <p style="font-size:0.85rem; opacity:0.8;">{ch.cardQuestion}</p>
+                  <div class="c-card-hint">Gerçeği Gör ↻</div>
+                </div>
+                <!-- Arka yüz -->
+                <div class="c-flip-back">
+                  <h3 class="c-font-display" style="font-size:1.2rem; margin-bottom:12px; font-weight:700;">{ch.backTitle}</h3>
+                  <p style="font-size:0.9rem; line-height:1.6;">{ch.backText}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SAĞ: Makale içeriği -->
+          <div class="c-content">
+            <h2 class="c-font-display c-chapter-h2">{ch.h2}</h2>
+
+            {ch.paragraphs.map((p) => (
+              <p class="c-para" set:html={p} />
+            ))}
+
+            {ch.quote && (
+              <blockquote class="c-highlight">{ch.quote}</blockquote>
+            )}
+          </div>
+
+        </section>
+      ))}
+
+      <!-- Kronoloji -->
+      <div class="c-timeline">
+        <h2 class="c-font-display" style="font-size:1.8rem; color:#1a2634; margin-bottom:32px; border-bottom:2px solid #c5a059; padding-bottom:12px;">Kronoloji</h2>
+        {[
+          ['MÖ 814', 'Kartaca\'nın Kuruluşu', 'Fenikeli yerleşimciler tarafından Kuzey Afrika\'da kuruldu'],
+          ['MÖ 264–241', 'I. Pön Savaşı', 'Sicilya üzerinde Roma ile ilk büyük çatışma (23 yıl)'],
+          ['MÖ 218–201', 'II. Pön Savaşı', 'Hannibal\'ın Alp geçişi ve İtalya seferi'],
+          ['MÖ 149–146', 'III. Pön Savaşı', 'Roma\'nın 3 yıllık kuşatması ve Kartaca\'nın yıkılması'],
+        ].map(([date, title, desc]) => (
+          <div class="c-timeline-item">
+            <div class="c-timeline-date">{date}</div>
+            <div>
+              <div style="font-weight:700; color:#1a2634; margin-bottom:4px;">{title}</div>
+              <div style="font-size:0.85rem; color:#777;">{desc}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+    </div>
+
+    <footer style="background:#1a2634; color:#8a9db5; text-align:center; padding:40px 24px; font-family:'Cinzel',serif; letter-spacing:1px; margin-top:48px;">
+      <p style="margin-bottom:8px;">Hazırlayan: Kaan Çoban</p>
+      <p style="font-size:0.8rem;">&copy; 2025 Basement — Savaş ve Uygarlıklar</p>
+    </footer>
+  </div>
+</BaseLayout>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Cinzel:wght@700&display=swap');
+
+  #carthage-page {
+    font-family: 'Merriweather', serif;
+    font-size: 17px;
+    line-height: 1.9;
+    color: #1a2634;
+  }
+
+  .c-font-display { font-family: 'Playfair Display', serif; }
+  .c-font-deco    { font-family: 'Cinzel', serif; }
+
+  /* Hero */
+  .c-hero {
+    height: 85vh;
+    background:
+      linear-gradient(rgba(26,38,52,0.4), rgba(26,38,52,0.85)),
+      url('https://images.unsplash.com/photo-1551468134-297c1d355829?q=80&w=1920&auto=format&fit=crop')
+      center / cover no-repeat;
+    background-attachment: fixed;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 4rem;
+    color: #fff;
+  }
+  .c-hero h1 {
+    font-size: clamp(3rem, 8vw, 5rem);
+    line-height: 1;
+    margin-bottom: 1.2rem;
+    text-shadow: 2px 2px 12px rgba(0,0,0,0.6);
+    border-left: 5px solid #c5a059;
+    padding-left: 2rem;
+    color: #fff;
+  }
+  .c-hero-intro {
+    font-size: clamp(1rem, 2.5vw, 1.6rem);
+    font-style: italic;
+    max-width: 750px;
+    margin-left: 2.7rem;
+    opacity: 0.9;
+    color: #e8d5b0;
+  }
+
+  /* Container */
+  .c-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 4rem 2rem;
+  }
+
+  /* Intro / drop cap */
+  .c-intro {
+    font-size: 1.15rem;
+    color: #444;
+    margin-bottom: 5rem;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 3rem;
+    text-align: justify;
+  }
+  .c-intro p::first-letter {
+    font-family: 'Playfair Display', serif;
+    font-size: 4rem;
+    float: left;
+    margin-right: 0.8rem;
+    line-height: 0.75;
+    color: #c5a059;
+  }
+
+  /* Chapter grid: sol kart 300px sabit, sağ içerik esnek */
+  .c-chapter {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 4rem;
+    margin-bottom: 8rem;
+    align-items: start;
+  }
+
+  /* Sticky kart alanı */
+  .c-card-wrapper {
+    position: sticky;
+    top: 56px; /* geri butonu yüksekliği kadar aşağı */
+    height: 400px;
+  }
+
+  /* Flip kart */
+  .c-flip-card {
+    width: 100%;
+    height: 100%;
+    perspective: 1000px;
+    cursor: pointer;
+  }
+  .c-flip-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.8s;
+    transform-style: preserve-3d;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    border-radius: 10px;
+  }
+  .c-flip-card:hover .c-flip-inner {
+    transform: rotateY(180deg);
+  }
+  .c-flip-front, .c-flip-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 1.5rem;
+    text-align: center;
+  }
+  .c-flip-front {
+    background: #2c3e50;
+    color: #c5a059;
+    border: 2px solid #c5a059;
+  }
+  .c-flip-back {
+    background: #c5a059;
+    color: #1a2634;
+    transform: rotateY(180deg);
+  }
+  .c-card-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+  .c-card-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 0.75rem;
+  }
+  .c-card-hint {
+    font-size: 0.75rem;
+    color: #fff;
+    opacity: 0.7;
+    margin-top: 1rem;
+  }
+
+  /* Makale içeriği */
+  .c-chapter-h2 {
+    font-size: 2rem;
+    color: #1a2634;
+    margin-bottom: 1.5rem;
+    position: relative;
+  }
+  .c-chapter-h2::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 3px;
+    background: #c5a059;
+    margin-top: 0.5rem;
+  }
+  .c-para {
+    color: #333;
+    margin-bottom: 1.5rem;
+  }
+  .c-highlight {
+    background: #f0ece2;
+    border-left: 4px solid #2c3e50;
+    padding: 1.25rem 1.5rem;
+    margin: 2rem 0;
+    font-style: italic;
+    font-family: 'Playfair Display', serif;
+    color: #555;
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+
+  /* Timeline */
+  .c-timeline {
+    border-top: 2px solid #d4b896;
+    padding-top: 3rem;
+    margin-top: 2rem;
+  }
+  .c-timeline-item {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 24px;
+    align-items: flex-start;
+  }
+  .c-timeline-date {
+    background: #1a2634;
+    color: #c5a059;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-family: 'Cinzel', serif;
+  }
+
+  /* Responsive: mobilede sticky kaldır, tek sütun */
+  @media (max-width: 900px) {
+    .c-chapter {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+      margin-bottom: 4rem;
+    }
+    .c-card-wrapper {
+      position: relative;
+      top: 0;
+      height: 280px;
+      max-width: 360px;
+      margin: 0 auto;
+    }
+    .c-hero {
+      background-attachment: scroll; /* iOS paralaks fix */
+      padding: 2rem;
+    }
+    .c-container { padding: 2rem 1rem; }
+  }
+</style>
