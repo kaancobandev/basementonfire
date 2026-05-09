@@ -332,139 +332,140 @@ const defaultPlaylist = [
   justify-content: space-between;
   align-items: center;
   font-size: 0.95rem;
-  background: var(--color-bg);
+  background: var(--color-surface);
   position: sticky;
   top: 57px;
   z-index: 5;
 }
 
-.playlist-cols {
-  display: grid;
-  grid-template-columns: 32px 56px 1fr 28px;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 20px;
-  border-bottom: 1px solid var(--color-border);
+/* ── YouTube-style list item ─────────────────── */
+.yt-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px;
   cursor: pointer;
   transition: background 0.12s;
-  border-left: 3px solid transparent;
+  border-radius: 0;
+  position: relative;
 }
 
-.playlist-cols:hover { background: #f9fafb; }
+.yt-item:hover { background: #f2f2f2; }
+.yt-item.playing { background: #e8f0fe; }
 
-.playlist-cols.playing {
-  background: #eff6ff;
-  border-left-color: var(--color-primary);
-}
-
-/* Track number / equalizer column */
-.pl-num {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
+/* Thumbnail wrapper — 16:9 ratio */
+.yt-thumb-wrap {
+  position: relative;
+  width: 160px;
   flex-shrink: 0;
-}
-
-.pl-idx {
-  font-size: 0.85rem;
-  color: var(--color-text-muted);
-  font-variant-numeric: tabular-nums;
-}
-
-/* Animated equalizer bars */
-.pl-eq {
-  display: flex;
-  align-items: flex-end;
-  gap: 2px;
-  height: 18px;
-  width: 18px;
-}
-
-.pl-eq span {
-  flex: 1;
-  background: var(--color-primary);
-  border-radius: 2px 2px 0 0;
-  animation: none;
-  height: 35%;
-}
-
-.pl-eq.running span {
-  animation: eq-bounce 0.7s ease-in-out infinite alternate;
-}
-
-.pl-eq.running span:nth-child(1) { animation-delay: 0s;    }
-.pl-eq.running span:nth-child(2) { animation-delay: 0.18s; }
-.pl-eq.running span:nth-child(3) { animation-delay: 0.35s; }
-
-@keyframes eq-bounce {
-  from { height: 20%; }
-  to   { height: 100%; }
-}
-
-/* Thumbnail */
-.pl-thumb {
-  width: 56px;
-  height: 56px;
   border-radius: 8px;
+  overflow: hidden;
+  background: #0f172a;
+  aspect-ratio: 16 / 9;
+}
+
+.yt-thumb {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  flex-shrink: 0;
-  background: #e2e8f0;
   display: block;
 }
 
-/* Info */
-.pl-info {
+/* Playing overlay on thumbnail */
+.yt-playing-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.yt-eq {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 22px;
+}
+
+.yt-eq span {
+  width: 4px;
+  background: #fff;
+  border-radius: 2px 2px 0 0;
+  height: 35%;
+}
+
+.yt-eq.running span {
+  animation: yt-eq-anim 0.7s ease-in-out infinite alternate;
+}
+
+.yt-eq.running span:nth-child(1) { animation-delay: 0s;    }
+.yt-eq.running span:nth-child(2) { animation-delay: 0.2s;  }
+.yt-eq.running span:nth-child(3) { animation-delay: 0.38s; }
+
+@keyframes yt-eq-anim {
+  from { height: 18%; }
+  to   { height: 100%; }
+}
+
+/* Info column */
+.yt-info {
+  flex: 1;
   min-width: 0;
+  padding-top: 2px;
 }
 
-.pl-title {
-  font-size: 0.9rem;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.yt-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.4;
   color: var(--color-text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 4px;
 }
 
-.playlist-cols.playing .pl-title {
-  color: var(--color-primary);
-}
+.yt-item.playing .yt-title { color: var(--color-primary); }
 
-.pl-artist {
+.yt-channel {
   font-size: 0.78rem;
-  color: var(--color-text-muted);
+  color: #606060;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-top: 3px;
 }
 
-/* Remove button */
-.pl-remove {
+.yt-item.playing .yt-channel { color: #2563eb; }
+
+/* Remove / menu button */
+.yt-menu {
+  flex-shrink: 0;
   background: none;
   border: none;
-  color: var(--color-text-muted);
+  color: #606060;
   cursor: pointer;
-  padding: 5px;
+  padding: 4px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
   transition: all 0.15s;
-  flex-shrink: 0;
+  margin-top: 2px;
 }
 
-.playlist-cols:hover .pl-remove { opacity: 1; }
-.pl-remove:hover { background: #fee2e2; color: #ef4444; }
+.yt-item:hover .yt-menu { opacity: 1; }
+.yt-menu:hover { background: #e0e0e0; color: #ef4444; }
 
+/* Empty state */
 .pl-empty {
   text-align: center;
   padding: 48px 20px;
   color: var(--color-text-muted);
   font-size: 0.9rem;
-  line-height: 1.6;
+  line-height: 1.7;
 }
 </style>
 
@@ -674,38 +675,40 @@ const defaultPlaylist = [
     const isCurrent = i => i === currentIndex;
 
     playlistItems.innerHTML = playlist.map((song, i) => {
-      const playing = isCurrent(i);
-      const eqClass = playing && isPlaying ? 'pl-eq running' : 'pl-eq';
-      const numHtml = playing
-        ? `<div class="${eqClass}"><span></span><span></span><span></span></div>`
-        : `<span class="pl-idx">${i + 1}</span>`;
+      const playing  = isCurrent(i);
+      const eqClass  = playing && isPlaying ? 'yt-eq running' : 'yt-eq';
+      const overlay  = playing
+        ? `<div class="yt-playing-overlay"><div class="${eqClass}"><span></span><span></span><span></span></div></div>`
+        : '';
 
       return `
-        <div class="playlist-cols${playing ? ' playing' : ''}" data-index="${i}">
-          <div class="pl-num">${numHtml}</div>
-          <img class="pl-thumb"
-            src="https://img.youtube.com/vi/${song.id}/mqdefault.jpg"
-            alt="${escHtml(song.title)}"
-            loading="lazy"
-            onerror="this.src='https://img.youtube.com/vi/${song.id}/default.jpg'" />
-          <div class="pl-info">
-            <div class="pl-title">${escHtml(song.title)}</div>
-            <div class="pl-artist">${escHtml(song.artist)}</div>
+        <div class="yt-item${playing ? ' playing' : ''}" data-index="${i}">
+          <div class="yt-thumb-wrap">
+            <img class="yt-thumb"
+              src="https://img.youtube.com/vi/${song.id}/mqdefault.jpg"
+              alt="${escHtml(song.title)}"
+              loading="lazy"
+              onerror="this.src='https://img.youtube.com/vi/${song.id}/hqdefault.jpg'" />
+            ${overlay}
           </div>
-          <button class="pl-remove" data-remove="${i}" title="Kaldır">
-            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          <div class="yt-info">
+            <div class="yt-title">${escHtml(song.title)}</div>
+            <div class="yt-channel">${escHtml(song.artist)}</div>
+          </div>
+          <button class="yt-menu" data-remove="${i}" title="Kaldır">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
           </button>
         </div>`;
     }).join('');
 
-    playlistItems.querySelectorAll('.playlist-cols').forEach(el => {
+    playlistItems.querySelectorAll('.yt-item').forEach(el => {
       el.addEventListener('click', e => {
-        if (e.target.closest('.pl-remove')) return;
+        if (e.target.closest('.yt-menu')) return;
         playSong(parseInt(el.dataset.index));
       });
     });
 
-    playlistItems.querySelectorAll('.pl-remove').forEach(btn => {
+    playlistItems.querySelectorAll('.yt-menu').forEach(btn => {
       btn.addEventListener('click', e => {
         e.stopPropagation();
         removeSong(parseInt(btn.dataset.remove));
