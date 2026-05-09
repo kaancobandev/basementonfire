@@ -1,0 +1,785 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const defaultPlaylist = [
+  { id: 'ea9RCZSRvSc', title: 'Clair de Lune', artist: 'Claude Debussy' },
+  { id: 'GMkmQlfOJDk', title: 'Air on G String', artist: 'Johann Sebastian Bach' },
+  { id: 'oy2zDJPIgwc', title: 'Eine kleine Nachtmusik', artist: 'W.A. Mozart' },
+  { id: '4Tr0otuiQuU', title: 'Nocturne Op. 9 No. 2', artist: 'Frédéric Chopin' },
+  { id: 'x1xvKkCkMlc', title: 'Vivaldi - Four Seasons (Spring)', artist: 'Antonio Vivaldi' },
+];
+---
+
+<BaseLayout title="Müzik" activeNav="muzik">
+  <main class="main-content muzik-page" style="max-width:600px;">
+    <div class="feed-header">Müzik</div>
+
+    <!-- ── Now Playing ─────────────────────────── -->
+    <div class="np-card">
+      <div class="np-cover-wrap">
+        <img id="cover-img" class="np-cover" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='240' viewBox='0 0 600 240'%3E%3Crect width='600' height='240' fill='%231e293b'/%3E%3Ctext x='300' y='130' font-size='64' text-anchor='middle' fill='%2364748b'%3E♪%3C/text%3E%3C/svg%3E" alt="Kapak" />
+        <div class="np-cover-gradient"></div>
+        <div class="np-cover-info">
+          <div id="song-title" class="np-title">Şarkı seçilmedi</div>
+          <div id="song-artist" class="np-artist">Çalma listesinden bir şarkı seç</div>
+        </div>
+      </div>
+
+      <div class="np-controls-area">
+        <!-- Progress -->
+        <div class="progress-row">
+          <span id="time-current" class="time-label">0:00</span>
+          <div class="progress-track" id="progress-track">
+            <div class="progress-fill" id="progress-fill"></div>
+            <div class="progress-thumb" id="progress-thumb"></div>
+          </div>
+          <span id="time-total" class="time-label">0:00</span>
+        </div>
+
+        <!-- Buttons -->
+        <div class="ctrl-row">
+          <button id="btn-shuffle" class="ctrl-btn" title="Karıştır">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.7-1.1 2-1.7 3.3-1.7H22"/><path d="m18 2 4 4-4 4"/><path d="M2 6h1.9c1.5 0 2.9.9 3.5 2.2"/><path d="M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.7l-.5-.8"/><path d="m18 14 4 4-4 4"/></svg>
+          </button>
+          <button id="btn-prev" class="ctrl-btn" title="Önceki">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" x2="5" y1="19" y2="5" stroke="currentColor" stroke-width="2"/></svg>
+          </button>
+          <button id="btn-play" class="ctrl-btn play-main" title="Oynat">
+            <svg id="icon-play" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <svg id="icon-pause" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+          </button>
+          <button id="btn-next" class="ctrl-btn" title="Sonraki">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" x2="19" y1="5" y2="19" stroke="currentColor" stroke-width="2"/></svg>
+          </button>
+          <button id="btn-repeat" class="ctrl-btn" title="Tekrar Yok">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          </button>
+        </div>
+
+        <!-- Volume -->
+        <div class="volume-row">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+          <input type="range" id="volume-slider" class="volume-slider" min="0" max="100" value="80" />
+        </div>
+      </div>
+    </div>
+
+    <!-- ── YouTube URL Ekle ───────────────────── -->
+    <div class="add-song-section">
+      <div class="add-song-label">YouTube URL ekle</div>
+      <div class="add-song-form">
+        <input id="url-input" class="url-input" type="text" placeholder="https://youtube.com/watch?v=..." autocomplete="off" />
+        <button id="btn-add" class="btn-add">
+          <span id="add-label">Ekle</span>
+        </button>
+      </div>
+      <div id="add-error" class="add-error" style="display:none;"></div>
+    </div>
+
+    <!-- ── Çalma Listesi ─────────────────────── -->
+    <div class="playlist-section">
+      <div class="playlist-header">
+        <span style="font-weight:700;">Çalma Listesi</span>
+        <span id="playlist-count" style="color:var(--color-text-muted); font-size:0.85rem;"></span>
+      </div>
+      <div id="playlist-items"></div>
+    </div>
+  </main>
+
+  <!-- Hidden YouTube Player -->
+  <div id="yt-player" style="position:fixed;left:-9999px;bottom:-9999px;width:1px;height:1px;pointer-events:none;"></div>
+</BaseLayout>
+
+<style>
+/* ── Now Playing Card ────────────────────────── */
+.np-card {
+  margin: 16px 20px;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  background: #0f172a;
+}
+
+.np-cover-wrap {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+}
+
+.np-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: opacity 0.3s;
+}
+
+.np-cover-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 30%, rgba(15,23,42,0.95) 100%);
+}
+
+.np-cover-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px 20px;
+}
+
+.np-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.np-artist {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.65);
+  margin-top: 2px;
+}
+
+.np-controls-area {
+  padding: 16px 20px 20px;
+}
+
+/* Progress */
+.progress-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.time-label {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.5);
+  min-width: 32px;
+  font-variant-numeric: tabular-nums;
+}
+
+.progress-track {
+  flex: 1;
+  height: 4px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 9999px;
+  position: relative;
+  cursor: pointer;
+  transition: height 0.15s;
+}
+
+.progress-track:hover { height: 6px; }
+
+.progress-fill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 9999px;
+  width: 0%;
+  transition: width 0.4s linear;
+  pointer-events: none;
+}
+
+.progress-thumb {
+  position: absolute;
+  top: 50%;
+  left: 0%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+}
+
+.progress-track:hover .progress-thumb { opacity: 1; }
+
+/* Controls */
+.ctrl-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.ctrl-btn {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.6);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.ctrl-btn:hover { color: #fff; background: rgba(255,255,255,0.08); }
+.ctrl-btn.active { color: var(--color-primary); }
+
+.play-main {
+  width: 52px;
+  height: 52px;
+  background: #fff !important;
+  color: #0f172a !important;
+  border-radius: 50%;
+  margin: 0 8px;
+}
+
+.play-main:hover { transform: scale(1.06); background: #e2e8f0 !important; }
+
+/* Volume */
+.volume-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: rgba(255,255,255,0.5);
+}
+
+.volume-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 4px;
+  border-radius: 9999px;
+  background: rgba(255,255,255,0.15);
+  outline: none;
+  cursor: pointer;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+}
+
+/* ── Add Song ──────────────────────────────── */
+.add-song-section {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.add-song-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.add-song-form {
+  display: flex;
+  gap: 8px;
+}
+
+.url-input {
+  flex: 1;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  outline: none;
+  background: var(--color-bg);
+  color: var(--color-text);
+  transition: border-color 0.15s;
+}
+
+.url-input:focus { border-color: var(--color-primary); }
+
+.btn-add {
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.btn-add:hover { background: var(--color-primary-hover); }
+.btn-add:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.add-error {
+  color: #ef4444;
+  font-size: 0.82rem;
+  margin-top: 6px;
+}
+
+/* ── Playlist ──────────────────────────────── */
+.playlist-section {
+  padding-bottom: 40px;
+}
+
+.playlist-header {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.95rem;
+}
+
+.playlist-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.playlist-item:hover { background: #f9fafb; }
+.playlist-item.playing { background: #eff6ff; }
+
+.pl-thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--color-border);
+}
+
+.pl-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.pl-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pl-artist {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pl-playing-icon {
+  color: var(--color-primary);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.pl-remove {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.playlist-item:hover .pl-remove { opacity: 1; }
+.pl-remove:hover { background: #fee2e2; color: #ef4444; }
+
+.pl-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+</style>
+
+<script is:inline>
+(function () {
+  /* ── State ────────────────────────────────────────── */
+  const STORAGE_KEY = 'basements_playlist';
+
+  const defaults = [
+    { id: 'ea9RCZSRvSc', title: 'Clair de Lune', artist: 'Claude Debussy' },
+    { id: 'GMkmQlfOJDk', title: 'Air on G String', artist: 'Johann Sebastian Bach' },
+    { id: 'oy2zDJPIgwc', title: 'Eine kleine Nachtmusik', artist: 'W.A. Mozart' },
+    { id: '4Tr0otuiQuU', title: 'Nocturne Op. 9 No. 2', artist: 'Frédéric Chopin' },
+    { id: 'x1xvKkCkMlc', title: 'Four Seasons - Spring', artist: 'Antonio Vivaldi' },
+  ];
+
+  let playlist = loadPlaylist();
+  let currentIndex = 0;
+  let isPlaying = false;
+  let isShuffle = false;
+  let repeatMode = 0; // 0=off 1=all 2=one
+  let player = null;
+  let progressTimer = null;
+  let isDragging = false;
+
+  /* ── DOM refs ─────────────────────────────────────── */
+  const coverImg      = document.getElementById('cover-img');
+  const songTitle     = document.getElementById('song-title');
+  const songArtist    = document.getElementById('song-artist');
+  const timeCurrent   = document.getElementById('time-current');
+  const timeTotal     = document.getElementById('time-total');
+  const progressFill  = document.getElementById('progress-fill');
+  const progressThumb = document.getElementById('progress-thumb');
+  const progressTrack = document.getElementById('progress-track');
+  const iconPlay      = document.getElementById('icon-play');
+  const iconPause     = document.getElementById('icon-pause');
+  const btnPlay       = document.getElementById('btn-play');
+  const btnPrev       = document.getElementById('btn-prev');
+  const btnNext       = document.getElementById('btn-next');
+  const btnShuffle    = document.getElementById('btn-shuffle');
+  const btnRepeat     = document.getElementById('btn-repeat');
+  const volumeSlider  = document.getElementById('volume-slider');
+  const urlInput      = document.getElementById('url-input');
+  const btnAdd        = document.getElementById('btn-add');
+  const addLabel      = document.getElementById('add-label');
+  const addError      = document.getElementById('add-error');
+  const playlistItems = document.getElementById('playlist-items');
+  const playlistCount = document.getElementById('playlist-count');
+
+  /* ── localStorage ─────────────────────────────────── */
+  function loadPlaylist() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch (_) {}
+    return [...defaults];
+  }
+
+  function savePlaylist() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(playlist)); } catch (_) {}
+  }
+
+  /* ── YouTube IFrame API ───────────────────────────── */
+  const tag = document.createElement('script');
+  tag.src = 'https://www.youtube.com/iframe_api';
+  document.head.appendChild(tag);
+
+  window.onYouTubeIframeAPIReady = function () {
+    player = new YT.Player('yt-player', {
+      videoId: playlist[currentIndex]?.id ?? '',
+      playerVars: { autoplay: 0, controls: 0, rel: 0, modestbranding: 1, iv_load_policy: 3 },
+      events: {
+        onReady: () => {
+          player.setVolume(parseInt(volumeSlider.value));
+          updateSongUI();
+          renderPlaylist();
+        },
+        onStateChange: onStateChange,
+        onError: () => nextSong(),
+      },
+    });
+  };
+
+  function onStateChange(e) {
+    const S = YT.PlayerState;
+    if (e.data === S.PLAYING) {
+      isPlaying = true;
+      updatePlayBtn();
+      startProgress();
+    } else if (e.data === S.PAUSED) {
+      isPlaying = false;
+      updatePlayBtn();
+    } else if (e.data === S.ENDED) {
+      handleEnded();
+    }
+  }
+
+  function handleEnded() {
+    if (repeatMode === 2) {
+      player.seekTo(0); player.playVideo();
+    } else {
+      const wasLast = currentIndex === playlist.length - 1;
+      nextSong(false);
+      if (wasLast && repeatMode === 0) {
+        isPlaying = false; updatePlayBtn(); clearInterval(progressTimer);
+      }
+    }
+  }
+
+  /* ── Playback controls ────────────────────────────── */
+  function playSong(index) {
+    if (!playlist[index]) return;
+    currentIndex = index;
+    player.loadVideoById(playlist[index].id);
+    isPlaying = true;
+    updateSongUI();
+    updatePlayBtn();
+    renderPlaylist();
+  }
+
+  function togglePlay() {
+    if (!player) return;
+    if (!playlist.length) return;
+    if (player.getPlayerState() === -1) { playSong(currentIndex); return; }
+    isPlaying ? player.pauseVideo() : player.playVideo();
+  }
+
+  function nextSong(auto = true) {
+    if (!playlist.length) return;
+    let next;
+    if (isShuffle) {
+      next = Math.floor(Math.random() * playlist.length);
+    } else {
+      next = (currentIndex + 1) % playlist.length;
+    }
+    if (next === 0 && repeatMode === 0 && !auto) return;
+    playSong(next);
+  }
+
+  function prevSong() {
+    if (!playlist.length) return;
+    if (player && player.getCurrentTime() > 3) { player.seekTo(0); return; }
+    let prev;
+    if (isShuffle) {
+      prev = Math.floor(Math.random() * playlist.length);
+    } else {
+      prev = (currentIndex - 1 + playlist.length) % playlist.length;
+    }
+    playSong(prev);
+  }
+
+  /* ── Progress ─────────────────────────────────────── */
+  function startProgress() {
+    clearInterval(progressTimer);
+    progressTimer = setInterval(() => {
+      if (!player || isDragging) return;
+      const cur = player.getCurrentTime() || 0;
+      const dur = player.getDuration() || 0;
+      setProgress(cur, dur);
+    }, 500);
+  }
+
+  function setProgress(cur, dur) {
+    const pct = dur > 0 ? (cur / dur) * 100 : 0;
+    progressFill.style.width = pct + '%';
+    progressFill.style.transition = isDragging ? 'none' : 'width 0.4s linear';
+    progressThumb.style.left = pct + '%';
+    timeCurrent.textContent = fmt(cur);
+    timeTotal.textContent   = fmt(dur);
+  }
+
+  function fmt(s) {
+    const m = Math.floor(s / 60), sec = Math.floor(s % 60);
+    return m + ':' + String(sec).padStart(2, '0');
+  }
+
+  /* ── UI updates ───────────────────────────────────── */
+  function updatePlayBtn() {
+    iconPlay.style.display  = isPlaying ? 'none' : 'block';
+    iconPause.style.display = isPlaying ? 'block' : 'none';
+  }
+
+  function updateSongUI() {
+    const song = playlist[currentIndex];
+    if (!song) return;
+    songTitle.textContent  = song.title;
+    songArtist.textContent = song.artist;
+    coverImg.src = `https://img.youtube.com/vi/${song.id}/hqdefault.jpg`;
+    coverImg.onerror = () => {
+      coverImg.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='240' viewBox='0 0 600 240'%3E%3Crect width='600' height='240' fill='%231e293b'/%3E%3Ctext x='300' y='130' font-size='64' text-anchor='middle' fill='%2364748b'%3E♪%3C/text%3E%3C/svg%3E";
+    };
+  }
+
+  function renderPlaylist() {
+    playlistCount.textContent = playlist.length + ' şarkı';
+
+    if (!playlist.length) {
+      playlistItems.innerHTML = '<div class="pl-empty">Henüz şarkı yok. Yukarıdan YouTube URL ekle.</div>';
+      return;
+    }
+
+    playlistItems.innerHTML = playlist.map((song, i) => `
+      <div class="playlist-item${i === currentIndex ? ' playing' : ''}" data-index="${i}">
+        <img class="pl-thumb" src="https://img.youtube.com/vi/${song.id}/default.jpg" alt="" loading="lazy"
+          onerror="this.style.background='#e2e8f0';this.style.display='block'" />
+        <div class="pl-info">
+          <div class="pl-title">${escHtml(song.title)}</div>
+          <div class="pl-artist">${escHtml(song.artist)}</div>
+        </div>
+        ${i === currentIndex && isPlaying ? '<span class="pl-playing-icon">▶ ŞU AN</span>' : ''}
+        <button class="pl-remove" data-remove="${i}" title="Kaldır">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+    `).join('');
+
+    playlistItems.querySelectorAll('.playlist-item').forEach(el => {
+      el.addEventListener('click', e => {
+        if (e.target.closest('.pl-remove')) return;
+        playSong(parseInt(el.dataset.index));
+      });
+    });
+
+    playlistItems.querySelectorAll('.pl-remove').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        removeSong(parseInt(btn.dataset.remove));
+      });
+    });
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  /* ── Add song ─────────────────────────────────────── */
+  function parseVideoId(url) {
+    url = url.trim();
+    const patterns = [
+      /[?&]v=([a-zA-Z0-9_-]{11})/,
+      /youtu\.be\/([a-zA-Z0-9_-]{11})/,
+      /embed\/([a-zA-Z0-9_-]{11})/,
+      /shorts\/([a-zA-Z0-9_-]{11})/,
+    ];
+    for (const p of patterns) {
+      const m = url.match(p);
+      if (m) return m[1];
+    }
+    if (/^[a-zA-Z0-9_-]{11}$/.test(url)) return url;
+    return null;
+  }
+
+  async function addSong() {
+    const raw = urlInput.value;
+    const videoId = parseVideoId(raw);
+    addError.style.display = 'none';
+
+    if (!videoId) {
+      addError.textContent = 'Geçersiz YouTube URL\'si. "youtube.com/watch?v=..." formatında gir.';
+      addError.style.display = 'block';
+      return;
+    }
+
+    if (playlist.some(s => s.id === videoId)) {
+      addError.textContent = 'Bu şarkı zaten listede var.';
+      addError.style.display = 'block';
+      return;
+    }
+
+    btnAdd.disabled = true;
+    addLabel.textContent = '...';
+
+    let title = 'YouTube Şarkısı';
+    let artist = 'YouTube';
+
+    try {
+      const res = await fetch(
+        `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        title  = data.title  || title;
+        artist = data.author_name || artist;
+      }
+    } catch (_) {}
+
+    playlist.push({ id: videoId, title, artist });
+    savePlaylist();
+    urlInput.value = '';
+    btnAdd.disabled = false;
+    addLabel.textContent = 'Ekle';
+    renderPlaylist();
+  }
+
+  function removeSong(index) {
+    const wasPlaying = index === currentIndex;
+    playlist.splice(index, 1);
+    savePlaylist();
+
+    if (!playlist.length) {
+      currentIndex = 0;
+      isPlaying = false;
+      player.stopVideo();
+      songTitle.textContent  = 'Şarkı seçilmedi';
+      songArtist.textContent = 'Çalma listesinden bir şarkı seç';
+      setProgress(0, 0);
+      updatePlayBtn();
+    } else if (index < currentIndex) {
+      currentIndex--;
+    } else if (wasPlaying) {
+      currentIndex = Math.min(currentIndex, playlist.length - 1);
+      playSong(currentIndex);
+    }
+
+    renderPlaylist();
+  }
+
+  /* ── Event listeners ──────────────────────────────── */
+  btnPlay.addEventListener('click', togglePlay);
+  btnNext.addEventListener('click', () => nextSong(true));
+  btnPrev.addEventListener('click', prevSong);
+
+  btnShuffle.addEventListener('click', () => {
+    isShuffle = !isShuffle;
+    btnShuffle.classList.toggle('active', isShuffle);
+  });
+
+  btnRepeat.addEventListener('click', () => {
+    repeatMode = (repeatMode + 1) % 3;
+    const titles = ['Tekrar Yok', 'Hepsini Tekrarla', 'Biri Tekrarla'];
+    btnRepeat.title = titles[repeatMode];
+    btnRepeat.classList.toggle('active', repeatMode > 0);
+    btnRepeat.style.opacity = repeatMode > 0 ? '1' : '';
+    if (repeatMode === 2) {
+      btnRepeat.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/><text x="12" y="14" text-anchor="middle" font-size="7" fill="currentColor" stroke="none">1</text></svg>`;
+    } else {
+      btnRepeat.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>`;
+    }
+  });
+
+  volumeSlider.addEventListener('input', () => {
+    if (player) player.setVolume(parseInt(volumeSlider.value));
+  });
+
+  btnAdd.addEventListener('click', addSong);
+  urlInput.addEventListener('keydown', e => { if (e.key === 'Enter') addSong(); });
+
+  /* ── Progress bar seek ────────────────────────────── */
+  function seekFromEvent(e) {
+    if (!player) return;
+    const rect = progressTrack.getBoundingClientRect();
+    const pct  = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const dur  = player.getDuration() || 0;
+    player.seekTo(pct * dur, true);
+    setProgress(pct * dur, dur);
+  }
+
+  progressTrack.addEventListener('mousedown', e => {
+    isDragging = true;
+    seekFromEvent(e);
+    const up = () => { isDragging = false; window.removeEventListener('mouseup', up); window.removeEventListener('mousemove', move); };
+    const move = e2 => seekFromEvent(e2);
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+  });
+
+  /* ── Keyboard shortcuts ───────────────────────────── */
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.key === ' ') { e.preventDefault(); togglePlay(); }
+    if (e.key === 'ArrowRight') { if (player) player.seekTo((player.getCurrentTime() || 0) + 10, true); }
+    if (e.key === 'ArrowLeft')  { if (player) player.seekTo(Math.max(0, (player.getCurrentTime() || 0) - 10), true); }
+  });
+})();
+</script>
