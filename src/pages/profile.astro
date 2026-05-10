@@ -1,19 +1,27 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { supabase, type DbUser } from '../lib/supabase';
+import { supabase, createAuthClient, type DbUser } from '../lib/supabase';
 
+// Giriş kontrolü
+const authHeaders = new Headers();
+const authClient = createAuthClient(Astro.request, authHeaders);
+const { data: { user: authUser } } = await authClient.auth.getUser();
+if (!authUser) return Astro.redirect('/login');
+
+// Auth id ile users tablosundan profili getir
 const { data: userData } = await supabase
   .from('users')
   .select('*')
-  .eq('id', 1)
+  .eq('auth_id', authUser.id)
   .single();
 
+if (!userData) return Astro.redirect('/login');
 const user = userData as DbUser;
 
 const { data: postsData } = await supabase
   .from('posts')
   .select('id, content, category, likes, created_at')
-  .eq('user_id', 1)
+  .eq('user_id', user.id)
   .order('created_at', { ascending: false });
 
 const posts = (postsData ?? []) as Array<{ id: number; content: string; category: string; likes: number; created_at: string }>;
