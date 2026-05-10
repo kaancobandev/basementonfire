@@ -1,0 +1,73 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { createAuthClient } from '../lib/supabase';
+
+const headers = new Headers();
+const supabase = createAuthClient(Astro.request, headers);
+const { data: { user } } = await supabase.auth.getUser();
+if (user) return Astro.redirect('/');
+
+const error = Astro.url.searchParams.get('error');
+---
+
+<BaseLayout title="Giriş Yap" activeNav="">
+  <main class="main-content" style="display:flex; align-items:center; justify-content:center; min-height:100vh; background:#f0f2f5;">
+    <div style="background:white; border-radius:20px; padding:40px; width:100%; max-width:420px; box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+
+      <div style="text-align:center; margin-bottom:28px;">
+        <div style="font-size:2rem; font-weight:800; color:#3b82f6; margin-bottom:4px;">Basements</div>
+        <div style="color:#536471; font-size:0.9rem;">Hesabına giriş yap</div>
+      </div>
+
+      {error && (
+        <div style="background:#fee2e2; color:#dc2626; padding:10px 14px; border-radius:10px; font-size:0.85rem; margin-bottom:16px;">
+          {error}
+        </div>
+      )}
+
+      <form method="POST" action="/api/auth/login" style="display:flex; flex-direction:column; gap:14px;">
+        <div>
+          <label style="display:block; font-size:0.85rem; font-weight:600; color:#374151; margin-bottom:4px;">E-posta</label>
+          <input
+            type="email"
+            name="email"
+            required
+            autocomplete="email"
+            placeholder="ornek@mail.com"
+            style="width:100%; padding:10px 14px; border:1.5px solid #e2e8f0; border-radius:10px; font-size:0.95rem; outline:none; transition:border-color 0.15s;"
+            onfocus="this.style.borderColor='#3b82f6'"
+            onblur="this.style.borderColor='#e2e8f0'"
+          />
+        </div>
+
+        <div>
+          <label style="display:block; font-size:0.85rem; font-weight:600; color:#374151; margin-bottom:4px;">Şifre</label>
+          <input
+            type="password"
+            name="password"
+            required
+            autocomplete="current-password"
+            placeholder="Şifreniz"
+            style="width:100%; padding:10px 14px; border:1.5px solid #e2e8f0; border-radius:10px; font-size:0.95rem; outline:none; transition:border-color 0.15s;"
+            onfocus="this.style.borderColor='#3b82f6'"
+            onblur="this.style.borderColor='#e2e8f0'"
+          />
+        </div>
+
+        <button
+          type="submit"
+          style="background:#3b82f6; color:white; font-weight:700; font-size:1rem; padding:12px; border:none; border-radius:10px; cursor:pointer; transition:background 0.15s; margin-top:4px;"
+          onmouseover="this.style.background='#2563eb'"
+          onmouseout="this.style.background='#3b82f6'"
+        >
+          Giriş Yap
+        </button>
+      </form>
+
+      <p style="text-align:center; margin-top:20px; font-size:0.88rem; color:#536471;">
+        Hesabın yok mu?
+        <a href="/register" style="color:#3b82f6; font-weight:600; text-decoration:none;">Kayıt ol</a>
+      </p>
+    </div>
+  </main>
+</BaseLayout>
