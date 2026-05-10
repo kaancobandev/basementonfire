@@ -1,435 +1,589 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-
-const defaultPlaylist = [
-  { id: 'ea9RCZSRvSc', title: 'Clair de Lune', artist: 'Claude Debussy' },
-  { id: 'GMkmQlfOJDk', title: 'Air on G String', artist: 'Johann Sebastian Bach' },
-  { id: 'oy2zDJPIgwc', title: 'Eine kleine Nachtmusik', artist: 'W.A. Mozart' },
-  { id: '4Tr0otuiQuU', title: 'Nocturne Op. 9 No. 2', artist: 'Frédéric Chopin' },
-  { id: 'x1xvKkCkMlc', title: 'Vivaldi - Four Seasons (Spring)', artist: 'Antonio Vivaldi' },
-];
 ---
 
 <BaseLayout title="Müzik" activeNav="muzik">
-  <main class="main-content muzik-page" style="max-width:600px;">
-    <div class="feed-header">Müzik</div>
+  <main class="main-content yt-page">
 
-    <!-- ── Now Playing ─────────────────────────── -->
-    <div class="np-card">
-      <div class="np-cover-wrap">
-        <img id="cover-img" class="np-cover" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='240' viewBox='0 0 600 240'%3E%3Crect width='600' height='240' fill='%231e293b'/%3E%3Ctext x='300' y='130' font-size='64' text-anchor='middle' fill='%2364748b'%3E♪%3C/text%3E%3C/svg%3E" alt="Kapak" />
-        <div class="np-cover-gradient"></div>
-        <div class="np-cover-info">
-          <div id="song-title" class="np-title">Şarkı seçilmedi</div>
-          <div id="song-artist" class="np-artist">Çalma listesinden bir şarkı seç</div>
-        </div>
-      </div>
+    <!-- ══════════════════════════════════════════
+         PLAYER  (YouTube video player look)
+    ══════════════════════════════════════════ -->
+    <div class="yt-player-wrap">
+      <!-- 16:9 video area -->
+      <div class="yt-video-area">
+        <img id="cover-img" class="yt-cover"
+          src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3Crect width='16' height='9' fill='%230f0f0f'/%3E%3C/svg%3E"
+          alt="kapak" />
 
-      <div class="np-controls-area">
-        <!-- Progress -->
-        <div class="progress-row">
-          <span id="time-current" class="time-label">0:00</span>
-          <div class="progress-track" id="progress-track">
-            <div class="progress-fill" id="progress-fill"></div>
-            <div class="progress-thumb" id="progress-thumb"></div>
+        <!-- Center play overlay (shows when paused) -->
+        <div class="yt-center-play" id="center-play-overlay">
+          <div class="yt-center-play-btn" id="center-play-btn">
+            <svg viewBox="0 0 24 24" width="48" height="48" fill="#fff"><polygon points="5 3 19 12 5 21"/></svg>
           </div>
-          <span id="time-total" class="time-label">0:00</span>
         </div>
 
-        <!-- Buttons -->
-        <div class="ctrl-row">
-          <button id="btn-shuffle" class="ctrl-btn" title="Karıştır">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.7-1.1 2-1.7 3.3-1.7H22"/><path d="m18 2 4 4-4 4"/><path d="M2 6h1.9c1.5 0 2.9.9 3.5 2.2"/><path d="M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.7l-.5-.8"/><path d="m18 14 4 4-4 4"/></svg>
-          </button>
-          <button id="btn-prev" class="ctrl-btn" title="Önceki">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" x2="5" y1="19" y2="5" stroke="currentColor" stroke-width="2"/></svg>
-          </button>
-          <button id="btn-play" class="ctrl-btn play-main" title="Oynat">
-            <svg id="icon-play" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            <svg id="icon-pause" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-          </button>
-          <button id="btn-next" class="ctrl-btn" title="Sonraki">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" x2="19" y1="5" y2="19" stroke="currentColor" stroke-width="2"/></svg>
-          </button>
-          <button id="btn-repeat" class="ctrl-btn" title="Tekrar Yok">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-          </button>
-        </div>
+        <!-- Bottom gradient + controls bar -->
+        <div class="yt-controls-bar">
+          <!-- Progress -->
+          <div class="yt-progress" id="progress-track">
+            <div class="yt-progress-played" id="progress-fill"></div>
+            <div class="yt-progress-dot"    id="progress-thumb"></div>
+          </div>
 
-        <!-- Volume -->
-        <div class="volume-row">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-          <input type="range" id="volume-slider" class="volume-slider" min="0" max="100" value="80" />
+          <div class="yt-bar-bottom">
+            <div class="yt-bar-left">
+              <!-- Play / Pause -->
+              <button class="yt-bar-btn" id="btn-play" title="Oynat/Duraklat">
+                <svg id="icon-play" viewBox="0 0 24 24" width="22" height="22" fill="#fff"><polygon points="5 3 19 12 5 21"/></svg>
+                <svg id="icon-pause" viewBox="0 0 24 24" width="22" height="22" fill="#fff" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+              </button>
+              <!-- Next -->
+              <button class="yt-bar-btn" id="btn-next" title="Sonraki">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="#fff"><polygon points="5 4 15 12 5 20"/><rect x="19" y="4" width="2" height="16" fill="#fff"/></svg>
+              </button>
+              <!-- Time -->
+              <div class="yt-time">
+                <span id="time-current">0:00</span>
+                <span> / </span>
+                <span id="time-total">0:00</span>
+              </div>
+            </div>
+
+            <div class="yt-bar-right">
+              <!-- Volume -->
+              <button class="yt-bar-btn" id="btn-mute" title="Sessiz">
+                <svg id="icon-vol" viewBox="0 0 24 24" width="22" height="22" fill="#fff"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14" stroke="#fff" stroke-width="2" fill="none"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="#fff" stroke-width="2" fill="none"/></svg>
+                <svg id="icon-mute" viewBox="0 0 24 24" width="22" height="22" fill="#fff" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19"/><line x1="23" y1="9" x2="17" y2="15" stroke="#fff" stroke-width="2"/><line x1="17" y1="9" x2="23" y2="15" stroke="#fff" stroke-width="2"/></svg>
+              </button>
+              <input type="range" id="volume-slider" class="yt-vol-slider" min="0" max="100" value="80" />
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- ── YouTube URL Ekle ───────────────────── -->
-    <div class="add-song-section">
-      <div class="add-song-label">YouTube URL ekle</div>
-      <div class="add-song-form">
-        <input id="url-input" class="url-input" type="text" placeholder="https://youtube.com/watch?v=..." autocomplete="off" />
-        <button id="btn-add" class="btn-add">
+    <!-- ══════════════════════════════════════════
+         VIDEO INFO  (below player like YouTube)
+    ══════════════════════════════════════════ -->
+    <div class="yt-info-section">
+      <!-- Title -->
+      <div id="song-title" class="yt-video-title">Şarkı seçilmedi</div>
+
+      <!-- Views row -->
+      <div class="yt-views-row">
+        <span id="song-artist" class="yt-views-text">Çalma listesinden bir şarkı seç</span>
+      </div>
+
+      <!-- Action buttons (like YouTube's like/share/save row) -->
+      <div class="yt-action-row">
+        <button class="yt-action-pill" id="btn-prev" title="Önceki">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><polygon points="19 20 9 12 19 4"/><rect x="5" y="4" width="2" height="16"/></svg>
+          Önceki
+        </button>
+
+        <button class="yt-action-pill yt-play-pill" id="btn-play-pill" title="Oynat">
+          <svg id="pill-play" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><polygon points="5 3 19 12 5 21"/></svg>
+          <svg id="pill-pause" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+          <span id="pill-label">Oynat</span>
+        </button>
+
+        <button class="yt-action-pill" id="btn-next-pill" title="Sonraki">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><polygon points="5 4 15 12 5 20"/><rect x="19" y="4" width="2" height="16"/></svg>
+          Sonraki
+        </button>
+
+        <button class="yt-action-pill" id="btn-shuffle" title="Karıştır">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.7-1.1 2-1.7 3.3-1.7H22"/><path d="m18 2 4 4-4 4"/><path d="M2 6h1.9c1.5 0 2.9.9 3.5 2.2"/><path d="M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.7l-.5-.8"/><path d="m18 14 4 4-4 4"/></svg>
+          Karıştır
+        </button>
+
+        <button class="yt-action-pill" id="btn-repeat" title="Tekrar">
+          <svg id="repeat-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          <span id="repeat-label">Tekrar Yok</span>
+        </button>
+      </div>
+
+      <div class="yt-divider"></div>
+
+      <!-- Channel row -->
+      <div class="yt-channel-row">
+        <div class="yt-ch-avatar" id="ch-avatar">B</div>
+        <div class="yt-ch-info">
+          <div class="yt-ch-name">Basements</div>
+          <div class="yt-ch-sub">Müzik Çalar</div>
+        </div>
+      </div>
+
+      <div class="yt-divider"></div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         ADD SONG
+    ══════════════════════════════════════════ -->
+    <div class="yt-add-section">
+      <div class="yt-add-inner">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#606060" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="url-input" class="yt-add-input" type="text"
+          placeholder="YouTube URL yapıştır (youtube.com/watch?v=...)" autocomplete="off" />
+        <button id="btn-add" class="yt-add-btn">
           <span id="add-label">Ekle</span>
         </button>
       </div>
-      <div id="add-error" class="add-error" style="display:none;"></div>
+      <div id="add-error" class="yt-add-error" style="display:none;"></div>
     </div>
 
-    <!-- ── Çalma Listesi ─────────────────────── -->
-    <div class="playlist-section">
-      <div class="playlist-header">
-        <span style="font-weight:700;">Çalma Listesi</span>
-        <span id="playlist-count" style="color:var(--color-text-muted); font-size:0.85rem;"></span>
+    <!-- ══════════════════════════════════════════
+         UP NEXT  (YouTube sidebar style)
+    ══════════════════════════════════════════ -->
+    <div class="yt-upnext-section">
+      <div class="yt-upnext-header">
+        <span class="yt-upnext-title">Sıradaki</span>
+        <span id="playlist-count" class="yt-upnext-count"></span>
       </div>
+
       <div id="playlist-items"></div>
     </div>
+
   </main>
 
   <!-- Hidden YouTube Player -->
-  <div id="yt-player" style="position:fixed;left:-9999px;bottom:-9999px;width:1px;height:1px;pointer-events:none;"></div>
+  <div id="yt-player" style="position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;pointer-events:none;"></div>
 </BaseLayout>
 
 <style>
-/* ── Now Playing Card ────────────────────────── */
-.np-card {
-  margin: 16px 20px;
-  border-radius: 20px;
-  overflow: hidden;
-  border: 1px solid var(--color-border);
-  background: #0f172a;
+/* ═══════════════════════════════════════════
+   PAGE BASE
+═══════════════════════════════════════════ */
+.yt-page {
+  max-width: 600px;
+  background: #f9f9f9;
+  min-height: 100vh;
 }
 
-.np-cover-wrap {
+/* ═══════════════════════════════════════════
+   PLAYER WRAP
+═══════════════════════════════════════════ */
+.yt-player-wrap {
+  background: #0f0f0f;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.yt-video-area {
   position: relative;
   width: 100%;
-  height: 220px;
+  aspect-ratio: 16 / 9;
+  background: #0f0f0f;
   overflow: hidden;
+  cursor: pointer;
 }
 
-.np-cover {
+.yt-cover {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
-  transition: opacity 0.3s;
 }
 
-.np-cover-gradient {
+/* Center play overlay */
+.yt-center-play {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, transparent 30%, rgba(15,23,42,0.95) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.3);
+  opacity: 0;
+  transition: opacity 0.2s;
 }
 
-.np-cover-info {
+.yt-video-area:hover .yt-center-play,
+.yt-center-play.visible { opacity: 1; }
+
+.yt-center-play-btn {
+  width: 72px;
+  height: 72px;
+  background: rgba(0,0,0,0.7);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+/* Controls bar (bottom of video) */
+.yt-controls-bar {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 16px 20px;
+  background: linear-gradient(transparent, rgba(0,0,0,0.75));
+  padding: 32px 12px 8px;
+  opacity: 0;
+  transition: opacity 0.2s;
 }
 
-.np-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #fff;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+.yt-video-area:hover .yt-controls-bar { opacity: 1; }
 
-.np-artist {
-  font-size: 0.85rem;
-  color: rgba(255,255,255,0.65);
-  margin-top: 2px;
-}
-
-.np-controls-area {
-  padding: 16px 20px 20px;
-}
-
-/* Progress */
-.progress-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 14px;
-}
-
-.time-label {
-  font-size: 0.75rem;
-  color: rgba(255,255,255,0.5);
-  min-width: 32px;
-  font-variant-numeric: tabular-nums;
-}
-
-.progress-track {
-  flex: 1;
-  height: 4px;
-  background: rgba(255,255,255,0.15);
-  border-radius: 9999px;
+/* Progress bar */
+.yt-progress {
   position: relative;
+  height: 3px;
+  background: rgba(255,255,255,0.3);
+  border-radius: 2px;
   cursor: pointer;
+  margin-bottom: 8px;
   transition: height 0.15s;
 }
 
-.progress-track:hover { height: 6px; }
+.yt-progress:hover { height: 5px; }
 
-.progress-fill {
+.yt-progress-played {
   height: 100%;
-  background: var(--color-primary);
-  border-radius: 9999px;
+  background: #3b82f6;
+  border-radius: 2px;
   width: 0%;
-  transition: width 0.4s linear;
   pointer-events: none;
 }
 
-.progress-thumb {
+.yt-progress-dot {
   position: absolute;
   top: 50%;
   left: 0%;
   transform: translate(-50%, -50%);
-  width: 12px;
-  height: 12px;
-  background: #fff;
+  width: 13px;
+  height: 13px;
+  background: #3b82f6;
   border-radius: 50%;
   opacity: 0;
-  transition: opacity 0.15s;
   pointer-events: none;
+  transition: opacity 0.15s;
 }
 
-.progress-track:hover .progress-thumb { opacity: 1; }
+.yt-progress:hover .yt-progress-dot { opacity: 1; }
 
-/* Controls */
-.ctrl-row {
+.yt-bar-bottom {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 16px;
+  justify-content: space-between;
 }
 
-.ctrl-btn {
+.yt-bar-left,
+.yt-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.yt-bar-btn {
   background: none;
   border: none;
-  color: rgba(255,255,255,0.6);
   cursor: pointer;
-  padding: 8px;
+  padding: 6px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  color: #fff;
+  transition: background 0.15s;
+}
+.yt-bar-btn:hover { background: rgba(255,255,255,0.12); }
+
+.yt-time {
+  font-size: 0.78rem;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+  margin-left: 4px;
+  white-space: nowrap;
+}
+
+/* Volume slider in bar */
+.yt-vol-slider {
+  width: 72px;
+  -webkit-appearance: none;
+  height: 3px;
+  background: rgba(255,255,255,0.5);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+.yt-vol-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px; height: 12px;
+  background: #fff;
   border-radius: 50%;
+  cursor: pointer;
+}
+
+/* ═══════════════════════════════════════════
+   VIDEO INFO SECTION
+═══════════════════════════════════════════ */
+.yt-info-section {
+  background: #fff;
+  padding: 12px 16px 0;
+}
+
+.yt-video-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #0f0f0f;
+  margin-bottom: 6px;
+}
+
+.yt-views-row {
+  margin-bottom: 12px;
+}
+
+.yt-views-text {
+  font-size: 0.85rem;
+  color: #606060;
+}
+
+/* Action pills row */
+.yt-action-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.yt-action-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f2f2f2;
+  border: none;
+  border-radius: 9999px;
+  padding: 8px 14px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: #0f0f0f;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.yt-action-pill:hover { background: #e5e5e5; }
+.yt-action-pill.active { background: #0f0f0f; color: #fff; }
+
+.yt-play-pill {
+  background: #0f0f0f;
+  color: #fff;
+}
+.yt-play-pill:hover { background: #272727; }
+
+.yt-divider {
+  height: 1px;
+  background: #e5e5e5;
+  margin: 12px 0;
+}
+
+/* Channel row */
+.yt-channel-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 4px;
+}
+
+.yt-ch-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s;
+  flex-shrink: 0;
 }
 
-.ctrl-btn:hover { color: #fff; background: rgba(255,255,255,0.08); }
-.ctrl-btn.active { color: var(--color-primary); }
-
-.play-main {
-  width: 52px;
-  height: 52px;
-  background: #fff !important;
-  color: #0f172a !important;
-  border-radius: 50%;
-  margin: 0 8px;
+.yt-ch-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f0f0f;
 }
 
-.play-main:hover { transform: scale(1.06); background: #e2e8f0 !important; }
+.yt-ch-sub {
+  font-size: 0.78rem;
+  color: #606060;
+}
 
-/* Volume */
-.volume-row {
+/* ═══════════════════════════════════════════
+   ADD SONG
+═══════════════════════════════════════════ */
+.yt-add-section {
+  background: #fff;
+  padding: 12px 16px;
+  border-top: 1px solid #e5e5e5;
+  border-bottom: 1px solid #e5e5e5;
+  margin-top: 8px;
+}
+
+.yt-add-inner {
   display: flex;
   align-items: center;
-  gap: 10px;
-  color: rgba(255,255,255,0.5);
-}
-
-.volume-slider {
-  flex: 1;
-  -webkit-appearance: none;
-  height: 4px;
-  border-radius: 9999px;
-  background: rgba(255,255,255,0.15);
-  outline: none;
-  cursor: pointer;
-}
-
-.volume-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: #fff;
-  cursor: pointer;
-}
-
-/* ── Add Song ──────────────────────────────── */
-.add-song-section {
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.add-song-label {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  margin-bottom: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.add-song-form {
-  display: flex;
   gap: 8px;
+  background: #f2f2f2;
+  border-radius: 9999px;
+  padding: 8px 14px;
 }
 
-.url-input {
+.yt-add-input {
   flex: 1;
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-  padding: 10px 14px;
-  font-size: 0.9rem;
-  font-family: inherit;
+  border: none;
+  background: transparent;
   outline: none;
-  background: var(--color-bg);
-  color: var(--color-text);
-  transition: border-color 0.15s;
+  font-size: 0.88rem;
+  color: #0f0f0f;
+  font-family: inherit;
 }
 
-.url-input:focus { border-color: var(--color-primary); }
+.yt-add-input::placeholder { color: #909090; }
 
-.btn-add {
-  background: var(--color-primary);
+.yt-add-btn {
+  background: #3b82f6;
   color: #fff;
   border: none;
-  border-radius: 10px;
-  padding: 10px 18px;
-  font-size: 0.9rem;
-  font-weight: 700;
+  border-radius: 9999px;
+  padding: 6px 16px;
+  font-size: 0.82rem;
+  font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
   transition: background 0.15s;
 }
+.yt-add-btn:hover { background: #2563eb; }
+.yt-add-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
-.btn-add:hover { background: var(--color-primary-hover); }
-.btn-add:disabled { opacity: 0.6; cursor: not-allowed; }
-
-.add-error {
-  color: #ef4444;
-  font-size: 0.82rem;
-  margin-top: 6px;
+.yt-add-error {
+  font-size: 0.8rem;
+  color: #cc0000;
+  margin-top: 8px;
+  padding-left: 4px;
 }
 
-/* ── Playlist ──────────────────────────────── */
-.playlist-section {
+/* ═══════════════════════════════════════════
+   UP NEXT / PLAYLIST
+═══════════════════════════════════════════ */
+.yt-upnext-section {
+  background: #fff;
+  margin-top: 8px;
   padding-bottom: 40px;
 }
 
-.playlist-header {
-  padding: 14px 20px;
-  border-bottom: 1px solid var(--color-border);
+.yt-upnext-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.95rem;
-  background: var(--color-surface);
-  position: sticky;
-  top: 57px;
-  z-index: 5;
+  padding: 12px 16px 8px;
+  border-bottom: 1px solid #e5e5e5;
 }
 
-/* ── YouTube-style list item ─────────────────── */
-.yt-item {
+.yt-upnext-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0f0f0f;
+}
+
+.yt-upnext-count {
+  font-size: 0.8rem;
+  color: #606060;
+}
+
+/* ── Video row item ─────────────────────── */
+.yt-row {
   display: flex;
-  align-items: flex-start;
   gap: 8px;
   padding: 8px 12px;
   cursor: pointer;
-  transition: background 0.12s;
-  border-radius: 0;
   position: relative;
+  transition: background 0.12s;
 }
 
-.yt-item:hover { background: #f2f2f2; }
-.yt-item.playing { background: #e8f0fe; }
+.yt-row:hover { background: #f2f2f2; }
+.yt-row.playing { background: #e8f0fe; }
 
-/* Thumbnail wrapper — 16:9 ratio */
-.yt-thumb-wrap {
+/* Thumbnail */
+.yt-row-thumb-wrap {
   position: relative;
-  width: 160px;
+  width: 168px;
   flex-shrink: 0;
   border-radius: 8px;
   overflow: hidden;
-  background: #0f172a;
   aspect-ratio: 16 / 9;
+  background: #0f0f0f;
 }
 
-.yt-thumb {
+.yt-row-thumb {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
 
-/* Playing overlay on thumbnail */
-.yt-playing-overlay {
+/* Playing overlay on row thumbnail */
+.yt-row-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.45);
+  background: rgba(0,0,0,0.5);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.yt-eq {
+/* Equalizer animation */
+.yt-row-eq {
   display: flex;
   align-items: flex-end;
   gap: 3px;
-  height: 22px;
+  height: 20px;
 }
 
-.yt-eq span {
+.yt-row-eq span {
   width: 4px;
-  background: #fff;
   border-radius: 2px 2px 0 0;
+  background: #fff;
   height: 35%;
 }
 
-.yt-eq.running span {
-  animation: yt-eq-anim 0.7s ease-in-out infinite alternate;
-}
+.yt-row-eq.running span { animation: yt-eq 0.65s ease-in-out infinite alternate; }
+.yt-row-eq.running span:nth-child(2) { animation-delay: 0.18s; }
+.yt-row-eq.running span:nth-child(3) { animation-delay: 0.34s; }
 
-.yt-eq.running span:nth-child(1) { animation-delay: 0s;    }
-.yt-eq.running span:nth-child(2) { animation-delay: 0.2s;  }
-.yt-eq.running span:nth-child(3) { animation-delay: 0.38s; }
-
-@keyframes yt-eq-anim {
-  from { height: 18%; }
+@keyframes yt-eq {
+  from { height: 20%; }
   to   { height: 100%; }
 }
 
-/* Info column */
-.yt-info {
+/* Row info */
+.yt-row-info {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
   padding-top: 2px;
 }
 
-.yt-title {
-  font-size: 0.875rem;
+.yt-row-title {
+  font-size: 0.85rem;
   font-weight: 500;
+  color: #0f0f0f;
   line-height: 1.4;
-  color: var(--color-text);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  margin-bottom: 4px;
 }
 
-.yt-item.playing .yt-title { color: var(--color-primary); }
+.yt-row.playing .yt-row-title { color: #1a73e8; }
 
-.yt-channel {
+.yt-row-channel {
   font-size: 0.78rem;
   color: #606060;
   white-space: nowrap;
@@ -437,15 +591,14 @@ const defaultPlaylist = [
   text-overflow: ellipsis;
 }
 
-.yt-item.playing .yt-channel { color: #2563eb; }
-
-/* Remove / menu button */
-.yt-menu {
+/* Three-dot menu button */
+.yt-row-menu {
   flex-shrink: 0;
+  align-self: flex-start;
   background: none;
   border: none;
-  color: #606060;
   cursor: pointer;
+  color: #606060;
   padding: 4px;
   border-radius: 50%;
   display: flex;
@@ -453,17 +606,17 @@ const defaultPlaylist = [
   justify-content: center;
   opacity: 0;
   transition: all 0.15s;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
-.yt-item:hover .yt-menu { opacity: 1; }
-.yt-menu:hover { background: #e0e0e0; color: #ef4444; }
+.yt-row:hover .yt-row-menu { opacity: 1; }
+.yt-row-menu:hover { background: #e5e5e5; color: #cc0000; }
 
 /* Empty state */
-.pl-empty {
+.yt-empty {
   text-align: center;
-  padding: 48px 20px;
-  color: var(--color-text-muted);
+  padding: 48px 16px;
+  color: #606060;
   font-size: 0.9rem;
   line-height: 1.7;
 }
@@ -471,64 +624,72 @@ const defaultPlaylist = [
 
 <script is:inline>
 (function () {
-  /* ── State ────────────────────────────────────────── */
-  const STORAGE_KEY = 'basements_playlist';
+  /* ── State ─────────────────────────────────── */
+  const STORAGE_KEY = 'basements_playlist_v2';
 
   const defaults = [
-    { id: 'ea9RCZSRvSc', title: 'Clair de Lune', artist: 'Claude Debussy' },
-    { id: 'GMkmQlfOJDk', title: 'Air on G String', artist: 'Johann Sebastian Bach' },
-    { id: 'oy2zDJPIgwc', title: 'Eine kleine Nachtmusik', artist: 'W.A. Mozart' },
-    { id: '4Tr0otuiQuU', title: 'Nocturne Op. 9 No. 2', artist: 'Frédéric Chopin' },
-    { id: 'x1xvKkCkMlc', title: 'Four Seasons - Spring', artist: 'Antonio Vivaldi' },
+    { id: 'ea9RCZSRvSc', title: 'Clair de Lune',            artist: 'Claude Debussy' },
+    { id: 'GMkmQlfOJDk', title: 'Air on G String',           artist: 'Johann Sebastian Bach' },
+    { id: 'oy2zDJPIgwc', title: 'Eine kleine Nachtmusik',    artist: 'W.A. Mozart' },
+    { id: '4Tr0otuiQuU', title: 'Nocturne Op. 9 No. 2',      artist: 'Frédéric Chopin' },
+    { id: 'x1xvKkCkMlc', title: 'Four Seasons – Spring',     artist: 'Antonio Vivaldi' },
   ];
 
-  let playlist = loadPlaylist();
+  let playlist     = loadPlaylist();
   let currentIndex = 0;
-  let isPlaying = false;
-  let isShuffle = false;
-  let repeatMode = 0; // 0=off 1=all 2=one
-  let player = null;
-  let progressTimer = null;
-  let isDragging = false;
+  let isPlaying    = false;
+  let isShuffle    = false;
+  let repeatMode   = 0;   // 0=off 1=all 2=one
+  let isMuted      = false;
+  let player       = null;
+  let timer        = null;
+  let isDragging   = false;
 
-  /* ── DOM refs ─────────────────────────────────────── */
-  const coverImg      = document.getElementById('cover-img');
-  const songTitle     = document.getElementById('song-title');
-  const songArtist    = document.getElementById('song-artist');
-  const timeCurrent   = document.getElementById('time-current');
-  const timeTotal     = document.getElementById('time-total');
-  const progressFill  = document.getElementById('progress-fill');
-  const progressThumb = document.getElementById('progress-thumb');
-  const progressTrack = document.getElementById('progress-track');
-  const iconPlay      = document.getElementById('icon-play');
-  const iconPause     = document.getElementById('icon-pause');
-  const btnPlay       = document.getElementById('btn-play');
-  const btnPrev       = document.getElementById('btn-prev');
-  const btnNext       = document.getElementById('btn-next');
-  const btnShuffle    = document.getElementById('btn-shuffle');
-  const btnRepeat     = document.getElementById('btn-repeat');
-  const volumeSlider  = document.getElementById('volume-slider');
-  const urlInput      = document.getElementById('url-input');
-  const btnAdd        = document.getElementById('btn-add');
-  const addLabel      = document.getElementById('add-label');
-  const addError      = document.getElementById('add-error');
-  const playlistItems = document.getElementById('playlist-items');
-  const playlistCount = document.getElementById('playlist-count');
+  /* ── DOM ────────────────────────────────────── */
+  const $ = id => document.getElementById(id);
+  const coverImg        = $('cover-img');
+  const songTitle       = $('song-title');
+  const songArtist      = $('song-artist');
+  const timeCurrent     = $('time-current');
+  const timeTotal       = $('time-total');
+  const progressFill    = $('progress-fill');
+  const progressThumb   = $('progress-thumb');
+  const progressTrack   = $('progress-track');
+  const iconPlay        = $('icon-play');
+  const iconPause       = $('icon-pause');
+  const pillPlay        = $('pill-play');
+  const pillPause       = $('pill-pause');
+  const pillLabel       = $('pill-label');
+  const centerOverlay   = $('center-play-overlay');
+  const btnPlay         = $('btn-play');
+  const btnPlayPill     = $('btn-play-pill');
+  const btnNextBar      = $('btn-next');
+  const btnNextPill     = $('btn-next-pill');
+  const btnPrev         = $('btn-prev');
+  const btnShuffle      = $('btn-shuffle');
+  const btnRepeat       = $('btn-repeat');
+  const repeatLabel     = $('repeat-label');
+  const btnMute         = $('btn-mute');
+  const iconVol         = $('icon-vol');
+  const iconMuteEl      = $('icon-mute');
+  const volumeSlider    = $('volume-slider');
+  const urlInput        = $('url-input');
+  const btnAdd          = $('btn-add');
+  const addLabel        = $('add-label');
+  const addError        = $('add-error');
+  const playlistItems   = $('playlist-items');
+  const playlistCount   = $('playlist-count');
 
-  /* ── localStorage ─────────────────────────────────── */
+  /* ── localStorage ───────────────────────────── */
   function loadPlaylist() {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
-    } catch (_) {}
+    try { const s = localStorage.getItem(STORAGE_KEY); if (s) return JSON.parse(s); } catch (_) {}
     return [...defaults];
   }
-
   function savePlaylist() {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(playlist)); } catch (_) {}
   }
 
-  /* ── YouTube IFrame API ───────────────────────────── */
+  /* ── YouTube IFrame API ─────────────────────── */
   const tag = document.createElement('script');
   tag.src = 'https://www.youtube.com/iframe_api';
   document.head.appendChild(tag);
@@ -538,44 +699,30 @@ const defaultPlaylist = [
       videoId: playlist[currentIndex]?.id ?? '',
       playerVars: { autoplay: 0, controls: 0, rel: 0, modestbranding: 1, iv_load_policy: 3 },
       events: {
-        onReady: () => {
-          player.setVolume(parseInt(volumeSlider.value));
-          updateSongUI();
-          renderPlaylist();
-        },
+        onReady: () => { player.setVolume(parseInt(volumeSlider.value)); updateSongUI(); renderPlaylist(); },
         onStateChange: onStateChange,
-        onError: () => nextSong(),
+        onError: () => nextSong(true),
       },
     });
   };
 
   function onStateChange(e) {
     const S = YT.PlayerState;
-    if (e.data === S.PLAYING) {
-      isPlaying = true;
-      updatePlayBtn();
-      startProgress();
-    } else if (e.data === S.PAUSED) {
-      isPlaying = false;
-      updatePlayBtn();
-    } else if (e.data === S.ENDED) {
-      handleEnded();
-    }
+    if (e.data === S.PLAYING)  { isPlaying = true;  updatePlayBtn(); startTimer(); }
+    else if (e.data === S.PAUSED)   { isPlaying = false; updatePlayBtn(); }
+    else if (e.data === S.ENDED)    { handleEnded(); }
   }
 
   function handleEnded() {
-    if (repeatMode === 2) {
-      player.seekTo(0); player.playVideo();
-    } else {
+    if (repeatMode === 2) { player.seekTo(0); player.playVideo(); }
+    else {
       const wasLast = currentIndex === playlist.length - 1;
-      nextSong(false);
-      if (wasLast && repeatMode === 0) {
-        isPlaying = false; updatePlayBtn(); clearInterval(progressTimer);
-      }
+      if (wasLast && repeatMode === 0) { isPlaying = false; updatePlayBtn(); clearInterval(timer); }
+      else nextSong(true);
     }
   }
 
-  /* ── Playback controls ────────────────────────────── */
+  /* ── Playback ───────────────────────────────── */
   function playSong(index) {
     if (!playlist[index]) return;
     currentIndex = index;
@@ -587,20 +734,16 @@ const defaultPlaylist = [
   }
 
   function togglePlay() {
-    if (!player) return;
-    if (!playlist.length) return;
+    if (!player || !playlist.length) return;
     if (player.getPlayerState() === -1) { playSong(currentIndex); return; }
     isPlaying ? player.pauseVideo() : player.playVideo();
   }
 
-  function nextSong(auto = true) {
+  function nextSong(auto) {
     if (!playlist.length) return;
-    let next;
-    if (isShuffle) {
-      next = Math.floor(Math.random() * playlist.length);
-    } else {
-      next = (currentIndex + 1) % playlist.length;
-    }
+    let next = isShuffle
+      ? Math.floor(Math.random() * playlist.length)
+      : (currentIndex + 1) % playlist.length;
     if (next === 0 && repeatMode === 0 && !auto) return;
     playSong(next);
   }
@@ -608,22 +751,19 @@ const defaultPlaylist = [
   function prevSong() {
     if (!playlist.length) return;
     if (player && player.getCurrentTime() > 3) { player.seekTo(0); return; }
-    let prev;
-    if (isShuffle) {
-      prev = Math.floor(Math.random() * playlist.length);
-    } else {
-      prev = (currentIndex - 1 + playlist.length) % playlist.length;
-    }
+    let prev = isShuffle
+      ? Math.floor(Math.random() * playlist.length)
+      : (currentIndex - 1 + playlist.length) % playlist.length;
     playSong(prev);
   }
 
-  /* ── Progress ─────────────────────────────────────── */
-  function startProgress() {
-    clearInterval(progressTimer);
-    progressTimer = setInterval(() => {
+  /* ── Timer / progress ───────────────────────── */
+  function startTimer() {
+    clearInterval(timer);
+    timer = setInterval(() => {
       if (!player || isDragging) return;
       const cur = player.getCurrentTime() || 0;
-      const dur = player.getDuration() || 0;
+      const dur = player.getDuration()    || 0;
       setProgress(cur, dur);
     }, 500);
   }
@@ -642,10 +782,17 @@ const defaultPlaylist = [
     return m + ':' + String(sec).padStart(2, '0');
   }
 
-  /* ── UI updates ───────────────────────────────────── */
+  /* ── UI ─────────────────────────────────────── */
   function updatePlayBtn() {
+    // Player bar icons
     iconPlay.style.display  = isPlaying ? 'none' : 'block';
     iconPause.style.display = isPlaying ? 'block' : 'none';
+    // Pill icons
+    pillPlay.style.display  = isPlaying ? 'none' : 'block';
+    pillPause.style.display = isPlaying ? 'block' : 'none';
+    pillLabel.textContent   = isPlaying ? 'Duraklat' : 'Oynat';
+    // Center overlay: show when paused/stopped
+    centerOverlay.classList.toggle('visible', !isPlaying);
   }
 
   function updateSongUI() {
@@ -655,7 +802,7 @@ const defaultPlaylist = [
     songArtist.textContent = song.artist;
     coverImg.src = `https://img.youtube.com/vi/${song.id}/hqdefault.jpg`;
     coverImg.onerror = () => {
-      coverImg.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='240' viewBox='0 0 600 240'%3E%3Crect width='600' height='240' fill='%231e293b'/%3E%3Ctext x='300' y='130' font-size='64' text-anchor='middle' fill='%2364748b'%3E♪%3C/text%3E%3C/svg%3E";
+      coverImg.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3Crect width='16' height='9' fill='%230f0f0f'/%3E%3C/svg%3E";
     };
   }
 
@@ -664,51 +811,49 @@ const defaultPlaylist = [
 
     if (!playlist.length) {
       playlistItems.innerHTML = `
-        <div class="pl-empty">
-          <div style="font-size:2.5rem;margin-bottom:10px;">🎵</div>
-          <div style="font-weight:600;margin-bottom:4px;">Çalma listesi boş</div>
+        <div class="yt-empty">
+          <div style="font-size:3rem;margin-bottom:12px;">🎵</div>
+          <div style="font-weight:600;font-size:0.95rem;color:#0f0f0f;margin-bottom:4px;">Çalma listesi boş</div>
           <div>Yukarıdan YouTube URL yapıştırarak şarkı ekle.</div>
         </div>`;
       return;
     }
 
-    const isCurrent = i => i === currentIndex;
-
     playlistItems.innerHTML = playlist.map((song, i) => {
-      const playing  = isCurrent(i);
-      const eqClass  = playing && isPlaying ? 'yt-eq running' : 'yt-eq';
+      const playing = i === currentIndex;
+      const eqCls   = playing && isPlaying ? 'yt-row-eq running' : 'yt-row-eq';
       const overlay  = playing
-        ? `<div class="yt-playing-overlay"><div class="${eqClass}"><span></span><span></span><span></span></div></div>`
+        ? `<div class="yt-row-overlay"><div class="${eqCls}"><span></span><span></span><span></span></div></div>`
         : '';
 
       return `
-        <div class="yt-item${playing ? ' playing' : ''}" data-index="${i}">
-          <div class="yt-thumb-wrap">
-            <img class="yt-thumb"
+        <div class="yt-row${playing ? ' playing' : ''}" data-index="${i}">
+          <div class="yt-row-thumb-wrap">
+            <img class="yt-row-thumb"
               src="https://img.youtube.com/vi/${song.id}/mqdefault.jpg"
-              alt="${escHtml(song.title)}"
+              alt="${esc(song.title)}"
               loading="lazy"
               onerror="this.src='https://img.youtube.com/vi/${song.id}/hqdefault.jpg'" />
             ${overlay}
           </div>
-          <div class="yt-info">
-            <div class="yt-title">${escHtml(song.title)}</div>
-            <div class="yt-channel">${escHtml(song.artist)}</div>
+          <div class="yt-row-info">
+            <div class="yt-row-title">${esc(song.title)}</div>
+            <div class="yt-row-channel">${esc(song.artist)}</div>
           </div>
-          <button class="yt-menu" data-remove="${i}" title="Kaldır">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          <button class="yt-row-menu" data-remove="${i}" title="Kaldır">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
           </button>
         </div>`;
     }).join('');
 
-    playlistItems.querySelectorAll('.yt-item').forEach(el => {
+    playlistItems.querySelectorAll('.yt-row').forEach(el => {
       el.addEventListener('click', e => {
-        if (e.target.closest('.yt-menu')) return;
+        if (e.target.closest('.yt-row-menu')) return;
         playSong(parseInt(el.dataset.index));
       });
     });
 
-    playlistItems.querySelectorAll('.yt-menu').forEach(btn => {
+    playlistItems.querySelectorAll('.yt-row-menu').forEach(btn => {
       btn.addEventListener('click', e => {
         e.stopPropagation();
         removeSong(parseInt(btn.dataset.remove));
@@ -716,11 +861,11 @@ const defaultPlaylist = [
     });
   }
 
-  function escHtml(s) {
+  function esc(s) {
     return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
-  /* ── Add song ─────────────────────────────────────── */
+  /* ── Add song ───────────────────────────────── */
   function parseVideoId(url) {
     url = url.trim();
     const patterns = [
@@ -729,53 +874,28 @@ const defaultPlaylist = [
       /embed\/([a-zA-Z0-9_-]{11})/,
       /shorts\/([a-zA-Z0-9_-]{11})/,
     ];
-    for (const p of patterns) {
-      const m = url.match(p);
-      if (m) return m[1];
-    }
+    for (const p of patterns) { const m = url.match(p); if (m) return m[1]; }
     if (/^[a-zA-Z0-9_-]{11}$/.test(url)) return url;
     return null;
   }
 
   async function addSong() {
-    const raw = urlInput.value;
-    const videoId = parseVideoId(raw);
+    const id = parseVideoId(urlInput.value);
     addError.style.display = 'none';
+    if (!id) { showErr('Geçersiz YouTube URL\'si.'); return; }
+    if (playlist.some(s => s.id === id)) { showErr('Bu şarkı zaten listede.'); return; }
 
-    if (!videoId) {
-      addError.textContent = 'Geçersiz YouTube URL\'si. "youtube.com/watch?v=..." formatında gir.';
-      addError.style.display = 'block';
-      return;
-    }
-
-    if (playlist.some(s => s.id === videoId)) {
-      addError.textContent = 'Bu şarkı zaten listede var.';
-      addError.style.display = 'block';
-      return;
-    }
-
-    btnAdd.disabled = true;
-    addLabel.textContent = '...';
-
-    let title = 'YouTube Şarkısı';
-    let artist = 'YouTube';
-
+    btnAdd.disabled = true; addLabel.textContent = '...';
+    let title = 'YouTube Şarkısı', artist = 'YouTube';
     try {
-      const res = await fetch(
-        `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`
-      );
-      if (res.ok) {
-        const data = await res.json();
-        title  = data.title  || title;
-        artist = data.author_name || artist;
-      }
+      const r = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${id}&format=json`);
+      if (r.ok) { const d = await r.json(); title = d.title || title; artist = d.author_name || artist; }
     } catch (_) {}
 
-    playlist.push({ id: videoId, title, artist });
+    playlist.push({ id, title, artist });
     savePlaylist();
     urlInput.value = '';
-    btnAdd.disabled = false;
-    addLabel.textContent = 'Ekle';
+    btnAdd.disabled = false; addLabel.textContent = 'Ekle';
     renderPlaylist();
   }
 
@@ -783,28 +903,26 @@ const defaultPlaylist = [
     const wasPlaying = index === currentIndex;
     playlist.splice(index, 1);
     savePlaylist();
-
     if (!playlist.length) {
-      currentIndex = 0;
-      isPlaying = false;
+      currentIndex = 0; isPlaying = false;
       player.stopVideo();
       songTitle.textContent  = 'Şarkı seçilmedi';
       songArtist.textContent = 'Çalma listesinden bir şarkı seç';
-      setProgress(0, 0);
-      updatePlayBtn();
+      setProgress(0, 0); updatePlayBtn();
     } else if (index < currentIndex) {
       currentIndex--;
     } else if (wasPlaying) {
       currentIndex = Math.min(currentIndex, playlist.length - 1);
       playSong(currentIndex);
     }
-
     renderPlaylist();
   }
 
-  /* ── Event listeners ──────────────────────────────── */
-  btnPlay.addEventListener('click', togglePlay);
-  btnNext.addEventListener('click', () => nextSong(true));
+  function showErr(msg) { addError.textContent = msg; addError.style.display = 'block'; }
+
+  /* ── Button events ──────────────────────────── */
+  [btnPlay, btnPlayPill, centerOverlay].forEach(b => b.addEventListener('click', togglePlay));
+  [btnNextBar, btnNextPill].forEach(b => b.addEventListener('click', () => nextSong(true)));
   btnPrev.addEventListener('click', prevSong);
 
   btnShuffle.addEventListener('click', () => {
@@ -814,26 +932,31 @@ const defaultPlaylist = [
 
   btnRepeat.addEventListener('click', () => {
     repeatMode = (repeatMode + 1) % 3;
-    const titles = ['Tekrar Yok', 'Hepsini Tekrarla', 'Biri Tekrarla'];
-    btnRepeat.title = titles[repeatMode];
+    const labels = ['Tekrar Yok', 'Hepsini Tekrarla', 'Biri Tekrarla'];
+    repeatLabel.textContent = labels[repeatMode];
     btnRepeat.classList.toggle('active', repeatMode > 0);
-    btnRepeat.style.opacity = repeatMode > 0 ? '1' : '';
-    if (repeatMode === 2) {
-      btnRepeat.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/><text x="12" y="14" text-anchor="middle" font-size="7" fill="currentColor" stroke="none">1</text></svg>`;
-    } else {
-      btnRepeat.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>`;
-    }
+  });
+
+  btnMute.addEventListener('click', () => {
+    isMuted = !isMuted;
+    if (player) isMuted ? player.mute() : player.unMute();
+    iconVol.style.display    = isMuted ? 'none'  : 'block';
+    iconMuteEl.style.display = isMuted ? 'block' : 'none';
   });
 
   volumeSlider.addEventListener('input', () => {
-    if (player) player.setVolume(parseInt(volumeSlider.value));
+    if (player) { player.setVolume(parseInt(volumeSlider.value)); }
+    if (isMuted && parseInt(volumeSlider.value) > 0) {
+      isMuted = false; player.unMute();
+      iconVol.style.display = 'block'; iconMuteEl.style.display = 'none';
+    }
   });
 
   btnAdd.addEventListener('click', addSong);
   urlInput.addEventListener('keydown', e => { if (e.key === 'Enter') addSong(); });
 
-  /* ── Progress bar seek ────────────────────────────── */
-  function seekFromEvent(e) {
+  /* ── Progress seek ──────────────────────────── */
+  function seekAt(e) {
     if (!player) return;
     const rect = progressTrack.getBoundingClientRect();
     const pct  = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
@@ -843,18 +966,17 @@ const defaultPlaylist = [
   }
 
   progressTrack.addEventListener('mousedown', e => {
-    isDragging = true;
-    seekFromEvent(e);
-    const up = () => { isDragging = false; window.removeEventListener('mouseup', up); window.removeEventListener('mousemove', move); };
-    const move = e2 => seekFromEvent(e2);
+    isDragging = true; seekAt(e);
+    const move = e2 => seekAt(e2);
+    const up   = () => { isDragging = false; window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
     window.addEventListener('mousemove', move);
     window.addEventListener('mouseup', up);
   });
 
-  /* ── Keyboard shortcuts ───────────────────────────── */
+  /* ── Keyboard ───────────────────────────────── */
   document.addEventListener('keydown', e => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-    if (e.key === ' ') { e.preventDefault(); togglePlay(); }
+    if (e.key === ' ')          { e.preventDefault(); togglePlay(); }
     if (e.key === 'ArrowRight') { if (player) player.seekTo((player.getCurrentTime() || 0) + 10, true); }
     if (e.key === 'ArrowLeft')  { if (player) player.seekTo(Math.max(0, (player.getCurrentTime() || 0) - 10), true); }
   });
