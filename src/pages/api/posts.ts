@@ -19,10 +19,7 @@ export const POST: APIRoute = async ({ request }) => {
     .single();
 
   if (!dbUser) {
-    return new Response(JSON.stringify({ error: 'Kullanıcı bulunamadı' }), {
-      status: 403,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return new Response(null, { status: 303, headers: { Location: '/login' } });
   }
 
   const formData = await request.formData();
@@ -30,22 +27,12 @@ export const POST: APIRoute = async ({ request }) => {
   const category = formData.get('category')?.toString() ?? 'general';
 
   if (!content || content.length > 500) {
-    return new Response(JSON.stringify({ error: 'Geçersiz içerik' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return new Response(null, { status: 303, headers: { Location: '/' } });
   }
 
-  const { error } = await supabase
+  await supabase
     .from('posts')
     .insert({ user_id: dbUser.id, content, category });
-
-  if (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
 
   return new Response(null, { status: 303, headers: { Location: '/' } });
 };

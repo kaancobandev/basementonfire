@@ -1,6 +1,21 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { supabase, flattenPosts, type Post } from '../lib/supabase';
+import { supabase, createAuthClient, flattenPosts, type Post } from '../lib/supabase';
+
+// Giriş yapan kullanıcıyı al
+const authHeaders = new Headers();
+const authClient = createAuthClient(Astro.request, authHeaders);
+const { data: { user: authUser } } = await authClient.auth.getUser();
+
+let currentUser: { id: number; display_name: string; username: string } | null = null;
+if (authUser) {
+  const { data } = await supabase
+    .from('users')
+    .select('id, display_name, username')
+    .eq('auth_id', authUser.id)
+    .single();
+  currentUser = data;
+}
 
 const { data: raw } = await supabase
   .from('posts')
@@ -32,27 +47,41 @@ const trending = [
     <div class="feed-header">Ana Sayfa</div>
 
     <div class="compose-box" id="compose">
-      <div class="avatar">B</div>
-      <div class="compose-input">
-        <form method="POST" action="/api/posts">
-          <textarea
-            class="compose-textarea"
-            name="content"
-            placeholder="Ne dusunuyorsun?"
-            rows="3"
-          ></textarea>
-          <div class="compose-footer">
-            <select name="category" style="margin-right:12px; border:1px solid #e2e8f0; border-radius:8px; padding:6px 12px; font-size:0.85rem; background:white; cursor:pointer;">
-              <option value="general">Genel</option>
-              <option value="science">Bilim</option>
-              <option value="history">Tarih</option>
-            </select>
-            <button type="submit" class="post-btn" style="width:auto; margin:0; padding:10px 24px; font-size:0.9rem;">
-              Paylas
-            </button>
+      {currentUser ? (
+        <>
+          <div class="avatar">{currentUser.display_name[0].toUpperCase()}</div>
+          <div class="compose-input">
+            <form method="POST" action="/api/posts">
+              <textarea
+                class="compose-textarea"
+                name="content"
+                placeholder="Ne düşünüyorsun?"
+                rows="3"
+              ></textarea>
+              <div class="compose-footer">
+                <select name="category" style="margin-right:12px; border:1px solid #e2e8f0; border-radius:8px; padding:6px 12px; font-size:0.85rem; background:white; cursor:pointer;">
+                  <option value="general">Genel</option>
+                  <option value="science">Bilim</option>
+                  <option value="history">Tarih</option>
+                </select>
+                <button type="submit" class="post-btn" style="width:auto; margin:0; padding:10px 24px; font-size:0.9rem;">
+                  Paylaş
+                </button>
+              </div>
+            </form>
           </div>
-        </form>
-      </div>
+        </>
+      ) : (
+        <div style="flex:1; display:flex; align-items:center; gap:12px;">
+          <div class="avatar" style="background:linear-gradient(135deg,#cbd5e1,#94a3b8); color:#fff;">?</div>
+          <p style="flex:1; color:#536471; font-size:0.95rem; margin:0;">
+            Gönderi paylaşmak için
+            <a href="/login" style="color:#3b82f6; font-weight:700; text-decoration:none;">giriş yap</a>
+            veya
+            <a href="/register" style="color:#3b82f6; font-weight:700; text-decoration:none;">kayıt ol</a>.
+          </p>
+        </div>
+      )}
     </div>
 
     {posts.map(post => (
