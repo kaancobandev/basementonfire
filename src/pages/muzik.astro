@@ -4,6 +4,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
 <BaseLayout title="Müzik" activeNav="muzik">
   <main class="main-content yt-page">
+  <div class="yt-layout">
+
+  <!-- ── Sol sütun ── -->
+  <div class="yt-left">
 
     <!-- ══════════════════════════════════════════
          PLAYER  (YouTube video player look)
@@ -132,9 +136,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <div id="add-error" class="yt-add-error" style="display:none;"></div>
     </div>
 
-    <!-- ══════════════════════════════════════════
-         UP NEXT  (YouTube sidebar style)
-    ══════════════════════════════════════════ -->
+  </div><!-- /yt-left -->
+
+  <!-- ── Sağ sütun: playlist ── -->
+  <div class="yt-right">
     <div class="yt-upnext-section">
       <div class="yt-upnext-header">
         <span class="yt-upnext-title">Sıradaki</span>
@@ -143,21 +148,44 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
       <div id="playlist-items"></div>
     </div>
+  </div><!-- /yt-right -->
 
+  </div><!-- /yt-layout -->
   </main>
 
   <!-- Hidden YouTube Player -->
   <div id="yt-player" style="position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;pointer-events:none;"></div>
 </BaseLayout>
 
-<style>
+<style is:global>
 /* ═══════════════════════════════════════════
    PAGE BASE
 ═══════════════════════════════════════════ */
 .yt-page {
-  max-width: 600px;
   background: #f9f9f9;
   min-height: 100vh;
+}
+
+/* İki sütunlu layout */
+.yt-layout {
+  display: flex;
+  align-items: flex-start;
+  min-height: 100vh;
+}
+
+.yt-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.yt-right {
+  width: 380px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  background: linear-gradient(160deg, #0f0c29, #302b63, #24243e);
 }
 
 /* ═══════════════════════════════════════════
@@ -470,8 +498,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
    UP NEXT / PLAYLIST
 ═══════════════════════════════════════════ */
 .yt-upnext-section {
-  background: #fff;
-  margin-top: 8px;
   padding-bottom: 40px;
 }
 
@@ -479,43 +505,83 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px 8px;
-  border-bottom: 1px solid #e5e5e5;
+  padding: 16px 14px 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
 .yt-upnext-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #0f0f0f;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
 
 .yt-upnext-count {
-  font-size: 0.8rem;
-  color: #606060;
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.45);
+  background: rgba(255,255,255,0.08);
+  padding: 2px 8px;
+  border-radius: 9999px;
 }
 
-/* ── Video row item ─────────────────────── */
+/* ── Glass kart ─────────────────────────── */
+#playlist-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 10px 0;
+}
+
 .yt-row {
   display: flex;
-  gap: 8px;
-  padding: 8px 12px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
   cursor: pointer;
   position: relative;
-  transition: background 0.12s;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.07);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transition: background 0.18s, border-color 0.18s, transform 0.15s, box-shadow 0.18s;
 }
 
-.yt-row:hover { background: #f2f2f2; }
-.yt-row.playing { background: #e8f0fe; }
+.yt-row:hover {
+  background: rgba(255,255,255,0.14);
+  border-color: rgba(255,255,255,0.22);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+}
+
+.yt-row.playing {
+  background: rgba(99,102,241,0.25);
+  border-color: rgba(129,140,248,0.5);
+  box-shadow: 0 4px 20px rgba(99,102,241,0.3);
+}
+
+/* Sıra numarası */
+.yt-row-num {
+  width: 18px;
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.35);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.yt-row.playing .yt-row-num { display: none; }
 
 /* Thumbnail */
 .yt-row-thumb-wrap {
   position: relative;
-  width: 168px;
+  width: 108px;
   flex-shrink: 0;
   border-radius: 8px;
   overflow: hidden;
   aspect-ratio: 16 / 9;
   background: #0f0f0f;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
 }
 
 .yt-row-thumb {
@@ -523,13 +589,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   height: 100%;
   object-fit: cover;
   display: block;
+  transition: transform 0.22s;
 }
+.yt-row:hover .yt-row-thumb { transform: scale(1.06); }
 
-/* Playing overlay on row thumbnail */
+/* Playing overlay */
 .yt-row-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0,0,0,0.45);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -540,13 +608,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   display: flex;
   align-items: flex-end;
   gap: 3px;
-  height: 20px;
+  height: 18px;
 }
 
 .yt-row-eq span {
-  width: 4px;
+  width: 3px;
   border-radius: 2px 2px 0 0;
-  background: #fff;
+  background: #a78bfa;
   height: 35%;
 }
 
@@ -565,59 +633,58 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   min-width: 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 4px;
-  padding-top: 2px;
+  gap: 3px;
 }
 
 .yt-row-title {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: #0f0f0f;
-  line-height: 1.4;
+  font-size: 0.81rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.92);
+  line-height: 1.35;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-.yt-row.playing .yt-row-title { color: #1a73e8; }
+.yt-row.playing .yt-row-title { color: #c4b5fd; }
 
 .yt-row-channel {
-  font-size: 0.78rem;
-  color: #606060;
+  font-size: 0.71rem;
+  color: rgba(255,255,255,0.45);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* Three-dot menu button */
+/* Sil butonu */
 .yt-row-menu {
   flex-shrink: 0;
-  align-self: flex-start;
   background: none;
   border: none;
   cursor: pointer;
-  color: #606060;
-  padding: 4px;
+  color: rgba(255,255,255,0.25);
+  padding: 5px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
   transition: all 0.15s;
-  margin-top: 4px;
 }
 
 .yt-row:hover .yt-row-menu { opacity: 1; }
-.yt-row-menu:hover { background: #e5e5e5; color: #cc0000; }
+.yt-row-menu:hover {
+  background: rgba(239,68,68,0.2) !important;
+  color: #f87171 !important;
+}
 
 /* Empty state */
 .yt-empty {
   text-align: center;
   padding: 48px 16px;
-  color: #606060;
-  font-size: 0.9rem;
+  color: rgba(255,255,255,0.35);
+  font-size: 0.88rem;
   line-height: 1.7;
 }
 </style>
@@ -828,6 +895,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
       return `
         <div class="yt-row${playing ? ' playing' : ''}" data-index="${i}">
+          <div class="yt-row-num">${i + 1}</div>
           <div class="yt-row-thumb-wrap">
             <img class="yt-row-thumb"
               src="https://img.youtube.com/vi/${song.id}/mqdefault.jpg"
@@ -841,7 +909,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             <div class="yt-row-channel">${esc(song.artist)}</div>
           </div>
           <button class="yt-row-menu" data-remove="${i}" title="Kaldır">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
           </button>
         </div>`;
     }).join('');
