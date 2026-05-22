@@ -61,7 +61,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   if (dbError) return redirect(`/gonderi-olustur?error=${encodeURIComponent(dbError.message)}`);
 
-  return redirect('/hizli-bilgiler');
+  return redirect('/akis');
 };
 
 function redirect(location: string) {

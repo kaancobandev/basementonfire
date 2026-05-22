@@ -1,0 +1,956 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const eras = [
+  {
+    id: 'hun', year: 'MÖ 209', title: 'Hun İmparatorluğu', period: 'MÖ 209 – MS 216',
+    color: '#c0392b', leader: 'Mete Han', km2: '9.000.000',
+    summary: 'Bilinen ilk büyük Türk devleti. Mete Han ondalık ordu sistemi icat etti; Çin\'i yıllık vergi ödemeye zorladı.',
+    facts: ['Dünyada ilk ondalık ordu sistemi (10–100–1000–10.000)','Çin İmparatoru\'nun kız kardeşini vergi olarak aldı','Çin Seddi büyük ölçüde Hunlara karşı inşa edildi','400.000 atlı süvariden oluşan ordu'],
+    quote: 'Yayını geren her erkeğin atı olsun, okçu süvari olarak hizmet etsin.', quoteBy: 'Mete Han',
+  },
+  {
+    id: 'attila', year: 'MS 434', title: 'Attila & Avrupa Hunları', period: 'MS 370 – 469',
+    color: '#8e44ad', leader: 'Attila', km2: '4.000.000',
+    summary: 'Tanrı\'nın Kırbacı. Hem Doğu hem Batı Roma\'yı vergi ödemeye mecbur etti; Papa I. Leo ile bizzat görüştü.',
+    facts: ['Aynı anda iki Roma imparatorluğundan vergi aldı','Konstantinopolis\'i iki kez kuşattı','Galya\'ya girdi; Katalaunum\'da durdu (451)','Papa I. Leo ile görüşerek İtalya\'dan çekildi'],
+    quote: 'Ben Tanrı\'nın kırbacıyım; toprak büyükse kırbaç da büyük olur.', quoteBy: 'Attila',
+  },
+  {
+    id: 'gokturk', year: '552', title: 'Göktürk Kağanlığı', period: '552 – 745',
+    color: '#2980b9', leader: 'Bumın Kağan', km2: '6.000.000',
+    summary: '"Türk" adını taşıyan ilk devlet. Orhun Yazıtları — dünyanın en eski Türkçe anıtları — bu dönemde taşa kazındı.',
+    facts: ['"Türk" kelimesi ilk kez resmi devlet adı oldu','Orhun Yazıtları (720) Türkçenin en eski yazılı anıtıdır','İpek Yolu\'nun tamamını kontrol etti','Kök Böri (Bozkurt) devletin kutsal simgesiydi'],
+    quote: 'Türk milletinin adı sanı yok olmasın diye, babam Bumın Kağan hükümdarlık tahtına oturdu.', quoteBy: 'Bilge Kağan — Orhun Yazıtları',
+  },
+  {
+    id: 'seljuk', year: '1037', title: 'Büyük Selçuklu', period: '1037 – 1194',
+    color: '#27ae60', leader: 'Tuğrul Bey', km2: '3.900.000',
+    summary: 'İslam dünyasının hamisi. Malazgirt Savaşı\'nda (1071) Bizans İmparatoru esir alındı; Anadolu\'nun kapıları açıldı.',
+    facts: ['Malazgirt 1071: Bizans İmparatoru bizzat esir alındı','Nizamiye medreseleri dönemin Oxford\'uydu','Kervansaray ağıyla İpek Yolu güvence altına alındı','Selçuklu mimarisi: çift minareli medrese geleneği'],
+    quote: 'Ben sultanların sultanıyım; doğuda ve batıda hiçbir kral benimle savaşamaz.', quoteBy: 'Alp Arslan',
+  },
+  {
+    id: 'ottoman', year: '1299', title: 'Osmanlı İmparatorluğu', period: '1299 – 1922',
+    color: '#d35400', leader: 'Osman Gazi → Vahdettin', km2: '5.200.000',
+    summary: '623 yıl, 3 kıta, 36 sultan. Fatih 21 yaşında İstanbul\'u fethetti. Kanuni döneminde dünyanın en büyük gücüydü.',
+    facts: ['Fatih İstanbul\'u 1453\'te 21 yaşında fethetti','Kanuni döneminde Viyana kapılarına dayanıldı','Osmanlı donanması 16. yüzyılda Akdeniz hâkimiydi','Millet sistemi farklı kültürlerin bir arada yaşamasını sağladı'],
+    quote: 'Ben Konstantinopolis\'i aldım; bundan böyle fetihlerimde hiçbir engel kalmadı.', quoteBy: 'Fatih Sultan Mehmed',
+  },
+  {
+    id: 'republic', year: '1923', title: 'Türkiye Cumhuriyeti', period: '1923 – Günümüz',
+    color: '#e74c3c', leader: 'Mustafa Kemal Atatürk', km2: '783.356',
+    summary: 'Osmanlı\'nın küllerinden doğan modern cumhuriyet. Kadınlara oy hakkı Fransa\'dan 10 yıl önce verildi.',
+    facts: ['29 Ekim 1923\'te Cumhuriyet ilan edildi','1934\'te kadınlara seçme/seçilme hakkı (Fransa\'dan 10 yıl önce)','Latin alfabesine geçiş yalnızca 3 ayda tamamlandı','NATO\'nun kurucu üyelerinden (1952)'],
+    quote: 'Türk milletinin tabiat ve âdetlerine en uygun olan idare, cumhuriyet idaresidir.', quoteBy: 'Mustafa Kemal Atatürk',
+  },
+];
+---
+
+<BaseLayout title="Türkler — Bozkurttan Bugüne" activeNav="">
+<main class="tp">
+
+<!-- ═══════ HERO ═══════ -->
+<section class="tp-hero">
+  <div class="tp-hero-bg" aria-hidden="true">
+    <svg class="tp-star-pattern" width="100%" height="100%"><defs><pattern id="tp-star" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse"><g fill="none" stroke="rgba(180,100,30,0.18)" stroke-width="0.8"><polygon points="40,4 46,26 68,20 54,38 72,54 50,50 46,72 40,58 34,72 30,50 8,54 26,38 12,20 34,26"/></g></pattern></defs><rect width="100%" height="100%" fill="url(#tp-star)"/></svg>
+    <div class="tp-hero-glow"></div>
+  </div>
+
+  <!-- Wolf SVG -->
+  <div class="tp-wolf-wrap" aria-hidden="true">
+    <svg class="tp-wolf" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 300">
+      <defs>
+        <filter id="wolf-glow"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="eye-glow"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <radialGradient id="wolf-body-grad" cx="50%" cy="40%"><stop offset="0%" stop-color="#c0392b"/><stop offset="100%" stop-color="#7b241c"/></radialGradient>
+      </defs>
+      <!-- Left ear -->
+      <polygon points="28,8 62,88 8,95" fill="#7b241c"/>
+      <polygon points="36,28 58,82 18,88" fill="#c0392b"/>
+      <!-- Right ear -->
+      <polygon points="212,8 178,88 232,95" fill="#7b241c"/>
+      <polygon points="204,28 182,82 222,88" fill="#c0392b"/>
+      <!-- Head -->
+      <polygon points="12,88 228,88 218,185 172,248 120,268 68,248 22,185" fill="url(#wolf-body-grad)"/>
+      <!-- Brow shadow -->
+      <polygon points="55,88 185,88 175,128 120,122 65,128" fill="#7b241c"/>
+      <!-- Forehead stripe -->
+      <polygon points="102,122 138,122 133,198 120,214 107,198" fill="#6e1f1f"/>
+      <!-- Left eye bg -->
+      <ellipse cx="78" cy="138" rx="24" ry="20" fill="#1a0a0a"/>
+      <!-- Left eye amber -->
+      <ellipse cx="78" cy="138" rx="18" ry="15" fill="#e67e00" filter="url(#eye-glow)"/>
+      <ellipse cx="78" cy="138" rx="12" ry="10" fill="#ff9500"/>
+      <!-- Left pupil -->
+      <ellipse cx="78" cy="139" rx="6" ry="9" fill="#080404"/>
+      <circle cx="74" cy="134" r="2.5" fill="rgba(255,255,255,0.7)"/>
+      <!-- Right eye bg -->
+      <ellipse cx="162" cy="138" rx="24" ry="20" fill="#1a0a0a"/>
+      <!-- Right eye amber -->
+      <ellipse cx="162" cy="138" rx="18" ry="15" fill="#e67e00" filter="url(#eye-glow)"/>
+      <ellipse cx="162" cy="138" rx="12" ry="10" fill="#ff9500"/>
+      <!-- Right pupil -->
+      <ellipse cx="162" cy="139" rx="6" ry="9" fill="#080404"/>
+      <circle cx="158" cy="134" r="2.5" fill="rgba(255,255,255,0.7)"/>
+      <!-- Nose bridge -->
+      <polygon points="108,162 132,162 128,176 112,176" fill="#6e1f1f"/>
+      <!-- Nose -->
+      <ellipse cx="120" cy="182" rx="20" ry="13" fill="#150505"/>
+      <ellipse cx="115" cy="178" rx="6" ry="4" fill="rgba(255,255,255,0.08)"/>
+      <!-- Jaw -->
+      <polygon points="38,200 202,200 188,258 120,278 52,258" fill="#9b2a2a"/>
+      <!-- Teeth -->
+      <polygon points="72,202 87,202 84,228" fill="#f0ece0"/>
+      <polygon points="92,202 106,202 103,226" fill="#f0ece0"/>
+      <polygon points="134,202 148,202 145,226" fill="#f0ece0"/>
+      <polygon points="153,202 168,202 164,228" fill="#f0ece0"/>
+      <!-- Gum -->
+      <polygon points="58,200 182,200 180,208 60,208" fill="#7b241c"/>
+      <!-- Chin -->
+      <ellipse cx="120" cy="268" rx="28" ry="12" fill="#7b241c"/>
+      <!-- Decorative rune marks on forehead -->
+      <line x1="90" y1="100" x2="100" y2="116" stroke="rgba(255,200,100,0.3)" stroke-width="1.5"/>
+      <line x1="95" y1="100" x2="100" y2="116" stroke="rgba(255,200,100,0.3)" stroke-width="1.5"/>
+      <line x1="140" y1="100" x2="145" y2="116" stroke="rgba(255,200,100,0.3)" stroke-width="1.5"/>
+      <line x1="145" y1="100" x2="140" y2="116" stroke="rgba(255,200,100,0.3)" stroke-width="1.5"/>
+    </svg>
+    <div class="tp-wolf-shadow"></div>
+  </div>
+
+  <div class="tp-hero-text">
+    <div class="tp-hero-eyebrow">BOZKURTTAN BUGÜNE</div>
+    <h1 class="tp-hero-title">TÜRKLER</h1>
+    <p class="tp-hero-sub">4.000 yıllık destan · 40'tan fazla devlet · 3 kıtayı değiştiren bir millet</p>
+    <div class="tp-runes" aria-label="Göktürk runik yazı">𐱅𐰇𐰼𐰚</div>
+  </div>
+
+  <!-- Bottom geometric border -->
+  <div class="tp-hero-border" aria-hidden="true">
+    <svg viewBox="0 0 1200 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="0,60 1200,60 1200,0 600,50 0,0" fill="#0e0a08"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ═══════ STATS ═══════ -->
+<section class="tp-stats">
+  <div class="tp-stats-inner">
+    <div class="tp-stat" data-count="4000" data-suffix="+ yıl">
+      <div class="tp-stat-num">0</div>
+      <div class="tp-stat-lbl">Kanıtlanmış Tarih</div>
+    </div>
+    <div class="tp-stat" data-count="40" data-suffix="+ devlet">
+      <div class="tp-stat-num">0</div>
+      <div class="tp-stat-lbl">Kurulan İmparatorluk</div>
+    </div>
+    <div class="tp-stat" data-count="3" data-suffix=" kıta">
+      <div class="tp-stat-num">0</div>
+      <div class="tp-stat-lbl">Hükmedilen Kıta</div>
+    </div>
+    <div class="tp-stat" data-count="200" data-suffix="M+ kişi">
+      <div class="tp-stat-num">0</div>
+      <div class="tp-stat-lbl">Bugünkü Türk Nüfusu</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ TIMELINE ═══════ -->
+<section class="tp-timeline-sect">
+  <div class="tp-sect-head">
+    <div class="tp-sect-line"></div>
+    <h2>Büyük Türk Devletleri</h2>
+    <div class="tp-sect-line"></div>
+  </div>
+
+  <div class="tp-timeline-track">
+    <div class="tp-timeline-rail" aria-hidden="true"></div>
+    {eras.map((era, i) => (
+      <div class="tp-era-card" data-id={era.id} style={`--era-color:${era.color}`}>
+        <div class="tp-era-dot" style={`background:${era.color}`}></div>
+        <div class="tp-era-year">{era.year}</div>
+        <div class="tp-era-body">
+          <div class="tp-era-title">{era.title}</div>
+          <div class="tp-era-period">{era.period}</div>
+          <div class="tp-era-leader">👤 {era.leader}</div>
+          <div class="tp-era-km">🗺 {era.km2} km²</div>
+          <p class="tp-era-summary">{era.summary}</p>
+          <button class="tp-era-btn" data-idx={i}>Detaylar ↓</button>
+        </div>
+        <div class="tp-era-detail" hidden>
+          <ul class="tp-era-facts">
+            {era.facts.map(f => <li>{f}</li>)}
+          </ul>
+          <blockquote class="tp-era-quote">
+            <p>"{era.quote}"</p>
+            <cite>— {era.quoteBy}</cite>
+          </blockquote>
+        </div>
+      </div>
+    ))}
+  </div>
+</section>
+
+<!-- ═══════ BOZKURT ═══════ -->
+<section class="tp-bozkurt">
+  <div class="tp-bz-bg" aria-hidden="true">
+    <svg width="100%" height="100%"><defs><pattern id="bz-pat" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="40" fill="none" stroke="rgba(192,57,43,0.12)" stroke-width="1"/><line x1="10" y1="50" x2="90" y2="50" stroke="rgba(192,57,43,0.08)" stroke-width="0.5"/><line x1="50" y1="10" x2="50" y2="90" stroke="rgba(192,57,43,0.08)" stroke-width="0.5"/></pattern></defs><rect width="100%" height="100%" fill="url(#bz-pat)"/></svg>
+  </div>
+  <div class="tp-sect-head tp-sect-head--light">
+    <div class="tp-sect-line tp-sect-line--light"></div>
+    <h2>🐺 Bozkurt: Kutsal Ata</h2>
+    <div class="tp-sect-line tp-sect-line--light"></div>
+  </div>
+  <div class="tp-bz-grid">
+    <div class="tp-bz-card">
+      <div class="tp-bz-icon">🏔️</div>
+      <h3>Ergenekon Destanı</h3>
+      <p>Türkler ağır bir yenilginin ardından dağlarla çevrili Ergenekon vadisinde mahsur kaldı. Nesiller boyu yaşadılar; demirciler dağı eriterek çıkış yolu açtı. Bu kurtuluşa öncülük eden bir Bozkurt'tu — halkını özgürlüğe götürdü.</p>
+    </div>
+    <div class="tp-bz-card">
+      <div class="tp-bz-icon">🐺</div>
+      <h3>Asena: Kutsal Dişi Kurt</h3>
+      <p>Göktürk yaratılış efsanesinde tüm Türkler düşmanlarca katledilir, yalnızca bir çocuk kalır. Dişi kurt Asena bu çocuğu büyütür. Ondan doğan on oğlun soyu Göktürkleri oluşturur. Asena bugün de Türk sembolizminin merkezindedir.</p>
+    </div>
+    <div class="tp-bz-card">
+      <div class="tp-bz-icon">🚩</div>
+      <h3>Sancaktaki Kurt Başı</h3>
+      <p>Göktürk kağanlarının otağı önünde altın kurt başlı sancak dikilirdi. Kurt kafası tüğ (tuğ) üzerine takılır; savaşa gidildiğinde öncü birlikler bu sancak arkasında ilerledi. Bozkurt, kağanın gücünü ve meşruiyetini sembolize etti.</p>
+    </div>
+    <div class="tp-bz-card">
+      <div class="tp-bz-icon">⚡</div>
+      <h3>Günümüzdeki Miras</h3>
+      <p>Bozkurt sembolü bugün hâlâ Türk kültüründe derin anlam taşır. Spor takımlarından askeri birliklere, siyasi hareketlerden şehir armalarına uzanan bu gelenek, 1.500 yıllık kesintisiz bir kültürel belleği yansıtır.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ CULTURE TABS ═══════ -->
+<section class="tp-culture">
+  <div class="tp-sect-head">
+    <div class="tp-sect-line"></div>
+    <h2>Türk Kültürü</h2>
+    <div class="tp-sect-line"></div>
+  </div>
+
+  <div class="tp-tabs-nav">
+    <button class="tp-tab active" data-tab="language">𐰚 Dil & Yazı</button>
+    <button class="tp-tab" data-tab="tengri">☀️ Tengricilik</button>
+    <button class="tp-tab" data-tab="art">◆ Türk Sanatı</button>
+    <button class="tp-tab" data-tab="war">⚔️ Savaş Sanatı</button>
+  </div>
+
+  <!-- Language tab -->
+  <div class="tp-tab-panel active" id="tp-tab-language">
+    <div class="tp-tab-content">
+      <div class="tp-tab-text">
+        <h3>Orhun Alfabesi: Taşa Kazınan Tarih</h3>
+        <p>Göktürkler, Proto-Türk yazısından geliştirdikleri özgün runik bir alfabe kullandı. 38 harfli bu sistem soldan sağa veya sağdan sola yazılabilirdi. Moğolistan'daki Orhun Vadisi'nde taşlara kazınan metinler, 8. yüzyıldan bu yana sağlam durmaktadır.</p>
+        <p class="tp-tab-note">💡 Harflerin üzerine gelin — Türkçe karşılıklarını görün</p>
+      </div>
+      <div class="tp-rune-grid">
+        {[
+          {r:'𐰀',l:'A',m:'Açık A sesi'},
+          {r:'𐰉',l:'B',m:'Dudak B'},
+          {r:'𐰚',l:'K',m:'Ön damak K'},
+          {r:'𐱃',l:'T',m:'Diş T'},
+          {r:'𐰖',l:'Y',m:'Yarı sesli Y'},
+          {r:'𐰭',l:'NG',m:'Nazal NG'},
+          {r:'𐰞',l:'L',m:'Yan L'},
+          {r:'𐰢',l:'M',m:'Dudak M'},
+          {r:'𐰣',l:'N',m:'Diş N'},
+          {r:'𐰺',l:'R',m:'Titrek R'},
+          {r:'𐰽',l:'S',m:'Diş S'},
+          {r:'𐱄',l:'D',m:'Arka damak D'},
+        ].map(({r,l,m}) => (
+          <div class="tp-rune-item" title={m}>
+            <div class="tp-rune-sym">{r}</div>
+            <div class="tp-rune-lat">{l}</div>
+            <div class="tp-rune-tip">{m}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <!-- Tengri tab -->
+  <div class="tp-tab-panel" id="tp-tab-tengri">
+    <div class="tp-tab-content">
+      <div class="tp-tab-text">
+        <h3>Tengri: Göğün Tanrısı</h3>
+        <p>İslam'dan önce Türkler Tengricilik (Gök Tanrı dini) inancını yaşattı. Tengri, sonsuz mavi göğü kişileştiren evrenin efendisiydi. Şamanlar (kam) bu dünya ile ruhlar âlemi arasındaki aracılardı.</p>
+        <p class="tp-tab-note">💡 Her kartın üzerine tıklayın</p>
+      </div>
+      <div class="tp-tengri-grid">
+        {[
+          {sym:'☀️',name:'Tengri',desc:'Gök Tanrı — sonsuz mavi göğün efendisi, evrenin yaratıcısı'},
+          {sym:'🌍',name:'Yer-Sub',desc:'Toprak ve su ruhları — bereket ve ürünün kaynağı'},
+          {sym:'🦅',name:'Umay Ana',desc:'Ana tanrıça — doğurganlık, çocuklar ve ocağın koruyucusu'},
+          {sym:'🐺',name:'Kök Böri',desc:'Bozkurt — kutsal ata, kılavuz ve savaş simgesi'},
+          {sym:'🔥',name:'Od Ana',desc:'Ateş Ana — ocağın, ailenin ve toplumun koruyucusu'},
+          {sym:'🌙',name:'Ay Tengri',desc:'Ay Tanrı — gece göğünün hâkimi, takvimin temeli'},
+          {sym:'⚡',name:'Yel Tengri',desc:'Rüzgâr Tanrı — doğanın gücünü ve özgürlüğü temsil eder'},
+          {sym:'🏔️',name:'Erlik Han',desc:'Yeraltı hâkimi — ölüm, karanlık ve kötülüğün tanrısı'},
+        ].map(({sym,name,desc}) => (
+          <div class="tp-tengri-card">
+            <div class="tp-tengri-sym">{sym}</div>
+            <div class="tp-tengri-name">{name}</div>
+            <div class="tp-tengri-desc">{desc}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <!-- Art tab -->
+  <div class="tp-tab-panel" id="tp-tab-art">
+    <div class="tp-tab-content">
+      <div class="tp-tab-text">
+        <h3>Rumi'den Tezhibe: Sonsuz Arabesk</h3>
+        <p>Türk sanatı; Orta Asya bozkır geleneğinden Selçuklu taş işçiliğine, Osmanlı çini ve minyatürüne uzanır. Geometri, bitkisel motif ve hat sanatının bütünleşmesiyle eşsiz bir estetik dil doğdu.</p>
+      </div>
+      <div class="tp-motif-showcase">
+        <div class="tp-motif-preview">
+          <svg id="tp-motif-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <rect width="200" height="200" fill="#1a0e06"/>
+            <g id="tp-motif-group" transform="translate(100,100)"></g>
+          </svg>
+        </div>
+        <div class="tp-motif-list">
+          {[
+            {id:'rumi',name:'Rumi',desc:'Kıvrımlı yaprak motifi — spiritüel yolculuğu simgeler'},
+            {id:'hatai',name:'Hatai',desc:'Stilize çiçek — doğanın sonsuz döngüsü'},
+            {id:'star8',name:'Selçuklu Yıldızı',desc:'8 köşeli yıldız — evrenin geometrisi'},
+            {id:'geçme',name:'Geçme Örgü',desc:'Örgülü desen — birlik ve bütünlük'},
+            {id:'bulut',name:'Bulut Motifi',desc:'Çin etkisiyle gelen bulut deseni'},
+            {id:'penç',name:'Penç',desc:'5 yapraklı gül — ilahi mükemmellik'},
+          ].map(m => (
+            <button class="tp-motif-btn" data-motif={m.id}>
+              <strong>{m.name}</strong>
+              <span>{m.desc}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- War tab -->
+  <div class="tp-tab-panel" id="tp-tab-war">
+    <div class="tp-tab-content">
+      <div class="tp-tab-text">
+        <h3>Bozkır Savaşçısı: Süvari Uygarlığı</h3>
+        <p>Türk savaş geleneği atlı okçuluk üzerine kuruldu. "Turan taktiği" — sahte ricat ile çevirme manevrası — yüzyıllar boyunca Çin, Roma, Bizans ve Haçlı ordularını alt etti.</p>
+      </div>
+      <div class="tp-war-grid">
+        {[
+          {icon:'🏹',name:'Atlı Okçu',desc:'At sırtında geriye dönük ok atma "Parti atışı" — dünyanın ilk mobil topçusu'},
+          {icon:'🔟',name:'Mangala Sistemi',desc:'Ondalık askeri örgütlenme: 10 / 100 / 1.000 / 10.000 — modern ordunun atası'},
+          {icon:'🌀',name:'Turan Taktiği',desc:'Sahte çekilme, çevirme harekâtı, imha — Mete Han\'ın icat ettiği strateji'},
+          {icon:'🐎',name:'Hafif Süvari',desc:'Kısa yay, hafif zırh, yüksek hız — kovalayan düşmanı tuzağa düşür'},
+          {icon:'🔱',name:'Akıncılar',desc:'Osmanlı öncü kuvvetleri — keşif, baskın ve psikolojik savaş uzmanları'},
+          {icon:'🏰',name:'Yeniçeriler',desc:'Devşirme sistemiyle oluşturulan seçkin Osmanlı piyadeleri — ilk düzenli profesyonel ordu'},
+        ].map(({icon,name,desc}) => (
+          <div class="tp-war-card">
+            <div class="tp-war-icon">{icon}</div>
+            <h4>{name}</h4>
+            <p>{desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ CLOSING ═══════ -->
+<section class="tp-closing">
+  <div class="tp-closing-pattern" aria-hidden="true">
+    <svg width="100%" height="100%"><defs><pattern id="cl-pat" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse"><polygon points="30,2 36,22 58,16 44,32 58,48 36,42 30,58 24,42 2,48 16,32 2,16 24,22" fill="none" stroke="rgba(255,200,100,0.1)" stroke-width="0.6"/></pattern></defs><rect width="100%" height="100%" fill="url(#cl-pat)"/></svg>
+  </div>
+  <blockquote class="tp-final-quote">
+    <p>"Ne mutlu Türküm diyene!"</p>
+    <cite>— Mustafa Kemal Atatürk</cite>
+  </blockquote>
+  <div class="tp-closing-motif" aria-hidden="true">
+    <svg viewBox="0 0 600 40" xmlns="http://www.w3.org/2000/svg">
+      {Array.from({length:15}).map((_,i) => (
+        <polygon points={`${i*40+20},2 ${i*40+26},14 ${i*40+38},10 ${i*40+30},20 ${i*40+38},30 ${i*40+26},26 ${i*40+20},38 ${i*40+14},26 ${i*40+2},30 ${i*40+10},20 ${i*40+2},10 ${i*40+14},14`} fill="none" stroke="rgba(192,100,30,0.5)" stroke-width="0.8"/>
+      ))}
+    </svg>
+  </div>
+</section>
+
+</main>
+</BaseLayout>
+
+<style>
+/* ── Base ── */
+.tp { background: #0e0a08; color: #e8ddd0; font-family: system-ui, sans-serif; overflow-x: hidden; }
+
+/* ── Hero ── */
+.tp-hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at 30% 50%, #2a0c0c 0%, #0e0a08 70%);
+  overflow: hidden;
+  padding: 60px 24px 80px;
+}
+.tp-hero-bg { position: absolute; inset: 0; pointer-events: none; }
+.tp-star-pattern { opacity: 0.6; }
+.tp-hero-glow {
+  position: absolute;
+  top: 20%;
+  left: 10%;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(192,57,43,0.15) 0%, transparent 70%);
+  animation: tp-pulse 4s ease-in-out infinite;
+}
+@keyframes tp-pulse { 0%,100%{opacity:0.6;transform:scale(1)} 50%{opacity:1;transform:scale(1.1)} }
+
+.tp-wolf-wrap {
+  position: relative;
+  z-index: 2;
+  margin-bottom: 24px;
+  filter: drop-shadow(0 0 40px rgba(192,57,43,0.4));
+  animation: tp-wolf-breathe 3s ease-in-out infinite;
+}
+@keyframes tp-wolf-breathe { 0%,100%{transform:scale(1)} 50%{transform:scale(1.03)} }
+.tp-wolf { width: min(280px, 65vw); height: auto; display: block; }
+.tp-wolf-shadow {
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 20px;
+  background: radial-gradient(ellipse, rgba(192,57,43,0.4) 0%, transparent 70%);
+}
+
+.tp-hero-text { position: relative; z-index: 2; text-align: center; }
+.tp-hero-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.25em;
+  color: #c0392b;
+  margin-bottom: 8px;
+}
+.tp-hero-title {
+  font-size: clamp(3rem, 12vw, 8rem);
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  color: #e8ddd0;
+  margin: 0 0 12px;
+  text-shadow: 0 0 60px rgba(192,57,43,0.5);
+  line-height: 1;
+}
+.tp-hero-sub {
+  font-size: clamp(0.85rem, 2vw, 1.1rem);
+  color: #a08870;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+.tp-runes {
+  font-size: 2rem;
+  letter-spacing: 0.3em;
+  color: rgba(192,57,43,0.7);
+  font-family: serif;
+  animation: tp-rune-glow 2s ease-in-out infinite;
+}
+@keyframes tp-rune-glow { 0%,100%{opacity:0.5} 50%{opacity:1;text-shadow:0 0 20px rgba(192,57,43,0.8)} }
+
+.tp-hero-border {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  pointer-events: none;
+}
+.tp-hero-border svg { width: 100%; height: 100%; }
+
+/* ── Stats ── */
+.tp-stats { background: #0e0a08; padding: 60px 24px; }
+.tp-stats-inner {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+  max-width: 900px;
+  margin: 0 auto;
+  border: 1px solid rgba(192,57,43,0.2);
+  border-radius: 20px;
+  overflow: hidden;
+}
+.tp-stat {
+  padding: 32px 20px;
+  text-align: center;
+  background: rgba(192,57,43,0.04);
+  border-right: 1px solid rgba(192,57,43,0.15);
+  transition: background 0.2s;
+}
+.tp-stat:last-child { border-right: none; }
+.tp-stat:hover { background: rgba(192,57,43,0.1); }
+.tp-stat-num {
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-weight: 900;
+  color: #c0392b;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.tp-stat-lbl { font-size: 0.75rem; color: #7a6050; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; }
+
+/* ── Section heads ── */
+.tp-sect-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 24px;
+  margin-bottom: 40px;
+}
+.tp-sect-head h2 { font-size: clamp(1.2rem, 3vw, 1.8rem); font-weight: 800; color: #e8ddd0; white-space: nowrap; }
+.tp-sect-head--light h2 { color: #e8ddd0; }
+.tp-sect-line { flex: 1; height: 1px; background: rgba(192,57,43,0.3); }
+.tp-sect-line--light { background: rgba(192,57,43,0.4); }
+
+/* ── Timeline ── */
+.tp-timeline-sect { padding: 80px 0; background: #120c0a; }
+.tp-timeline-track {
+  position: relative;
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  padding: 20px 40px 40px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(192,57,43,0.4) transparent;
+}
+.tp-timeline-rail {
+  position: absolute;
+  top: 50px;
+  left: 40px;
+  right: 40px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(192,57,43,0.4) 10%, rgba(192,57,43,0.4) 90%, transparent);
+  pointer-events: none;
+}
+.tp-era-card {
+  flex: 0 0 300px;
+  scroll-snap-align: start;
+  background: rgba(30,16,12,0.9);
+  border: 1px solid rgba(192,57,43,0.2);
+  border-radius: 16px;
+  padding: 24px;
+  margin: 30px 12px 0;
+  position: relative;
+  transition: border-color 0.2s, transform 0.2s;
+  cursor: default;
+}
+.tp-era-card:hover { border-color: var(--era-color); transform: translateY(-4px); }
+.tp-era-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 0 12px var(--era-color);
+}
+.tp-era-year { font-size: 0.72rem; font-weight: 800; color: var(--era-color); letter-spacing: 0.1em; margin-bottom: 6px; }
+.tp-era-title { font-size: 1rem; font-weight: 800; color: #e8ddd0; margin-bottom: 4px; }
+.tp-era-period { font-size: 0.72rem; color: #7a6050; margin-bottom: 10px; }
+.tp-era-leader, .tp-era-km { font-size: 0.78rem; color: #a08870; margin-bottom: 4px; }
+.tp-era-summary { font-size: 0.82rem; color: #c0a090; line-height: 1.5; margin: 10px 0; }
+.tp-era-btn {
+  background: none;
+  border: 1px solid var(--era-color);
+  color: var(--era-color);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.tp-era-btn:hover { background: var(--era-color); color: #fff; }
+.tp-era-detail { margin-top: 14px; border-top: 1px solid rgba(192,57,43,0.15); padding-top: 14px; }
+.tp-era-facts { margin: 0 0 12px; padding-left: 16px; }
+.tp-era-facts li { font-size: 0.78rem; color: #c0a090; line-height: 1.6; margin-bottom: 4px; }
+.tp-era-quote { margin: 0; padding: 10px 14px; background: rgba(192,57,43,0.08); border-left: 3px solid var(--era-color); border-radius: 0 8px 8px 0; }
+.tp-era-quote p { font-size: 0.8rem; color: #e0c8b0; font-style: italic; margin: 0 0 4px; }
+.tp-era-quote cite { font-size: 0.7rem; color: var(--era-color); }
+
+/* ── Bozkurt ── */
+.tp-bozkurt {
+  position: relative;
+  background: #0a0604;
+  padding: 80px 24px;
+  overflow: hidden;
+}
+.tp-bz-bg { position: absolute; inset: 0; pointer-events: none; }
+.tp-bz-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.tp-bz-card {
+  background: rgba(192,57,43,0.06);
+  border: 1px solid rgba(192,57,43,0.2);
+  border-radius: 16px;
+  padding: 28px;
+  transition: border-color 0.2s, background 0.2s;
+}
+.tp-bz-card:hover { border-color: rgba(192,57,43,0.5); background: rgba(192,57,43,0.1); }
+.tp-bz-icon { font-size: 2.2rem; margin-bottom: 12px; }
+.tp-bz-card h3 { font-size: 1rem; font-weight: 800; color: #e8ddd0; margin: 0 0 10px; }
+.tp-bz-card p { font-size: 0.85rem; color: #a08870; line-height: 1.6; margin: 0; }
+
+/* ── Culture Tabs ── */
+.tp-culture { padding: 80px 24px; background: #0e0a08; }
+.tp-tabs-nav {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 32px;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 32px;
+}
+.tp-tab {
+  background: rgba(192,57,43,0.06);
+  border: 1px solid rgba(192,57,43,0.2);
+  color: #a08870;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 10px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.tp-tab:hover { border-color: rgba(192,57,43,0.4); color: #e8ddd0; }
+.tp-tab.active { background: #c0392b; border-color: #c0392b; color: #fff; }
+.tp-tab-panel { display: none; max-width: 900px; margin: 0 auto; }
+.tp-tab-panel.active { display: block; }
+.tp-tab-content { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start; }
+.tp-tab-text h3 { font-size: 1.1rem; font-weight: 800; color: #e8ddd0; margin: 0 0 12px; }
+.tp-tab-text p { font-size: 0.85rem; color: #a08870; line-height: 1.7; margin: 0 0 10px; }
+.tp-tab-note { font-size: 0.75rem !important; color: #7a6050 !important; font-style: italic; }
+
+/* Rune grid */
+.tp-rune-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.tp-rune-item {
+  background: rgba(192,57,43,0.06);
+  border: 1px solid rgba(192,57,43,0.15);
+  border-radius: 10px;
+  padding: 12px 8px;
+  text-align: center;
+  cursor: default;
+  transition: all 0.2s;
+  position: relative;
+}
+.tp-rune-item:hover { background: rgba(192,57,43,0.15); border-color: rgba(192,57,43,0.5); }
+.tp-rune-sym { font-size: 1.6rem; color: #e8ddd0; line-height: 1; margin-bottom: 4px; }
+.tp-rune-lat { font-size: 0.7rem; font-weight: 800; color: #c0392b; letter-spacing: 0.1em; }
+.tp-rune-tip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1a0e06;
+  border: 1px solid rgba(192,57,43,0.4);
+  color: #e8ddd0;
+  font-size: 0.7rem;
+  white-space: nowrap;
+  padding: 4px 8px;
+  border-radius: 6px;
+  z-index: 10;
+}
+.tp-rune-item:hover .tp-rune-tip { display: block; }
+
+/* Tengri grid */
+.tp-tengri-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.tp-tengri-card {
+  background: rgba(192,57,43,0.05);
+  border: 1px solid rgba(192,57,43,0.15);
+  border-radius: 10px;
+  padding: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.tp-tengri-card:hover { background: rgba(192,57,43,0.12); border-color: rgba(192,57,43,0.4); }
+.tp-tengri-sym { font-size: 1.4rem; margin-bottom: 4px; }
+.tp-tengri-name { font-size: 0.82rem; font-weight: 800; color: #e8ddd0; margin-bottom: 4px; }
+.tp-tengri-desc { font-size: 0.72rem; color: #7a6050; line-height: 1.4; }
+
+/* Motif showcase */
+.tp-motif-showcase { display: grid; grid-template-columns: 200px 1fr; gap: 24px; align-items: start; }
+.tp-motif-preview { background: #1a0e06; border: 1px solid rgba(192,57,43,0.2); border-radius: 14px; overflow: hidden; }
+.tp-motif-preview svg { width: 100%; height: auto; display: block; }
+.tp-motif-list { display: flex; flex-direction: column; gap: 8px; }
+.tp-motif-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background: rgba(192,57,43,0.04);
+  border: 1px solid rgba(192,57,43,0.15);
+  border-radius: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+  width: 100%;
+}
+.tp-motif-btn:hover, .tp-motif-btn.active { background: rgba(192,57,43,0.12); border-color: rgba(192,57,43,0.4); }
+.tp-motif-btn strong { font-size: 0.82rem; color: #e8ddd0; }
+.tp-motif-btn span { font-size: 0.72rem; color: #7a6050; margin-top: 2px; }
+
+/* War grid */
+.tp-war-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; grid-column: 1 / -1; }
+.tp-war-card {
+  background: rgba(192,57,43,0.05);
+  border: 1px solid rgba(192,57,43,0.15);
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.2s;
+}
+.tp-war-card:hover { border-color: rgba(192,57,43,0.4); background: rgba(192,57,43,0.1); transform: translateY(-2px); }
+.tp-war-icon { font-size: 1.8rem; margin-bottom: 8px; }
+.tp-war-card h4 { font-size: 0.9rem; font-weight: 800; color: #e8ddd0; margin: 0 0 6px; }
+.tp-war-card p { font-size: 0.78rem; color: #a08870; line-height: 1.5; margin: 0; }
+
+/* ── Closing ── */
+.tp-closing {
+  position: relative;
+  background: radial-gradient(ellipse at center, #1a0808 0%, #0a0604 60%);
+  padding: 100px 24px 80px;
+  text-align: center;
+  overflow: hidden;
+}
+.tp-closing-pattern { position: absolute; inset: 0; pointer-events: none; }
+.tp-final-quote { position: relative; z-index: 2; max-width: 600px; margin: 0 auto 40px; }
+.tp-final-quote p { font-size: clamp(1.4rem, 4vw, 2.2rem); font-weight: 800; color: #e8ddd0; font-style: italic; margin: 0 0 16px; text-shadow: 0 0 40px rgba(192,57,43,0.5); }
+.tp-final-quote cite { font-size: 0.9rem; color: #c0392b; letter-spacing: 0.1em; }
+.tp-closing-motif { position: relative; z-index: 2; opacity: 0.6; }
+.tp-closing-motif svg { width: min(600px, 100%); height: auto; }
+
+/* ── Responsive ── */
+@media (max-width: 767px) {
+  .tp-stats-inner { grid-template-columns: repeat(2, 1fr); }
+  .tp-stat { border-right: none; border-bottom: 1px solid rgba(192,57,43,0.15); }
+  .tp-bz-grid { grid-template-columns: 1fr; }
+  .tp-tab-content { grid-template-columns: 1fr; }
+  .tp-rune-grid { grid-template-columns: repeat(3, 1fr); }
+  .tp-tengri-grid { grid-template-columns: repeat(2, 1fr); }
+  .tp-motif-showcase { grid-template-columns: 1fr; }
+  .tp-war-grid { grid-template-columns: 1fr; }
+  .tp-era-card { flex: 0 0 260px; }
+}
+
+/* ── Scroll animations ── */
+.tp-fade-in { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.tp-fade-in.visible { opacity: 1; transform: translateY(0); }
+</style>
+
+<script>
+(function () {
+
+/* ── Tab switching ── */
+document.querySelectorAll('.tp-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const id = (btn as HTMLElement).dataset.tab;
+    document.querySelectorAll('.tp-tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tp-tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tp-tab-' + id)?.classList.add('active');
+  });
+});
+
+/* ── Era detail expand ── */
+document.querySelectorAll('.tp-era-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const card = btn.closest('.tp-era-card');
+    const detail = card?.querySelector('.tp-era-detail') as HTMLElement | null;
+    if (!detail) return;
+    const open = !detail.hidden;
+    detail.hidden = open;
+    btn.textContent = open ? 'Detaylar ↓' : 'Kapat ↑';
+  });
+});
+
+/* ── Counter animation ── */
+function animateCount(el: HTMLElement, target: number, suffix: string, duration = 1800) {
+  const start = performance.now();
+  function step(now: number) {
+    const t = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+    el.textContent = Math.floor(ease * target) + suffix;
+    if (t < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+const statObs = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    const el = entry.target as HTMLElement;
+    const num = el.querySelector('.tp-stat-num') as HTMLElement;
+    if (!num || num.dataset.counted) return;
+    num.dataset.counted = '1';
+    animateCount(num, parseInt(el.dataset.count!), el.dataset.suffix!);
+    statObs.unobserve(el);
+  });
+}, { threshold: 0.3 });
+document.querySelectorAll('.tp-stat').forEach(el => statObs.observe(el));
+
+/* ── Scroll fade-in ── */
+document.querySelectorAll<HTMLElement>('.tp-era-card, .tp-bz-card, .tp-war-card, .tp-tengri-card').forEach((el, i) => {
+  el.classList.add('tp-fade-in');
+  el.style.transitionDelay = `${(i % 4) * 80}ms`;
+});
+const fadeObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { (e.target as HTMLElement).classList.add('visible'); fadeObs.unobserve(e.target); } });
+}, { threshold: 0.15 });
+document.querySelectorAll('.tp-fade-in').forEach(el => fadeObs.observe(el));
+
+/* ── Motif SVG preview ── */
+type MotifFn = (g: SVGGElement) => void;
+const motifs: Record<string, MotifFn> = {
+  star8: (g) => {
+    g.innerHTML = '';
+    const ns = 'http://www.w3.org/2000/svg';
+    for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) {
+      const ox = (c - 1) * 65, oy = (r - 1) * 65;
+      const poly = document.createElementNS(ns, 'polygon');
+      const pts = [0,-28,7,-10,28,0,10,7,28,28,10,7,0,28,-10,7,-28,28,-7,10,-28,0,-10,-7,-28,-28,-7,-10,0,-28];
+      const str = [];
+      for (let i = 0; i < pts.length; i += 2) str.push(`${pts[i]+ox},${pts[i+1]+oy}`);
+      poly.setAttribute('points', str.join(' '));
+      poly.setAttribute('fill', 'none');
+      poly.setAttribute('stroke', 'rgba(200,130,40,0.7)');
+      poly.setAttribute('stroke-width', '1.2');
+      g.appendChild(poly);
+    }
+  },
+  rumi: (g) => {
+    g.innerHTML = '';
+    const ns = 'http://www.w3.org/2000/svg';
+    for (let i = 0; i < 8; i++) {
+      const path = document.createElementNS(ns, 'path');
+      const angle = i * 45;
+      path.setAttribute('d', 'M0,0 Q30,-40 0,-80 Q-30,-40 0,0');
+      path.setAttribute('fill', 'rgba(200,80,30,0.4)');
+      path.setAttribute('stroke', 'rgba(200,130,40,0.7)');
+      path.setAttribute('stroke-width', '0.8');
+      path.setAttribute('transform', `rotate(${angle})`);
+      g.appendChild(path);
+    }
+  },
+  hatai: (g) => {
+    g.innerHTML = '';
+    const ns = 'http://www.w3.org/2000/svg';
+    for (let i = 0; i < 6; i++) {
+      const angle = i * 60;
+      const circle = document.createElementNS(ns, 'ellipse');
+      circle.setAttribute('cx', String(Math.cos((angle * Math.PI) / 180) * 45));
+      circle.setAttribute('cy', String(Math.sin((angle * Math.PI) / 180) * 45));
+      circle.setAttribute('rx', '22');
+      circle.setAttribute('ry', '12');
+      circle.setAttribute('fill', 'rgba(200,80,30,0.25)');
+      circle.setAttribute('stroke', 'rgba(200,130,40,0.6)');
+      circle.setAttribute('stroke-width', '1');
+      circle.setAttribute('transform', `rotate(${angle},${Math.cos((angle*Math.PI)/180)*45},${Math.sin((angle*Math.PI)/180)*45})`);
+      g.appendChild(circle);
+    }
+    const center = document.createElementNS(ns, 'circle');
+    center.setAttribute('r', '14');
+    center.setAttribute('fill', 'rgba(200,130,40,0.3)');
+    center.setAttribute('stroke', 'rgba(200,130,40,0.8)');
+    center.setAttribute('stroke-width', '1.5');
+    g.appendChild(center);
+  },
+  geçme: (g) => {
+    g.innerHTML = '';
+    const ns = 'http://www.w3.org/2000/svg';
+    for (let i = 0; i < 4; i++) {
+      const rect = document.createElementNS(ns, 'rect');
+      rect.setAttribute('x', '-60');
+      rect.setAttribute('y', '-8');
+      rect.setAttribute('width', '120');
+      rect.setAttribute('height', '16');
+      rect.setAttribute('rx', '4');
+      rect.setAttribute('fill', 'none');
+      rect.setAttribute('stroke', 'rgba(200,130,40,0.7)');
+      rect.setAttribute('stroke-width', '1.2');
+      rect.setAttribute('transform', `rotate(${i * 45})`);
+      g.appendChild(rect);
+    }
+  },
+  bulut: (g) => {
+    g.innerHTML = '';
+    const ns = 'http://www.w3.org/2000/svg';
+    const path = document.createElementNS(ns, 'path');
+    path.setAttribute('d', 'M-60,0 Q-50,-30 -20,-20 Q-10,-50 20,-40 Q40,-55 50,-30 Q70,-25 60,0 Q70,25 50,30 Q40,55 20,40 Q-10,50 -20,20 Q-50,30 -60,0Z');
+    path.setAttribute('fill', 'rgba(80,120,200,0.2)');
+    path.setAttribute('stroke', 'rgba(120,160,220,0.6)');
+    path.setAttribute('stroke-width', '1');
+    g.appendChild(path);
+    for (let i = 0; i < 3; i++) {
+      const c = document.createElementNS(ns, 'circle');
+      const x = (i - 1) * 30, y = 0;
+      c.setAttribute('cx', String(x));
+      c.setAttribute('cy', String(y));
+      c.setAttribute('r', String(8 + i * 2));
+      c.setAttribute('fill', 'rgba(120,160,220,0.15)');
+      c.setAttribute('stroke', 'rgba(120,160,220,0.5)');
+      c.setAttribute('stroke-width', '0.8');
+      g.appendChild(c);
+    }
+  },
+  penç: (g) => {
+    g.innerHTML = '';
+    const ns = 'http://www.w3.org/2000/svg';
+    for (let i = 0; i < 5; i++) {
+      const angle = i * 72 - 90;
+      const path = document.createElementNS(ns, 'path');
+      const rad = (angle * Math.PI) / 180;
+      const x = Math.cos(rad) * 38, y = Math.sin(rad) * 38;
+      path.setAttribute('d', `M0,0 Q${x * 0.5 + Math.cos(rad + 1.4) * 20},${y * 0.5 + Math.sin(rad + 1.4) * 20} ${x},${y} Q${x * 0.5 + Math.cos(rad - 1.4) * 20},${y * 0.5 + Math.sin(rad - 1.4) * 20} 0,0`);
+      path.setAttribute('fill', 'rgba(200,80,30,0.3)');
+      path.setAttribute('stroke', 'rgba(200,130,40,0.7)');
+      path.setAttribute('stroke-width', '1');
+      g.appendChild(path);
+    }
+    const c = document.createElementNS(ns, 'circle');
+    c.setAttribute('r', '10');
+    c.setAttribute('fill', 'rgba(200,130,40,0.4)');
+    g.appendChild(c);
+  },
+};
+
+const motifGroup = document.getElementById('tp-motif-group') as SVGGElement | null;
+if (motifGroup) {
+  let activeMotif = 'star8';
+  motifs[activeMotif](motifGroup);
+  document.querySelectorAll<HTMLElement>('.tp-motif-btn').forEach(btn => {
+    if (btn.dataset.motif === activeMotif) btn.classList.add('active');
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.motif!;
+      document.querySelectorAll('.tp-motif-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      if (motifs[id]) { activeMotif = id; motifs[id](motifGroup); }
+    });
+  });
+}
+
+})();
+</script>

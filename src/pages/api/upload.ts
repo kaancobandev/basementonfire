@@ -52,7 +52,7 @@ export const POST: APIRoute = async ({ request }) => {
     return json({ error: 'Veritabanına kaydedilemedi.' }, 500);
   }
 
-  return new Response(null, { status: 303, headers: { Location: '/hizli-bilgiler' } });
+  return new Response(null, { status: 303, headers: { Location: '/akis' } });
 };
 
 function json(body: object, status = 200) {
