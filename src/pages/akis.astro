@@ -1,13 +1,64 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { supabase, flattenFacts, type QuickFact } from '../lib/supabase';
+import { supabase, createAuthClient, flattenFacts, type QuickFact } from '../lib/supabase';
+import { thumbUrl } from '../lib/image';
+
+const authHeaders = new Headers();
+const authClient  = createAuthClient(Astro.request, authHeaders);
+const { data: { user: authUser } } = await authClient.auth.getUser();
+
+let currentDbUser: { id: number; display_name: string; username: string } | null = null;
+if (authUser) {
+  const { data } = await supabase
+    .from('users').select('id, display_name, username').eq('auth_id', authUser.id).single();
+  currentDbUser = data;
+}
+
+// ── Stories ──────────────────────────────────────────────────────────────────
+interface StoryItem { id: number; mediaUrl: string; mediaType: string; createdAt: string; }
+interface StoryUser { userId: number; username: string; displayName: string; avatar: string | null; stories: StoryItem[]; }
+
+const now = new Date().toISOString();
+const { data: storiesRaw } = await supabase
+  .from('stories')
+  .select('id, media_url, media_type, created_at, user_id, users(id, username, display_name, avatar)')
+  .gt('expires_at', now)
+  .order('created_at', { ascending: false });
+
+const storyMap = new Map<number, StoryUser>();
+for (const s of (storiesRaw ?? []) as any[]) {
+  const u = s.users;
+  const uid: number = s.user_id;
+  if (!storyMap.has(uid)) {
+    storyMap.set(uid, { userId: uid, username: u.username, displayName: u.display_name, avatar: u.avatar ?? null, stories: [] });
+  }
+  storyMap.get(uid)!.stories.push({ id: s.id, mediaUrl: s.media_url, mediaType: s.media_type, createdAt: s.created_at });
+}
+const ownStoryUser: StoryUser | null = currentDbUser ? (storyMap.get(currentDbUser.id) ?? null) : null;
+if (currentDbUser) storyMap.delete(currentDbUser.id);
+const otherStoryUsers: StoryUser[] = [...storyMap.values()];
+
+// Avatar renk yardımcısı (server-side)
+const avatarColorsArr = ['linear-gradient(135deg,#667eea,#764ba2)','linear-gradient(135deg,#f093fb,#f5576c)','linear-gradient(135deg,#4facfe,#00f2fe)','linear-gradient(135deg,#43e97b,#38f9d7)','linear-gradient(135deg,#fa709a,#fee140)','linear-gradient(135deg,#a18cd1,#fbc2eb)','linear-gradient(135deg,#fda085,#f6d365)','linear-gradient(135deg,#96fbc4,#f9f586)'];
+function avatarBgServer(username: string) {
+  let h = 0;
+  for (let i = 0; i < username.length; i++) h = (h * 31 + username.charCodeAt(i)) & 0xffffffff;
+  return avatarColorsArr[Math.abs(h) % avatarColorsArr.length];
+}
+
+const PAGE_SIZE = 12;
 
 const { data: raw } = await supabase
   .from('quick_facts')
   .select('*, users(display_name, username)')
-  .order('created_at', { ascending: false });
+  .order('created_at', { ascending: false })
+  .order('id', { ascending: false })
+  .limit(PAGE_SIZE + 1);
 
-const posts: QuickFact[] = flattenFacts(raw ?? []);
+const allFetched: QuickFact[] = flattenFacts(raw ?? []);
+const hasMore  = allFetched.length > PAGE_SIZE;
+const posts: QuickFact[] = hasMore ? allFetched.slice(0, PAGE_SIZE) : allFetched;
+const initialNextCursor  = hasMore ? posts[posts.length - 1].id : null;
 
 function timeAgo(d: string) {
   const s = Math.floor((Date.now() - new Date(d).getTime()) / 1000);
@@ -20,6 +71,19 @@ function timeAgo(d: string) {
 
 <BaseLayout title="Akış" activeNav="akis">
   <main class="main-content" style="position:relative;">
+    <div id="page-meta"
+      data-user-id={currentDbUser?.id ?? ''}
+      data-display-name={currentDbUser?.display_name ?? ''}
+      data-username={currentDbUser?.username ?? ''}
+      hidden
+    ></div>
+
+    <!-- Story verisi JS'e aktarım -->
+    <script id="story-data" type="application/json" set:text={JSON.stringify({
+      ownStoryUser,
+      otherStoryUsers,
+      myId: currentDbUser?.id ?? null,
+    })} />
 
     <!-- Başlık + yükleme butonu -->
     <div class="feed-header" style="display:flex; justify-content:space-between; align-items:center;">
@@ -27,6 +91,110 @@ function timeAgo(d: string) {
       <button id="open-upload" class="hb-upload-trigger">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
         Yeni Paylaş
+      </button>
+    </div>
+
+    <!-- ── Story Bar ──────────────────────────────────────────────────────── -->
+    <div class="story-bar" id="story-bar">
+      <!-- Kendi hikayesi -->
+      {currentDbUser && (
+        <button class="story-item" id="story-own-btn" data-has-story={ownStoryUser ? 'true' : 'false'}>
+          <div class={`story-ring ${ownStoryUser ? 'has-story' : 'add-story'}`}>
+            {currentDbUser ? (
+              <div class="story-av" style={`background:${avatarBgServer(currentDbUser.username)}`}>
+                {currentDbUser.display_name[0].toUpperCase()}
+              </div>
+            ) : null}
+            {!ownStoryUser && (
+              <span class="story-plus">+</span>
+            )}
+          </div>
+          <span class="story-label">{ownStoryUser ? 'Hikayem' : 'Ekle'}</span>
+        </button>
+      )}
+
+      <!-- Diğer kullanıcıların hikayeleri -->
+      {otherStoryUsers.map((u, i) => (
+        <button class="story-item" data-story-idx={i} aria-label={`${u.displayName} hikayesi`}>
+          <div class="story-ring has-story">
+            {u.avatar
+              ? <img src={u.avatar} alt="" class="story-av" />
+              : <div class="story-av" style={`background:${avatarBgServer(u.username)}`}>{u.displayName[0].toUpperCase()}</div>
+            }
+          </div>
+          <span class="story-label">{u.username}</span>
+        </button>
+      ))}
+
+      {!currentDbUser && otherStoryUsers.length === 0 && (
+        <p class="story-empty">Henüz hikaye yok</p>
+      )}
+    </div>
+
+    <!-- Story oluşturma modal -->
+    <div id="story-create-modal" class="sv-overlay" style="display:none;">
+      <div class="story-create-box">
+        <div class="story-create-header">
+          <span>Yeni Hikaye</span>
+          <button class="sv-icon-btn" id="story-create-close">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div id="story-drop" class="story-drop">
+          <input type="file" id="story-file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" hidden />
+          <div id="story-drop-placeholder">
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px;color:#888"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+            <p style="font-weight:600;margin-bottom:4px;">Fotoğraf veya video seç</p>
+            <p style="font-size:0.8rem;color:#888;">Tıkla veya sürükle · Max 50MB</p>
+          </div>
+          <div id="story-drop-preview" style="display:none;width:100%;height:100%;position:relative;">
+            <img id="story-prev-img" style="width:100%;height:100%;object-fit:contain;display:none;" alt="" />
+            <video id="story-prev-vid" style="width:100%;height:100%;object-fit:contain;display:none;" muted controls></video>
+          </div>
+        </div>
+        <p id="story-error" style="color:#ef4444;font-size:0.85rem;display:none;margin:8px 0 0;"></p>
+        <button id="story-submit-btn" class="story-submit-btn" disabled>Hikayeyi Paylaş</button>
+      </div>
+    </div>
+
+    <!-- Story Viewer Modal -->
+    <div id="story-viewer" class="sv-overlay" style="display:none;" role="dialog" aria-modal="true">
+      <!-- Bulanık arka plan -->
+      <div class="sv-bg" id="sv-bg"></div>
+
+      <div class="sv-shell">
+        <!-- Üst: progress bar + kullanıcı bilgisi -->
+        <div class="sv-top">
+          <div class="sv-bars" id="sv-bars"></div>
+          <div class="sv-meta">
+            <div class="sv-meta-av" id="sv-meta-av"></div>
+            <div>
+              <div class="sv-meta-name" id="sv-meta-name"></div>
+              <div class="sv-meta-time" id="sv-meta-time"></div>
+            </div>
+            <button class="sv-icon-btn" id="sv-close" style="margin-left:auto;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Medya -->
+        <div class="sv-media-wrap">
+          <img id="sv-img" class="sv-media" style="display:none;" alt="" />
+          <video id="sv-vid" class="sv-media" style="display:none;" muted playsinline></video>
+        </div>
+
+        <!-- Dokunma bölgeleri -->
+        <div class="sv-zone sv-zone-prev" id="sv-prev"></div>
+        <div class="sv-zone sv-zone-next" id="sv-next"></div>
+      </div>
+    </div>
+
+    <!-- Yeni gönderi banner -->
+    <div id="new-posts-bar" class="new-posts-bar" hidden>
+      <button id="new-posts-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>
+        <span id="new-posts-label">Yeni gönderiler var</span>
       </button>
     </div>
 
@@ -38,8 +206,8 @@ function timeAgo(d: string) {
         <p style="color:var(--color-text-muted); font-size:0.9rem;">İlk hızlı bilgini paylaşmak için "Yeni Paylaş" butonuna bas.</p>
       </div>
     ) : (
-      <div class="hb-grid">
-        {posts.map(post => (
+      <div class="hb-grid" id="hb-grid">
+        {posts.map((post, i) => (
           <button
             class="hb-cell"
             data-id={post.id}
@@ -53,12 +221,23 @@ function timeAgo(d: string) {
             aria-label={post.caption}
           >
             {post.media_type === 'image' ? (
-              <img src={post.media_url} alt={post.caption} loading="lazy" />
+              <img
+                src={thumbUrl(post.media_url, 600, 75)}
+                alt={post.caption}
+                loading={i < 6 ? 'eager' : 'lazy'}
+                decoding="async"
+                fetchpriority={i < 3 ? 'high' : 'auto'}
+                class="cell-img"
+              />
             ) : (
-              <video src={post.media_url} muted preload="metadata" />
+              <video
+                src={post.media_url}
+                muted
+                preload="none"
+                class="cell-vid"
+                data-src={post.media_url}
+              />
             )}
-
-            <!-- Hover overlay -->
             <div class="hb-cell-overlay">
               <span class="hb-cell-likes">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="1"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
@@ -74,6 +253,14 @@ function timeAgo(d: string) {
         ))}
       </div>
     )}
+
+    <!-- Infinite scroll sentinel -->
+    <div id="feed-sentinel" data-next-cursor={initialNextCursor ?? ''} data-has-more={hasMore ? 'true' : 'false'}>
+      <div id="feed-loader" class="feed-loader" hidden>
+        <div class="feed-spinner"></div>
+      </div>
+      <p id="feed-end" class="feed-end" hidden>Tüm gönderiler yüklendi</p>
+    </div>
 
   </main>
 
@@ -145,24 +332,45 @@ function timeAgo(d: string) {
 
       <!-- Sağ: bilgiler -->
       <div class="hb-detail-info">
-        <div style="display:flex; align-items:center; gap:10px; padding:16px; border-bottom:1px solid var(--color-border);">
-          <div class="avatar" style="width:36px; height:36px; font-size:0.9rem;" id="detail-avatar">B</div>
+        <!-- Yazar satırı -->
+        <div class="hb-di-header">
+          <a id="detail-avatar-link" href="/" class="hb-di-avatar">B</a>
           <div>
-            <div style="font-weight:700; font-size:0.9rem;" id="detail-author"></div>
-            <div style="color:var(--color-text-muted); font-size:0.8rem;" id="detail-handle"></div>
+            <div class="hb-di-author" id="detail-author"></div>
+            <div class="hb-di-handle" id="detail-handle"></div>
           </div>
-          <div style="margin-left:auto; font-size:0.78rem; color:var(--color-text-muted);" id="detail-time"></div>
+          <div class="hb-di-time" id="detail-time"></div>
         </div>
 
-        <div style="padding:16px; flex:1; overflow-y:auto;">
-          <p id="detail-caption" style="font-size:0.95rem; line-height:1.7; white-space:pre-wrap;"></p>
+        <!-- Açıklama -->
+        <div class="hb-di-cap">
+          <p id="detail-caption"></p>
         </div>
 
-        <div style="padding:12px 16px; border-top:1px solid var(--color-border); display:flex; align-items:center; gap:12px;">
+        <!-- Yorumlar -->
+        <div id="comments-list" class="cm-list">
+          <div class="cm-loading">Yorumlar yükleniyor…</div>
+        </div>
+
+        <!-- Yorum girişi -->
+        <form id="comment-form" class="cm-form">
+          <div id="cm-my-avatar" class="cm-form-avatar">?</div>
+          <input id="comment-input" class="cm-input" placeholder="Yorum ekle…" maxlength="300" autocomplete="off" />
+          <button type="submit" class="cm-send-btn" title="Gönder">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+          </button>
+        </form>
+
+        <!-- Like + bookmark + yorum sayısı -->
+        <div class="hb-di-footer">
           <button id="detail-like-btn" class="action-btn" style="font-size:1rem; gap:8px;">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="like-icon"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
             <span id="detail-likes">0</span>
           </button>
+          <button id="detail-bookmark-btn" class="action-btn bookmark-btn" title="Kaydet">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="bookmark-icon"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+          </button>
+          <span id="cm-count" class="cm-count-badge">0 yorum</span>
         </div>
       </div>
     </div>
@@ -171,6 +379,303 @@ function timeAgo(d: string) {
 </BaseLayout>
 
 <style>
+  /* ── Story Bar ─────────────────────────────────────── */
+  .story-bar {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    scrollbar-width: none;
+  }
+  .story-bar::-webkit-scrollbar { display: none; }
+
+  .story-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    flex-shrink: 0;
+    padding: 2px;
+  }
+
+  .story-ring {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    padding: 2.5px;
+    position: relative;
+    transition: transform 0.15s;
+  }
+  .story-item:hover .story-ring { transform: scale(1.06); }
+
+  .story-ring.has-story {
+    background: linear-gradient(135deg, #f58529, #dd2a7b, #8134af, #515bd4);
+  }
+  .story-ring.add-story {
+    background: rgba(255,255,255,0.12);
+    border: 2px dashed rgba(255,255,255,0.25);
+  }
+
+  .story-av {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: #fff;
+    background: #1e1a14;
+    border: 2px solid #0f0e0d;
+  }
+
+  .story-plus {
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #d4a564;
+    color: #0f0e0d;
+    font-size: 1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #0f0e0d;
+    line-height: 1;
+  }
+
+  .story-label {
+    font-size: 0.7rem;
+    color: #aaa;
+    max-width: 64px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+  }
+  .story-empty { color: #666; font-size: 0.85rem; align-self: center; padding: 0 8px; }
+
+  /* ── Story Create Modal ─────────────────────────────── */
+  .story-create-box {
+    background: #1a1510;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+    position: relative;
+    z-index: 1;
+  }
+  .story-create-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    font-weight: 700;
+    font-size: 1rem;
+    color: #e8e0d8;
+  }
+  .story-drop {
+    border: 2px dashed rgba(255,255,255,0.15);
+    border-radius: 16px;
+    height: 260px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    text-align: center;
+    overflow: hidden;
+    position: relative;
+    transition: border-color 0.2s, background 0.2s;
+    color: #ccc;
+  }
+  .story-drop:hover, .story-drop.drag-over {
+    border-color: #d4a564;
+    background: rgba(212,165,100,0.05);
+  }
+  .story-submit-btn {
+    width: 100%;
+    margin-top: 14px;
+    padding: 12px;
+    border: none;
+    border-radius: 9999px;
+    background: #d4a564;
+    color: #0f0e0d;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.15s, opacity 0.15s;
+  }
+  .story-submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .story-submit-btn:not(:disabled):hover { background: #c4954e; }
+
+  /* ── Story Viewer ────────────────────────────────────── */
+  .sv-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.92);
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .sv-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    filter: blur(30px) brightness(0.3);
+    transform: scale(1.1);
+    transition: background-image 0.3s;
+  }
+  .sv-shell {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 420px;
+    height: 100dvh;
+    max-height: 780px;
+    display: flex;
+    flex-direction: column;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #000;
+  }
+  .sv-top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    padding: 10px 12px 8px;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
+  }
+  .sv-bars {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 10px;
+  }
+  .sv-bar {
+    flex: 1;
+    height: 2.5px;
+    border-radius: 9999px;
+    background: rgba(255,255,255,0.3);
+    overflow: hidden;
+    position: relative;
+  }
+  .sv-bar-fill {
+    position: absolute;
+    inset: 0;
+    background: #fff;
+    transform-origin: left;
+    transform: scaleX(0);
+  }
+  .sv-bar.active .sv-bar-fill { animation: sv-progress var(--dur, 5s) linear forwards; }
+  .sv-bar.done .sv-bar-fill   { transform: scaleX(1); }
+  @keyframes sv-progress { to { transform: scaleX(1); } }
+
+  .sv-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .sv-meta-av {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #fff;
+    overflow: hidden;
+  }
+  .sv-meta-av img { width: 100%; height: 100%; object-fit: cover; }
+  .sv-meta-name { font-weight: 700; font-size: 0.88rem; color: #fff; }
+  .sv-meta-time { font-size: 0.72rem; color: rgba(255,255,255,0.6); }
+  .sv-icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    border-radius: 50%;
+    transition: background 0.15s;
+    color: white;
+  }
+  .sv-icon-btn:hover { background: rgba(255,255,255,0.15); }
+
+  .sv-media-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+    overflow: hidden;
+  }
+  .sv-media {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+
+  .sv-zone {
+    position: absolute;
+    top: 60px;
+    bottom: 0;
+    width: 40%;
+    cursor: pointer;
+    z-index: 5;
+  }
+  .sv-zone-prev { left: 0; }
+  .sv-zone-next { right: 0; }
+
+  @media (max-width: 480px) {
+    .sv-shell { max-width: 100%; border-radius: 0; max-height: 100dvh; }
+  }
+
+  /* Yeni gönderi banner */
+  .new-posts-bar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    justify-content: center;
+    padding: 8px;
+    background: var(--bg, #0f0e0d);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  #new-posts-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #d4a564;
+    color: #0f0e0d;
+    border: none;
+    border-radius: 9999px;
+    padding: 8px 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(212,165,100,0.35);
+    animation: bar-in 0.3s ease;
+    transition: background 0.15s, transform 0.15s;
+  }
+  #new-posts-btn:hover { background: #c4954e; transform: scale(1.03); }
+  @keyframes bar-in { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+
   /* Upload butonu */
   .hb-upload-trigger {
     display: flex;
@@ -212,14 +717,37 @@ function timeAgo(d: string) {
     cursor: pointer;
     display: block;
   }
+  /* Skeleton shimmer */
+  .hb-cell {
+    background: #1e1a14;
+  }
+  .hb-cell::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.04) 50%, transparent 100%);
+    transform: translateX(-100%);
+    animation: cell-shimmer 1.4s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .hb-cell.media-loaded::after { display: none; }
+  @keyframes cell-shimmer {
+    to { transform: translateX(100%); }
+  }
+
+  /* Blur-up */
   .hb-cell img,
   .hb-cell video {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
-    transition: transform 0.25s;
+    transition: transform 0.25s, opacity 0.4s;
+    opacity: 0;
   }
+  .hb-cell img.loaded,
+  .hb-cell video.loaded { opacity: 1; }
   .hb-cell:hover img,
   .hb-cell:hover video { transform: scale(1.04); }
 
@@ -366,6 +894,118 @@ function timeAgo(d: string) {
     max-height: 90vh;
   }
 
+  /* Detail info yeniden yapılandırılmış */
+  .hb-di-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0;
+  }
+  .hb-di-avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: linear-gradient(135deg,#6366f1,#8b5cf6);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 0.85rem;
+    flex-shrink: 0; text-decoration: none;
+  }
+  .hb-di-author { font-weight: 700; font-size: 0.9rem; }
+  .hb-di-handle { color: var(--color-text-muted); font-size: 0.78rem; }
+  .hb-di-time   { margin-left: auto; font-size: 0.75rem; color: var(--color-text-muted); }
+  .hb-di-cap {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0;
+  }
+  .hb-di-cap p { font-size: 0.9rem; line-height: 1.6; margin: 0; white-space: pre-wrap; }
+  .hb-di-footer {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 16px;
+    border-top: 1px solid var(--color-border);
+    flex-shrink: 0;
+  }
+  .cm-count-badge { font-size: 0.8rem; color: var(--color-text-muted); margin-left: auto; }
+
+  .bookmark-btn { color: var(--color-text-muted); transition: color 0.15s; }
+  .bookmark-btn.bookmarked { color: #d4a564; }
+  .bookmark-btn.bookmarked #bookmark-icon { fill: #d4a564; stroke: #d4a564; }
+
+  /* Yorumlar listesi */
+  .cm-list {
+    flex: 1; overflow-y: auto;
+    padding: 4px 0;
+    display: flex; flex-direction: column;
+  }
+  .cm-loading, .cm-empty {
+    text-align: center;
+    padding: 24px 16px;
+    font-size: 0.82rem;
+    color: var(--color-text-muted);
+  }
+  .cm-item {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 7px 16px;
+    transition: background 0.1s;
+  }
+  .cm-item:hover { background: #f9fafb; }
+  .cm-avatar {
+    width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 0.7rem; font-weight: 700;
+    text-decoration: none;
+  }
+  .cm-body { flex: 1; min-width: 0; }
+  .cm-author { font-weight: 700; font-size: 0.8rem; margin-right: 4px; }
+  .cm-text   { font-size: 0.82rem; color: var(--color-text); line-height: 1.4; word-break: break-word; }
+  .cm-time   { font-size: 0.7rem; color: var(--color-text-muted); margin-top: 2px; }
+  .cm-delete {
+    background: none; border: none; cursor: pointer;
+    color: var(--color-text-muted); font-size: 1rem;
+    padding: 2px 4px; border-radius: 4px; flex-shrink: 0;
+    line-height: 1; opacity: 0; transition: opacity 0.15s, color 0.15s;
+  }
+  .cm-item:hover .cm-delete { opacity: 1; }
+  .cm-delete:hover { color: #ef4444; }
+
+  /* Yorum girişi */
+  .cm-form {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px;
+    border-top: 1px solid var(--color-border);
+    flex-shrink: 0;
+  }
+  .cm-form-avatar {
+    width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 0.7rem; font-weight: 700;
+    background: linear-gradient(135deg,#6366f1,#8b5cf6);
+  }
+  .cm-input {
+    flex: 1; border: none; outline: none; background: transparent;
+    font-size: 0.85rem; font-family: inherit; color: var(--color-text);
+    min-width: 0;
+  }
+  .cm-input::placeholder { color: var(--color-text-muted); }
+  .cm-send-btn {
+    background: none; border: none; cursor: pointer;
+    color: var(--color-primary); padding: 4px;
+    display: flex; align-items: center; flex-shrink: 0;
+    opacity: 0.4; transition: opacity 0.15s;
+  }
+  .cm-send-btn:hover { opacity: 1; }
+
+  /* Infinite scroll */
+  #feed-sentinel { padding: 24px 0 48px; display: flex; flex-direction: column; align-items: center; }
+  .feed-loader { display: flex; justify-content: center; padding: 16px; }
+  .feed-spinner {
+    width: 28px; height: 28px;
+    border: 3px solid rgba(212,165,100,0.2);
+    border-top-color: #d4a564;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .feed-end { font-size: 0.82rem; color: #666; margin: 0; text-align: center; }
+
   /* Mobil: yığılmış layout */
   @media (max-width: 640px) {
     .hb-detail-box  { flex-direction: column; max-width: 100%; border-radius: 20px 20px 0 0; align-self: flex-end; }
@@ -378,6 +1018,8 @@ function timeAgo(d: string) {
 </style>
 
 <script>
+import { renderCaption } from '../lib/caption';
+
 // ── Yükleme Modal ───────────────────────────────────────────────────────────
 const uploadModal  = document.getElementById('upload-modal')!;
 const openUploadBtn  = document.getElementById('open-upload')!;
@@ -484,68 +1126,223 @@ function showError(msg: string) {
   uploadError.style.display = 'block';
 }
 
-// ── Detay modal ──────────────────────────────────────────────────────────────
-const detailModal   = document.getElementById('detail-modal')!;
+// ── Sayfa meta (mevcut kullanıcı)
+const meta = document.getElementById('page-meta') as HTMLElement;
+const currentUserId   = meta?.dataset.userId     ? parseInt(meta.dataset.userId) : null;
+const currentUserName = meta?.dataset.displayName ?? '';
+const currentUsername = meta?.dataset.username    ?? '';
+
+// ── Detay modal
+const detailModal    = document.getElementById('detail-modal')!;
 const closeDetailBtn = document.getElementById('close-detail')!;
-const detailImg     = document.getElementById('detail-img') as HTMLImageElement;
-const detailVid     = document.getElementById('detail-vid') as HTMLVideoElement;
-const detailCaption = document.getElementById('detail-caption')!;
-const detailAuthor  = document.getElementById('detail-author')!;
-const detailHandle  = document.getElementById('detail-handle')!;
-const detailTime    = document.getElementById('detail-time')!;
-const detailAvatar  = document.getElementById('detail-avatar')!;
-const detailLikes   = document.getElementById('detail-likes')!;
-const detailLikeBtn = document.getElementById('detail-like-btn')!;
-const likeIcon      = document.getElementById('like-icon')!;
+const detailImg      = document.getElementById('detail-img') as HTMLImageElement;
+const detailVid      = document.getElementById('detail-vid') as HTMLVideoElement;
+const detailCaption  = document.getElementById('detail-caption')!;
+const detailAuthor   = document.getElementById('detail-author')!;
+const detailHandle   = document.getElementById('detail-handle')!;
+const detailTime     = document.getElementById('detail-time')!;
+const detailAvLink   = document.getElementById('detail-avatar-link') as HTMLAnchorElement;
+const detailLikes    = document.getElementById('detail-likes')!;
+const detailLikeBtn  = document.getElementById('detail-like-btn')!;
+const likeIcon       = document.getElementById('like-icon')!;
+const commentsList   = document.getElementById('comments-list')!;
+const commentForm    = document.getElementById('comment-form') as HTMLFormElement;
+const commentInput   = document.getElementById('comment-input') as HTMLInputElement;
+const cmMyAvatar     = document.getElementById('cm-my-avatar')!;
+const cmCount        = document.getElementById('cm-count')!;
 
 let currentPostId: number | null = null;
-let liked = false;
+let liked      = false;
+let bookmarked = false;
 
-document.querySelectorAll<HTMLButtonElement>('.hb-cell').forEach(cell => {
-  cell.addEventListener('click', () => {
-    const { id, type, src, caption, author, handle, likes, time } = cell.dataset as Record<string, string>;
-    currentPostId = Number(id);
-    liked = false;
+const detailBookmarkBtn = document.getElementById('detail-bookmark-btn')!;
+const bookmarkIcon      = document.getElementById('bookmark-icon')!;
 
-    // Medyayı göster
-    if (type === 'video') {
-      detailImg.style.display = 'none';
-      detailVid.style.display = 'block';
-      detailVid.src = src;
-      detailVid.load();
-    } else {
-      detailVid.style.display = 'none';
-      detailVid.src = '';
-      detailImg.style.display = 'block';
-      detailImg.src = src;
-    }
+// Realtime hook'ları — alt kısımdaki realtime bloğu bunları doldurur
+let onPostOpen:  ((postId: number) => void) | null = null;
+let onPostClose: (() => void) | null = null;
 
-    detailCaption.textContent = caption;
-    detailAuthor.textContent  = author;
-    detailHandle.textContent  = `@${handle}`;
-    detailTime.textContent    = time;
-    detailAvatar.textContent  = author[0].toUpperCase();
-    detailLikes.textContent   = likes;
-    likeIcon.setAttribute('fill', 'none');
-    likeIcon.style.stroke = 'currentColor';
+// Avatar renk yardımcısı
+function avatarBg(u: string): string {
+  const gs = [
+    'linear-gradient(135deg,#6366f1,#8b5cf6)','linear-gradient(135deg,#ec4899,#8b5cf6)',
+    'linear-gradient(135deg,#f97316,#ef4444)','linear-gradient(135deg,#10b981,#3b82f6)',
+    'linear-gradient(135deg,#f59e0b,#f97316)','linear-gradient(135deg,#14b8a6,#06b6d4)',
+    'linear-gradient(135deg,#3b82f6,#6366f1)','linear-gradient(135deg,#ef4444,#f97316)',
+  ];
+  let h = 0;
+  for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff;
+  return gs[Math.abs(h) % gs.length];
+}
+function escHtml(s: string) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function timeAgoMs(iso: string) {
+  const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (s < 60)    return `${s}sn`;
+  if (s < 3600)  return `${Math.floor(s/60)}dk`;
+  if (s < 86400) return `${Math.floor(s/3600)}sa`;
+  return `${Math.floor(s/86400)}g`;
+}
 
-    detailModal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
+// Mevcut kullanıcı avatar'ı
+if (currentUserId && currentUserName) {
+  cmMyAvatar.textContent = currentUserName[0].toUpperCase();
+  cmMyAvatar.style.background = avatarBg(currentUsername);
+}
+
+// ── Yorum fonksiyonları
+interface Comment { id: number; user_id: number; content: string; created_at: string; display_name: string; username: string; }
+
+function renderComment(c: Comment): string {
+  const bg     = avatarBg(c.username);
+  const isOwn  = currentUserId === c.user_id;
+  return `<div class="cm-item" data-cid="${c.id}">
+    <a href="/u/${escHtml(c.username)}" class="cm-avatar" style="background:${bg}">${c.display_name[0].toUpperCase()}</a>
+    <div class="cm-body">
+      <span class="cm-author">${escHtml(c.display_name)}</span>
+      <span class="cm-text">${escHtml(c.content)}</span>
+      <div class="cm-time">${timeAgoMs(c.created_at)}</div>
+    </div>
+    ${isOwn ? `<button class="cm-delete" data-id="${c.id}" title="Sil">×</button>` : ''}
+  </div>`;
+}
+
+function attachDeleteListeners() {
+  commentsList.querySelectorAll<HTMLButtonElement>('.cm-delete').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.id!;
+      const res = await fetch(`/api/comments/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        btn.closest('.cm-item')?.remove();
+        updateCommentCount(-1);
+      }
+    });
   });
+}
+
+function updateCommentCount(delta: number) {
+  const cur = parseInt(cmCount.textContent ?? '0') || 0;
+  const next = Math.max(0, cur + delta);
+  cmCount.textContent = `${next} yorum`;
+}
+
+async function loadComments(postId: number) {
+  commentsList.innerHTML = '<div class="cm-loading">Yükleniyor…</div>';
+  try {
+    const res  = await fetch(`/api/quick-facts/${postId}/comments`);
+    const data = await res.json() as { comments: Comment[] };
+    if (!data.comments.length) {
+      commentsList.innerHTML = '<div class="cm-empty">Henüz yorum yok — ilk yorumu yaz!</div>';
+    } else {
+      commentsList.innerHTML = data.comments.map(renderComment).join('');
+      attachDeleteListeners();
+    }
+    cmCount.textContent = `${data.comments.length} yorum`;
+    setTimeout(() => { commentsList.scrollTop = commentsList.scrollHeight; }, 50);
+  } catch {
+    commentsList.innerHTML = '<div class="cm-empty">Yorumlar yüklenemedi.</div>';
+  }
+}
+
+// Yorum gönder
+commentForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  if (!currentUserId) { window.location.href = '/login'; return; }
+  const content = commentInput.value.trim();
+  if (!content || !currentPostId) return;
+
+  commentInput.value = '';
+  try {
+    const res  = await fetch(`/api/quick-facts/${currentPostId}/comment`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content }),
+    });
+    const data = await res.json() as { comment: Comment };
+    if (data.comment) {
+      const empty = commentsList.querySelector('.cm-empty, .cm-loading');
+      if (empty) empty.remove();
+      commentsList.insertAdjacentHTML('beforeend', renderComment(data.comment));
+      attachDeleteListeners();
+      updateCommentCount(1);
+      commentsList.scrollTop = commentsList.scrollHeight;
+    }
+  } catch { commentInput.value = content; }
 });
+
+// Modal aç — named so infinite-scroll can reuse it
+function openPost(data: Record<string, string>) {
+  const { id, type, src, caption, author, handle, likes, time } = data;
+  currentPostId = Number(id);
+  liked = false;
+
+  if (type === 'video') {
+    detailImg.style.display = 'none';
+    detailVid.style.display = 'block';
+    detailVid.src = src; detailVid.load();
+  } else {
+    detailVid.style.display = 'none'; detailVid.src = '';
+    detailImg.style.display = 'block'; detailImg.src = src;
+  }
+
+  detailCaption.innerHTML = renderCaption(caption);
+  detailAuthor.textContent  = author;
+  detailHandle.textContent  = `@${handle}`;
+  detailTime.textContent    = time;
+  detailAvLink.textContent  = author[0].toUpperCase();
+  detailAvLink.style.background = avatarBg(handle);
+  detailAvLink.href         = `/u/${handle}`;
+  detailLikes.textContent   = likes;
+  likeIcon.setAttribute('fill', 'none');
+  likeIcon.style.stroke = 'currentColor';
+  detailLikeBtn.style.color = '';
+
+  // Reset bookmark state
+  bookmarked = false;
+  detailBookmarkBtn.classList.remove('bookmarked');
+  bookmarkIcon.setAttribute('fill', 'none');
+  bookmarkIcon.setAttribute('stroke', 'currentColor');
+
+  // Load bookmark state asynchronously (only if logged in)
+  if (currentUserId) {
+    fetch(`/api/quick-facts/${currentPostId}/bookmark`)
+      .then(r => r.json())
+      .then((d: { bookmarked: boolean }) => {
+        bookmarked = d.bookmarked;
+        if (bookmarked) {
+          detailBookmarkBtn.classList.add('bookmarked');
+          bookmarkIcon.setAttribute('fill', '#d4a564');
+          bookmarkIcon.setAttribute('stroke', '#d4a564');
+        }
+      })
+      .catch(() => {});
+  }
+
+  loadComments(currentPostId);
+  onPostOpen?.(currentPostId);
+  detailModal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function bindCell(cell: HTMLButtonElement) {
+  cell.addEventListener('click', () => openPost(cell.dataset as Record<string, string>));
+}
+
+document.querySelectorAll<HTMLButtonElement>('.hb-cell').forEach(bindCell);
 
 function closeDetail() {
   detailModal.style.display = 'none';
-  detailVid.pause();
-  detailVid.src = '';
+  detailVid.pause(); detailVid.src = '';
   document.body.style.overflow = '';
+  onPostClose?.();
   currentPostId = null;
+  commentInput.value = '';
 }
 
 closeDetailBtn.addEventListener('click', closeDetail);
 detailModal.addEventListener('click', e => { if (e.target === detailModal) closeDetail(); });
 
-// Klavye ile kapat
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     if (detailModal.style.display !== 'none') closeDetail();
@@ -557,17 +1354,14 @@ document.addEventListener('keydown', e => {
 detailLikeBtn.addEventListener('click', async () => {
   if (!currentPostId || liked) return;
   liked = true;
-
   likeIcon.setAttribute('fill', '#ef4444');
   likeIcon.style.stroke = '#ef4444';
   detailLikeBtn.style.color = '#ef4444';
-
   try {
     const res = await fetch(`/api/quick-facts/${currentPostId}/like`, { method: 'POST' });
     if (res.ok) {
       const data = await res.json() as { likes: number };
       detailLikes.textContent = String(data.likes);
-      // Grid hücresindeki beğeni sayısını da güncelle
       const cell = document.querySelector<HTMLButtonElement>(`.hb-cell[data-id="${currentPostId}"]`);
       if (cell) {
         cell.dataset.likes = String(data.likes);
@@ -576,5 +1370,541 @@ detailLikeBtn.addEventListener('click', async () => {
       }
     }
   } catch { liked = false; }
+});
+
+// Bookmark
+detailBookmarkBtn.addEventListener('click', async () => {
+  if (!currentPostId) return;
+  if (!currentUserId) { window.location.href = '/login'; return; }
+
+  // Optimistic toggle
+  bookmarked = !bookmarked;
+  detailBookmarkBtn.classList.toggle('bookmarked', bookmarked);
+  bookmarkIcon.setAttribute('fill', bookmarked ? '#d4a564' : 'none');
+  bookmarkIcon.setAttribute('stroke', bookmarked ? '#d4a564' : 'currentColor');
+
+  try {
+    const res  = await fetch(`/api/quick-facts/${currentPostId}/bookmark`, { method: 'POST' });
+    const data = await res.json() as { bookmarked: boolean };
+    // Reconcile with server
+    bookmarked = data.bookmarked;
+    detailBookmarkBtn.classList.toggle('bookmarked', bookmarked);
+    bookmarkIcon.setAttribute('fill', bookmarked ? '#d4a564' : 'none');
+    bookmarkIcon.setAttribute('stroke', bookmarked ? '#d4a564' : 'currentColor');
+  } catch {
+    // Revert
+    bookmarked = !bookmarked;
+    detailBookmarkBtn.classList.toggle('bookmarked', bookmarked);
+    bookmarkIcon.setAttribute('fill', bookmarked ? '#d4a564' : 'none');
+    bookmarkIcon.setAttribute('stroke', bookmarked ? '#d4a564' : 'currentColor');
+  }
+});
+
+// ── Infinite Scroll ──────────────────────────────────────────────────────────
+const sentinel   = document.getElementById('feed-sentinel')!;
+const feedLoader = document.getElementById('feed-loader') as HTMLElement;
+const feedEnd    = document.getElementById('feed-end') as HTMLElement;
+const hbGrid     = document.getElementById('hb-grid') as HTMLElement | null;
+
+let nextCursor: string | null = sentinel.dataset.nextCursor || null;
+let hasMore = sentinel.dataset.hasMore === 'true';
+let loading = false;
+
+function timeAgoMs2(iso: string) {
+  const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (s < 60)    return `${s}s`;
+  if (s < 3600)  return `${Math.floor(s/60)}d`;
+  if (s < 86400) return `${Math.floor(s/3600)}sa`;
+  return `${Math.floor(s/86400)}g`;
+}
+
+function thumbUrlJs(url: string, w = 600, q = 75): string {
+  if (!url || !url.includes('/object/public/')) return url;
+  return url.replace('/object/public/', '/render/image/public/') + `?width=${w}&quality=${q}&format=webp`;
+}
+
+function makeCellHtml(post: any): string {
+  const time = timeAgoMs2(post.created_at);
+  const media = post.media_type === 'image'
+    ? `<img src="${escHtml(thumbUrlJs(post.media_url))}" alt="${escHtml(post.caption)}" loading="lazy" decoding="async" class="cell-img">`
+    : `<video muted preload="none" class="cell-vid" data-src="${escHtml(post.media_url)}"></video>`;
+  const videoBadge = post.media_type === 'video'
+    ? `<span class="hb-cell-video-badge"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg></span>`
+    : '';
+  return `<button
+    class="hb-cell"
+    data-id="${post.id}"
+    data-type="${escHtml(post.media_type)}"
+    data-src="${escHtml(post.media_url)}"
+    data-caption="${escHtml(post.caption)}"
+    data-author="${escHtml(post.display_name ?? '')}"
+    data-handle="${escHtml(post.username ?? '')}"
+    data-likes="${post.likes ?? 0}"
+    data-time="${time}"
+    aria-label="${escHtml(post.caption)}"
+  >
+    ${media}
+    <div class="hb-cell-overlay">
+      <span class="hb-cell-likes">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="1"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+        ${post.likes ?? 0}
+      </span>
+      ${videoBadge}
+    </div>
+  </button>`;
+}
+
+async function loadMore() {
+  if (loading || !hasMore || !hbGrid || !nextCursor) return;
+  loading = true;
+  feedLoader.hidden = false;
+
+  try {
+    const res  = await fetch(`/api/feed?cursor=${encodeURIComponent(nextCursor)}&limit=12`);
+    const data = await res.json() as { posts: any[]; nextCursor: string | null; hasMore: boolean };
+
+    if (data.posts.length) {
+      const frag = document.createDocumentFragment();
+      const tmp  = document.createElement('div');
+      tmp.innerHTML = data.posts.map(makeCellHtml).join('');
+      tmp.querySelectorAll<HTMLButtonElement>('.hb-cell').forEach(cell => {
+        bindCell(cell);
+        frag.appendChild(cell);
+      });
+      hbGrid.appendChild(frag);
+      initBlurUp(hbGrid);
+      initVideoLazy(hbGrid);
+    }
+
+    nextCursor = data.nextCursor;
+    hasMore    = data.hasMore;
+
+    if (!hasMore) {
+      feedEnd.hidden = false;
+      observer.disconnect();
+    }
+  } catch {
+    // silent fail — user can scroll again to retry
+  } finally {
+    loading = false;
+    feedLoader.hidden = true;
+  }
+}
+
+const observer = new IntersectionObserver(entries => {
+  if (entries[0].isIntersecting) loadMore();
+}, { rootMargin: '200px' });
+
+if (hasMore && hbGrid) {
+  observer.observe(sentinel);
+} else {
+  feedEnd.hidden = false;
+}
+
+// ── Görsel optimizasyon ──────────────────────────────────────────────────────
+
+// Blur-up: img yüklenince .loaded + .media-loaded ekle
+function initBlurUp(root: ParentNode = document) {
+  root.querySelectorAll<HTMLImageElement>('.cell-img').forEach(img => {
+    if (img.complete && img.naturalWidth > 0) {
+      img.classList.add('loaded');
+      img.closest('.hb-cell')?.classList.add('media-loaded');
+    } else {
+      img.addEventListener('load', () => {
+        img.classList.add('loaded');
+        img.closest('.hb-cell')?.classList.add('media-loaded');
+      }, { once: true });
+      img.addEventListener('error', () => {
+        img.closest('.hb-cell')?.classList.add('media-loaded');
+      }, { once: true });
+    }
+  });
+}
+
+// Video lazy: viewport'a girince preload="metadata" + src ata
+const videoObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    const video = entry.target as HTMLVideoElement;
+    if (entry.isIntersecting) {
+      if (!video.src && video.dataset.src) {
+        video.src = video.dataset.src;
+        video.preload = 'metadata';
+      }
+      video.classList.add('loaded');
+      video.closest('.hb-cell')?.classList.add('media-loaded');
+    }
+  });
+}, { rootMargin: '200px' });
+
+function initVideoLazy(root: ParentNode = document) {
+  root.querySelectorAll<HTMLVideoElement>('.cell-vid').forEach(v => videoObserver.observe(v));
+}
+
+initBlurUp();
+initVideoLazy();
+
+// ── Realtime ─────────────────────────────────────────────────────────────────
+import { supa } from '../lib/supabase-browser';
+
+const newPostsBar   = document.getElementById('new-posts-bar') as HTMLElement;
+const newPostsBtn   = document.getElementById('new-posts-btn') as HTMLButtonElement;
+const newPostsLabel = document.getElementById('new-posts-label') as HTMLElement;
+let pendingNewPosts = 0;
+
+// 1. Yeni gönderi — INSERT
+supa
+  .channel('feed-new-posts')
+  .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'quick_facts' }, () => {
+    pendingNewPosts++;
+    newPostsLabel.textContent =
+      pendingNewPosts === 1 ? 'Yeni gönderi var' : `${pendingNewPosts} yeni gönderi var`;
+    newPostsBar.hidden = false;
+  })
+  .subscribe();
+
+// Banner'a tıklayınca feed'i baştan yükle
+newPostsBtn.addEventListener('click', async () => {
+  newPostsBar.hidden = true;
+  pendingNewPosts = 0;
+  feedLoader.hidden = false;
+  try {
+    const res  = await fetch('/api/feed?limit=12');
+    const data = await res.json() as { posts: any[]; nextCursor: string | null; hasMore: boolean };
+    if (hbGrid && data.posts.length) {
+      hbGrid.innerHTML = data.posts.map(makeCellHtml).join('');
+      hbGrid.querySelectorAll<HTMLButtonElement>('.hb-cell').forEach(bindCell);
+    }
+    nextCursor = data.nextCursor;
+    hasMore    = data.hasMore;
+    feedEnd.hidden = hasMore;
+    if (hasMore) observer.observe(sentinel); else observer.disconnect();
+  } finally {
+    feedLoader.hidden = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+});
+
+// 2. Beğeni sayısı — quick_facts UPDATE
+supa
+  .channel('feed-likes')
+  .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'quick_facts' }, (payload: any) => {
+    const { id, likes } = payload.new as { id: number; likes: number };
+    const cell = document.querySelector<HTMLButtonElement>(`.hb-cell[data-id="${id}"]`);
+    if (!cell) return;
+    cell.dataset.likes = String(likes);
+    const likeEl = cell.querySelector('.hb-cell-likes');
+    if (likeEl) likeEl.childNodes[likeEl.childNodes.length - 1].textContent = ' ' + likes;
+    // Açık modal da güncelle
+    if (currentPostId === id) detailLikes.textContent = String(likes);
+  })
+  .subscribe();
+
+// 3. Canlı yorumlar — açık post için comments INSERT
+let commentChannel: ReturnType<typeof supa.channel> | null = null;
+
+onPostOpen = (postId: number) => {
+  commentChannel?.unsubscribe();
+  commentChannel = supa
+    .channel(`comments-post-${postId}`)
+    .on(
+      'postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'comments', filter: `post_id=eq.${postId}` },
+      (payload: any) => {
+        const c = payload.new as { id: number; user_id: number };
+        if (c.user_id === currentUserId) return; // form submit zaten ekledi
+        // display_name payload'da yok, tüm listeyi güncelle
+        fetch(`/api/quick-facts/${postId}/comments`)
+          .then(r => r.json())
+          .then((data: { comments: Comment[] }) => {
+            const found = data.comments.find(x => x.id === c.id);
+            if (!found) return;
+            const empty = commentsList.querySelector('.cm-empty, .cm-loading');
+            if (empty) empty.remove();
+            commentsList.insertAdjacentHTML('beforeend', renderComment(found));
+            attachDeleteListeners();
+            updateCommentCount(1);
+            commentsList.scrollTop = commentsList.scrollHeight;
+          });
+      }
+    )
+    .subscribe();
+};
+
+onPostClose = () => {
+  commentChannel?.unsubscribe();
+  commentChannel = null;
+};
+
+// ── Stories ───────────────────────────────────────────────────────────────────
+const storyDataEl = document.getElementById('story-data');
+const storyData   = storyDataEl ? JSON.parse(storyDataEl.textContent ?? '{}') : {};
+const allStoryUsers: StoryUserJS[] = [
+  ...(storyData.ownStoryUser ? [storyData.ownStoryUser] : []),
+  ...(storyData.otherStoryUsers ?? []),
+];
+const myIdStory: number | null = storyData.myId ?? null;
+
+interface StoryItemJS  { id: number; mediaUrl: string; mediaType: string; createdAt: string; }
+interface StoryUserJS  { userId: number; username: string; displayName: string; avatar: string | null; stories: StoryItemJS[]; }
+
+// Viewed tracking via localStorage
+function getViewed(): Set<number> {
+  try { return new Set(JSON.parse(localStorage.getItem('sv_viewed') ?? '[]')); } catch { return new Set(); }
+}
+function markViewed(id: number) {
+  const s = getViewed(); s.add(id);
+  localStorage.setItem('sv_viewed', JSON.stringify([...s]));
+}
+
+// ── Story Viewer ─────────────────────────────────────────────────────────────
+const viewer   = document.getElementById('story-viewer') as HTMLElement;
+const svBg     = document.getElementById('sv-bg') as HTMLElement;
+const svBars   = document.getElementById('sv-bars') as HTMLElement;
+const svMetaAv = document.getElementById('sv-meta-av') as HTMLElement;
+const svMetaNm = document.getElementById('sv-meta-name') as HTMLElement;
+const svMetaTm = document.getElementById('sv-meta-time') as HTMLElement;
+const svImg    = document.getElementById('sv-img') as HTMLImageElement;
+const svVid    = document.getElementById('sv-vid') as HTMLVideoElement;
+const svClose  = document.getElementById('sv-close') as HTMLButtonElement;
+const svPrev   = document.getElementById('sv-prev') as HTMLElement;
+const svNext   = document.getElementById('sv-next') as HTMLElement;
+
+let svUserIdx  = 0;
+let svStoryIdx = 0;
+let svTimer: ReturnType<typeof setTimeout> | null = null;
+let svAnimFrame: number | null = null;
+
+function timeAgoStory(iso: string) {
+  const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (s < 60) return `${s}sn`;
+  if (s < 3600) return `${Math.floor(s / 60)}dk`;
+  return `${Math.floor(s / 3600)}sa`;
+}
+
+function avatarBgJs2(u: string) {
+  const gs = ['linear-gradient(135deg,#667eea,#764ba2)','linear-gradient(135deg,#f093fb,#f5576c)','linear-gradient(135deg,#4facfe,#00f2fe)','linear-gradient(135deg,#43e97b,#38f9d7)','linear-gradient(135deg,#fa709a,#fee140)','linear-gradient(135deg,#a18cd1,#fbc2eb)','linear-gradient(135deg,#fda085,#f6d365)','linear-gradient(135deg,#96fbc4,#f9f586)'];
+  let h = 0;
+  for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff;
+  return gs[Math.abs(h) % gs.length];
+}
+
+function clearSvTimer() {
+  if (svTimer) { clearTimeout(svTimer); svTimer = null; }
+  if (svAnimFrame) { cancelAnimationFrame(svAnimFrame); svAnimFrame = null; }
+}
+
+function showStory(userIdx: number, storyIdx: number) {
+  clearSvTimer();
+  svUserIdx  = userIdx;
+  svStoryIdx = storyIdx;
+
+  const u = allStoryUsers[userIdx];
+  const s = u.stories[storyIdx];
+
+  markViewed(s.id);
+
+  // Meta
+  if (u.avatar) {
+    svMetaAv.innerHTML = `<img src="${escHtml(u.avatar)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+  } else {
+    svMetaAv.style.background = avatarBgJs2(u.username);
+    svMetaAv.textContent = u.displayName[0].toUpperCase();
+  }
+  svMetaNm.textContent = u.displayName;
+  svMetaTm.textContent = timeAgoStory(s.createdAt);
+
+  // Background blur
+  if (s.mediaType === 'image') svBg.style.backgroundImage = `url(${s.mediaUrl})`;
+
+  // Media
+  svImg.style.display = 'none';
+  svVid.style.display = 'none';
+  svVid.pause();
+
+  if (s.mediaType === 'video') {
+    svVid.src = s.mediaUrl;
+    svVid.style.display = 'block';
+    svVid.load();
+    svVid.play().catch(() => {});
+  } else {
+    svImg.src = s.mediaUrl;
+    svImg.style.display = 'block';
+  }
+
+  // Progress bars
+  svBars.innerHTML = u.stories.map((_, i) => `
+    <div class="sv-bar ${i < storyIdx ? 'done' : i === storyIdx ? 'active' : ''}" style="--dur:${s.mediaType === 'video' ? '15s' : '5s'}">
+      <div class="sv-bar-fill"></div>
+    </div>`).join('');
+
+  // Auto-advance
+  const dur = s.mediaType === 'video' ? 15000 : 5000;
+  svTimer = setTimeout(() => advanceStory(1), dur);
+}
+
+function advanceStory(dir: 1 | -1) {
+  const u = allStoryUsers[svUserIdx];
+  const nextStory = svStoryIdx + dir;
+
+  if (nextStory >= 0 && nextStory < u.stories.length) {
+    showStory(svUserIdx, nextStory);
+    return;
+  }
+  // Next/prev user
+  const nextUser = svUserIdx + dir;
+  if (nextUser >= 0 && nextUser < allStoryUsers.length) {
+    const startStory = dir === 1 ? 0 : allStoryUsers[nextUser].stories.length - 1;
+    showStory(nextUser, startStory);
+    return;
+  }
+  // No more stories
+  closeViewer();
+}
+
+function openViewer(userIdx: number) {
+  if (allStoryUsers.length === 0) return;
+  viewer.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  showStory(userIdx, 0);
+}
+
+function closeViewer() {
+  clearSvTimer();
+  viewer.style.display = 'none';
+  document.body.style.overflow = '';
+  svVid.pause(); svVid.src = '';
+  svImg.src = '';
+}
+
+svClose.addEventListener('click', closeViewer);
+svPrev.addEventListener('click', () => advanceStory(-1));
+svNext.addEventListener('click', () => advanceStory(1));
+viewer.addEventListener('click', e => { if (e.target === viewer) closeViewer(); });
+
+document.addEventListener('keydown', e => {
+  if (viewer.style.display === 'none') return;
+  if (e.key === 'ArrowRight') advanceStory(1);
+  if (e.key === 'ArrowLeft')  advanceStory(-1);
+  if (e.key === 'Escape')     closeViewer();
+});
+
+// Story bar click — diğer kullanıcılar
+document.querySelectorAll<HTMLButtonElement>('.story-item[data-story-idx]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const ownOffset = storyData.ownStoryUser ? 1 : 0;
+    const idx = parseInt(btn.dataset.storyIdx!) + ownOffset;
+    openViewer(idx);
+  });
+});
+
+// ── Story Create ──────────────────────────────────────────────────────────────
+const createModal  = document.getElementById('story-create-modal') as HTMLElement;
+const createClose  = document.getElementById('story-create-close') as HTMLButtonElement;
+const storyDrop    = document.getElementById('story-drop') as HTMLElement;
+const storyFile    = document.getElementById('story-file') as HTMLInputElement;
+const storyPrevImg = document.getElementById('story-prev-img') as HTMLImageElement;
+const storyPrevVid = document.getElementById('story-prev-vid') as HTMLVideoElement;
+const storyDropPh  = document.getElementById('story-drop-placeholder') as HTMLElement;
+const storyDropPv  = document.getElementById('story-drop-preview') as HTMLElement;
+const storyError   = document.getElementById('story-error') as HTMLElement;
+const storySubmit  = document.getElementById('story-submit-btn') as HTMLButtonElement;
+const ownBtn       = document.getElementById('story-own-btn') as HTMLButtonElement | null;
+
+ownBtn?.addEventListener('click', () => {
+  if (ownBtn.dataset.hasStory === 'true') {
+    // kendi hikayesini göster
+    openViewer(0);
+  } else {
+    openCreateModal();
+  }
+});
+
+function openCreateModal() {
+  createModal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeCreateModal() {
+  createModal.style.display = 'none';
+  document.body.style.overflow = '';
+  clearStoryFile();
+  storyError.style.display = 'none';
+}
+
+createClose.addEventListener('click', closeCreateModal);
+createModal.addEventListener('click', e => { if (e.target === createModal) closeCreateModal(); });
+
+storyDrop.addEventListener('click', e => {
+  if ((e.target as HTMLElement).closest('video,button')) return;
+  storyFile.click();
+});
+storyDrop.addEventListener('dragover',  e => { e.preventDefault(); storyDrop.classList.add('drag-over'); });
+storyDrop.addEventListener('dragleave', () => storyDrop.classList.remove('drag-over'));
+storyDrop.addEventListener('drop', e => {
+  e.preventDefault(); storyDrop.classList.remove('drag-over');
+  const f = e.dataTransfer?.files[0];
+  if (f) applyStoryFile(f);
+});
+storyFile.addEventListener('change', () => { if (storyFile.files?.[0]) applyStoryFile(storyFile.files[0]); });
+
+function applyStoryFile(file: File) {
+  const url = URL.createObjectURL(file);
+  const isVid = file.type.startsWith('video/');
+  storyPrevImg.style.display = isVid ? 'none' : 'block';
+  storyPrevVid.style.display = isVid ? 'block' : 'none';
+  if (isVid) storyPrevVid.src = url;
+  else       storyPrevImg.src = url;
+  storyDropPh.style.display = 'none';
+  storyDropPv.style.display = 'block';
+  storySubmit.disabled = false;
+}
+
+function clearStoryFile() {
+  storyFile.value = '';
+  storyPrevImg.src = '';
+  storyPrevVid.src = '';
+  storyDropPv.style.display = 'none';
+  storyDropPh.style.display = 'flex';
+  storySubmit.disabled = true;
+}
+
+storySubmit.addEventListener('click', async () => {
+  const file = storyFile.files?.[0];
+  if (!file) return;
+
+  storySubmit.disabled = true;
+  storySubmit.textContent = 'Yükleniyor…';
+  storyError.style.display = 'none';
+
+  const fd = new FormData();
+  fd.append('media', file);
+
+  try {
+    const res  = await fetch('/api/stories/create', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error ?? 'Hata');
+    closeCreateModal();
+    // Ring'i güncelle
+    if (ownBtn) {
+      ownBtn.dataset.hasStory = 'true';
+      const ring = ownBtn.querySelector('.story-ring');
+      ring?.classList.remove('add-story');
+      ring?.classList.add('has-story');
+      const plus = ownBtn.querySelector('.story-plus');
+      plus?.remove();
+      const label = ownBtn.querySelector('.story-label');
+      if (label) label.textContent = 'Hikayem';
+
+      // Yeni hikayeyi allStoryUsers'a ekle
+      if (allStoryUsers[0]?.userId === myIdStory) {
+        allStoryUsers[0].stories.unshift({ id: data.story.id, mediaUrl: data.story.media_url, mediaType: data.story.media_type, createdAt: data.story.created_at });
+      }
+    }
+  } catch (e: any) {
+    storyError.textContent = e.message;
+    storyError.style.display = 'block';
+    storySubmit.disabled = false;
+    storySubmit.textContent = 'Hikayeyi Paylaş';
+  }
 });
 </script>

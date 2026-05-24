@@ -38,6 +38,9 @@ export type DbUser = {
   avatar: string;
   bio: string;
   created_at: string;
+  is_private: boolean;
+  dm_privacy: 'everyone' | 'followers' | 'none';
+  comment_privacy: 'everyone' | 'followers' | 'none';
 };
 
 // Supabase nested join'i SQLite'ın düz yapısına çevirir

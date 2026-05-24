@@ -1,0 +1,826 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { supabase, createAuthClient } from '../lib/supabase';
+
+const authHeaders = new Headers();
+const authClient = createAuthClient(Astro.request, authHeaders);
+const { data: { user: authUser } } = await authClient.auth.getUser();
+if (!authUser) return Astro.redirect('/login');
+
+const { data: me } = await supabase
+  .from('users').select('id, username, display_name, avatar').eq('auth_id', authUser.id).single();
+if (!me) return Astro.redirect('/login');
+
+// Fetch conversations (with other user info, last message, unread count)
+const { data: convs } = await supabase
+  .from('conversations')
+  .select(`id, last_message_at,
+    u1:user1_id(id, username, display_name, avatar),
+    u2:user2_id(id, username, display_name, avatar)`)
+  .or(`user1_id.eq.${me.id},user2_id.eq.${me.id}`)
+  .order('last_message_at', { ascending: false });
+
+const convIds = (convs ?? []).map((c: any) => c.id);
+
+let lastMsgMap: Record<number, any> = {};
+let unreadMap: Record<number, number> = {};
+
+if (convIds.length > 0) {
+  const [{ data: allMsgs }, { data: unread }] = await Promise.all([
+    supabase.from('messages').select('conversation_id, content, sender_id, created_at')
+      .in('conversation_id', convIds).order('created_at', { ascending: false }),
+    supabase.from('messages').select('conversation_id')
+      .in('conversation_id', convIds).neq('sender_id', me.id).eq('is_read', false),
+  ]);
+
+  for (const m of allMsgs ?? []) {
+    if (!lastMsgMap[m.conversation_id]) lastMsgMap[m.conversation_id] = m;
+  }
+  for (const m of unread ?? []) {
+    unreadMap[m.conversation_id] = (unreadMap[m.conversation_id] ?? 0) + 1;
+  }
+}
+
+const conversations = (convs ?? []).map((c: any) => ({
+  id:          c.id,
+  lastMessageAt: c.last_message_at,
+  otherUser:   c.u1.id === me.id ? c.u2 : c.u1,
+  lastMessage: lastMsgMap[c.id] ?? null,
+  unreadCount: unreadMap[c.id] ?? 0,
+}));
+
+const avatarColors = ['linear-gradient(135deg,#667eea,#764ba2)','linear-gradient(135deg,#f093fb,#f5576c)','linear-gradient(135deg,#4facfe,#00f2fe)','linear-gradient(135deg,#43e97b,#38f9d7)','linear-gradient(135deg,#fa709a,#fee140)','linear-gradient(135deg,#a18cd1,#fbc2eb)','linear-gradient(135deg,#fda085,#f6d365)','linear-gradient(135deg,#96fbc4,#f9f586)'];
+function avatarBg(username: string) {
+  let h = 0;
+  for (let i = 0; i < username.length; i++) h = (h * 31 + username.charCodeAt(i)) & 0xffffffff;
+  return avatarColors[Math.abs(h) % avatarColors.length];
+}
+function timeAgo(iso: string) {
+  const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (s < 60) return `${s}sn`;
+  if (s < 3600) return `${Math.floor(s / 60)}dk`;
+  if (s < 86400) return `${Math.floor(s / 3600)}sa`;
+  return `${Math.floor(s / 86400)}g`;
+}
+---
+
+<BaseLayout title="Mesajlar" activeNav="messages">
+  <main class="dm-main">
+
+    <!-- Sol: Konuşmalar -->
+    <div class="dm-sidebar" id="dm-sidebar">
+      <div class="dm-sidebar-header">
+        <h1 class="dm-title">Mesajlar</h1>
+        <button class="dm-new-btn" id="dm-new-btn" title="Yeni mesaj">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+      </div>
+
+      <div class="dm-conv-list" id="dm-conv-list">
+        {conversations.length === 0 ? (
+          <div class="dm-empty">
+            <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <p>Henüz mesajın yok</p>
+            <span>Bir kullanıcıya mesaj atmak için profiline git.</span>
+          </div>
+        ) : conversations.map(c => (
+          <button
+            class="dm-conv-item"
+            data-conv-id={c.id}
+            data-username={c.otherUser.username}
+            data-display={c.otherUser.display_name}
+            data-avatar={c.otherUser.avatar ?? ''}
+          >
+            <div class="dm-conv-av">
+              {c.otherUser.avatar
+                ? <img src={c.otherUser.avatar} alt="" />
+                : <div style={`background:${avatarBg(c.otherUser.username)}`}>{c.otherUser.display_name[0].toUpperCase()}</div>
+              }
+              {c.unreadCount > 0 && <span class="dm-unread-dot"></span>}
+            </div>
+            <div class="dm-conv-info">
+              <span class="dm-conv-name">{c.otherUser.display_name}</span>
+              <span class="dm-conv-preview">
+                {c.lastMessage
+                  ? (c.lastMessage.sender_id === me.id ? 'Sen: ' : '') + c.lastMessage.content
+                  : 'Konuşma başlatıldı'}
+              </span>
+            </div>
+            <div class="dm-conv-right">
+              {c.lastMessage && <span class="dm-conv-time">{timeAgo(c.lastMessage.created_at)}</span>}
+              {c.unreadCount > 0 && <span class="dm-unread-badge">{c.unreadCount}</span>}
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+
+    <!-- Sağ: Mesaj paneli -->
+    <div class="dm-panel" id="dm-panel">
+      <div class="dm-panel-empty" id="dm-panel-empty">
+        <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <p>Bir konuşma seç</p>
+        <span>Mesajlaşmaya başlamak için soldan bir konuşma seç.</span>
+      </div>
+
+      <!-- Aktif konuşma (JS tarafından render edilir) -->
+      <div class="dm-chat" id="dm-chat" hidden>
+        <div class="dm-chat-header" id="dm-chat-header">
+          <button class="dm-back-btn" id="dm-back-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          <div class="dm-chat-av" id="dm-chat-av"></div>
+          <div class="dm-chat-user">
+            <a class="dm-chat-name" id="dm-chat-name" href="#"></a>
+            <span class="dm-chat-handle" id="dm-chat-handle"></span>
+          </div>
+        </div>
+
+        <div class="dm-messages" id="dm-messages">
+          <div class="dm-msg-loading">Mesajlar yükleniyor…</div>
+        </div>
+
+        <form class="dm-input-bar" id="dm-input-bar">
+          <input id="dm-input" class="dm-input" placeholder="Mesaj yaz…" maxlength="1000" autocomplete="off" />
+          <button type="submit" class="dm-send-btn" id="dm-send-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+          </button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <!-- Yeni mesaj modal -->
+  <div id="dm-new-modal" class="dm-modal-bg" style="display:none;">
+    <div class="dm-modal-box">
+      <div class="dm-modal-header">
+        <span>Yeni Mesaj</span>
+        <button id="dm-new-close" class="dm-icon-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <input id="dm-search-input" class="dm-search-inp" placeholder="Kullanıcı ara…" autocomplete="off" />
+      <div id="dm-search-results" class="dm-search-results"></div>
+    </div>
+  </div>
+
+  <!-- Kullanıcı meta -->
+  <div id="dm-meta"
+    data-my-id={me.id}
+    data-my-name={me.display_name}
+    data-my-username={me.username}
+    data-my-avatar={me.avatar ?? ''}
+    hidden
+  ></div>
+</BaseLayout>
+
+<style>
+/* Layout */
+.dm-main {
+  display: flex;
+  height: calc(100dvh - 0px);
+  overflow: hidden;
+  flex: 1;
+}
+
+/* ── Sidebar ── */
+.dm-sidebar {
+  width: 320px;
+  flex-shrink: 0;
+  border-right: 1px solid rgba(255,255,255,0.07);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.dm-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  flex-shrink: 0;
+}
+
+.dm-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #e8e0d8;
+  margin: 0;
+}
+
+.dm-new-btn {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05);
+  color: #d4a564;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.dm-new-btn:hover { background: rgba(212,165,100,0.12); }
+
+.dm-conv-list {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.dm-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3rem 1.5rem;
+  gap: 10px;
+  color: #666;
+  text-align: center;
+}
+.dm-empty p { font-weight: 600; color: #888; margin: 0; }
+.dm-empty span { font-size: 0.82rem; }
+
+.dm-conv-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.dm-conv-item:hover, .dm-conv-item.active { background: rgba(212,165,100,0.07); }
+
+.dm-conv-av {
+  position: relative;
+  flex-shrink: 0;
+}
+.dm-conv-av > * {
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #fff;
+}
+.dm-unread-dot {
+  position: absolute;
+  top: 1px; right: 1px;
+  width: 11px; height: 11px;
+  border-radius: 50%;
+  background: #d4a564;
+  border: 2px solid #0f0e0d;
+}
+
+.dm-conv-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.dm-conv-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #e8e0d8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dm-conv-preview {
+  font-size: 0.8rem;
+  color: #888;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dm-conv-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.dm-conv-time { font-size: 0.72rem; color: #666; }
+.dm-unread-badge {
+  background: #d4a564;
+  color: #0f0e0d;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  min-width: 18px;
+  text-align: center;
+}
+
+/* ── Panel ── */
+.dm-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.dm-panel-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #555;
+  text-align: center;
+  padding: 2rem;
+}
+.dm-panel-empty p { font-weight: 600; color: #777; margin: 0; font-size: 1rem; }
+.dm-panel-empty span { font-size: 0.85rem; }
+
+.dm-chat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Chat header */
+.dm-chat-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  flex-shrink: 0;
+}
+.dm-back-btn {
+  display: none;
+  background: none; border: none;
+  color: #d4a564; cursor: pointer;
+  padding: 4px; border-radius: 50%;
+  align-items: center;
+  transition: background 0.15s;
+}
+.dm-back-btn:hover { background: rgba(255,255,255,0.06); }
+.dm-chat-av {
+  width: 38px; height: 38px;
+  border-radius: 50%; flex-shrink: 0;
+  background: #333;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; color: #fff; font-size: 1rem;
+  overflow: hidden;
+}
+.dm-chat-av img { width: 100%; height: 100%; object-fit: cover; }
+.dm-chat-user { display: flex; flex-direction: column; }
+.dm-chat-name {
+  font-weight: 700; font-size: 0.95rem;
+  color: #e8e0d8; text-decoration: none;
+}
+.dm-chat-name:hover { text-decoration: underline; }
+.dm-chat-handle { font-size: 0.78rem; color: #888; }
+
+/* Messages */
+.dm-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  scrollbar-width: thin;
+}
+
+.dm-msg-loading, .dm-msg-empty {
+  text-align: center;
+  color: #666;
+  font-size: 0.85rem;
+  padding: 2rem 0;
+}
+
+.dm-msg {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  max-width: 72%;
+}
+.dm-msg.mine {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+.dm-msg.theirs { align-self: flex-start; }
+
+.dm-msg-av {
+  width: 24px; height: 24px;
+  border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.65rem; font-weight: 700; color: #fff;
+  overflow: hidden;
+}
+.dm-msg-av img { width: 100%; height: 100%; object-fit: cover; }
+.dm-msg.mine .dm-msg-av { display: none; }
+
+.dm-bubble {
+  padding: 9px 14px;
+  border-radius: 18px;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+.dm-msg.mine  .dm-bubble { background: #d4a564; color: #0f0e0d; border-bottom-right-radius: 4px; }
+.dm-msg.theirs .dm-bubble { background: rgba(255,255,255,0.08); color: #e8e0d8; border-bottom-left-radius: 4px; }
+
+.dm-msg-time {
+  font-size: 0.65rem;
+  color: #666;
+  white-space: nowrap;
+  padding: 0 4px 2px;
+}
+
+.dm-day-sep {
+  text-align: center;
+  font-size: 0.72rem;
+  color: #555;
+  margin: 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dm-day-sep::before, .dm-day-sep::after {
+  content: ''; flex: 1;
+  height: 1px; background: rgba(255,255,255,0.06);
+}
+
+/* Input */
+.dm-input-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  flex-shrink: 0;
+}
+.dm-input {
+  flex: 1;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 9999px;
+  padding: 10px 16px;
+  font-size: 0.9rem;
+  color: #e8e0d8;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+.dm-input:focus { border-color: rgba(212,165,100,0.4); }
+.dm-input::placeholder { color: #666; }
+.dm-send-btn {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: #d4a564;
+  color: #0f0e0d;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s, transform 0.1s;
+}
+.dm-send-btn:hover { background: #c4954e; }
+.dm-send-btn:active { transform: scale(0.94); }
+
+/* New message modal */
+.dm-modal-bg {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(4px);
+  z-index: 300;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+}
+.dm-modal-box {
+  background: #1a1510;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  width: 100%; max-width: 400px;
+  padding: 20px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.dm-modal-header {
+  display: flex; justify-content: space-between; align-items: center;
+  font-weight: 700; color: #e8e0d8;
+}
+.dm-icon-btn {
+  background: none; border: none; cursor: pointer;
+  color: #888; padding: 4px; border-radius: 50%;
+  display: flex; align-items: center;
+  transition: color 0.15s, background 0.15s;
+}
+.dm-icon-btn:hover { color: #e8e0d8; background: rgba(255,255,255,0.06); }
+.dm-search-inp {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 9999px;
+  padding: 10px 16px;
+  font-size: 0.9rem;
+  color: #e8e0d8;
+  outline: none;
+  width: 100%;
+  font-family: inherit;
+}
+.dm-search-inp:focus { border-color: rgba(212,165,100,0.4); }
+.dm-search-results {
+  max-height: 280px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.dm-search-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 4px;
+  cursor: pointer;
+  border-radius: 12px;
+  transition: background 0.15s;
+}
+.dm-search-row:hover { background: rgba(255,255,255,0.05); }
+.dm-search-av {
+  width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 0.9rem; color: #fff;
+  overflow: hidden;
+}
+.dm-search-av img { width: 100%; height: 100%; object-fit: cover; }
+.dm-search-name { font-weight: 600; font-size: 0.88rem; color: #e8e0d8; }
+.dm-search-handle { font-size: 0.78rem; color: #888; }
+
+/* Mobile */
+@media (max-width: 640px) {
+  .dm-sidebar { width: 100%; border-right: none; }
+  .dm-panel { position: absolute; inset: 0; background: #0f0e0d; z-index: 10; transform: translateX(100%); transition: transform 0.25s; }
+  .dm-panel.open { transform: translateX(0); }
+  .dm-back-btn { display: flex !important; }
+  .dm-main { position: relative; }
+}
+</style>
+
+<script>
+import { supa } from '../lib/supabase-browser';
+
+const metaEl     = document.getElementById('dm-meta') as HTMLElement;
+const myId       = parseInt(metaEl.dataset.myId!);
+const myUsername = metaEl.dataset.myUsername!;
+const myAvatar   = metaEl.dataset.myAvatar ?? '';
+
+const convList  = document.getElementById('dm-conv-list') as HTMLElement;
+const panel     = document.getElementById('dm-panel') as HTMLElement;
+const emptyView = document.getElementById('dm-panel-empty') as HTMLElement;
+const chatView  = document.getElementById('dm-chat') as HTMLElement;
+const msgBox    = document.getElementById('dm-messages') as HTMLElement;
+const inputBar  = document.getElementById('dm-input-bar') as HTMLFormElement;
+const dmInput   = document.getElementById('dm-input') as HTMLInputElement;
+const chatAvEl  = document.getElementById('dm-chat-av') as HTMLElement;
+const chatName  = document.getElementById('dm-chat-name') as HTMLAnchorElement;
+const chatHandle = document.getElementById('dm-chat-handle') as HTMLElement;
+const backBtn   = document.getElementById('dm-back-btn') as HTMLButtonElement;
+
+let activeConvId: number | null = null;
+let msgChannel: ReturnType<typeof supa.channel> | null = null;
+
+const avatarColors = ['linear-gradient(135deg,#667eea,#764ba2)','linear-gradient(135deg,#f093fb,#f5576c)','linear-gradient(135deg,#4facfe,#00f2fe)','linear-gradient(135deg,#43e97b,#38f9d7)','linear-gradient(135deg,#fa709a,#fee140)','linear-gradient(135deg,#a18cd1,#fbc2eb)','linear-gradient(135deg,#fda085,#f6d365)','linear-gradient(135deg,#96fbc4,#f9f586)'];
+function avatarBg(u: string) {
+  let h = 0;
+  for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff;
+  return avatarColors[Math.abs(h) % avatarColors.length];
+}
+function escHtml(s: string) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function timeStr(iso: string) {
+  const d = new Date(iso);
+  return d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+}
+function dayLabel(iso: string) {
+  const d = new Date(iso);
+  const now = new Date();
+  if (d.toDateString() === now.toDateString()) return 'Bugün';
+  const y = new Date(now); y.setDate(y.getDate() - 1);
+  if (d.toDateString() === y.toDateString()) return 'Dün';
+  return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function renderMsg(m: any): string {
+  const mine = m.sender_id === myId || m.sender?.id === myId;
+  const sender = m.sender ?? {};
+  const uname  = sender.username ?? myUsername;
+  const bg     = sender.avatar ? '' : avatarBg(uname);
+  const avHtml = sender.avatar
+    ? `<img src="${escHtml(sender.avatar)}" alt="">`
+    : `<div style="background:${bg};width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;color:#fff">${escHtml((sender.display_name ?? uname)[0].toUpperCase())}</div>`;
+
+  return `<div class="dm-msg ${mine ? 'mine' : 'theirs'}">
+    <div class="dm-msg-av">${avHtml}</div>
+    <div class="dm-bubble">${escHtml(m.content)}</div>
+    <span class="dm-msg-time">${timeStr(m.created_at)}</span>
+  </div>`;
+}
+
+function renderMessages(messages: any[]) {
+  if (!messages.length) {
+    msgBox.innerHTML = '<div class="dm-msg-empty">Henüz mesaj yok — ilk mesajı sen gönder!</div>';
+    return;
+  }
+  let lastDay = '';
+  let html = '';
+  for (const m of messages) {
+    const day = dayLabel(m.created_at);
+    if (day !== lastDay) {
+      html += `<div class="dm-day-sep">${escHtml(day)}</div>`;
+      lastDay = day;
+    }
+    html += renderMsg(m);
+  }
+  msgBox.innerHTML = html;
+  msgBox.scrollTop = msgBox.scrollHeight;
+}
+
+async function openConversation(convId: number, otherUser: { id: number; username: string; display_name: string; avatar: string | null }) {
+  activeConvId = convId;
+
+  // UI: highlight active conv
+  document.querySelectorAll('.dm-conv-item').forEach(el => el.classList.toggle('active', (el as HTMLElement).dataset.convId === String(convId)));
+
+  // Update header
+  if (otherUser.avatar) {
+    chatAvEl.innerHTML = `<img src="${escHtml(otherUser.avatar)}" alt="">`;
+  } else {
+    chatAvEl.style.background = avatarBg(otherUser.username);
+    chatAvEl.textContent = otherUser.display_name[0].toUpperCase();
+  }
+  chatName.textContent = otherUser.display_name;
+  chatName.href = `/u/${otherUser.username}`;
+  chatHandle.textContent = `@${otherUser.username}`;
+
+  emptyView.hidden = true;
+  chatView.hidden  = false;
+  panel.classList.add('open');
+  msgBox.innerHTML = '<div class="dm-msg-loading">Yükleniyor…</div>';
+
+  // Fetch messages
+  const res = await fetch(`/api/dm/${convId}/messages`);
+  const data = await res.json();
+  if (res.ok) {
+    renderMessages(data.messages ?? []);
+    // Remove unread dot for this conv
+    const convBtn = document.querySelector<HTMLElement>(`.dm-conv-item[data-conv-id="${convId}"]`);
+    convBtn?.querySelector('.dm-unread-dot')?.remove();
+    convBtn?.querySelector('.dm-unread-badge')?.remove();
+  } else {
+    msgBox.innerHTML = '<div class="dm-msg-empty">Mesajlar yüklenemedi.</div>';
+  }
+
+  // Realtime: subscribe to new messages
+  msgChannel?.unsubscribe();
+  msgChannel = supa
+    .channel(`dm-conv-${convId}`)
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${convId}` }, (payload: any) => {
+      const m = payload.new;
+      if (m.sender_id === myId) return; // already added optimistically
+      // Need sender info — append with minimal info
+      const fakeMsg = { ...m, sender: { id: m.sender_id, username: otherUser.username, display_name: otherUser.display_name, avatar: otherUser.avatar } };
+      msgBox.insertAdjacentHTML('beforeend', renderMsg(fakeMsg));
+      msgBox.scrollTop = msgBox.scrollHeight;
+      // Mark as read
+      fetch(`/api/dm/${convId}/messages`);
+    })
+    .subscribe();
+
+  dmInput.focus();
+}
+
+// Conversation list clicks
+document.querySelectorAll<HTMLButtonElement>('.dm-conv-item').forEach(btn => {
+  btn.addEventListener('click', () => {
+    openConversation(parseInt(btn.dataset.convId!), {
+      id: 0,
+      username:     btn.dataset.username!,
+      display_name: btn.dataset.display!,
+      avatar:       btn.dataset.avatar || null,
+    });
+  });
+});
+
+// Back button (mobile)
+backBtn.addEventListener('click', () => {
+  panel.classList.remove('open');
+  chatView.hidden  = true;
+  emptyView.hidden = false;
+  msgChannel?.unsubscribe();
+  msgChannel = null;
+  activeConvId = null;
+  document.querySelectorAll('.dm-conv-item').forEach(el => el.classList.remove('active'));
+});
+
+// Send message
+inputBar.addEventListener('submit', async e => {
+  e.preventDefault();
+  if (!activeConvId) return;
+  const content = dmInput.value.trim();
+  if (!content) return;
+  dmInput.value = '';
+
+  // Optimistic render
+  const optimistic = {
+    id: Date.now(), content, sender_id: myId, created_at: new Date().toISOString(),
+    sender: { id: myId, username: myUsername, display_name: metaEl.dataset.myName!, avatar: myAvatar || null },
+  };
+  msgBox.insertAdjacentHTML('beforeend', renderMsg(optimistic));
+  msgBox.scrollTop = msgBox.scrollHeight;
+
+  const res = await fetch(`/api/dm/${activeConvId}/send`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ content }),
+  });
+
+  if (!res.ok) {
+    // Remove optimistic message on fail
+    msgBox.lastElementChild?.remove();
+    dmInput.value = content;
+  } else {
+    // Update last message preview
+    const convBtn = document.querySelector<HTMLElement>(`.dm-conv-item[data-conv-id="${activeConvId}"]`);
+    const preview = convBtn?.querySelector('.dm-conv-preview');
+    if (preview) preview.textContent = 'Sen: ' + content;
+    const timeEl = convBtn?.querySelector('.dm-conv-time');
+    if (timeEl) timeEl.textContent = 'şimdi';
+    // Move conv to top
+    if (convBtn) convList.prepend(convBtn);
+  }
+});
+
+// ── New message modal ────────────────────────────────────────────────────────
+const newModal   = document.getElementById('dm-new-modal') as HTMLElement;
+const newClose   = document.getElementById('dm-new-close') as HTMLButtonElement;
+const newBtn     = document.getElementById('dm-new-btn') as HTMLButtonElement;
+const searchInp  = document.getElementById('dm-search-input') as HTMLInputElement;
+const searchRes  = document.getElementById('dm-search-results') as HTMLElement;
+
+newBtn.addEventListener('click', () => { newModal.style.display = 'flex'; searchInp.focus(); });
+newClose.addEventListener('click', () => { newModal.style.display = 'none'; searchInp.value = ''; searchRes.innerHTML = ''; });
+newModal.addEventListener('click', e => { if (e.target === newModal) newClose.click(); });
+
+let searchDebounce: ReturnType<typeof setTimeout> | null = null;
+searchInp.addEventListener('input', () => {
+  if (searchDebounce) clearTimeout(searchDebounce);
+  const q = searchInp.value.trim();
+  if (!q) { searchRes.innerHTML = ''; return; }
+  searchDebounce = setTimeout(async () => {
+    const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&type=users`);
+    const { users } = await res.json();
+    if (!users?.length) { searchRes.innerHTML = '<p style="padding:12px;color:#666;font-size:0.85rem;">Kullanıcı bulunamadı</p>'; return; }
+    searchRes.innerHTML = users.map((u: any) => {
+      const bg = u.avatar ? '' : avatarBg(u.username);
+      const av = u.avatar
+        ? `<img src="${escHtml(u.avatar)}" alt="" style="width:100%;height:100%;object-fit:cover;">`
+        : `<div style="background:${bg};width:100%;height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;">${escHtml((u.display_name ?? u.username)[0].toUpperCase())}</div>`;
+      return `<div class="dm-search-row" data-uid="${u.id}" data-username="${escHtml(u.username)}" data-display="${escHtml(u.display_name ?? u.username)}" data-avatar="${escHtml(u.avatar ?? '')}">
+        <div class="dm-search-av">${av}</div>
+        <div>
+          <div class="dm-search-name">${escHtml(u.display_name ?? u.username)}</div>
+          <div class="dm-search-handle">@${escHtml(u.username)}</div>
+        </div>
+      </div>`;
+    }).join('');
+
+    searchRes.querySelectorAll<HTMLElement>('.dm-search-row').forEach(row => {
+      row.addEventListener('click', async () => {
+        newClose.click();
+        const username = row.dataset.username!;
+        const res2 = await fetch('/api/dm/start', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) });
+        const { id } = await res2.json();
+        if (id) {
+          openConversation(id, {
+            id: parseInt(row.dataset.uid!),
+            username,
+            display_name: row.dataset.display!,
+            avatar: row.dataset.avatar || null,
+          });
+        }
+      });
+    });
+  }, 300);
+});
+
+// Open conv from URL param ?c=
+const convParam = new URLSearchParams(location.search).get('c');
+if (convParam) {
+  const btn = document.querySelector<HTMLButtonElement>(`.dm-conv-item[data-conv-id="${convParam}"]`);
+  if (btn) btn.click();
+}
+</script>

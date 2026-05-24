@@ -1,0 +1,574 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { supabase, createAuthClient } from '../../lib/supabase';
+
+const { username } = Astro.params;
+
+const { data: profileUser } = await supabase
+  .from('users')
+  .select('id, username, display_name, bio, created_at, is_private')
+  .eq('username', username)
+  .single();
+
+if (!profileUser) return Astro.redirect('/');
+
+const authHeaders = new Headers();
+const authClient = createAuthClient(Astro.request, authHeaders);
+const { data: { user: authUser } } = await authClient.auth.getUser();
+
+let me: { id: number } | null = null;
+let isFollowing = false;
+
+if (authUser) {
+  const { data } = await supabase
+    .from('users').select('id').eq('auth_id', authUser.id).single();
+  me = data;
+}
+
+const isOwnProfile = me?.id === profileUser.id;
+if (isOwnProfile) return Astro.redirect('/profile');
+
+if (me) {
+  const { data } = await supabase
+    .from('follows')
+    .select('id')
+    .eq('follower_id', me.id)
+    .eq('following_id', profileUser.id)
+    .single();
+  isFollowing = !!data;
+}
+
+const isHidden = (profileUser.is_private && !isFollowing);
+
+const [followersRes, followingRes, postsRes] = await Promise.all([
+  supabase.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', profileUser.id),
+  supabase.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', profileUser.id),
+  isHidden
+    ? Promise.resolve({ data: [], error: null })
+    : supabase.from('quick_facts').select('id, media_url, media_type, caption, likes, created_at')
+        .eq('user_id', profileUser.id).order('created_at', { ascending: false }),
+]);
+
+const followersCount = followersRes.count ?? 0;
+const followingCount = followingRes.count ?? 0;
+const mediaPosts = isHidden ? [] : (postsRes.data ?? []);
+
+function avatarBg(u: string): string {
+  const gs = [
+    'linear-gradient(135deg,#6366f1,#8b5cf6)',
+    'linear-gradient(135deg,#ec4899,#8b5cf6)',
+    'linear-gradient(135deg,#f97316,#ef4444)',
+    'linear-gradient(135deg,#10b981,#3b82f6)',
+    'linear-gradient(135deg,#f59e0b,#f97316)',
+    'linear-gradient(135deg,#14b8a6,#06b6d4)',
+    'linear-gradient(135deg,#3b82f6,#6366f1)',
+    'linear-gradient(135deg,#ef4444,#f97316)',
+  ];
+  let h = 0;
+  for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff;
+  return gs[Math.abs(h) % gs.length];
+}
+
+const bg = avatarBg(profileUser.username);
+---
+
+<BaseLayout title={`${profileUser.display_name} (@${profileUser.username})`} activeNav="">
+<main class="main-content">
+
+  <!-- Banner -->
+  <div class="pf-banner" style={`background:${bg}`}></div>
+
+  <!-- Profile header -->
+  <div class="pf-header">
+    <div class="pf-avatar-row">
+      <div class="pf-avatar" style={`background:${bg}`}>
+        {profileUser.display_name[0].toUpperCase()}
+      </div>
+      <div class="pf-action-btns">
+        {me ? (
+          <>
+            <button
+              id="follow-btn"
+              class={`pf-follow-btn${isFollowing ? ' following' : ''}`}
+              data-username={profileUser.username}
+              data-following={isFollowing ? 'true' : 'false'}
+            >
+              {isFollowing ? 'Takip Ediliyor' : 'Takip Et'}
+            </button>
+            <button
+              id="dm-btn"
+              class="pf-dm-btn"
+              data-user-id={profileUser.id}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              Mesaj
+            </button>
+          </>
+        ) : (
+          <a href="/login" class="pf-follow-btn">Takip Et</a>
+        )}
+      </div>
+    </div>
+
+    <h1 class="pf-name">
+      {profileUser.display_name}
+      {profileUser.is_private && (
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;opacity:0.55;margin-left:4px"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      )}
+    </h1>
+    <p class="pf-handle">@{profileUser.username}</p>
+    {profileUser.bio && <p class="pf-bio">{profileUser.bio}</p>}
+
+    <div class="pf-stats">
+      <span><strong>{mediaPosts.length}</strong> Gönderi</span>
+      <span id="followers-count"><strong>{followersCount}</strong> Takipçi</span>
+      <span><strong>{followingCount}</strong> Takip</span>
+    </div>
+  </div>
+
+  <!-- Media grid -->
+  {isHidden ? (
+    <div class="pf-empty">
+      <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:14px;color:#888"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <p style="font-weight:700;margin-bottom:6px">Bu hesap gizli</p>
+      <p style="font-size:0.85rem;color:var(--color-text-muted)">Gönderileri görmek için takip et.</p>
+    </div>
+  ) : mediaPosts.length === 0 ? (
+    <div class="pf-empty">
+      <div style="font-size:2.5rem;margin-bottom:12px">📷</div>
+      <p>Henüz gönderi yok</p>
+    </div>
+  ) : (
+    <div class="pf-grid">
+      {mediaPosts.map(post => (
+        <button
+          class="pf-cell"
+          data-id={post.id}
+          data-type={post.media_type}
+          data-src={post.media_url}
+          data-caption={post.caption}
+          data-likes={post.likes}
+          aria-label={post.caption}
+        >
+          {post.media_type === 'image' ? (
+            <img src={post.media_url} alt={post.caption} loading="lazy" />
+          ) : (
+            <video src={post.media_url} muted preload="metadata" />
+          )}
+          <div class="pf-cell-overlay">
+            <span class="pf-cell-likes">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+              {post.likes}
+            </span>
+          </div>
+        </button>
+      ))}
+    </div>
+  )}
+</main>
+
+<!-- Detail lightbox -->
+<div id="pf-lightbox" class="pf-lightbox-bg" style="display:none">
+  <div class="pf-lightbox-box">
+    <button id="pf-close" class="pf-close-btn">
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+    <div class="pf-lightbox-media">
+      <img id="pf-lb-img" src="" alt="" style="display:none" />
+      <video id="pf-lb-vid" src="" controls style="display:none"></video>
+    </div>
+    <div class="pf-lightbox-info">
+      <div class="pf-lb-user">
+        <div class="pf-lb-avatar" style={`background:${bg}`}>{profileUser.display_name[0].toUpperCase()}</div>
+        <div>
+          <div class="pf-lb-name">{profileUser.display_name}</div>
+          <div class="pf-lb-handle">@{profileUser.username}</div>
+        </div>
+        <div class="pf-lb-likes" style="margin-left:auto">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#ef4444"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+          <span id="pf-lb-likes">0</span>
+        </div>
+      </div>
+      <p id="pf-lb-caption" class="pf-lb-caption"></p>
+      <div id="pf-cm-list" class="cm-list" style="flex:1;min-height:80px;border-top:1px solid var(--color-border)"></div>
+      {me && (
+        <form id="pf-cm-form" class="cm-form">
+          <div class="cm-form-avatar" style={`background:${avatarBg(profileUser.username)}`}>{me ? '?' : ''}</div>
+          <input id="pf-cm-input" class="cm-input" placeholder="Yorum ekle…" maxlength="300" autocomplete="off" />
+          <button type="submit" class="cm-send-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+          </button>
+        </form>
+      )}
+      {!me && (
+        <div class="cm-form" style="justify-content:center">
+          <a href="/login" style="font-size:0.82rem;color:var(--color-primary)">Yorum yapmak için giriş yap</a>
+        </div>
+      )}
+    </div>
+  </div>
+</div>
+</BaseLayout>
+
+<style>
+.pf-banner {
+  height: 160px;
+  width: 100%;
+}
+
+.pf-header {
+  padding: 0 20px 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.pf-avatar-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: -40px;
+  margin-bottom: 12px;
+}
+
+.pf-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 4px solid white;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 2rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.pf-action-btns {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.pf-follow-btn {
+  padding: 9px 22px;
+  border-radius: 9999px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  background: var(--color-text);
+  color: white;
+  border: 2px solid var(--color-text);
+}
+.pf-follow-btn:hover { opacity: 0.85; }
+.pf-follow-btn.following {
+  background: white;
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+.pf-follow-btn.following:hover {
+  background: #fee2e2;
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.pf-dm-btn {
+  padding: 9px 16px;
+  border-radius: 9999px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  color: var(--color-text);
+  border: 2px solid var(--color-border);
+}
+.pf-dm-btn:hover { border-color: var(--color-text); }
+
+.pf-name { font-size: 1.25rem; font-weight: 800; margin: 0 0 2px; }
+.pf-handle { color: var(--color-text-muted); font-size: 0.9rem; margin: 0 0 8px; }
+.pf-bio { font-size: 0.9rem; line-height: 1.5; margin: 0 0 12px; color: var(--color-text); }
+
+.pf-stats {
+  display: flex;
+  gap: 20px;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+.pf-stats strong { color: var(--color-text); }
+
+.pf-empty {
+  text-align: center;
+  padding: 80px 20px;
+  color: var(--color-text-muted);
+}
+
+.pf-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+  padding: 3px;
+}
+.pf-cell {
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: var(--color-border);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  position: relative;
+}
+.pf-cell img, .pf-cell video {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.2s;
+}
+.pf-cell:hover img, .pf-cell:hover video { transform: scale(1.05); }
+.pf-cell-overlay {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.32);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.15s;
+}
+.pf-cell:hover .pf-cell-overlay { opacity: 1; }
+.pf-cell-likes {
+  color: white; font-weight: 700; font-size: 0.9rem;
+  display: flex; align-items: center; gap: 4px;
+}
+
+/* Lightbox */
+.pf-lightbox-bg {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+}
+.pf-lightbox-box {
+  background: var(--color-surface);
+  border-radius: 16px;
+  display: flex;
+  max-width: 860px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  position: relative;
+}
+.pf-close-btn {
+  position: absolute; top: 10px; right: 10px; z-index: 1;
+  background: rgba(0,0,0,0.4); border: none; color: white;
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.pf-lightbox-media {
+  flex: 1; background: #000;
+  display: flex; align-items: center; justify-content: center;
+  min-height: 360px; max-height: 90vh;
+}
+.pf-lightbox-media img, .pf-lightbox-media video {
+  max-width: 100%; max-height: 90vh; object-fit: contain;
+}
+.pf-lightbox-info {
+  width: 280px; flex-shrink: 0;
+  border-left: 1px solid var(--color-border);
+  display: flex; flex-direction: column;
+  padding: 16px; gap: 12px;
+}
+.pf-lb-user { display: flex; align-items: center; gap: 10px; }
+.pf-lb-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-weight: 700; font-size: 0.85rem; flex-shrink: 0;
+}
+.pf-lb-name { font-weight: 700; font-size: 0.9rem; }
+.pf-lb-handle { color: var(--color-text-muted); font-size: 0.8rem; }
+.pf-lb-caption { font-size: 0.9rem; line-height: 1.6; flex: 1; margin: 0; }
+.pf-lb-likes { display: flex; align-items: center; gap: 6px; font-weight: 700; color: #ef4444; }
+
+.cm-list { overflow-y:auto; padding:4px 0; display:flex; flex-direction:column; }
+.cm-loading,.cm-empty { text-align:center; padding:16px; font-size:0.8rem; color:var(--color-text-muted); }
+.cm-item { display:flex; align-items:flex-start; gap:8px; padding:6px 12px; }
+.cm-item:hover { background:#f9fafb; }
+.cm-avatar { width:24px;height:24px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:white;font-size:0.65rem;font-weight:700;text-decoration:none; }
+.cm-body { flex:1;min-width:0; }
+.cm-author { font-weight:700;font-size:0.78rem;margin-right:4px; }
+.cm-text { font-size:0.8rem;color:var(--color-text);line-height:1.4;word-break:break-word; }
+.cm-time { font-size:0.68rem;color:var(--color-text-muted);margin-top:1px; }
+.cm-delete { background:none;border:none;cursor:pointer;color:var(--color-text-muted);font-size:1rem;padding:2px 4px;border-radius:4px;flex-shrink:0;line-height:1;opacity:0;transition:opacity 0.15s,color 0.15s; }
+.cm-item:hover .cm-delete { opacity:1; }
+.cm-delete:hover { color:#ef4444; }
+.cm-form { display:flex;align-items:center;gap:8px;padding:8px 12px;border-top:1px solid var(--color-border);flex-shrink:0; }
+.cm-form-avatar { width:24px;height:24px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:white;font-size:0.65rem;font-weight:700; }
+.cm-input { flex:1;border:none;outline:none;background:transparent;font-size:0.82rem;font-family:inherit;color:var(--color-text);min-width:0; }
+.cm-input::placeholder { color:var(--color-text-muted); }
+.cm-send-btn { background:none;border:none;cursor:pointer;color:var(--color-primary);padding:4px;display:flex;align-items:center;flex-shrink:0;opacity:0.4;transition:opacity 0.15s; }
+.cm-send-btn:hover { opacity:1; }
+
+@media (max-width: 640px) {
+  .pf-lightbox-box { flex-direction: column; border-radius: 20px 20px 0 0; align-self: flex-end; max-width: 100%; }
+  .pf-lightbox-info { width: 100%; border-left: none; border-top: 1px solid var(--color-border); }
+  .pf-lightbox-media { min-height: 240px; max-height: 45vh; }
+  .pf-lightbox-bg { padding: 0; align-items: flex-end; }
+}
+</style>
+
+<script>
+// ── Mesaj butonu
+const dmBtn = document.getElementById('dm-btn') as HTMLButtonElement | null;
+dmBtn?.addEventListener('click', async () => {
+  dmBtn.disabled = true;
+  dmBtn.textContent = '…';
+  try {
+    const res = await fetch('/api/dm/start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: parseInt(dmBtn.dataset.userId!) }),
+    });
+    const data = await res.json() as { id?: number; error?: string };
+    if (data.id) {
+      window.location.href = `/messages?c=${data.id}`;
+    }
+  } catch {
+    dmBtn.disabled = false;
+    dmBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Mesaj`;
+  }
+});
+
+import { renderCaption } from '../../lib/caption';
+
+// ── Follow butonu
+const followBtn = document.getElementById('follow-btn') as HTMLButtonElement | null;
+const followersEl = document.getElementById('followers-count');
+
+followBtn?.addEventListener('click', async () => {
+  const username = followBtn.dataset.username!;
+  const wasFollowing = followBtn.dataset.following === 'true';
+
+  followBtn.disabled = true;
+  try {
+    const res = await fetch(`/api/users/${username}/follow`, { method: 'POST' });
+    if (!res.ok) throw new Error();
+    const data = await res.json() as { following: boolean; followers_count: number };
+
+    followBtn.dataset.following = data.following ? 'true' : 'false';
+    followBtn.textContent = data.following ? 'Takip Ediliyor' : 'Takip Et';
+    followBtn.classList.toggle('following', data.following);
+
+    if (followersEl) {
+      followersEl.innerHTML = `<strong>${data.followers_count}</strong> Takipçi`;
+    }
+  } catch {
+    followBtn.dataset.following = wasFollowing ? 'true' : 'false';
+    followBtn.textContent = wasFollowing ? 'Takip Ediliyor' : 'Takip Et';
+  } finally {
+    followBtn.disabled = false;
+  }
+});
+
+// ── Yardımcılar
+function avatarBgJs(u: string): string {
+  const gs = ['linear-gradient(135deg,#6366f1,#8b5cf6)','linear-gradient(135deg,#ec4899,#8b5cf6)',
+    'linear-gradient(135deg,#f97316,#ef4444)','linear-gradient(135deg,#10b981,#3b82f6)',
+    'linear-gradient(135deg,#f59e0b,#f97316)','linear-gradient(135deg,#14b8a6,#06b6d4)',
+    'linear-gradient(135deg,#3b82f6,#6366f1)','linear-gradient(135deg,#ef4444,#f97316)'];
+  let h = 0; for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff;
+  return gs[Math.abs(h) % gs.length];
+}
+function escJs(s: string) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function tAgoJs(iso: string) {
+  const s = Math.floor((Date.now()-new Date(iso).getTime())/1000);
+  return s<60?`${s}sn`:s<3600?`${Math.floor(s/60)}dk`:s<86400?`${Math.floor(s/3600)}sa`:`${Math.floor(s/86400)}g`;
+}
+
+// ── Lightbox
+const lightbox  = document.getElementById('pf-lightbox')!;
+const lbImg     = document.getElementById('pf-lb-img') as HTMLImageElement;
+const lbVid     = document.getElementById('pf-lb-vid') as HTMLVideoElement;
+const lbCap     = document.getElementById('pf-lb-caption')!;
+const lbLikes   = document.getElementById('pf-lb-likes')!;
+const closeBtn  = document.getElementById('pf-close')!;
+const cmList    = document.getElementById('pf-cm-list');
+const cmForm    = document.getElementById('pf-cm-form') as HTMLFormElement | null;
+const cmInput   = document.getElementById('pf-cm-input') as HTMLInputElement | null;
+
+let lbPostId: number | null = null;
+
+interface Cm2 { id:number; user_id:number; content:string; created_at:string; display_name:string; username:string; }
+
+function renderCm2(c: Cm2, myId: number | null): string {
+  const bg = avatarBgJs(c.username);
+  return `<div class="cm-item"><a href="/u/${escJs(c.username)}" class="cm-avatar" style="background:${bg}">${c.display_name[0].toUpperCase()}</a><div class="cm-body"><span class="cm-author">${escJs(c.display_name)}</span><span class="cm-text">${escJs(c.content)}</span><div class="cm-time">${tAgoJs(c.created_at)}</div></div>${myId===c.user_id?`<button class="cm-delete" data-id="${c.id}">×</button>`:''}</div>`;
+}
+function bindDels2(myId: number | null) {
+  cmList?.querySelectorAll<HTMLButtonElement>('.cm-delete').forEach(b=>{
+    b.addEventListener('click',async()=>{
+      const res=await fetch(`/api/comments/${b.dataset.id}`,{method:'DELETE'});
+      if(res.ok) b.closest('.cm-item')?.remove();
+    });
+  });
+}
+
+async function loadCm2(postId: number) {
+  if (!cmList) return;
+  cmList.innerHTML='<div class="cm-loading">Yükleniyor…</div>';
+  try {
+    const d = await fetch(`/api/quick-facts/${postId}/comments`).then(r=>r.json()) as {comments:Cm2[]};
+    const myId = null; // viewer ID not needed here for delete (API enforces ownership)
+    cmList.innerHTML = d.comments.length ? d.comments.map(c=>renderCm2(c, null)).join('') : '<div class="cm-empty">Henüz yorum yok</div>';
+    bindDels2(null);
+    cmList.scrollTop = cmList.scrollHeight;
+  } catch { cmList.innerHTML='<div class="cm-empty">Yüklenemedi.</div>'; }
+}
+
+cmForm?.addEventListener('submit',async e=>{
+  e.preventDefault();
+  const content=cmInput?.value.trim();
+  if(!content||!lbPostId)return;
+  if(cmInput) cmInput.value='';
+  const res=await fetch(`/api/quick-facts/${lbPostId}/comment`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content})});
+  const d=await res.json() as {comment:Cm2};
+  if(d.comment&&cmList){
+    cmList.querySelector('.cm-empty,.cm-loading')?.remove();
+    cmList.insertAdjacentHTML('beforeend',renderCm2(d.comment,null));
+    bindDels2(null);
+    cmList.scrollTop=cmList.scrollHeight;
+  }
+});
+
+document.querySelectorAll<HTMLButtonElement>('.pf-cell').forEach(cell => {
+  cell.addEventListener('click', () => {
+    const { id, type, src, caption, likes } = cell.dataset as Record<string, string>;
+    lbPostId = Number(id);
+    if (type === 'video') {
+      lbImg.style.display = 'none'; lbVid.style.display = 'block'; lbVid.src = src;
+    } else {
+      lbVid.style.display = 'none'; lbImg.style.display = 'block'; lbImg.src = src;
+    }
+    lbCap.innerHTML     = renderCaption(caption);
+    lbLikes.textContent = likes;
+    loadCm2(lbPostId);
+    lightbox.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  });
+});
+
+function closeLb() {
+  lightbox.style.display = 'none';
+  lbVid.pause(); lbVid.src = '';
+  document.body.style.overflow = '';
+  lbPostId = null;
+  if(cmInput) cmInput.value = '';
+}
+closeBtn.addEventListener('click', closeLb);
+lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLb(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLb(); });
+</script>

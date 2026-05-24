@@ -1,0 +1,316 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { supabase } from '../../lib/supabase';
+import { thumbUrl } from '../../lib/image';
+import { renderCaption } from '../../lib/caption';
+
+const { tag } = Astro.params;
+const normalizedTag = (tag ?? '').toLowerCase();
+
+if (!normalizedTag) return Astro.redirect('/');
+
+const { data: hashtagRow } = await supabase
+  .from('hashtags')
+  .select('id')
+  .eq('tag', normalizedTag)
+  .maybeSingle();
+
+const posts: Array<{
+  id: number; media_url: string; media_type: string;
+  caption: string; likes: number; created_at: string;
+  display_name: string; username: string;
+}> = [];
+
+if (hashtagRow) {
+  const { data: rows } = await supabase
+    .from('post_hashtags')
+    .select(`
+      post:post_id(
+        id, media_url, media_type, caption, likes, created_at,
+        users(display_name, username)
+      )
+    `)
+    .eq('hashtag_id', hashtagRow.id)
+    .order('post_id', { ascending: false })
+    .limit(60);
+
+  for (const r of rows ?? []) {
+    const p = (r as any).post;
+    if (!p) continue;
+    posts.push({
+      id: p.id,
+      media_url: p.media_url,
+      media_type: p.media_type,
+      caption: p.caption,
+      likes: p.likes,
+      created_at: p.created_at,
+      display_name: p.users?.display_name ?? '',
+      username: p.users?.username ?? '',
+    });
+  }
+}
+
+function avatarBg(u: string): string {
+  const gs = ['linear-gradient(135deg,#6366f1,#8b5cf6)','linear-gradient(135deg,#ec4899,#8b5cf6)',
+    'linear-gradient(135deg,#f97316,#ef4444)','linear-gradient(135deg,#10b981,#3b82f6)',
+    'linear-gradient(135deg,#f59e0b,#f97316)','linear-gradient(135deg,#14b8a6,#06b6d4)',
+    'linear-gradient(135deg,#3b82f6,#6366f1)','linear-gradient(135deg,#ef4444,#f97316)'];
+  let h = 0; for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff;
+  return gs[Math.abs(h) % gs.length];
+}
+---
+
+<BaseLayout title={`#${normalizedTag}`} activeNav="">
+<main class="main-content">
+
+  <div class="ht-header">
+    <div class="ht-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="9" y2="9"/><line x1="4" x2="20" y1="15" y2="15"/><line x1="10" x2="8" y1="3" y2="21"/><line x1="16" x2="14" y1="3" y2="21"/></svg>
+    </div>
+    <div>
+      <h1 class="ht-title">#{normalizedTag}</h1>
+      <p class="ht-sub">{posts.length} gönderi</p>
+    </div>
+  </div>
+
+  {posts.length === 0 ? (
+    <div class="ht-empty">
+      <p style="font-weight:700;margin-bottom:6px">Henüz gönderi yok</p>
+      <p style="font-size:0.85rem;color:var(--color-text-muted)">Bu hashtag hiçbir gönderide kullanılmamış.</p>
+    </div>
+  ) : (
+    <div class="ht-grid">
+      {posts.map(post => (
+        <button
+          class="ht-cell"
+          data-id={post.id}
+          data-type={post.media_type}
+          data-src={post.media_url}
+          data-caption={post.caption}
+          data-author={post.display_name}
+          data-handle={post.username}
+          data-likes={post.likes}
+          aria-label={post.caption}
+        >
+          {post.media_type === 'image' ? (
+            <img src={thumbUrl(post.media_url, 600, 75)} alt={post.caption} loading="lazy" decoding="async" />
+          ) : (
+            <video src={post.media_url} muted preload="metadata" />
+          )}
+          <div class="ht-cell-overlay">
+            <span class="ht-cell-likes">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+              {post.likes}
+            </span>
+            {post.media_type === 'video' && (
+              <span class="ht-cell-vid-badge">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              </span>
+            )}
+          </div>
+        </button>
+      ))}
+    </div>
+  )}
+</main>
+
+<!-- Lightbox -->
+<div id="ht-lightbox" class="ht-lb-bg" style="display:none">
+  <div class="ht-lb-box">
+    <button id="ht-close" class="ht-close-btn">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+    <div class="ht-lb-media">
+      <img id="ht-lb-img" src="" alt="" style="display:none" />
+      <video id="ht-lb-vid" src="" controls style="display:none"></video>
+    </div>
+    <div class="ht-lb-info">
+      <div class="ht-lb-user">
+        <a id="ht-lb-av-link" href="/" class="ht-lb-avatar">?</a>
+        <div>
+          <div id="ht-lb-name" class="ht-lb-name"></div>
+          <div id="ht-lb-handle" class="ht-lb-handle"></div>
+        </div>
+        <div class="ht-lb-likes-row">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#ef4444"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+          <span id="ht-lb-likes">0</span>
+        </div>
+      </div>
+      <p id="ht-lb-caption" class="ht-lb-caption"></p>
+    </div>
+  </div>
+</div>
+</BaseLayout>
+
+<style>
+.ht-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 16px 14px;
+  border-bottom: 1px solid var(--color-border);
+}
+.ht-icon {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: rgba(212,165,100,0.12);
+  color: #d4a564;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.ht-title { font-size: 1.25rem; font-weight: 800; margin: 0 0 2px; }
+.ht-sub   { font-size: 0.82rem; color: var(--color-text-muted); margin: 0; }
+
+.ht-empty {
+  text-align: center;
+  padding: 80px 24px;
+  color: var(--color-text-muted);
+}
+
+.ht-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+  padding: 3px;
+}
+.ht-cell {
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: #1e1a14;
+  border: none; padding: 0; cursor: pointer;
+  position: relative; display: block;
+}
+.ht-cell img, .ht-cell video {
+  width: 100%; height: 100%;
+  object-fit: cover; display: block;
+  transition: transform 0.2s;
+}
+.ht-cell:hover img, .ht-cell:hover video { transform: scale(1.05); }
+.ht-cell-overlay {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.3);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.15s;
+}
+.ht-cell:hover .ht-cell-overlay { opacity: 1; }
+.ht-cell-likes {
+  color: white; font-weight: 700; font-size: 0.85rem;
+  display: flex; align-items: center; gap: 4px;
+}
+.ht-cell-vid-badge {
+  position: absolute; top: 6px; right: 6px;
+  background: rgba(0,0,0,0.5); border-radius: 4px;
+  padding: 2px 4px; display: flex;
+}
+
+/* Lightbox */
+.ht-lb-bg {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.8); backdrop-filter: blur(4px);
+  z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+}
+.ht-lb-box {
+  background: var(--color-surface); border-radius: 16px;
+  display: flex; max-width: 820px; width: 100%;
+  max-height: 90vh; overflow: hidden; position: relative;
+}
+.ht-close-btn {
+  position: absolute; top: 10px; right: 10px; z-index: 1;
+  background: rgba(0,0,0,0.45); border: none; color: white;
+  width: 34px; height: 34px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.ht-lb-media {
+  flex: 1; background: #000;
+  display: flex; align-items: center; justify-content: center;
+  min-height: 300px; max-height: 90vh;
+}
+.ht-lb-media img, .ht-lb-media video {
+  max-width: 100%; max-height: 90vh; object-fit: contain;
+}
+.ht-lb-info {
+  width: 260px; flex-shrink: 0;
+  border-left: 1px solid var(--color-border);
+  padding: 16px; display: flex; flex-direction: column; gap: 12px;
+}
+.ht-lb-user { display: flex; align-items: center; gap: 10px; }
+.ht-lb-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-weight: 700; font-size: 0.85rem; flex-shrink: 0;
+  text-decoration: none;
+}
+.ht-lb-name   { font-weight: 700; font-size: 0.9rem; }
+.ht-lb-handle { color: var(--color-text-muted); font-size: 0.78rem; }
+.ht-lb-likes-row {
+  display: flex; align-items: center; gap: 4px;
+  margin-left: auto; font-weight: 700; color: #ef4444; font-size: 0.88rem;
+}
+.ht-lb-caption {
+  font-size: 0.88rem; line-height: 1.6; margin: 0;
+  word-break: break-word;
+}
+
+@media (max-width: 640px) {
+  .ht-lb-box { flex-direction: column; border-radius: 20px 20px 0 0; align-self: flex-end; max-width: 100%; }
+  .ht-lb-info { width: 100%; border-left: none; border-top: 1px solid var(--color-border); }
+  .ht-lb-media { min-height: 200px; max-height: 40vh; }
+  .ht-lb-bg { padding: 0; align-items: flex-end; }
+}
+</style>
+
+<script>
+import { renderCaption } from '../../lib/caption';
+
+function avatarBgJs(u: string): string {
+  const gs = ['linear-gradient(135deg,#6366f1,#8b5cf6)','linear-gradient(135deg,#ec4899,#8b5cf6)',
+    'linear-gradient(135deg,#f97316,#ef4444)','linear-gradient(135deg,#10b981,#3b82f6)',
+    'linear-gradient(135deg,#f59e0b,#f97316)','linear-gradient(135deg,#14b8a6,#06b6d4)',
+    'linear-gradient(135deg,#3b82f6,#6366f1)','linear-gradient(135deg,#ef4444,#f97316)'];
+  let h = 0; for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff;
+  return gs[Math.abs(h) % gs.length];
+}
+
+const lightbox  = document.getElementById('ht-lightbox')!;
+const lbImg     = document.getElementById('ht-lb-img') as HTMLImageElement;
+const lbVid     = document.getElementById('ht-lb-vid') as HTMLVideoElement;
+const lbAvLink  = document.getElementById('ht-lb-av-link') as HTMLAnchorElement;
+const lbName    = document.getElementById('ht-lb-name')!;
+const lbHandle  = document.getElementById('ht-lb-handle')!;
+const lbLikes   = document.getElementById('ht-lb-likes')!;
+const lbCaption = document.getElementById('ht-lb-caption')!;
+const closeBtn  = document.getElementById('ht-close')!;
+
+function openCell(cell: HTMLButtonElement) {
+  const { type, src, author, handle, likes, caption } = cell.dataset as Record<string,string>;
+  if (type === 'video') {
+    lbImg.style.display = 'none'; lbVid.style.display = 'block'; lbVid.src = src;
+  } else {
+    lbVid.style.display = 'none'; lbImg.style.display = 'block'; lbImg.src = src;
+  }
+  lbAvLink.textContent = author[0].toUpperCase();
+  lbAvLink.style.background = avatarBgJs(handle);
+  lbAvLink.href = `/u/${handle}`;
+  lbName.textContent   = author;
+  lbHandle.textContent = `@${handle}`;
+  lbLikes.textContent  = likes;
+  lbCaption.innerHTML  = renderCaption(caption);
+  lightbox.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+document.querySelectorAll<HTMLButtonElement>('.ht-cell').forEach(cell => {
+  cell.addEventListener('click', () => openCell(cell));
+});
+
+function closeLb() {
+  lightbox.style.display = 'none';
+  lbVid.pause(); lbVid.src = '';
+  document.body.style.overflow = '';
+}
+closeBtn.addEventListener('click', closeLb);
+lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLb(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLb(); });
+</script>

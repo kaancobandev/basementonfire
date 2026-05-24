@@ -2,82 +2,552 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { supabase, createAuthClient, type DbUser } from '../lib/supabase';
 
-// Giriş kontrolü
 const authHeaders = new Headers();
 const authClient = createAuthClient(Astro.request, authHeaders);
 const { data: { user: authUser } } = await authClient.auth.getUser();
 if (!authUser) return Astro.redirect('/login');
 
-// Auth id ile users tablosundan profili getir
 const { data: userData } = await supabase
-  .from('users')
-  .select('*')
-  .eq('auth_id', authUser.id)
-  .single();
-
+  .from('users').select('*').eq('auth_id', authUser.id).single();
 if (!userData) return Astro.redirect('/login');
 const user = userData as DbUser;
 
-const { data: postsData } = await supabase
-  .from('posts')
-  .select('id, content, category, likes, created_at')
-  .eq('user_id', user.id)
-  .order('created_at', { ascending: false });
+const error   = Astro.url.searchParams.get('error');
 
-const posts = (postsData ?? []) as Array<{ id: number; content: string; category: string; likes: number; created_at: string }>;
+const [followersRes, followingRes, mediaRes] = await Promise.all([
+  supabase.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', user.id),
+  supabase.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', user.id),
+  supabase.from('quick_facts').select('id, media_url, media_type, caption, likes, created_at')
+    .eq('user_id', user.id).order('created_at', { ascending: false }),
+]);
+
+const followersCount = followersRes.count ?? 0;
+const followingCount = followingRes.count ?? 0;
+const mediaPosts     = mediaRes.data ?? [];
+
+function avatarBg(u: string): string {
+  const gs = [
+    'linear-gradient(135deg,#6366f1,#8b5cf6)',
+    'linear-gradient(135deg,#ec4899,#8b5cf6)',
+    'linear-gradient(135deg,#f97316,#ef4444)',
+    'linear-gradient(135deg,#10b981,#3b82f6)',
+    'linear-gradient(135deg,#f59e0b,#f97316)',
+    'linear-gradient(135deg,#14b8a6,#06b6d4)',
+    'linear-gradient(135deg,#3b82f6,#6366f1)',
+    'linear-gradient(135deg,#ef4444,#f97316)',
+  ];
+  let h = 0;
+  for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff;
+  return gs[Math.abs(h) % gs.length];
+}
+
+const bg = avatarBg(user.username);
 ---
 
 <BaseLayout title="Profil" activeNav="profile">
-  <main class="main-content">
-    <!-- Profile header -->
-    <div style="background:linear-gradient(135deg, #3b82f6, #8b5cf6); height:160px; position:relative;">
-      <a href="/" class="back-btn" style="position:absolute; top:12px; left:12px; color:white; background:rgba(0,0,0,0.3);">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-      </a>
-    </div>
+<main class="main-content">
 
-    <div style="padding:0 20px;">
-      <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:-40px; margin-bottom:16px;">
-        <div class="avatar" style="width:80px; height:80px; font-size:2rem; border:4px solid white; box-shadow:0 2px 8px rgba(0,0,0,0.15);">
-          {user.display_name[0]}
-        </div>
-        <button style="padding:8px 20px; border:2px solid #e2e8f0; border-radius:9999px; background:white; font-weight:700; font-size:0.9rem; cursor:pointer; transition:background 0.15s;" onmouseover="this.style.background='#f0f2f5'" onmouseout="this.style.background='white'">
-          Profili Duzenle
-        </button>
+  <!-- Error -->
+  {error && (
+    <div class="pf-error">{decodeURIComponent(error)}</div>
+  )}
+
+  <div id="pf-user-meta" data-uid={user.id} hidden></div>
+
+  <!-- Banner -->
+  <div class="pf-banner" style={`background:${bg}`}></div>
+
+  <!-- Profile header -->
+  <div class="pf-header">
+    <div class="pf-avatar-row">
+      <div class="pf-avatar" style={`background:${bg}`}>
+        {user.display_name[0].toUpperCase()}
       </div>
-
-      <h1 style="font-size:1.3rem; font-weight:800; margin:0 0 2px;">{user.display_name}</h1>
-      <p style="color:#536471; font-size:0.9rem; margin:0 0 8px;">@{user.username}</p>
-      <p style="font-size:0.9rem; line-height:1.6; margin-bottom:12px;">{user.bio}</p>
-
-      <div style="display:flex; gap:20px; color:#536471; font-size:0.85rem; padding-bottom:16px; border-bottom:1px solid #e2e8f0;">
-        <span><strong style="color:#0f1419;">{posts.length}</strong> Gonderi</span>
-        <span><strong style="color:#0f1419;">0</strong> Takipci</span>
-        <span><strong style="color:#0f1419;">0</strong> Takip</span>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <a href="/settings" class="pf-settings-btn" title="Ayarlar">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+        </a>
+        <button id="open-edit" class="pf-edit-btn">Profili Düzenle</button>
       </div>
     </div>
 
-    <!-- User posts -->
-    {posts.map(post => (
-      <article class="post-card">
-        <div class="post-header">
-          <div class="avatar">{user.display_name[0]}</div>
-          <div class="post-meta">
-            <span class="post-author">{user.display_name}</span>
-            <span class="post-handle"> @{user.username}</span>
+    <h1 class="pf-name">{user.display_name}</h1>
+    <p class="pf-handle">@{user.username}</p>
+    {user.bio && <p class="pf-bio">{user.bio}</p>}
+    {!user.bio && <p class="pf-bio pf-bio--empty">Bio eklemek için profili düzenle</p>}
+
+    <div class="pf-stats">
+      <span><strong>{mediaPosts.length}</strong> Gönderi</span>
+      <span><strong>{followersCount}</strong> Takipçi</span>
+      <span><strong>{followingCount}</strong> Takip</span>
+    </div>
+  </div>
+
+  <!-- Media grid -->
+  {mediaPosts.length === 0 ? (
+    <div class="pf-empty">
+      <div style="font-size:2.5rem;margin-bottom:12px">📷</div>
+      <p style="font-weight:700;margin-bottom:4px">Henüz gönderi yok</p>
+      <p style="font-size:0.85rem;color:var(--color-text-muted)">
+        <a href="/gonderi-olustur" style="color:var(--color-primary)">İlk gönderini paylaş</a>
+      </p>
+    </div>
+  ) : (
+    <div class="pf-grid">
+      {mediaPosts.map(post => (
+        <button
+          class="pf-cell"
+          data-id={post.id}
+          data-type={post.media_type}
+          data-src={post.media_url}
+          data-caption={post.caption}
+          data-likes={post.likes}
+          aria-label={post.caption}
+        >
+          {post.media_type === 'image' ? (
+            <img src={post.media_url} alt={post.caption} loading="lazy" />
+          ) : (
+            <video src={post.media_url} muted preload="metadata" />
+          )}
+          <div class="pf-cell-overlay">
+            <span class="pf-cell-likes">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+              {post.likes}
+            </span>
           </div>
+        </button>
+      ))}
+    </div>
+  )}
+</main>
+
+<!-- ── Edit Profile Modal ── -->
+<div id="edit-modal" class="pf-modal-bg" style="display:none">
+  <div class="pf-modal-box">
+    <div class="pf-modal-header">
+      <span>Profili Düzenle</span>
+      <button id="close-edit" class="pf-icon-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <form method="POST" action="/api/profile/edit" class="pf-edit-form">
+      <div class="pf-edit-avatar" style={`background:${bg}`}>
+        {user.display_name[0].toUpperCase()}
+      </div>
+
+      <div class="pf-field">
+        <label for="edit-name">Ad Soyad</label>
+        <input
+          id="edit-name"
+          name="display_name"
+          type="text"
+          value={user.display_name}
+          maxlength="50"
+          required
+          class="pf-input"
+        />
+      </div>
+
+      <div class="pf-field">
+        <label for="edit-bio">Bio</label>
+        <textarea
+          id="edit-bio"
+          name="bio"
+          maxlength="160"
+          class="pf-textarea"
+          placeholder="Kendinizden bahsedin..."
+        >{user.bio}</textarea>
+        <div id="bio-count" class="pf-char-count">{(user.bio ?? '').length} / 160</div>
+      </div>
+
+      <button type="submit" class="post-btn" style="margin-top:8px">Kaydet</button>
+    </form>
+  </div>
+</div>
+
+<!-- ── Lightbox ── -->
+<div id="pf-lightbox" class="pf-lightbox-bg" style="display:none">
+  <div class="pf-lightbox-box">
+    <button id="pf-close" class="pf-close-btn">
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+    <div class="pf-lightbox-media">
+      <img id="pf-lb-img" src="" alt="" style="display:none" />
+      <video id="pf-lb-vid" src="" controls style="display:none"></video>
+    </div>
+    <div class="pf-lightbox-info">
+      <div class="pf-lb-user">
+        <div class="pf-lb-avatar" style={`background:${bg}`}>{user.display_name[0].toUpperCase()}</div>
+        <div>
+          <div class="pf-lb-name">{user.display_name}</div>
+          <div class="pf-lb-handle">@{user.username}</div>
         </div>
-        <div class="post-content">
-          <span class={`category-badge category-${post.category}`}>
-            {post.category === 'science' ? 'Bilim' : post.category === 'history' ? 'Tarih' : 'Genel'}
-          </span>
-          <br />
-          {post.content}
+        <div class="pf-lb-likes" style="margin-left:auto">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#ef4444"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+          <span id="pf-lb-likes">0</span>
         </div>
-        <div class="post-actions">
-          <span class="action-btn">❤️ {post.likes}</span>
-        </div>
-      </article>
-    ))}
-  </main>
+      </div>
+      <p id="pf-lb-caption" class="pf-lb-caption"></p>
+      <div id="pf-cm-list" class="cm-list" style="flex:1;min-height:80px;border-top:1px solid var(--color-border)"></div>
+      <form id="pf-cm-form" class="cm-form">
+        <div class="cm-form-avatar" style={`background:${bg}`}>{user.display_name[0].toUpperCase()}</div>
+        <input id="pf-cm-input" class="cm-input" placeholder="Yorum ekle…" maxlength="300" autocomplete="off" />
+        <button type="submit" class="cm-send-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
 </BaseLayout>
+
+<style>
+.pf-error {
+  background: #fee2e2; color: #dc2626;
+  padding: 10px 20px; font-size: 0.85rem;
+  border-bottom: 1px solid #fecaca;
+}
+
+.pf-banner { height: 160px; width: 100%; }
+
+.pf-header {
+  padding: 0 20px 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.pf-avatar-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: -40px;
+  margin-bottom: 12px;
+}
+
+.pf-avatar {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  border: 4px solid white;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 2rem; font-weight: 800;
+}
+
+.pf-edit-btn {
+  padding: 9px 22px;
+  border-radius: 9999px;
+  border: 2px solid var(--color-border);
+  background: white;
+  font-size: 0.9rem; font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.pf-edit-btn:hover { background: #f0f2f5; }
+
+.pf-settings-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  background: white;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+.pf-settings-btn:hover { background: #f0f2f5; color: var(--color-text); }
+
+.pf-name { font-size: 1.25rem; font-weight: 800; margin: 0 0 2px; }
+.pf-handle { color: var(--color-text-muted); font-size: 0.9rem; margin: 0 0 8px; }
+.pf-bio { font-size: 0.9rem; line-height: 1.5; margin: 0 0 12px; }
+.pf-bio--empty { color: var(--color-text-muted); font-style: italic; }
+
+.pf-stats {
+  display: flex; gap: 20px;
+  font-size: 0.85rem; color: var(--color-text-muted);
+}
+.pf-stats strong { color: var(--color-text); }
+
+.pf-empty {
+  text-align: center; padding: 80px 20px;
+  color: var(--color-text-muted);
+}
+
+.pf-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px; padding: 3px;
+}
+.pf-cell {
+  aspect-ratio: 1; overflow: hidden;
+  background: var(--color-border);
+  border: none; padding: 0; cursor: pointer; position: relative;
+}
+.pf-cell img, .pf-cell video {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  transition: transform 0.2s;
+}
+.pf-cell:hover img, .pf-cell:hover video { transform: scale(1.05); }
+.pf-cell-overlay {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.32);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.15s;
+}
+.pf-cell:hover .pf-cell-overlay { opacity: 1; }
+.pf-cell-likes {
+  color: white; font-weight: 700; font-size: 0.9rem;
+  display: flex; align-items: center; gap: 4px;
+}
+
+/* Edit Modal */
+.pf-modal-bg {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+}
+.pf-modal-box {
+  background: var(--color-surface);
+  border-radius: 20px;
+  width: 100%; max-width: 480px;
+  padding: 20px;
+  max-height: 90vh; overflow-y: auto;
+}
+.pf-modal-header {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 1rem; font-weight: 700;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-border);
+}
+.pf-icon-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--color-text-muted);
+  display: flex; padding: 6px; border-radius: 50%;
+  transition: background 0.15s;
+}
+.pf-icon-btn:hover { background: var(--color-border); }
+
+.pf-edit-form { display: flex; flex-direction: column; gap: 16px; }
+.pf-edit-avatar {
+  width: 72px; height: 72px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 1.8rem; font-weight: 800;
+  margin-bottom: 4px;
+}
+.pf-field { display: flex; flex-direction: column; gap: 6px; }
+.pf-field label { font-size: 0.8rem; font-weight: 700; color: var(--color-text-muted); }
+.pf-input, .pf-textarea {
+  width: 100%;
+  border: 1.5px solid var(--color-border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  outline: none;
+  background: var(--color-bg);
+  color: var(--color-text);
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+.pf-input:focus, .pf-textarea:focus { border-color: var(--color-primary); }
+.pf-textarea { min-height: 80px; resize: vertical; }
+.pf-char-count { font-size: 0.75rem; color: var(--color-text-muted); text-align: right; margin-top: 2px; }
+
+/* Lightbox */
+.pf-lightbox-bg {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.8); backdrop-filter: blur(4px);
+  z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+}
+.pf-lightbox-box {
+  background: var(--color-surface); border-radius: 16px;
+  display: flex; max-width: 860px; width: 100%;
+  max-height: 90vh; overflow: hidden; position: relative;
+}
+.pf-close-btn {
+  position: absolute; top: 10px; right: 10px; z-index: 1;
+  background: rgba(0,0,0,0.4); border: none; color: white;
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.pf-lightbox-media {
+  flex: 1; background: #000;
+  display: flex; align-items: center; justify-content: center;
+  min-height: 360px; max-height: 90vh;
+}
+.pf-lightbox-media img, .pf-lightbox-media video {
+  max-width: 100%; max-height: 90vh; object-fit: contain;
+}
+.pf-lightbox-info {
+  width: 280px; flex-shrink: 0;
+  border-left: 1px solid var(--color-border);
+  display: flex; flex-direction: column;
+  padding: 16px; gap: 12px;
+}
+.pf-lb-user { display: flex; align-items: center; gap: 10px; }
+.pf-lb-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-weight: 700; font-size: 0.85rem; flex-shrink: 0;
+}
+.pf-lb-name { font-weight: 700; font-size: 0.9rem; }
+.pf-lb-handle { color: var(--color-text-muted); font-size: 0.8rem; }
+.pf-lb-caption { font-size: 0.9rem; line-height: 1.6; flex: 1; margin: 0; }
+.pf-lb-likes { display: flex; align-items: center; gap: 6px; font-weight: 700; color: #ef4444; }
+
+.cm-list { overflow-y:auto; padding:4px 0; display:flex; flex-direction:column; }
+.cm-loading,.cm-empty { text-align:center; padding:16px; font-size:0.8rem; color:var(--color-text-muted); }
+.cm-item { display:flex; align-items:flex-start; gap:8px; padding:6px 12px; }
+.cm-item:hover { background:#f9fafb; }
+.cm-avatar { width:24px;height:24px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:white;font-size:0.65rem;font-weight:700;text-decoration:none; }
+.cm-body { flex:1;min-width:0; }
+.cm-author { font-weight:700;font-size:0.78rem;margin-right:4px; }
+.cm-text { font-size:0.8rem;color:var(--color-text);line-height:1.4;word-break:break-word; }
+.cm-time { font-size:0.68rem;color:var(--color-text-muted);margin-top:1px; }
+.cm-delete { background:none;border:none;cursor:pointer;color:var(--color-text-muted);font-size:1rem;padding:2px 4px;border-radius:4px;flex-shrink:0;line-height:1;opacity:0;transition:opacity 0.15s,color 0.15s; }
+.cm-item:hover .cm-delete { opacity:1; }
+.cm-delete:hover { color:#ef4444; }
+.cm-form { display:flex;align-items:center;gap:8px;padding:8px 12px;border-top:1px solid var(--color-border);flex-shrink:0; }
+.cm-form-avatar { width:24px;height:24px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:white;font-size:0.65rem;font-weight:700; }
+.cm-input { flex:1;border:none;outline:none;background:transparent;font-size:0.82rem;font-family:inherit;color:var(--color-text);min-width:0; }
+.cm-input::placeholder { color:var(--color-text-muted); }
+.cm-send-btn { background:none;border:none;cursor:pointer;color:var(--color-primary);padding:4px;display:flex;align-items:center;flex-shrink:0;opacity:0.4;transition:opacity 0.15s; }
+.cm-send-btn:hover { opacity:1; }
+
+@media (max-width: 640px) {
+  .pf-lightbox-box { flex-direction: column; border-radius: 20px 20px 0 0; align-self: flex-end; max-width: 100%; }
+  .pf-lightbox-info { width: 100%; border-left: none; border-top: 1px solid var(--color-border); }
+  .pf-lightbox-media { min-height: 240px; max-height: 45vh; }
+  .pf-lightbox-bg { padding: 0; align-items: flex-end; }
+}
+</style>
+
+<script>
+import { renderCaption } from '../lib/caption';
+
+// ── Edit modal
+const editModal  = document.getElementById('edit-modal')!;
+const openEdit   = document.getElementById('open-edit')!;
+const closeEdit  = document.getElementById('close-edit')!;
+const bioTextarea = document.getElementById('edit-bio') as HTMLTextAreaElement;
+const bioCount   = document.getElementById('bio-count')!;
+
+openEdit.addEventListener('click',  () => { editModal.style.display = 'flex'; });
+closeEdit.addEventListener('click', () => { editModal.style.display = 'none'; });
+editModal.addEventListener('click', e => { if (e.target === editModal) editModal.style.display = 'none'; });
+
+bioTextarea.addEventListener('input', () => {
+  const l = bioTextarea.value.length;
+  bioCount.textContent = `${l} / 160`;
+  bioCount.style.color = l > 145 ? '#ef4444' : 'var(--color-text-muted)';
+});
+
+// ── Yardımcılar
+function avatarBg(u: string): string {
+  const gs = ['linear-gradient(135deg,#6366f1,#8b5cf6)','linear-gradient(135deg,#ec4899,#8b5cf6)',
+    'linear-gradient(135deg,#f97316,#ef4444)','linear-gradient(135deg,#10b981,#3b82f6)',
+    'linear-gradient(135deg,#f59e0b,#f97316)','linear-gradient(135deg,#14b8a6,#06b6d4)',
+    'linear-gradient(135deg,#3b82f6,#6366f1)','linear-gradient(135deg,#ef4444,#f97316)'];
+  let h = 0; for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff;
+  return gs[Math.abs(h) % gs.length];
+}
+function esc(s: string) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function tAgo(iso: string) {
+  const s = Math.floor((Date.now()-new Date(iso).getTime())/1000);
+  return s<60?`${s}sn`:s<3600?`${Math.floor(s/60)}dk`:s<86400?`${Math.floor(s/3600)}sa`:`${Math.floor(s/86400)}g`;
+}
+
+// ── Lightbox
+const lightbox  = document.getElementById('pf-lightbox')!;
+const lbImg     = document.getElementById('pf-lb-img') as HTMLImageElement;
+const lbVid     = document.getElementById('pf-lb-vid') as HTMLVideoElement;
+const lbCap     = document.getElementById('pf-lb-caption')!;
+const lbLikes   = document.getElementById('pf-lb-likes')!;
+const closeBtn  = document.getElementById('pf-close')!;
+const cmList    = document.getElementById('pf-cm-list')!;
+const cmForm    = document.getElementById('pf-cm-form') as HTMLFormElement;
+const cmInput   = document.getElementById('pf-cm-input') as HTMLInputElement;
+const myUserId  = parseInt(document.getElementById('pf-user-meta')?.dataset.uid ?? '0') || null;
+
+let lbPostId: number | null = null;
+
+interface Cm { id:number; user_id:number; content:string; created_at:string; display_name:string; username:string; }
+
+function renderCm(c: Cm): string {
+  const bg = avatarBg(c.username);
+  const own = (c.user_id === myUserId);
+  return `<div class="cm-item"><a href="/u/${esc(c.username)}" class="cm-avatar" style="background:${bg}">${c.display_name[0].toUpperCase()}</a><div class="cm-body"><span class="cm-author">${esc(c.display_name)}</span><span class="cm-text">${esc(c.content)}</span><div class="cm-time">${tAgo(c.created_at)}</div></div>${own?`<button class="cm-delete" data-id="${c.id}">×</button>`:''}</div>`;
+}
+function bindDeletes() {
+  cmList.querySelectorAll<HTMLButtonElement>('.cm-delete').forEach(b=>{
+    b.addEventListener('click',async()=>{
+      const res=await fetch(`/api/comments/${b.dataset.id}`,{method:'DELETE'});
+      if(res.ok) b.closest('.cm-item')?.remove();
+    });
+  });
+}
+async function loadCm(postId: number) {
+  cmList.innerHTML='<div class="cm-loading">Yükleniyor…</div>';
+  try {
+    const d = await fetch(`/api/quick-facts/${postId}/comments`).then(r=>r.json()) as {comments:Cm[]};
+    cmList.innerHTML = d.comments.length ? d.comments.map(renderCm).join('') : '<div class="cm-empty">Henüz yorum yok</div>';
+    bindDeletes();
+    cmList.scrollTop = cmList.scrollHeight;
+  } catch { cmList.innerHTML='<div class="cm-empty">Yüklenemedi.</div>'; }
+}
+
+cmForm.addEventListener('submit',async e=>{
+  e.preventDefault();
+  const content=cmInput.value.trim();
+  if(!content||!lbPostId)return;
+  cmInput.value='';
+  const res=await fetch(`/api/quick-facts/${lbPostId}/comment`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content})});
+  const d=await res.json() as {comment:Cm};
+  if(d.comment){
+    cmList.querySelector('.cm-empty, .cm-loading')?.remove();
+    cmList.insertAdjacentHTML('beforeend',renderCm(d.comment));
+    bindDeletes();
+    cmList.scrollTop=cmList.scrollHeight;
+  }
+});
+
+document.querySelectorAll<HTMLButtonElement>('.pf-cell').forEach(cell => {
+  cell.addEventListener('click', () => {
+    const { id, type, src, caption, likes } = cell.dataset as Record<string, string>;
+    lbPostId = Number(id);
+    if (type === 'video') {
+      lbImg.style.display = 'none'; lbVid.style.display = 'block'; lbVid.src = src;
+    } else {
+      lbVid.style.display = 'none'; lbImg.style.display = 'block'; lbImg.src = src;
+    }
+    lbCap.innerHTML     = renderCaption(caption);
+    lbLikes.textContent = likes;
+    loadCm(lbPostId);
+    lightbox.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  });
+});
+
+function closeLb() {
+  lightbox.style.display = 'none';
+  lbVid.pause(); lbVid.src = '';
+  document.body.style.overflow = '';
+  lbPostId = null; cmInput.value = '';
+}
+closeBtn.addEventListener('click', closeLb);
+lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLb(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (lightbox.style.display !== 'none') closeLb();
+    if (editModal.style.display !== 'none') editModal.style.display = 'none';
+  }
+});
+</script>

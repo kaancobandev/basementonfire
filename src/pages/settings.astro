@@ -1,0 +1,341 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { supabase, createAuthClient } from '../lib/supabase';
+
+const authHeaders = new Headers();
+const authClient = createAuthClient(Astro.request, authHeaders);
+const { data: { user: authUser } } = await authClient.auth.getUser();
+if (!authUser) return Astro.redirect('/login');
+
+const { data: me } = await supabase
+  .from('users')
+  .select('id, username, display_name, is_private, dm_privacy, comment_privacy')
+  .eq('auth_id', authUser.id)
+  .single();
+if (!me) return Astro.redirect('/login');
+
+const isPrivate     = me.is_private     ?? false;
+const dmPrivacy     = me.dm_privacy     ?? 'everyone';
+const commentPrivacy = me.comment_privacy ?? 'everyone';
+---
+
+<BaseLayout title="Ayarlar" activeNav="">
+<main class="main-content">
+  <div class="st-header">
+    <a href="/profile" class="st-back">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+    </a>
+    <h1 class="st-title">Ayarlar</h1>
+  </div>
+
+  <!-- Nav tabs -->
+  <div class="st-tabs">
+    <button class="st-tab active" data-tab="privacy">Gizlilik</button>
+  </div>
+
+  <!-- Privacy Section -->
+  <div class="st-section" id="tab-privacy">
+
+    <!-- Private account -->
+    <div class="st-card">
+      <div class="st-card-header">
+        <div>
+          <div class="st-card-title">Gizli Hesap</div>
+          <div class="st-card-desc">Açık olduğunda gönderilerinizi yalnızca takipçileriniz görebilir.</div>
+        </div>
+        <label class="st-toggle" aria-label="Gizli hesap">
+          <input type="checkbox" id="toggle-private" {isPrivate ? 'checked' : ''} />
+          <span class="st-toggle-track">
+            <span class="st-toggle-thumb"></span>
+          </span>
+        </label>
+      </div>
+    </div>
+
+    <!-- DM privacy -->
+    <div class="st-card">
+      <div class="st-card-title" style="margin-bottom:6px">Mesaj Gönderebilecekler</div>
+      <div class="st-card-desc" style="margin-bottom:14px">Sana özel mesaj kimler gönderebilir?</div>
+      <div class="st-radio-group" id="dm-privacy-group">
+        {[
+          { value: 'everyone',  label: 'Herkes',           desc: 'Tüm kullanıcılar mesaj gönderebilir.' },
+          { value: 'followers', label: 'Sadece Takipçiler', desc: 'Yalnızca seni takip edenler mesaj gönderebilir.' },
+          { value: 'none',      label: 'Kimse',             desc: 'Hiç kimse sana mesaj gönderemez.' },
+        ].map(opt => (
+          <label class={`st-radio-item${dmPrivacy === opt.value ? ' selected' : ''}`}>
+            <input type="radio" name="dm_privacy" value={opt.value} {dmPrivacy === opt.value ? 'checked' : ''} />
+            <span class="st-radio-dot"></span>
+            <span class="st-radio-text">
+              <span class="st-radio-label">{opt.label}</span>
+              <span class="st-radio-desc">{opt.desc}</span>
+            </span>
+          </label>
+        ))}
+      </div>
+    </div>
+
+    <!-- Comment privacy -->
+    <div class="st-card">
+      <div class="st-card-title" style="margin-bottom:6px">Yorum Yapabilecekler</div>
+      <div class="st-card-desc" style="margin-bottom:14px">Gönderilerine kim yorum yapabilir?</div>
+      <div class="st-radio-group" id="comment-privacy-group">
+        {[
+          { value: 'everyone',  label: 'Herkes',           desc: 'Tüm kullanıcılar yorum yapabilir.' },
+          { value: 'followers', label: 'Sadece Takipçiler', desc: 'Yalnızca seni takip edenler yorum yapabilir.' },
+          { value: 'none',      label: 'Kimse',             desc: 'Yorumlar kapatılır.' },
+        ].map(opt => (
+          <label class={`st-radio-item${commentPrivacy === opt.value ? ' selected' : ''}`}>
+            <input type="radio" name="comment_privacy" value={opt.value} {commentPrivacy === opt.value ? 'checked' : ''} />
+            <span class="st-radio-dot"></span>
+            <span class="st-radio-text">
+              <span class="st-radio-label">{opt.label}</span>
+              <span class="st-radio-desc">{opt.desc}</span>
+            </span>
+          </label>
+        ))}
+      </div>
+    </div>
+
+    <!-- Save -->
+    <div class="st-save-row">
+      <div id="st-status" class="st-status" hidden></div>
+      <button id="st-save-btn" class="st-save-btn">Kaydet</button>
+    </div>
+  </div>
+</main>
+</BaseLayout>
+
+<style>
+.st-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 16px 12px;
+  border-bottom: 1px solid var(--color-border);
+}
+.st-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  transition: background 0.15s;
+}
+.st-back:hover { background: var(--color-border); }
+.st-title { font-size: 1.1rem; font-weight: 800; margin: 0; }
+
+.st-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--color-border);
+  padding: 0 16px;
+}
+.st-tab {
+  background: none;
+  border: none;
+  padding: 12px 16px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.st-tab.active {
+  color: var(--color-text);
+  border-color: var(--color-primary);
+}
+
+.st-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  max-width: 600px;
+}
+
+.st-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 18px;
+}
+.st-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.st-card-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+.st-card-desc {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  margin-top: 3px;
+}
+
+/* Toggle switch */
+.st-toggle {
+  flex-shrink: 0;
+  cursor: pointer;
+  position: relative;
+}
+.st-toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
+.st-toggle-track {
+  display: block;
+  width: 48px;
+  height: 26px;
+  border-radius: 9999px;
+  background: var(--color-border);
+  transition: background 0.2s;
+  position: relative;
+}
+.st-toggle input:checked + .st-toggle-track { background: #d4a564; }
+.st-toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+  transition: transform 0.2s;
+}
+.st-toggle input:checked + .st-toggle-track .st-toggle-thumb {
+  transform: translateX(22px);
+}
+
+/* Radio group */
+.st-radio-group { display: flex; flex-direction: column; gap: 8px; }
+.st-radio-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1.5px solid var(--color-border);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.st-radio-item.selected {
+  border-color: #d4a564;
+  background: rgba(212,165,100,0.06);
+}
+.st-radio-item input { position: absolute; opacity: 0; width: 0; height: 0; }
+.st-radio-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  flex-shrink: 0;
+  margin-top: 1px;
+  position: relative;
+  transition: border-color 0.15s;
+}
+.st-radio-item.selected .st-radio-dot {
+  border-color: #d4a564;
+}
+.st-radio-item.selected .st-radio-dot::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: #d4a564;
+}
+.st-radio-text { display: flex; flex-direction: column; gap: 2px; }
+.st-radio-label { font-size: 0.88rem; font-weight: 700; }
+.st-radio-desc  { font-size: 0.78rem; color: var(--color-text-muted); line-height: 1.4; }
+
+/* Save row */
+.st-save-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 4px;
+}
+.st-status {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.st-status.ok    { color: #10b981; }
+.st-status.error { color: #ef4444; }
+.st-save-btn {
+  padding: 10px 28px;
+  border-radius: 9999px;
+  border: none;
+  background: #d4a564;
+  color: #0f0e0d;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+}
+.st-save-btn:hover    { background: #c4954e; }
+.st-save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+</style>
+
+<script>
+// Toggle → visual update
+const togglePrivate = document.getElementById('toggle-private') as HTMLInputElement;
+
+// Radio groups → visual .selected update
+function initRadios(groupId: string) {
+  const group = document.getElementById(groupId)!;
+  group.querySelectorAll<HTMLInputElement>('input[type="radio"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      group.querySelectorAll('.st-radio-item').forEach(el => el.classList.remove('selected'));
+      radio.closest('.st-radio-item')?.classList.add('selected');
+    });
+  });
+}
+initRadios('dm-privacy-group');
+initRadios('comment-privacy-group');
+
+// Save
+const saveBtn  = document.getElementById('st-save-btn') as HTMLButtonElement;
+const statusEl = document.getElementById('st-status')!;
+
+function showStatus(msg: string, type: 'ok' | 'error') {
+  statusEl.textContent = msg;
+  statusEl.className = `st-status ${type}`;
+  statusEl.hidden = false;
+  setTimeout(() => { statusEl.hidden = true; }, 3500);
+}
+
+saveBtn.addEventListener('click', async () => {
+  saveBtn.disabled = true;
+  const dmPrivacy = (document.querySelector<HTMLInputElement>('input[name="dm_privacy"]:checked'))?.value ?? 'everyone';
+  const commentPrivacy = (document.querySelector<HTMLInputElement>('input[name="comment_privacy"]:checked'))?.value ?? 'everyone';
+
+  try {
+    const res = await fetch('/api/settings/privacy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        is_private:      togglePrivate.checked,
+        dm_privacy:      dmPrivacy,
+        comment_privacy: commentPrivacy,
+      }),
+    });
+    const data = await res.json() as { ok?: boolean; error?: string };
+    if (data.ok) {
+      showStatus('Ayarlar kaydedildi', 'ok');
+    } else {
+      showStatus(data.error ?? 'Hata oluştu', 'error');
+    }
+  } catch {
+    showStatus('Bağlantı hatası', 'error');
+  } finally {
+    saveBtn.disabled = false;
+  }
+});
+</script>

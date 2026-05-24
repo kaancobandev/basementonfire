@@ -1,0 +1,218 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { createAuthClient } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
+
+const authHeaders = new Headers();
+const authClient = createAuthClient(Astro.request, authHeaders);
+const { data: { user: authUser } } = await authClient.auth.getUser();
+
+if (!authUser) return Astro.redirect('/login');
+
+const { data: me } = await supabase
+  .from('users').select('id, username, display_name').eq('auth_id', authUser.id).single();
+
+if (!me) return Astro.redirect('/login');
+
+const { data: notifications } = await supabase
+  .from('notifications')
+  .select(`
+    id, type, is_read, created_at, post_id, comment_id,
+    actor:actor_id ( id, username, display_name, avatar )
+  `)
+  .eq('user_id', me.id)
+  .order('created_at', { ascending: false })
+  .limit(50);
+
+// Mark all as read (fire and forget)
+supabase.from('notifications').update({ is_read: true }).eq('user_id', me.id).eq('is_read', false);
+
+const notifs = notifications ?? [];
+---
+
+<BaseLayout title="Bildirimler">
+  <div class="notif-page">
+    <h1 class="notif-title">Bildirimler</h1>
+
+    {notifs.length === 0 ? (
+      <div class="notif-empty">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        <p>Henüz bildirim yok</p>
+      </div>
+    ) : (
+      <ul class="notif-list">
+        {notifs.map((n: any) => {
+          const actor = n.actor;
+          const label =
+            n.type === 'follow'  ? 'seni takip etmeye başladı.' :
+            n.type === 'comment' ? 'gönderine yorum yaptı.' :
+            n.type === 'like'    ? 'gönderini beğendi.' :
+            n.type === 'mention' ? 'seni bir gönderide etiketledi.' : '';
+
+          const href =
+            n.type === 'follow'              ? `/u/${actor?.username}` :
+            (n.post_id && n.type !== 'follow') ? `/akis#post-${n.post_id}` : '#';
+
+          const avatarColors = [
+            'linear-gradient(135deg,#667eea,#764ba2)',
+            'linear-gradient(135deg,#f093fb,#f5576c)',
+            'linear-gradient(135deg,#4facfe,#00f2fe)',
+            'linear-gradient(135deg,#43e97b,#38f9d7)',
+            'linear-gradient(135deg,#fa709a,#fee140)',
+            'linear-gradient(135deg,#a18cd1,#fbc2eb)',
+            'linear-gradient(135deg,#fda085,#f6d365)',
+            'linear-gradient(135deg,#96fbc4,#f9f586)',
+          ];
+          const uname = actor?.username ?? '';
+          let h = 0;
+          for (let i = 0; i < uname.length; i++) h = (h * 31 + uname.charCodeAt(i)) & 0xffffffff;
+          const avatarBg = actor?.avatar ? '' : avatarColors[Math.abs(h) % avatarColors.length];
+          const initials = (actor?.display_name ?? actor?.username ?? '?')[0].toUpperCase();
+
+          const ago = (() => {
+            const ms = Date.now() - new Date(n.created_at).getTime();
+            const s = Math.floor(ms / 1000);
+            if (s < 60) return `${s}s`;
+            const m = Math.floor(s / 60);
+            if (m < 60) return `${m}d`;
+            const hh = Math.floor(m / 60);
+            if (hh < 24) return `${hh}sa`;
+            return `${Math.floor(hh / 24)}g`;
+          })();
+
+          const typeIcon =
+            n.type === 'follow'  ? '👤' :
+            n.type === 'comment' ? '💬' : '❤️';
+
+          return (
+            <li class={`notif-item${n.is_read ? '' : ' unread'}`}>
+              <a href={href} class="notif-link">
+                <div class="notif-av-wrap">
+                  {actor?.avatar
+                    ? <img src={actor.avatar} alt="" class="notif-av" />
+                    : <div class="notif-av" style={`background:${avatarBg}`}>{initials}</div>
+                  }
+                  <span class="notif-type-badge">{typeIcon}</span>
+                </div>
+                <div class="notif-body">
+                  <span class="notif-actor">{actor?.display_name ?? actor?.username}</span>
+                  {' '}{label}
+                </div>
+                <span class="notif-time">{ago}</span>
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+.notif-page {
+  max-width: 540px;
+  margin: 0 auto;
+  padding: 2rem 1rem 4rem;
+}
+
+.notif-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: var(--text, #e8e0d8);
+}
+
+.notif-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 4rem 0;
+  color: #888;
+  font-size: 0.95rem;
+}
+
+.notif-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.notif-item {
+  border-radius: 12px;
+  overflow: hidden;
+  transition: background 0.15s;
+}
+
+.notif-item.unread {
+  background: rgba(212,165,100,0.08);
+}
+
+.notif-link {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.85rem 1rem;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 12px;
+}
+
+.notif-link:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+.notif-av-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.notif-av {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #fff;
+}
+
+.notif-type-badge {
+  position: absolute;
+  bottom: -2px;
+  right: -4px;
+  font-size: 0.7rem;
+  background: #1a1510;
+  border-radius: 50%;
+  padding: 1px;
+  line-height: 1;
+}
+
+.notif-body {
+  flex: 1;
+  font-size: 0.9rem;
+  color: #ccc;
+  line-height: 1.4;
+}
+
+.notif-actor {
+  font-weight: 600;
+  color: #e8e0d8;
+}
+
+.notif-time {
+  font-size: 0.78rem;
+  color: #666;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+</style>

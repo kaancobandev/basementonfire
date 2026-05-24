@@ -1,68 +1,781 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { supabase, createAuthClient } from '../lib/supabase';
 
-const articles = [
-  {
-    href: '/articles/black-hole',
-    title: 'Kara Delikler',
-    desc: 'Evrenin en gizemli yapılarına interaktif yolculuk. Canvas animasyonlar ve quiz ile.',
-    tag: 'Bilim',
-    tagClass: 'category-science',
-    emoji: '🕳️',
-    bg: 'linear-gradient(135deg, #1a0b2e, #000)',
-    color: '#ff4500',
-  },
-  {
-    href: '/articles/carthage',
-    title: 'Kartaca',
-    desc: 'Akdeniz\'in unutulan imparatorluğu. Flip kartlar ve kronoloji ile tarih yolculuğu.',
-    tag: 'Tarih',
-    tagClass: 'category-history',
-    emoji: '⚔️',
-    bg: 'linear-gradient(135deg, #1a2634, #2d4a6b)',
-    color: '#c5a059',
-  },
-  {
-    href: '/gallery',
-    title: 'Galeri',
-    desc: 'Hayvanlar, manzaralar ve sanat eserleri. Lightbox ile tam ekran görüntüleme.',
-    tag: 'Kültür',
-    tagClass: 'category-general',
-    emoji: '🖼️',
-    bg: 'linear-gradient(135deg, #1a3a2e, #2d6b4a)',
-    color: '#4ade80',
-  },
+const authHeaders = new Headers();
+const authClient = createAuthClient(Astro.request, authHeaders);
+const { data: { user: authUser } } = await authClient.auth.getUser();
+
+let myId: number | null = null;
+if (authUser) {
+  const { data: me } = await supabase.from('users').select('id').eq('auth_id', authUser.id).single();
+  myId = me?.id ?? null;
+}
+
+// Suggested users — latest 12 excluding self
+const { data: suggestedRaw } = await supabase
+  .from('users')
+  .select('id, username, display_name, avatar, bio')
+  .neq('id', myId ?? 0)
+  .order('created_at', { ascending: false })
+  .limit(12);
+
+let followingIds: Set<number> = new Set();
+if (myId && (suggestedRaw ?? []).length > 0) {
+  const ids = (suggestedRaw ?? []).map((u: any) => u.id);
+  const { data: follows } = await supabase
+    .from('follows').select('following_id').eq('follower_id', myId).in('following_id', ids);
+  if (follows) follows.forEach((f: any) => followingIds.add(f.following_id));
+}
+const suggested = (suggestedRaw ?? []).map((u: any) => ({
+  ...u, is_following: followingIds.has(u.id),
+}));
+
+// Recent posts
+const { data: recentPosts } = await supabase
+  .from('quick_facts')
+  .select('id, caption, media_url, media_type, user:user_id(username)')
+  .order('created_at', { ascending: false })
+  .limit(18);
+
+const avatarColors = [
+  'linear-gradient(135deg,#667eea,#764ba2)',
+  'linear-gradient(135deg,#f093fb,#f5576c)',
+  'linear-gradient(135deg,#4facfe,#00f2fe)',
+  'linear-gradient(135deg,#43e97b,#38f9d7)',
+  'linear-gradient(135deg,#fa709a,#fee140)',
+  'linear-gradient(135deg,#a18cd1,#fbc2eb)',
+  'linear-gradient(135deg,#fda085,#f6d365)',
+  'linear-gradient(135deg,#96fbc4,#f9f586)',
 ];
+function avatarBg(username: string) {
+  let h = 0;
+  for (let i = 0; i < username.length; i++) h = (h * 31 + username.charCodeAt(i)) & 0xffffffff;
+  return avatarColors[Math.abs(h) % avatarColors.length];
+}
 ---
 
-<BaseLayout title="Kesfet" activeNav="discover">
+<BaseLayout title="İçerikler" activeNav="discover">
   <main class="main-content">
-    <div class="feed-header">Kesfet</div>
 
-    <div style="padding:20px; display:flex; flex-direction:column; gap:16px;">
-      <p style="color:#536471; font-size:0.9rem;">Bilim, tarih ve kultur icerikleri.</p>
-
-      {articles.map(a => (
-        <a href={a.href} style="text-decoration:none; display:block;">
-          <div style={`background:${a.bg}; border-radius:20px; padding:32px 24px; display:flex; align-items:center; gap:20px; transition:transform 0.2s, box-shadow 0.2s; cursor:pointer;`}
-               onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 12px 32px rgba(0,0,0,0.3)'"
-               onmouseout="this.style.transform=''; this.style.boxShadow=''">
-            <span style="font-size:3rem; flex-shrink:0;">{a.emoji}</span>
-            <div style="flex:1;">
-              <span class={`category-badge ${a.tagClass}`}>{a.tag}</span>
-              <h2 style={`font-size:1.3rem; font-weight:700; color:${a.color}; margin:4px 0 8px;`}>{a.title}</h2>
-              <p style="font-size:0.85rem; color:rgba(255,255,255,0.7); line-height:1.6;">{a.desc}</p>
-            </div>
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="m9 18 6-6-6-6"/></svg>
-          </div>
-        </a>
-      ))}
-
-      <div style="background:#f7f9f9; border-radius:20px; padding:24px; border:2px dashed #e2e8f0; text-align:center;">
-        <p style="font-size:1.5rem; margin-bottom:8px;">🚀</p>
-        <p style="font-weight:700; margin-bottom:4px;">Yakininda</p>
-        <p style="font-size:0.85rem; color:#536471;">Roma Imparatorlugu, Muzik ve Oyunlar bolumu yapiim asamasinda.</p>
+    <!-- Search bar -->
+    <div class="srch-header">
+      <div class="srch-bar-wrap">
+        <svg class="srch-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="srch-input" class="srch-input" type="search" placeholder="Kullanıcı veya gönderi ara..." autocomplete="off" spellcheck="false" />
+        <button id="srch-clear" class="srch-clear" aria-label="Temizle" hidden>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
       </div>
     </div>
+
+    <!-- Default state: articles + suggested + recent -->
+    <div id="srch-default">
+      <!-- Articles -->
+      <section class="srch-section">
+        <h2 class="srch-section-title">İçerikler</h2>
+        <div class="art-list">
+          <a href="/articles/turkler" class="art-card" style="--art-bg:linear-gradient(135deg,#1a0e00,#3d2000);--art-accent:#d4a564;">
+            <span class="art-emoji">🐺</span>
+            <div class="art-body">
+              <span class="art-tag" style="background:rgba(212,165,100,0.15);color:#d4a564;">Tarih</span>
+              <h3 class="art-title" style="color:#d4a564;">Türkler</h3>
+              <p class="art-desc">İlk Türklerden günümüze — Bozkurt efsanesi, Orhun alfabesi ve göçebe imparatorluklar.</p>
+            </div>
+            <svg class="art-arrow" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </a>
+
+          <a href="/articles/rome" class="art-card" style="--art-bg:linear-gradient(135deg,#1a0a0a,#3d1500);--art-accent:#e07b39;">
+            <span class="art-emoji">🦅</span>
+            <div class="art-body">
+              <span class="art-tag" style="background:rgba(224,123,57,0.15);color:#e07b39;">Tarih</span>
+              <h3 class="art-title" style="color:#e07b39;">Roma İmparatorluğu</h3>
+              <p class="art-desc">Cumhuriyetten çöküşe — Roma'nın bin yıllık tarihi, orduları ve mimarisi.</p>
+            </div>
+            <svg class="art-arrow" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </a>
+
+          <a href="/articles/greece" class="art-card" style="--art-bg:linear-gradient(135deg,#0a0f1a,#0d2a4d);--art-accent:#5b9bd5;">
+            <span class="art-emoji">🏛️</span>
+            <div class="art-body">
+              <span class="art-tag" style="background:rgba(91,155,213,0.15);color:#5b9bd5;">Tarih</span>
+              <h3 class="art-title" style="color:#5b9bd5;">Antik Yunan</h3>
+              <p class="art-desc">Demokrasinin doğuşu, Olimpiyatlar ve mitoloji — Helen uygarlığının temelleri.</p>
+            </div>
+            <svg class="art-arrow" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </a>
+
+          <a href="/articles/carthage" class="art-card" style="--art-bg:linear-gradient(135deg,#0a1520,#1a3050);--art-accent:#c5a059;">
+            <span class="art-emoji">⚔️</span>
+            <div class="art-body">
+              <span class="art-tag" style="background:rgba(197,160,89,0.15);color:#c5a059;">Tarih</span>
+              <h3 class="art-title" style="color:#c5a059;">Kartaca</h3>
+              <p class="art-desc">Akdeniz'in unutulan imparatorluğu — Hannibal, Pön savaşları ve yenilginin tarihi.</p>
+            </div>
+            <svg class="art-arrow" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </a>
+
+          <a href="/articles/black-hole" class="art-card" style="--art-bg:linear-gradient(135deg,#0a0005,#1a0030);--art-accent:#c084fc;">
+            <span class="art-emoji">🕳️</span>
+            <div class="art-body">
+              <span class="art-tag" style="background:rgba(192,132,252,0.15);color:#c084fc;">Bilim</span>
+              <h3 class="art-title" style="color:#c084fc;">Kara Delikler</h3>
+              <p class="art-desc">Evrenin en gizemli yapıları — olay ufku, Hawking radyasyonu ve uzay-zaman eğriliği.</p>
+            </div>
+            <svg class="art-arrow" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </a>
+        </div>
+      </section>
+
+      <section class="srch-section">
+        <h2 class="srch-section-title">Önerilen Kişiler</h2>
+        <div class="srch-people-list" id="default-people">
+          {suggested.length === 0 && <p class="srch-empty-hint">Henüz kullanıcı yok.</p>}
+          {suggested.map((u: any) => (
+            <div class="srch-person" data-uid={u.id} data-username={u.username}>
+              <a href={`/u/${u.username}`} class="srch-person-link">
+                {u.avatar
+                  ? <img src={u.avatar} alt="" class="srch-av" />
+                  : <div class="srch-av" style={`background:${avatarBg(u.username)}`}>{(u.display_name ?? u.username)[0].toUpperCase()}</div>
+                }
+                <div class="srch-person-info">
+                  <span class="srch-person-name">{u.display_name ?? u.username}</span>
+                  <span class="srch-person-handle">@{u.username}</span>
+                  {u.bio && <span class="srch-person-bio">{u.bio}</span>}
+                </div>
+              </a>
+              {authUser && !u.is_me && (
+                <button
+                  class={`srch-follow-btn${u.is_following ? ' following' : ''}`}
+                  data-username={u.username}
+                  data-following={u.is_following ? 'true' : 'false'}
+                >
+                  {u.is_following ? 'Takip Ediliyor' : 'Takip Et'}
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section class="srch-section">
+        <h2 class="srch-section-title">Son Gönderiler</h2>
+        <div class="srch-grid" id="default-posts">
+          {(recentPosts ?? []).map((p: any) => (
+            <button class="srch-cell" data-post-id={p.id} data-username={(p.user as any)?.username}>
+              {p.media_type === 'video'
+                ? <video muted preload="none" class="srch-thumb cell-vid" data-src={p.media_url} />
+                : <img src={p.media_url} alt={p.caption} class="srch-thumb cell-img" loading="lazy" decoding="async" />
+              }
+              <div class="srch-cell-overlay">
+                <span class="srch-cell-cap">{p.caption}</span>
+              </div>
+            </button>
+          ))}
+        </div>
+      </section>
+    </div>
+
+    <!-- Search results state -->
+    <div id="srch-results" hidden>
+      <!-- Tab bar -->
+      <div class="srch-tabs">
+        <button class="srch-tab active" data-tab="people">Kişiler <span id="tab-people-count" class="srch-tab-count"></span></button>
+        <button class="srch-tab" data-tab="posts">Gönderiler <span id="tab-posts-count" class="srch-tab-count"></span></button>
+      </div>
+
+      <div id="srch-panel-people" class="srch-panel">
+        <div class="srch-people-list" id="res-people"></div>
+      </div>
+      <div id="srch-panel-posts" class="srch-panel" hidden>
+        <div class="srch-grid" id="res-posts"></div>
+      </div>
+
+      <p id="srch-no-results" class="srch-empty-hint" hidden>Sonuç bulunamadı.</p>
+    </div>
+
+    <!-- Loading spinner -->
+    <div id="srch-loading" class="srch-loading" hidden>
+      <div class="srch-spinner"></div>
+    </div>
+
   </main>
 </BaseLayout>
+
+<!-- Pass server data to JS -->
+<div id="page-meta"
+  data-logged-in={authUser ? 'true' : 'false'}
+  data-my-id={myId ?? ''}
+  hidden
+></div>
+
+<script>
+// Blur-up
+function initBlurUp(root: ParentNode = document) {
+  root.querySelectorAll<HTMLImageElement>('.cell-img').forEach(img => {
+    const done = () => img.classList.add('loaded');
+    if (img.complete && img.naturalWidth > 0) done();
+    else img.addEventListener('load', done, { once: true });
+  });
+  root.querySelectorAll<HTMLVideoElement>('.cell-vid').forEach(v => {
+    if (v.dataset.src) { v.src = v.dataset.src; }
+    v.classList.add('loaded');
+  });
+}
+initBlurUp();
+
+const input    = document.getElementById('srch-input') as HTMLInputElement;
+const clearBtn = document.getElementById('srch-clear') as HTMLButtonElement;
+const defView  = document.getElementById('srch-default') as HTMLElement;
+const resView  = document.getElementById('srch-results') as HTMLElement;
+const loading  = document.getElementById('srch-loading') as HTMLElement;
+const noRes    = document.getElementById('srch-no-results') as HTMLElement;
+const resPeople = document.getElementById('res-people') as HTMLElement;
+const resPosts  = document.getElementById('res-posts') as HTMLElement;
+const tabPeopleCount = document.getElementById('tab-people-count') as HTMLElement;
+const tabPostsCount  = document.getElementById('tab-posts-count') as HTMLElement;
+const meta = document.getElementById('page-meta') as HTMLElement;
+const loggedIn = meta.dataset.loggedIn === 'true';
+
+const avatarColors = [
+  'linear-gradient(135deg,#667eea,#764ba2)',
+  'linear-gradient(135deg,#f093fb,#f5576c)',
+  'linear-gradient(135deg,#4facfe,#00f2fe)',
+  'linear-gradient(135deg,#43e97b,#38f9d7)',
+  'linear-gradient(135deg,#fa709a,#fee140)',
+  'linear-gradient(135deg,#a18cd1,#fbc2eb)',
+  'linear-gradient(135deg,#fda085,#f6d365)',
+  'linear-gradient(135deg,#96fbc4,#f9f586)',
+];
+function avatarBgJs(username: string) {
+  let h = 0;
+  for (let i = 0; i < username.length; i++) h = (h * 31 + username.charCodeAt(i)) & 0xffffffff;
+  return avatarColors[Math.abs(h) % avatarColors.length];
+}
+function escHtml(s: string) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ---- Tab switching ----
+let activeTab = 'people';
+document.querySelectorAll('.srch-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.srch-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeTab = (btn as HTMLElement).dataset.tab!;
+    document.getElementById('srch-panel-people')!.hidden = activeTab !== 'people';
+    document.getElementById('srch-panel-posts')!.hidden  = activeTab !== 'posts';
+  });
+});
+
+// ---- Follow toggle ----
+async function toggleFollow(btn: HTMLButtonElement) {
+  const username = btn.dataset.username!;
+  const following = btn.dataset.following === 'true';
+  btn.disabled = true;
+  try {
+    const r = await fetch(`/api/users/${encodeURIComponent(username)}/follow`, { method: 'POST' });
+    if (r.ok) {
+      const json = await r.json();
+      const nowFollowing: boolean = json.following;
+      btn.dataset.following = nowFollowing ? 'true' : 'false';
+      btn.textContent = nowFollowing ? 'Takip Ediliyor' : 'Takip Et';
+      btn.classList.toggle('following', nowFollowing);
+    }
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function bindFollowBtns(container: HTMLElement) {
+  container.querySelectorAll<HTMLButtonElement>('.srch-follow-btn').forEach(btn => {
+    btn.addEventListener('click', () => toggleFollow(btn));
+  });
+}
+
+// Wire default people follow buttons
+bindFollowBtns(document.getElementById('default-people')!);
+
+// ---- Render helpers ----
+function renderPerson(u: any) {
+  const bg = u.avatar ? '' : avatarBgJs(u.username);
+  const avatarHtml = u.avatar
+    ? `<img src="${escHtml(u.avatar)}" alt="" class="srch-av">`
+    : `<div class="srch-av" style="background:${bg}">${escHtml((u.display_name ?? u.username)[0].toUpperCase())}</div>`;
+  const bioHtml = u.bio ? `<span class="srch-person-bio">${escHtml(u.bio)}</span>` : '';
+  const followHtml = loggedIn && !u.is_me
+    ? `<button class="srch-follow-btn${u.is_following ? ' following' : ''}" data-username="${escHtml(u.username)}" data-following="${u.is_following ? 'true' : 'false'}">${u.is_following ? 'Takip Ediliyor' : 'Takip Et'}</button>`
+    : '';
+
+  return `
+    <div class="srch-person" data-uid="${u.id}" data-username="${escHtml(u.username)}">
+      <a href="/u/${escHtml(u.username)}" class="srch-person-link">
+        ${avatarHtml}
+        <div class="srch-person-info">
+          <span class="srch-person-name">${escHtml(u.display_name ?? u.username)}</span>
+          <span class="srch-person-handle">@${escHtml(u.username)}</span>
+          ${bioHtml}
+        </div>
+      </a>
+      ${followHtml}
+    </div>`;
+}
+
+function renderPost(p: any) {
+  const user = p.user ?? {};
+  const mediaHtml = p.media_type === 'video'
+    ? `<video src="${escHtml(p.media_url)}" class="srch-thumb" muted playsinline></video>`
+    : `<img src="${escHtml(p.media_url)}" alt="${escHtml(p.caption)}" class="srch-thumb" loading="lazy">`;
+
+  return `
+    <button class="srch-cell" data-post-id="${p.id}" data-username="${escHtml(user.username ?? '')}">
+      ${mediaHtml}
+      <div class="srch-cell-overlay"><span class="srch-cell-cap">${escHtml(p.caption)}</span></div>
+    </button>`;
+}
+
+// ---- Post click → navigate to user profile (or could open modal, keeping simple) ----
+function bindPostClicks(container: HTMLElement) {
+  container.querySelectorAll<HTMLButtonElement>('.srch-cell').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const username = btn.dataset.username;
+      if (username) window.location.href = `/u/${encodeURIComponent(username)}`;
+    });
+  });
+}
+
+bindPostClicks(document.getElementById('default-posts')!);
+
+// ---- Search ----
+let debounce: ReturnType<typeof setTimeout> | null = null;
+let lastQuery = '';
+
+input.addEventListener('input', () => {
+  const q = input.value.trim();
+  clearBtn.hidden = q.length === 0;
+
+  if (q === lastQuery) return;
+  lastQuery = q;
+
+  if (debounce) clearTimeout(debounce);
+
+  if (!q) {
+    showDefault();
+    return;
+  }
+
+  debounce = setTimeout(() => doSearch(q), 300);
+});
+
+clearBtn.addEventListener('click', () => {
+  input.value = '';
+  clearBtn.hidden = true;
+  lastQuery = '';
+  showDefault();
+  input.focus();
+});
+
+function showDefault() {
+  defView.hidden = false;
+  resView.hidden = true;
+  loading.hidden = true;
+  noRes.hidden = true;
+}
+
+async function doSearch(q: string) {
+  defView.hidden = true;
+  resView.hidden = true;
+  loading.hidden = false;
+  noRes.hidden = true;
+
+  try {
+    const r = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+    if (!r.ok) throw new Error('fetch failed');
+    const { users, posts } = await r.json();
+
+    loading.hidden = true;
+
+    if (users.length === 0 && posts.length === 0) {
+      noRes.hidden = false;
+      resView.hidden = true;
+      return;
+    }
+
+    // Render people
+    resPeople.innerHTML = users.length
+      ? users.map(renderPerson).join('')
+      : '<p class="srch-empty-hint">Kullanıcı bulunamadı.</p>';
+
+    // Render posts
+    resPosts.innerHTML = posts.length
+      ? posts.map(renderPost).join('')
+      : '<p class="srch-empty-hint" style="padding:1rem;">Gönderi bulunamadı.</p>';
+
+    // Update counts
+    tabPeopleCount.textContent = users.length ? String(users.length) : '';
+    tabPostsCount.textContent  = posts.length  ? String(posts.length)  : '';
+
+    bindFollowBtns(resPeople);
+    bindPostClicks(resPosts);
+    initBlurUp(resPosts);
+
+    resView.hidden = false;
+  } catch {
+    loading.hidden = true;
+    noRes.hidden = false;
+    noRes.textContent = 'Arama başarısız oldu.';
+  }
+}
+</script>
+
+<style>
+/* ---- Article cards ---- */
+.art-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 12px 8px;
+}
+
+.art-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--art-bg);
+  border-radius: 16px;
+  padding: 18px 16px;
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid rgba(255,255,255,0.06);
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+.art-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  border-color: rgba(255,255,255,0.12);
+}
+
+.art-emoji {
+  font-size: 2rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.art-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.art-tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  align-self: flex-start;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.art-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.art-desc {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.55);
+  line-height: 1.5;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.art-arrow { flex-shrink: 0; }
+
+/* ---- Search bar ---- */
+.srch-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg, #0f0e0d);
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.srch-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 9999px;
+  padding: 0 16px;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.srch-bar-wrap:focus-within {
+  border-color: rgba(212,165,100,0.5);
+  background: rgba(255,255,255,0.1);
+}
+
+.srch-icon { color: #888; flex-shrink: 0; }
+
+.srch-input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  font-size: 0.95rem;
+  color: #e8e0d8;
+  padding: 12px 0;
+}
+
+.srch-input::placeholder { color: #666; }
+
+.srch-input::-webkit-search-cancel-button { display: none; }
+
+.srch-clear {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #888;
+  padding: 4px;
+  display: flex;
+  border-radius: 50%;
+  transition: color 0.15s, background 0.15s;
+}
+.srch-clear:hover { color: #e8e0d8; background: rgba(255,255,255,0.1); }
+
+/* ---- Sections ---- */
+.srch-section { padding: 0 0 1.5rem; }
+
+.srch-section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #e8e0d8;
+  padding: 1rem 16px 0.5rem;
+  margin: 0;
+}
+
+/* ---- People list ---- */
+.srch-people-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.srch-person {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 10px 16px;
+  transition: background 0.15s;
+}
+.srch-person:hover { background: rgba(255,255,255,0.04); }
+
+.srch-person-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  flex: 1;
+  min-width: 0;
+}
+
+.srch-av {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #fff;
+}
+
+.srch-person-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.srch-person-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #e8e0d8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.srch-person-handle {
+  font-size: 0.82rem;
+  color: #888;
+}
+
+.srch-person-bio {
+  font-size: 0.8rem;
+  color: #aaa;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.srch-follow-btn {
+  flex-shrink: 0;
+  margin-left: 12px;
+  padding: 6px 16px;
+  border-radius: 9999px;
+  border: 1.5px solid #d4a564;
+  background: transparent;
+  color: #d4a564;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.srch-follow-btn:hover {
+  background: #d4a564;
+  color: #0f0e0d;
+}
+
+.srch-follow-btn.following {
+  border-color: #555;
+  color: #aaa;
+}
+
+.srch-follow-btn.following:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+  background: rgba(239,68,68,0.08);
+}
+
+/* ---- Media grid ---- */
+.srch-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+  padding: 0 0 1rem;
+}
+
+.srch-cell {
+  aspect-ratio: 1;
+  overflow: hidden;
+  position: relative;
+  background: #1e1a14;
+  cursor: pointer;
+  background: #1a1510;
+  border: none;
+  padding: 0;
+}
+
+.srch-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s, opacity 0.4s;
+  opacity: 0;
+}
+.srch-thumb.loaded { opacity: 1; }
+.srch-cell:hover .srch-thumb { transform: scale(1.05); }
+
+.srch-cell-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.2s;
+  display: flex;
+  align-items: flex-end;
+  padding: 8px;
+}
+
+.srch-cell:hover .srch-cell-overlay { opacity: 1; }
+
+.srch-cell-cap {
+  font-size: 0.72rem;
+  color: #fff;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-align: left;
+}
+
+/* ---- Tabs ---- */
+.srch-tabs {
+  display: flex;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.srch-tab {
+  flex: 1;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 14px 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.srch-tab.active {
+  color: #d4a564;
+  border-bottom-color: #d4a564;
+}
+
+.srch-tab-count {
+  display: inline-block;
+  background: rgba(212,165,100,0.2);
+  color: #d4a564;
+  border-radius: 9999px;
+  padding: 0 6px;
+  font-size: 0.72rem;
+  margin-left: 4px;
+}
+
+.srch-panel { padding-top: 8px; }
+
+/* ---- States ---- */
+.srch-empty-hint {
+  text-align: center;
+  color: #666;
+  font-size: 0.9rem;
+  padding: 2.5rem 1rem;
+  margin: 0;
+}
+
+.srch-loading {
+  display: flex;
+  justify-content: center;
+  padding: 3rem 0;
+}
+
+.srch-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(212,165,100,0.2);
+  border-top-color: #d4a564;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
