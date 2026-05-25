@@ -13,920 +13,345 @@ if (authUser) {
   currentUser = data;
 }
 
-type SpotifyPlaylist = {
-  id: number;
-  playlist_id: string;
-  title: string;
-  created_at: string;
-  user_id: number;
-  username: string;
-  display_name: string;
-};
-
+// Spotify playlists
 const { data: spRaw } = await supabase
   .from('spotify_playlists')
   .select('id, playlist_id, title, created_at, user_id, users(username, display_name)')
   .order('created_at', { ascending: false })
-  .limit(20);
+  .limit(30);
 
-const spotifyPlaylists: SpotifyPlaylist[] = (spRaw ?? []).map((r: any) => ({
-  ...r,
-  username:     r.users?.username     ?? '',
-  display_name: r.users?.display_name ?? '',
+const spotifyItems = (spRaw ?? []).map((r: any) => ({
+  id:           r.id as number,
+  playlist_id:  r.playlist_id as string,
+  title:        r.title as string,
+  created_at:   r.created_at as string,
+  user_id:      r.user_id as number,
+  username:     (r.users?.username     ?? '') as string,
+  display_name: (r.users?.display_name ?? '') as string,
+}));
+
+// YouTube items
+const { data: ytRaw } = await supabase
+  .from('youtube_items')
+  .select('id, item_type, item_id, title, created_at, user_id, users(username, display_name)')
+  .order('created_at', { ascending: false })
+  .limit(30);
+
+const youtubeItems = (ytRaw ?? []).map((r: any) => ({
+  id:           r.id as number,
+  item_type:    r.item_type as 'video' | 'playlist',
+  item_id:      r.item_id as string,
+  title:        r.title as string,
+  created_at:   r.created_at as string,
+  user_id:      r.user_id as number,
+  username:     (r.users?.username     ?? '') as string,
+  display_name: (r.users?.display_name ?? '') as string,
 }));
 
 function avatarBg(u: string): string {
   const gs = [
-    'linear-gradient(135deg,#6366f1,#8b5cf6)', 'linear-gradient(135deg,#1db954,#1ed760)',
-    'linear-gradient(135deg,#ec4899,#8b5cf6)',  'linear-gradient(135deg,#f97316,#ef4444)',
-    'linear-gradient(135deg,#14b8a6,#06b6d4)',  'linear-gradient(135deg,#3b82f6,#6366f1)',
+    'linear-gradient(135deg,#6366f1,#8b5cf6)',
+    'linear-gradient(135deg,#1db954,#1ed760)',
+    'linear-gradient(135deg,#ec4899,#8b5cf6)',
+    'linear-gradient(135deg,#f97316,#ef4444)',
+    'linear-gradient(135deg,#14b8a6,#06b6d4)',
+    'linear-gradient(135deg,#3b82f6,#6366f1)',
   ];
   let h = 0;
   for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff;
   return gs[Math.abs(h) % gs.length];
 }
+
+function timeAgo(d: string) {
+  const m = Math.floor((Date.now() - new Date(d).getTime()) / 60000);
+  if (m < 60) return `${m}d`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}sa`;
+  return `${Math.floor(h / 24)}g`;
+}
 ---
 
 <BaseLayout title="Müzik" activeNav="muzik">
-  <main class="main-content yt-page">
-  <div class="yt-layout">
+  <main class="main-content music-page">
+    <div class="feed-header">Müzik</div>
 
-  <!-- ── Sol sütun ── -->
-  <div class="yt-left">
-
-    <!-- ══════════════════════════════════════════
-         PLAYER  (YouTube video player look)
-    ══════════════════════════════════════════ -->
-    <div class="yt-player-wrap">
-      <!-- 16:9 video area -->
-      <div class="yt-video-area">
-        <img id="cover-img" class="yt-cover"
-          src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3Crect width='16' height='9' fill='%230f0f0f'/%3E%3C/svg%3E"
-          alt="kapak" />
-
-        <!-- Center play overlay (shows when paused) -->
-        <div class="yt-center-play" id="center-play-overlay">
-          <div class="yt-center-play-btn" id="center-play-btn">
-            <svg viewBox="0 0 24 24" width="48" height="48" fill="#fff"><polygon points="5 3 19 12 5 21"/></svg>
-          </div>
-        </div>
-
-        <!-- Bottom gradient + controls bar -->
-        <div class="yt-controls-bar">
-          <!-- Progress -->
-          <div class="yt-progress" id="progress-track">
-            <div class="yt-progress-played" id="progress-fill"></div>
-            <div class="yt-progress-dot"    id="progress-thumb"></div>
-          </div>
-
-          <div class="yt-bar-bottom">
-            <div class="yt-bar-left">
-              <!-- Play / Pause -->
-              <button class="yt-bar-btn" id="btn-play" title="Oynat/Duraklat">
-                <svg id="icon-play" viewBox="0 0 24 24" width="22" height="22" fill="#fff"><polygon points="5 3 19 12 5 21"/></svg>
-                <svg id="icon-pause" viewBox="0 0 24 24" width="22" height="22" fill="#fff" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-              </button>
-              <!-- Next -->
-              <button class="yt-bar-btn" id="btn-next" title="Sonraki">
-                <svg viewBox="0 0 24 24" width="22" height="22" fill="#fff"><polygon points="5 4 15 12 5 20"/><rect x="19" y="4" width="2" height="16" fill="#fff"/></svg>
-              </button>
-              <!-- Time -->
-              <div class="yt-time">
-                <span id="time-current">0:00</span>
-                <span> / </span>
-                <span id="time-total">0:00</span>
-              </div>
-            </div>
-
-            <div class="yt-bar-right">
-              <!-- Volume -->
-              <button class="yt-bar-btn" id="btn-mute" title="Sessiz">
-                <svg id="icon-vol" viewBox="0 0 24 24" width="22" height="22" fill="#fff"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14" stroke="#fff" stroke-width="2" fill="none"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="#fff" stroke-width="2" fill="none"/></svg>
-                <svg id="icon-mute" viewBox="0 0 24 24" width="22" height="22" fill="#fff" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19"/><line x1="23" y1="9" x2="17" y2="15" stroke="#fff" stroke-width="2"/><line x1="17" y1="9" x2="23" y2="15" stroke="#fff" stroke-width="2"/></svg>
-              </button>
-              <input type="range" id="volume-slider" class="yt-vol-slider" min="0" max="100" value="80" />
-            </div>
-          </div>
-        </div>
-      </div>
+    <!-- Tab bar -->
+    <div class="music-tabs">
+      <button class="music-tab active" data-tab="spotify">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.622.622 0 0 1-.857.207c-2.348-1.435-5.304-1.76-8.785-.964a.623.623 0 0 1-.277-1.215c3.809-.87 7.076-.496 9.712 1.115a.623.623 0 0 1 .207.857zm1.223-2.722a.78.78 0 0 1-1.072.257c-2.687-1.652-6.785-2.131-9.965-1.166a.78.78 0 0 1-.973-.517.781.781 0 0 1 .518-.973c3.632-1.102 8.147-.568 11.234 1.328a.78.78 0 0 1 .258 1.071zm.105-2.835C14.692 8.95 9.375 8.775 6.297 9.71a.937.937 0 1 1-.543-1.793c3.532-1.072 9.404-.865 13.115 1.338a.937.937 0 0 1-.955 1.612z"/></svg>
+        Spotify
+      </button>
+      <button class="music-tab" data-tab="youtube">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
+        YouTube
+      </button>
     </div>
 
-    <!-- ══════════════════════════════════════════
-         VIDEO INFO  (below player like YouTube)
-    ══════════════════════════════════════════ -->
-    <div class="yt-info-section">
-      <!-- Title -->
-      <div id="song-title" class="yt-video-title">Şarkı seçilmedi</div>
-
-      <!-- Views row -->
-      <div class="yt-views-row">
-        <span id="song-artist" class="yt-views-text">Çalma listesinden bir şarkı seç</span>
-      </div>
-
-      <!-- Action buttons (like YouTube's like/share/save row) -->
-      <div class="yt-action-row">
-        <button class="yt-action-pill" id="btn-prev" title="Önceki">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><polygon points="19 20 9 12 19 4"/><rect x="5" y="4" width="2" height="16"/></svg>
-          Önceki
-        </button>
-
-        <button class="yt-action-pill yt-play-pill" id="btn-play-pill" title="Oynat">
-          <svg id="pill-play" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><polygon points="5 3 19 12 5 21"/></svg>
-          <svg id="pill-pause" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-          <span id="pill-label">Oynat</span>
-        </button>
-
-        <button class="yt-action-pill" id="btn-next-pill" title="Sonraki">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><polygon points="5 4 15 12 5 20"/><rect x="19" y="4" width="2" height="16"/></svg>
-          Sonraki
-        </button>
-
-        <button class="yt-action-pill" id="btn-shuffle" title="Karıştır">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.7-1.1 2-1.7 3.3-1.7H22"/><path d="m18 2 4 4-4 4"/><path d="M2 6h1.9c1.5 0 2.9.9 3.5 2.2"/><path d="M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.7l-.5-.8"/><path d="m18 14 4 4-4 4"/></svg>
-          Karıştır
-        </button>
-
-        <button class="yt-action-pill" id="btn-repeat" title="Tekrar">
-          <svg id="repeat-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-          <span id="repeat-label">Tekrar Yok</span>
-        </button>
-      </div>
-
-      <div class="yt-divider"></div>
-
-      <!-- Channel row -->
-      <div class="yt-channel-row">
-        <div class="yt-ch-avatar" id="ch-avatar">B</div>
-        <div class="yt-ch-info">
-          <div class="yt-ch-name">Basements</div>
-          <div class="yt-ch-sub">Müzik Çalar</div>
-        </div>
-      </div>
-
-      <div class="yt-divider"></div>
-    </div>
-
-    <!-- ══════════════════════════════════════════
-         ADD SONG
-    ══════════════════════════════════════════ -->
-    <div class="yt-add-section">
-      <div class="yt-add-inner">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#606060" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input id="url-input" class="yt-add-input" type="text"
-          placeholder="YouTube URL yapıştır (youtube.com/watch?v=...)" autocomplete="off" />
-        <button id="btn-add" class="yt-add-btn">
-          <span id="add-label">Ekle</span>
-        </button>
-      </div>
-      <div id="add-error" class="yt-add-error" style="display:none;"></div>
-    </div>
-
-    <!-- ══════════════════════════════════════════
-         SPOTIFY PLAYLİSTLERİ
-    ══════════════════════════════════════════ -->
-    <div class="sp-section">
-      <div class="sp-header-row">
-        <div class="sp-title-wrap">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="#1db954"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.622.622 0 0 1-.857.207c-2.348-1.435-5.304-1.76-8.785-.964a.623.623 0 0 1-.277-1.215c3.809-.87 7.076-.496 9.712 1.115a.623.623 0 0 1 .207.857zm1.223-2.722a.78.78 0 0 1-1.072.257c-2.687-1.652-6.785-2.131-9.965-1.166a.78.78 0 0 1-.973-.517.781.781 0 0 1 .518-.973c3.632-1.102 8.147-.568 11.234 1.328a.78.78 0 0 1 .258 1.071zm.105-2.835C14.692 8.95 9.375 8.775 6.297 9.71a.937.937 0 1 1-.543-1.793c3.532-1.072 9.404-.865 13.115 1.338a.937.937 0 0 1-.955 1.612z"/></svg>
-          <span>Spotify Playlistleri</span>
-        </div>
-        {currentUser && (
-          <button class="sp-add-btn" id="sp-toggle-add">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-            Playlist Ekle
-          </button>
-        )}
-      </div>
+    <!-- ── SPOTIFY TAB ─────────────────────────── -->
+    <div class="music-section" id="tab-spotify">
 
       {currentUser && (
-        <div class="sp-add-form" id="sp-add-form" style="display:none">
-          <div class="sp-add-inner">
+        <div class="add-bar">
+          <div class="add-bar-inner" id="sp-add-inner">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="#1db954"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.622.622 0 0 1-.857.207c-2.348-1.435-5.304-1.76-8.785-.964a.623.623 0 0 1-.277-1.215c3.809-.87 7.076-.496 9.712 1.115a.623.623 0 0 1 .207.857zm1.223-2.722a.78.78 0 0 1-1.072.257c-2.687-1.652-6.785-2.131-9.965-1.166a.78.78 0 0 1-.973-.517.781.781 0 0 1 .518-.973c3.632-1.102 8.147-.568 11.234 1.328a.78.78 0 0 1 .258 1.071zm.105-2.835C14.692 8.95 9.375 8.775 6.297 9.71a.937.937 0 1 1-.543-1.793c3.532-1.072 9.404-.865 13.115 1.338a.937.937 0 0 1-.955 1.612z"/></svg>
-            <input
-              id="sp-url-input"
-              class="sp-url-input"
-              type="text"
-              placeholder="Spotify playlist URL yapıştır…"
-              autocomplete="off"
-            />
-            <button id="sp-submit-btn" class="sp-submit-btn">Ekle</button>
+            <input id="sp-url" class="add-input" type="text" placeholder="Spotify playlist URL yapıştır…" autocomplete="off" />
+            <button id="sp-btn" class="add-submit sp-submit">Ekle</button>
           </div>
-          <div id="sp-error" class="sp-error" style="display:none"></div>
+          <div id="sp-error" class="add-error" style="display:none"></div>
         </div>
       )}
 
-      <div class="sp-list" id="sp-list">
-        {spotifyPlaylists.length === 0 ? (
-          <div class="sp-empty">
-            <span>Henüz playlist eklenmedi.</span>
-            {currentUser
-              ? <span> Yukarıdan ilk playlistini ekle!</span>
-              : <span> Eklemek için <a href="/login">giriş yap</a>.</span>
-            }
+      <div class="items-list" id="sp-list">
+        {spotifyItems.length === 0 ? (
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" width="36" height="36" fill="#1db954" opacity=".4"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.622.622 0 0 1-.857.207c-2.348-1.435-5.304-1.76-8.785-.964a.623.623 0 0 1-.277-1.215c3.809-.87 7.076-.496 9.712 1.115a.623.623 0 0 1 .207.857zm1.223-2.722a.78.78 0 0 1-1.072.257c-2.687-1.652-6.785-2.131-9.965-1.166a.78.78 0 0 1-.973-.517.781.781 0 0 1 .518-.973c3.632-1.102 8.147-.568 11.234 1.328a.78.78 0 0 1 .258 1.071zm.105-2.835C14.692 8.95 9.375 8.775 6.297 9.71a.937.937 0 1 1-.543-1.793c3.532-1.072 9.404-.865 13.115 1.338a.937.937 0 0 1-.955 1.612z"/></svg>
+            <p>Henüz Spotify playlist eklenmedi.</p>
           </div>
-        ) : (
-          spotifyPlaylists.map(pl => (
-            <div class="sp-card" data-id={pl.id} data-playlist-id={pl.playlist_id}>
-              <div class="sp-card-header">
-                <a href={`/u/${pl.username}`} class="sp-avatar" style={`background:${avatarBg(pl.username)}`}>
-                  {(pl.display_name[0] ?? '?').toUpperCase()}
-                </a>
-                <div class="sp-card-meta">
-                  <a href={`/u/${pl.username}`} class="sp-card-user">{pl.display_name}</a>
-                  <span class="sp-card-title">{pl.title}</span>
-                </div>
-                <div class="sp-card-actions">
-                  <button class="sp-toggle-btn" data-playlist-id={pl.playlist_id} title="Oynat / Gizle">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><polygon points="5 3 19 12 5 21"/></svg>
+        ) : spotifyItems.map(item => (
+          <div class="music-card" data-id={item.id}>
+            <div class="card-header">
+              <a href={`/u/${item.username}`} class="card-avatar" style={`background:${avatarBg(item.username)}`}>
+                {(item.display_name[0] ?? '?').toUpperCase()}
+              </a>
+              <div class="card-info">
+                <a href={`/u/${item.username}`} class="card-user">{item.display_name}</a>
+                <span class="card-title">{item.title}</span>
+                <span class="card-time">{timeAgo(item.created_at)}</span>
+              </div>
+              <div class="card-btns">
+                <button
+                  class="play-btn sp-play"
+                  data-embed={`https://open.spotify.com/embed/playlist/${item.playlist_id}?utm_source=generator&theme=0`}
+                  data-target={`embed-${item.id}`}
+                  title="Oynat"
+                >
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="5 3 19 12 5 21"/></svg>
+                  Dinle
+                </button>
+                {currentUser?.id === item.user_id && (
+                  <button class="del-btn" data-id={item.id} data-api="/api/spotify/playlist" title="Kaldır">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
                   </button>
-                  {currentUser?.id === pl.user_id && (
-                    <button class="sp-delete-btn" data-id={pl.id} title="Kaldır">
-                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
+                )}
+              </div>
+            </div>
+            <div class="embed-wrap" id={`embed-${item.id}`} style="display:none">
+              <iframe
+                src=""
+                data-src={`https://open.spotify.com/embed/playlist/${item.playlist_id}?utm_source=generator&theme=0`}
+                width="100%"
+                height="352"
+                frameborder="0"
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                loading="lazy"
+              ></iframe>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- ── YOUTUBE TAB ─────────────────────────── -->
+    <div class="music-section" id="tab-youtube" style="display:none">
+
+      {currentUser && (
+        <div class="add-bar">
+          <div class="add-bar-inner">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="#ff0000"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
+            <input id="yt-url" class="add-input" type="text" placeholder="YouTube video veya playlist URL yapıştır…" autocomplete="off" />
+            <button id="yt-btn" class="add-submit yt-submit">Ekle</button>
+          </div>
+          <div id="yt-error" class="add-error" style="display:none"></div>
+        </div>
+      )}
+
+      <div class="items-list" id="yt-list">
+        {youtubeItems.length === 0 ? (
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" width="36" height="36" fill="#ff0000" opacity=".4"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
+            <p>Henüz YouTube içeriği eklenmedi.</p>
+          </div>
+        ) : youtubeItems.map(item => {
+          const embedSrc = item.item_type === 'playlist'
+            ? `https://www.youtube.com/embed/videoseries?list=${item.item_id}&rel=0&modestbranding=1`
+            : `https://www.youtube.com/embed/${item.item_id}?rel=0&modestbranding=1`;
+          return (
+            <div class="music-card" data-id={item.id}>
+              <div class="card-header">
+                <a href={`/u/${item.username}`} class="card-avatar" style={`background:${avatarBg(item.username)}`}>
+                  {(item.display_name[0] ?? '?').toUpperCase()}
+                </a>
+                <div class="card-info">
+                  <a href={`/u/${item.username}`} class="card-user">{item.display_name}</a>
+                  <span class="card-title">{item.title}</span>
+                  <span class="card-time">
+                    {item.item_type === 'playlist' ? '▶ Playlist' : '▶ Video'} · {timeAgo(item.created_at)}
+                  </span>
+                </div>
+                <div class="card-btns">
+                  <button
+                    class="play-btn yt-play"
+                    data-embed={embedSrc}
+                    data-target={`embed-${item.id}`}
+                    title="Oynat"
+                  >
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="5 3 19 12 5 21"/></svg>
+                    İzle
+                  </button>
+                  {currentUser?.id === item.user_id && (
+                    <button class="del-btn" data-id={item.id} data-api="/api/youtube/item" title="Kaldır">
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
                     </button>
                   )}
                 </div>
               </div>
-              <div class="sp-embed-wrap" id={`sp-embed-${pl.playlist_id}`} style="display:none">
+              <div class="embed-wrap" id={`embed-${item.id}`} style="display:none">
                 <iframe
-                  src={`https://open.spotify.com/embed/playlist/${pl.playlist_id}?utm_source=generator&theme=0`}
+                  src=""
+                  data-src={embedSrc}
                   width="100%"
-                  height="352"
+                  height="315"
                   frameborder="0"
-                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowfullscreen
                   loading="lazy"
                 ></iframe>
               </div>
             </div>
-          ))
-        )}
+          );
+        })}
       </div>
     </div>
-
-  </div><!-- /yt-left -->
-
-  <!-- ── Sağ sütun: playlist ── -->
-  <div class="yt-right">
-    <div class="yt-upnext-section">
-      <div class="yt-upnext-header">
-        <span class="yt-upnext-title">Sıradaki</span>
-        <span id="playlist-count" class="yt-upnext-count"></span>
-      </div>
-
-      <div id="playlist-items"></div>
-    </div>
-  </div><!-- /yt-right -->
-
-  </div><!-- /yt-layout -->
   </main>
 
-  <!-- Hidden YouTube Player -->
-  <div id="yt-player" style="position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;pointer-events:none;"></div>
+  <aside class="right-panel">
+    <div class="widget-card">
+      <h3>Nasıl eklenir?</h3>
+      <div class="help-list">
+        <div class="help-item">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="#1db954"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.622.622 0 0 1-.857.207c-2.348-1.435-5.304-1.76-8.785-.964a.623.623 0 0 1-.277-1.215c3.809-.87 7.076-.496 9.712 1.115a.623.623 0 0 1 .207.857zm1.223-2.722a.78.78 0 0 1-1.072.257c-2.687-1.652-6.785-2.131-9.965-1.166a.78.78 0 0 1-.973-.517.781.781 0 0 1 .518-.973c3.632-1.102 8.147-.568 11.234 1.328a.78.78 0 0 1 .258 1.071zm.105-2.835C14.692 8.95 9.375 8.775 6.297 9.71a.937.937 0 1 1-.543-1.793c3.532-1.072 9.404-.865 13.115 1.338a.937.937 0 0 1-.955 1.612z"/></svg>
+          <span><strong>Spotify:</strong> Playlist → Paylaş → Bağlantıyı kopyala</span>
+        </div>
+        <div class="help-item">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="#ff0000"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
+          <span><strong>YouTube:</strong> Video/Playlist URL'sini kopyala</span>
+        </div>
+      </div>
+    </div>
+  </aside>
 </BaseLayout>
 
-<style is:global>
-/* ═══════════════════════════════════════════
-   PAGE BASE
-═══════════════════════════════════════════ */
-.yt-page {
-  background: #f9f9f9;
-  min-height: 100vh;
-}
+<style>
+.music-page { padding-bottom: 40px; }
 
-/* İki sütunlu layout */
-.yt-layout {
+/* ── Tabs */
+.music-tabs {
   display: flex;
-  align-items: flex-start;
-  min-height: 100vh;
-}
-
-.yt-left {
-  flex: 1;
-  min-width: 0;
-}
-
-.yt-right {
-  width: 380px;
-  flex-shrink: 0;
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  overflow-y: auto;
-  background: linear-gradient(160deg, #0f0c29, #302b63, #24243e);
-}
-
-/* ═══════════════════════════════════════════
-   PLAYER WRAP
-═══════════════════════════════════════════ */
-.yt-player-wrap {
-  background: #0f0f0f;
-  position: sticky;
-  top: 0;
-  z-index: 20;
-}
-
-.yt-video-area {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  background: #0f0f0f;
-  overflow: hidden;
-  cursor: pointer;
-}
-
-.yt-cover {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-/* Center play overlay */
-.yt-center-play {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0,0,0,0.3);
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.yt-video-area:hover .yt-center-play,
-.yt-center-play.visible { opacity: 1; }
-
-.yt-center-play-btn {
-  width: 72px;
-  height: 72px;
-  background: rgba(0,0,0,0.7);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(4px);
-}
-
-/* Controls bar (bottom of video) */
-.yt-controls-bar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(transparent, rgba(0,0,0,0.75));
-  padding: 32px 12px 8px;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.yt-video-area:hover .yt-controls-bar { opacity: 1; }
-
-/* Progress bar */
-.yt-progress {
-  position: relative;
-  height: 3px;
-  background: rgba(255,255,255,0.3);
-  border-radius: 2px;
-  cursor: pointer;
-  margin-bottom: 8px;
-  transition: height 0.15s;
-}
-
-.yt-progress:hover { height: 5px; }
-
-.yt-progress-played {
-  height: 100%;
-  background: #3b82f6;
-  border-radius: 2px;
-  width: 0%;
-  pointer-events: none;
-}
-
-.yt-progress-dot {
-  position: absolute;
-  top: 50%;
-  left: 0%;
-  transform: translate(-50%, -50%);
-  width: 13px;
-  height: 13px;
-  background: #3b82f6;
-  border-radius: 50%;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s;
-}
-
-.yt-progress:hover .yt-progress-dot { opacity: 1; }
-
-.yt-bar-bottom {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.yt-bar-left,
-.yt-bar-right {
-  display: flex;
-  align-items: center;
   gap: 4px;
+  padding: 4px 0 16px;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 16px;
 }
 
-.yt-bar-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 6px;
-  border-radius: 4px;
+.music-tab {
   display: flex;
   align-items: center;
-  color: #fff;
-  transition: background 0.15s;
-}
-.yt-bar-btn:hover { background: rgba(255,255,255,0.12); }
-
-.yt-time {
-  font-size: 0.78rem;
-  color: #fff;
-  font-variant-numeric: tabular-nums;
-  margin-left: 4px;
-  white-space: nowrap;
-}
-
-/* Volume slider in bar */
-.yt-vol-slider {
-  width: 72px;
-  -webkit-appearance: none;
-  height: 3px;
-  background: rgba(255,255,255,0.5);
-  border-radius: 2px;
-  outline: none;
-  cursor: pointer;
-}
-.yt-vol-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 12px; height: 12px;
-  background: #fff;
-  border-radius: 50%;
-  cursor: pointer;
-}
-
-/* ═══════════════════════════════════════════
-   VIDEO INFO SECTION
-═══════════════════════════════════════════ */
-.yt-info-section {
-  background: #fff;
-  padding: 12px 16px 0;
-}
-
-.yt-video-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  line-height: 1.4;
-  color: #0f0f0f;
-  margin-bottom: 6px;
-}
-
-.yt-views-row {
-  margin-bottom: 12px;
-}
-
-.yt-views-text {
-  font-size: 0.85rem;
-  color: #606060;
-}
-
-/* Action pills row */
-.yt-action-row {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
-}
-
-.yt-action-pill {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: #f2f2f2;
-  border: none;
+  gap: 7px;
+  padding: 8px 20px;
   border-radius: 9999px;
-  padding: 8px 14px;
-  font-size: 0.82rem;
-  font-weight: 500;
-  cursor: pointer;
-  color: #0f0f0f;
-  transition: background 0.15s;
-  white-space: nowrap;
-}
-
-.yt-action-pill:hover { background: #e5e5e5; }
-.yt-action-pill.active { background: #0f0f0f; color: #fff; }
-
-.yt-play-pill {
-  background: #0f0f0f;
-  color: #fff;
-}
-.yt-play-pill:hover { background: #272727; }
-
-.yt-divider {
-  height: 1px;
-  background: #e5e5e5;
-  margin: 12px 0;
-}
-
-/* Channel row */
-.yt-channel-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding-bottom: 4px;
-}
-
-.yt-ch-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-  color: #fff;
-  font-weight: 700;
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.yt-ch-name {
-  font-size: 0.9rem;
+  border: 1.5px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.88rem;
   font-weight: 600;
-  color: #0f0f0f;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
 }
 
-.yt-ch-sub {
-  font-size: 0.78rem;
-  color: #606060;
+.music-tab:hover { border-color: var(--color-text-muted); color: var(--color-text); }
+
+.music-tab.active[data-tab="spotify"] {
+  background: #1db954;
+  border-color: #1db954;
+  color: #fff;
 }
 
-/* ═══════════════════════════════════════════
-   ADD SONG
-═══════════════════════════════════════════ */
-.yt-add-section {
-  background: #fff;
-  padding: 12px 16px;
-  border-top: 1px solid #e5e5e5;
-  border-bottom: 1px solid #e5e5e5;
-  margin-top: 8px;
+.music-tab.active[data-tab="youtube"] {
+  background: #ff0000;
+  border-color: #ff0000;
+  color: #fff;
 }
 
-.yt-add-inner {
+/* ── Add bar */
+.add-bar { margin-bottom: 16px; }
+
+.add-bar-inner {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #f2f2f2;
-  border-radius: 9999px;
-  padding: 8px 14px;
+  background: var(--color-card);
+  border: 1.5px solid var(--color-border);
+  border-radius: 12px;
+  padding: 10px 14px;
 }
 
-.yt-add-input {
+.add-input {
   flex: 1;
   border: none;
   background: transparent;
   outline: none;
   font-size: 0.88rem;
-  color: #0f0f0f;
+  color: var(--color-text);
   font-family: inherit;
 }
+.add-input::placeholder { color: var(--color-text-muted); }
 
-.yt-add-input::placeholder { color: #909090; }
-
-.yt-add-btn {
-  background: #3b82f6;
-  color: #fff;
+.add-submit {
   border: none;
-  border-radius: 9999px;
-  padding: 6px 16px;
+  border-radius: 8px;
+  padding: 7px 18px;
   font-size: 0.82rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.15s;
   white-space: nowrap;
-  transition: background 0.15s;
+  color: #fff;
 }
-.yt-add-btn:hover { background: #2563eb; }
-.yt-add-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.add-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+.sp-submit { background: #1db954; }
+.sp-submit:hover { background: #1aa34a; }
+.yt-submit { background: #ff0000; }
+.yt-submit:hover { background: #cc0000; }
 
-.yt-add-error {
+.add-error {
   font-size: 0.8rem;
-  color: #cc0000;
+  color: #ef4444;
   margin-top: 8px;
   padding-left: 4px;
 }
 
-/* ═══════════════════════════════════════════
-   UP NEXT / PLAYLIST
-═══════════════════════════════════════════ */
-.yt-upnext-section {
-  padding-bottom: 40px;
-}
+/* ── Cards */
+.items-list { display: flex; flex-direction: column; gap: 10px; }
 
-.yt-upnext-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 14px 10px;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-}
-
-.yt-upnext-title {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #fff;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-}
-
-.yt-upnext-count {
-  font-size: 0.75rem;
-  color: rgba(255,255,255,0.45);
-  background: rgba(255,255,255,0.08);
-  padding: 2px 8px;
-  border-radius: 9999px;
-}
-
-/* ── Glass kart ─────────────────────────── */
-#playlist-items {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 10px 10px 0;
-}
-
-.yt-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  cursor: pointer;
-  position: relative;
+.music-card {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
   border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.07);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  transition: background 0.18s, border-color 0.18s, transform 0.15s, box-shadow 0.18s;
-}
-
-.yt-row:hover {
-  background: rgba(255,255,255,0.14);
-  border-color: rgba(255,255,255,0.22);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-}
-
-.yt-row.playing {
-  background: rgba(99,102,241,0.25);
-  border-color: rgba(129,140,248,0.5);
-  box-shadow: 0 4px 20px rgba(99,102,241,0.3);
-}
-
-/* Sıra numarası */
-.yt-row-num {
-  width: 18px;
-  flex-shrink: 0;
-  font-size: 0.72rem;
-  color: rgba(255,255,255,0.35);
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-}
-.yt-row.playing .yt-row-num { display: none; }
-
-/* Thumbnail */
-.yt-row-thumb-wrap {
-  position: relative;
-  width: 108px;
-  flex-shrink: 0;
-  border-radius: 8px;
-  overflow: hidden;
-  aspect-ratio: 16 / 9;
-  background: #0f0f0f;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-}
-
-.yt-row-thumb {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  transition: transform 0.22s;
-}
-.yt-row:hover .yt-row-thumb { transform: scale(1.06); }
-
-/* Playing overlay */
-.yt-row-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Equalizer animation */
-.yt-row-eq {
-  display: flex;
-  align-items: flex-end;
-  gap: 3px;
-  height: 18px;
-}
-
-.yt-row-eq span {
-  width: 3px;
-  border-radius: 2px 2px 0 0;
-  background: #a78bfa;
-  height: 35%;
-}
-
-.yt-row-eq.running span { animation: yt-eq 0.65s ease-in-out infinite alternate; }
-.yt-row-eq.running span:nth-child(2) { animation-delay: 0.18s; }
-.yt-row-eq.running span:nth-child(3) { animation-delay: 0.34s; }
-
-@keyframes yt-eq {
-  from { height: 20%; }
-  to   { height: 100%; }
-}
-
-/* Row info */
-.yt-row-info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.yt-row-title {
-  font-size: 0.81rem;
-  font-weight: 600;
-  color: rgba(255,255,255,0.92);
-  line-height: 1.35;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-.yt-row.playing .yt-row-title { color: #c4b5fd; }
-
-.yt-row-channel {
-  font-size: 0.71rem;
-  color: rgba(255,255,255,0.45);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Sil butonu */
-.yt-row-menu {
-  flex-shrink: 0;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: rgba(255,255,255,0.25);
-  padding: 5px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: all 0.15s;
-}
-
-.yt-row:hover .yt-row-menu { opacity: 1; }
-.yt-row-menu:hover {
-  background: rgba(239,68,68,0.2) !important;
-  color: #f87171 !important;
-}
-
-/* ═══════════════════════════════════════════
-   SPOTIFY SECTION
-═══════════════════════════════════════════ */
-.sp-section {
-  background: #fff;
-  border-top: 1px solid #e5e5e5;
-  margin-top: 8px;
-  padding-bottom: 24px;
-}
-
-.sp-header-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 16px 12px;
-}
-
-.sp-title-wrap {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #0f0f0f;
-}
-
-.sp-add-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: #1db954;
-  color: #fff;
-  border: none;
-  border-radius: 9999px;
-  padding: 7px 16px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.15s;
-  font-family: inherit;
-}
-.sp-add-btn:hover { background: #1aa34a; }
-
-.sp-add-form {
-  padding: 0 16px 12px;
-}
-
-.sp-add-inner {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #f2f2f2;
-  border-radius: 9999px;
-  padding: 8px 14px;
-}
-
-.sp-url-input {
-  flex: 1;
-  border: none;
-  background: transparent;
-  outline: none;
-  font-size: 0.88rem;
-  color: #0f0f0f;
-  font-family: inherit;
-}
-.sp-url-input::placeholder { color: #909090; }
-
-.sp-submit-btn {
-  background: #1db954;
-  color: #fff;
-  border: none;
-  border-radius: 9999px;
-  padding: 6px 16px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  font-family: inherit;
-  transition: background 0.15s;
-}
-.sp-submit-btn:hover { background: #1aa34a; }
-.sp-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-
-.sp-error {
-  font-size: 0.8rem;
-  color: #cc0000;
-  margin-top: 8px;
-  padding-left: 8px;
-}
-
-.sp-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 0 12px;
-}
-
-.sp-empty {
-  padding: 24px 4px;
-  font-size: 0.88rem;
-  color: #606060;
-}
-.sp-empty a { color: #1db954; text-decoration: none; }
-.sp-empty a:hover { text-decoration: underline; }
-
-.sp-card {
-  border: 1px solid #e5e5e5;
-  border-radius: 12px;
-  overflow: hidden;
-  margin-bottom: 8px;
-}
-
-.sp-card-header {
+.card-header {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px;
+  padding: 12px 14px;
 }
 
-.sp-avatar {
-  width: 36px;
-  height: 36px;
+.card-avatar {
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   flex-shrink: 0;
   display: flex;
@@ -938,465 +363,147 @@ function avatarBg(u: string): string {
   text-decoration: none;
 }
 
-.sp-card-meta {
+.card-info {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
 }
 
-.sp-card-user {
-  font-size: 0.8rem;
+.card-user {
+  font-size: 0.82rem;
   font-weight: 700;
-  color: #0f0f0f;
+  color: var(--color-text);
   text-decoration: none;
 }
-.sp-card-user:hover { text-decoration: underline; }
+.card-user:hover { text-decoration: underline; }
 
-.sp-card-title {
-  font-size: 0.82rem;
-  color: #606060;
+.card-title {
+  font-size: 0.85rem;
+  color: var(--color-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.sp-card-actions {
+.card-time {
+  font-size: 0.74rem;
+  color: var(--color-text-muted);
+}
+
+.card-btns {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   flex-shrink: 0;
 }
 
-.sp-toggle-btn {
-  background: #1db954;
-  border: none;
-  border-radius: 50%;
-  width: 34px;
-  height: 34px;
+.play-btn {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 6px;
+  border: none;
+  border-radius: 9999px;
+  padding: 7px 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
   cursor: pointer;
+  font-family: inherit;
   color: #fff;
-  transition: background 0.15s, transform 0.15s;
+  transition: opacity 0.15s, transform 0.12s;
 }
-.sp-toggle-btn:hover { background: #1aa34a; transform: scale(1.08); }
-.sp-toggle-btn.active { background: #0f0f0f; }
+.play-btn:hover { opacity: 0.85; transform: scale(1.03); }
+.play-btn.open { opacity: 0.7; }
+.sp-play { background: #1db954; }
+.yt-play { background: #ff0000; }
 
-.sp-delete-btn {
+.del-btn {
   background: none;
   border: none;
   cursor: pointer;
   padding: 6px;
   border-radius: 50%;
-  color: #909090;
+  color: var(--color-text-muted);
   display: flex;
   align-items: center;
   transition: all 0.15s;
 }
-.sp-delete-btn:hover { background: rgba(220,38,38,0.1); color: #ef4444; }
+.del-btn:hover { background: rgba(239,68,68,0.1); color: #ef4444; }
 
-.sp-embed-wrap {
-  border-top: 1px solid #e5e5e5;
-}
-.sp-embed-wrap iframe { display: block; }
+.embed-wrap { border-top: 1px solid var(--color-border); }
+.embed-wrap iframe { display: block; }
 
-/* Empty state */
-.yt-empty {
-  text-align: center;
-  padding: 48px 16px;
-  color: rgba(255,255,255,0.35);
-  font-size: 0.88rem;
-  line-height: 1.7;
+/* ── Empty state */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 48px 0;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
 }
+.empty-state p { margin: 0; }
+
+/* ── Help widget */
+.help-list { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+.help-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+.help-item svg { flex-shrink: 0; margin-top: 2px; }
+.help-item strong { color: var(--color-text); }
 </style>
 
-<script is:inline>
-(function () {
-  /* ── State ─────────────────────────────────── */
-  const STORAGE_KEY = 'basements_playlist_v2';
-
-  const defaults = [
-    { id: 'ea9RCZSRvSc', title: 'Clair de Lune',            artist: 'Claude Debussy' },
-    { id: 'GMkmQlfOJDk', title: 'Air on G String',           artist: 'Johann Sebastian Bach' },
-    { id: 'oy2zDJPIgwc', title: 'Eine kleine Nachtmusik',    artist: 'W.A. Mozart' },
-    { id: '4Tr0otuiQuU', title: 'Nocturne Op. 9 No. 2',      artist: 'Frédéric Chopin' },
-    { id: 'x1xvKkCkMlc', title: 'Four Seasons – Spring',     artist: 'Antonio Vivaldi' },
-  ];
-
-  let playlist     = loadPlaylist();
-  let currentIndex = 0;
-  let isPlaying    = false;
-  let isShuffle    = false;
-  let repeatMode   = 0;   // 0=off 1=all 2=one
-  let isMuted      = false;
-  let player       = null;
-  let timer        = null;
-  let isDragging   = false;
-
-  /* ── DOM ────────────────────────────────────── */
-  const $ = id => document.getElementById(id);
-  const coverImg        = $('cover-img');
-  const songTitle       = $('song-title');
-  const songArtist      = $('song-artist');
-  const timeCurrent     = $('time-current');
-  const timeTotal       = $('time-total');
-  const progressFill    = $('progress-fill');
-  const progressThumb   = $('progress-thumb');
-  const progressTrack   = $('progress-track');
-  const iconPlay        = $('icon-play');
-  const iconPause       = $('icon-pause');
-  const pillPlay        = $('pill-play');
-  const pillPause       = $('pill-pause');
-  const pillLabel       = $('pill-label');
-  const centerOverlay   = $('center-play-overlay');
-  const btnPlay         = $('btn-play');
-  const btnPlayPill     = $('btn-play-pill');
-  const btnNextBar      = $('btn-next');
-  const btnNextPill     = $('btn-next-pill');
-  const btnPrev         = $('btn-prev');
-  const btnShuffle      = $('btn-shuffle');
-  const btnRepeat       = $('btn-repeat');
-  const repeatLabel     = $('repeat-label');
-  const btnMute         = $('btn-mute');
-  const iconVol         = $('icon-vol');
-  const iconMuteEl      = $('icon-mute');
-  const volumeSlider    = $('volume-slider');
-  const urlInput        = $('url-input');
-  const btnAdd          = $('btn-add');
-  const addLabel        = $('add-label');
-  const addError        = $('add-error');
-  const playlistItems   = $('playlist-items');
-  const playlistCount   = $('playlist-count');
-
-  /* ── localStorage ───────────────────────────── */
-  function loadPlaylist() {
-    try { const s = localStorage.getItem(STORAGE_KEY); if (s) return JSON.parse(s); } catch (_) {}
-    return [...defaults];
-  }
-  function savePlaylist() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(playlist)); } catch (_) {}
-  }
-
-  /* ── YouTube IFrame API ─────────────────────── */
-  const tag = document.createElement('script');
-  tag.src = 'https://www.youtube.com/iframe_api';
-  document.head.appendChild(tag);
-
-  window.onYouTubeIframeAPIReady = function () {
-    player = new YT.Player('yt-player', {
-      videoId: playlist[currentIndex]?.id ?? '',
-      playerVars: { autoplay: 0, controls: 0, rel: 0, modestbranding: 1, iv_load_policy: 3 },
-      events: {
-        onReady: () => { player.setVolume(parseInt(volumeSlider.value)); updateSongUI(); renderPlaylist(); },
-        onStateChange: onStateChange,
-        onError: () => nextSong(true),
-      },
-    });
-  };
-
-  function onStateChange(e) {
-    const S = YT.PlayerState;
-    if (e.data === S.PLAYING)  { isPlaying = true;  updatePlayBtn(); startTimer(); }
-    else if (e.data === S.PAUSED)   { isPlaying = false; updatePlayBtn(); }
-    else if (e.data === S.ENDED)    { handleEnded(); }
-  }
-
-  function handleEnded() {
-    if (repeatMode === 2) { player.seekTo(0); player.playVideo(); }
-    else {
-      const wasLast = currentIndex === playlist.length - 1;
-      if (wasLast && repeatMode === 0) { isPlaying = false; updatePlayBtn(); clearInterval(timer); }
-      else nextSong(true);
-    }
-  }
-
-  /* ── Playback ───────────────────────────────── */
-  function playSong(index) {
-    if (!playlist[index]) return;
-    currentIndex = index;
-    player.loadVideoById(playlist[index].id);
-    isPlaying = true;
-    updateSongUI();
-    updatePlayBtn();
-    renderPlaylist();
-  }
-
-  function togglePlay() {
-    if (!player || !playlist.length) return;
-    if (player.getPlayerState() === -1) { playSong(currentIndex); return; }
-    isPlaying ? player.pauseVideo() : player.playVideo();
-  }
-
-  function nextSong(auto) {
-    if (!playlist.length) return;
-    let next = isShuffle
-      ? Math.floor(Math.random() * playlist.length)
-      : (currentIndex + 1) % playlist.length;
-    if (next === 0 && repeatMode === 0 && !auto) return;
-    playSong(next);
-  }
-
-  function prevSong() {
-    if (!playlist.length) return;
-    if (player && player.getCurrentTime() > 3) { player.seekTo(0); return; }
-    let prev = isShuffle
-      ? Math.floor(Math.random() * playlist.length)
-      : (currentIndex - 1 + playlist.length) % playlist.length;
-    playSong(prev);
-  }
-
-  /* ── Timer / progress ───────────────────────── */
-  function startTimer() {
-    clearInterval(timer);
-    timer = setInterval(() => {
-      if (!player || isDragging) return;
-      const cur = player.getCurrentTime() || 0;
-      const dur = player.getDuration()    || 0;
-      setProgress(cur, dur);
-    }, 500);
-  }
-
-  function setProgress(cur, dur) {
-    const pct = dur > 0 ? (cur / dur) * 100 : 0;
-    progressFill.style.width = pct + '%';
-    progressFill.style.transition = isDragging ? 'none' : 'width 0.4s linear';
-    progressThumb.style.left = pct + '%';
-    timeCurrent.textContent = fmt(cur);
-    timeTotal.textContent   = fmt(dur);
-  }
-
-  function fmt(s) {
-    const m = Math.floor(s / 60), sec = Math.floor(s % 60);
-    return m + ':' + String(sec).padStart(2, '0');
-  }
-
-  /* ── UI ─────────────────────────────────────── */
-  function updatePlayBtn() {
-    // Player bar icons
-    iconPlay.style.display  = isPlaying ? 'none' : 'block';
-    iconPause.style.display = isPlaying ? 'block' : 'none';
-    // Pill icons
-    pillPlay.style.display  = isPlaying ? 'none' : 'block';
-    pillPause.style.display = isPlaying ? 'block' : 'none';
-    pillLabel.textContent   = isPlaying ? 'Duraklat' : 'Oynat';
-    // Center overlay: show when paused/stopped
-    centerOverlay.classList.toggle('visible', !isPlaying);
-  }
-
-  function updateSongUI() {
-    const song = playlist[currentIndex];
-    if (!song) return;
-    songTitle.textContent  = song.title;
-    songArtist.textContent = song.artist;
-    coverImg.src = `https://img.youtube.com/vi/${song.id}/hqdefault.jpg`;
-    coverImg.onerror = () => {
-      coverImg.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3Crect width='16' height='9' fill='%230f0f0f'/%3E%3C/svg%3E";
-    };
-  }
-
-  function renderPlaylist() {
-    playlistCount.textContent = playlist.length + ' şarkı';
-
-    if (!playlist.length) {
-      playlistItems.innerHTML = `
-        <div class="yt-empty">
-          <div style="font-size:3rem;margin-bottom:12px;">🎵</div>
-          <div style="font-weight:600;font-size:0.95rem;color:#0f0f0f;margin-bottom:4px;">Çalma listesi boş</div>
-          <div>Yukarıdan YouTube URL yapıştırarak şarkı ekle.</div>
-        </div>`;
-      return;
-    }
-
-    playlistItems.innerHTML = playlist.map((song, i) => {
-      const playing = i === currentIndex;
-      const eqCls   = playing && isPlaying ? 'yt-row-eq running' : 'yt-row-eq';
-      const overlay  = playing
-        ? `<div class="yt-row-overlay"><div class="${eqCls}"><span></span><span></span><span></span></div></div>`
-        : '';
-
-      return `
-        <div class="yt-row${playing ? ' playing' : ''}" data-index="${i}">
-          <div class="yt-row-num">${i + 1}</div>
-          <div class="yt-row-thumb-wrap">
-            <img class="yt-row-thumb"
-              src="https://img.youtube.com/vi/${song.id}/mqdefault.jpg"
-              alt="${esc(song.title)}"
-              loading="lazy"
-              onerror="this.src='https://img.youtube.com/vi/${song.id}/hqdefault.jpg'" />
-            ${overlay}
-          </div>
-          <div class="yt-row-info">
-            <div class="yt-row-title">${esc(song.title)}</div>
-            <div class="yt-row-channel">${esc(song.artist)}</div>
-          </div>
-          <button class="yt-row-menu" data-remove="${i}" title="Kaldır">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-          </button>
-        </div>`;
-    }).join('');
-
-    playlistItems.querySelectorAll('.yt-row').forEach(el => {
-      el.addEventListener('click', e => {
-        if (e.target.closest('.yt-row-menu')) return;
-        playSong(parseInt(el.dataset.index));
-      });
-    });
-
-    playlistItems.querySelectorAll('.yt-row-menu').forEach(btn => {
-      btn.addEventListener('click', e => {
-        e.stopPropagation();
-        removeSong(parseInt(btn.dataset.remove));
-      });
-    });
-  }
-
-  function esc(s) {
-    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-
-  /* ── Add song ───────────────────────────────── */
-  function parseVideoId(url) {
-    url = url.trim();
-    const patterns = [
-      /[?&]v=([a-zA-Z0-9_-]{11})/,
-      /youtu\.be\/([a-zA-Z0-9_-]{11})/,
-      /embed\/([a-zA-Z0-9_-]{11})/,
-      /shorts\/([a-zA-Z0-9_-]{11})/,
-    ];
-    for (const p of patterns) { const m = url.match(p); if (m) return m[1]; }
-    if (/^[a-zA-Z0-9_-]{11}$/.test(url)) return url;
-    return null;
-  }
-
-  async function addSong() {
-    const id = parseVideoId(urlInput.value);
-    addError.style.display = 'none';
-    if (!id) { showErr('Geçersiz YouTube URL\'si.'); return; }
-    if (playlist.some(s => s.id === id)) { showErr('Bu şarkı zaten listede.'); return; }
-
-    btnAdd.disabled = true; addLabel.textContent = '...';
-    let title = 'YouTube Şarkısı', artist = 'YouTube';
-    try {
-      const r = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${id}&format=json`);
-      if (r.ok) { const d = await r.json(); title = d.title || title; artist = d.author_name || artist; }
-    } catch (_) {}
-
-    playlist.push({ id, title, artist });
-    savePlaylist();
-    urlInput.value = '';
-    btnAdd.disabled = false; addLabel.textContent = 'Ekle';
-    renderPlaylist();
-  }
-
-  function removeSong(index) {
-    const wasPlaying = index === currentIndex;
-    playlist.splice(index, 1);
-    savePlaylist();
-    if (!playlist.length) {
-      currentIndex = 0; isPlaying = false;
-      player.stopVideo();
-      songTitle.textContent  = 'Şarkı seçilmedi';
-      songArtist.textContent = 'Çalma listesinden bir şarkı seç';
-      setProgress(0, 0); updatePlayBtn();
-    } else if (index < currentIndex) {
-      currentIndex--;
-    } else if (wasPlaying) {
-      currentIndex = Math.min(currentIndex, playlist.length - 1);
-      playSong(currentIndex);
-    }
-    renderPlaylist();
-  }
-
-  function showErr(msg) { addError.textContent = msg; addError.style.display = 'block'; }
-
-  /* ── Button events ──────────────────────────── */
-  [btnPlay, btnPlayPill, centerOverlay].forEach(b => b.addEventListener('click', togglePlay));
-  [btnNextBar, btnNextPill].forEach(b => b.addEventListener('click', () => nextSong(true)));
-  btnPrev.addEventListener('click', prevSong);
-
-  btnShuffle.addEventListener('click', () => {
-    isShuffle = !isShuffle;
-    btnShuffle.classList.toggle('active', isShuffle);
-  });
-
-  btnRepeat.addEventListener('click', () => {
-    repeatMode = (repeatMode + 1) % 3;
-    const labels = ['Tekrar Yok', 'Hepsini Tekrarla', 'Biri Tekrarla'];
-    repeatLabel.textContent = labels[repeatMode];
-    btnRepeat.classList.toggle('active', repeatMode > 0);
-  });
-
-  btnMute.addEventListener('click', () => {
-    isMuted = !isMuted;
-    if (player) isMuted ? player.mute() : player.unMute();
-    iconVol.style.display    = isMuted ? 'none'  : 'block';
-    iconMuteEl.style.display = isMuted ? 'block' : 'none';
-  });
-
-  volumeSlider.addEventListener('input', () => {
-    if (player) { player.setVolume(parseInt(volumeSlider.value)); }
-    if (isMuted && parseInt(volumeSlider.value) > 0) {
-      isMuted = false; player.unMute();
-      iconVol.style.display = 'block'; iconMuteEl.style.display = 'none';
-    }
-  });
-
-  btnAdd.addEventListener('click', addSong);
-  urlInput.addEventListener('keydown', e => { if (e.key === 'Enter') addSong(); });
-
-  /* ── Progress seek ──────────────────────────── */
-  function seekAt(e) {
-    if (!player) return;
-    const rect = progressTrack.getBoundingClientRect();
-    const pct  = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    const dur  = player.getDuration() || 0;
-    player.seekTo(pct * dur, true);
-    setProgress(pct * dur, dur);
-  }
-
-  progressTrack.addEventListener('mousedown', e => {
-    isDragging = true; seekAt(e);
-    const move = e2 => seekAt(e2);
-    const up   = () => { isDragging = false; window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
-    window.addEventListener('mousemove', move);
-    window.addEventListener('mouseup', up);
-  });
-
-  /* ── Keyboard ───────────────────────────────── */
-  document.addEventListener('keydown', e => {
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-    if (e.key === ' ')          { e.preventDefault(); togglePlay(); }
-    if (e.key === 'ArrowRight') { if (player) player.seekTo((player.getCurrentTime() || 0) + 10, true); }
-    if (e.key === 'ArrowLeft')  { if (player) player.seekTo(Math.max(0, (player.getCurrentTime() || 0) - 10), true); }
-  });
-})();
-</script>
-
 <script>
-  // ── Spotify bölümü ─────────────────────────────────────────────────────────
-  const spToggleAdd  = document.getElementById('sp-toggle-add') as HTMLButtonElement | null;
-  const spAddForm    = document.getElementById('sp-add-form') as HTMLElement | null;
-  const spUrlInput   = document.getElementById('sp-url-input') as HTMLInputElement | null;
-  const spSubmitBtn  = document.getElementById('sp-submit-btn') as HTMLButtonElement | null;
-  const spErrorEl    = document.getElementById('sp-error') as HTMLElement | null;
-  const spList       = document.getElementById('sp-list') as HTMLElement | null;
-
-  // Form göster/gizle
-  spToggleAdd?.addEventListener('click', () => {
-    const visible = spAddForm!.style.display !== 'none';
-    spAddForm!.style.display = visible ? 'none' : 'block';
-    if (!visible) spUrlInput?.focus();
+  // ── Tab switcher ────────────────────────────────────────────────────────────
+  document.querySelectorAll<HTMLButtonElement>('.music-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.dataset.tab!;
+      document.querySelectorAll('.music-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.music-section').forEach(s => (s as HTMLElement).style.display = 'none');
+      tab.classList.add('active');
+      (document.getElementById(`tab-${target}`) as HTMLElement).style.display = 'block';
+    });
   });
 
-  // Playlist ekle
-  async function addSpotifyPlaylist() {
-    const url = spUrlInput?.value.trim() ?? '';
+  // ── Embed toggle (lazy-load src) ────────────────────────────────────────────
+  document.querySelectorAll<HTMLButtonElement>('.play-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const wrap = document.getElementById(btn.dataset.target!);
+      if (!wrap) return;
+      const isOpen = wrap.style.display !== 'none';
+      wrap.style.display = isOpen ? 'none' : 'block';
+      btn.classList.toggle('open', !isOpen);
+      btn.innerHTML = !isOpen
+        ? `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> Kapat`
+        : `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="5 3 19 12 5 21"/></svg> ${btn.classList.contains('sp-play') ? 'Dinle' : 'İzle'}`;
+
+      // iframe src'yi sadece ilk açılışta yükle
+      if (!isOpen) {
+        const iframe = wrap.querySelector('iframe')!;
+        if (!iframe.src || iframe.src === window.location.href) {
+          iframe.src = iframe.dataset.src!;
+        }
+      }
+    });
+  });
+
+  // ── Add: Spotify ────────────────────────────────────────────────────────────
+  const spUrl    = document.getElementById('sp-url')    as HTMLInputElement | null;
+  const spBtn    = document.getElementById('sp-btn')    as HTMLButtonElement | null;
+  const spErr    = document.getElementById('sp-error')  as HTMLElement | null;
+
+  async function addSpotify() {
+    const url = spUrl?.value.trim() ?? '';
     if (!url) return;
-    if (spErrorEl) spErrorEl.style.display = 'none';
-    if (spSubmitBtn) { spSubmitBtn.disabled = true; spSubmitBtn.textContent = '...'; }
+    if (spErr) spErr.style.display = 'none';
+    if (spBtn) { spBtn.disabled = true; spBtn.textContent = '...'; }
 
     const res = await fetch('/api/spotify/playlist', {
       method: 'POST',
@@ -1404,53 +511,61 @@ function avatarBg(u: string): string {
       body: JSON.stringify({ url }),
     });
 
-    if (spSubmitBtn) { spSubmitBtn.disabled = false; spSubmitBtn.textContent = 'Ekle'; }
-
+    if (spBtn) { spBtn.disabled = false; spBtn.textContent = 'Ekle'; }
     if (res.status === 401) { window.location.href = '/login'; return; }
-
     if (!res.ok) {
       const d = await res.json().catch(() => ({})) as { error?: string };
-      if (spErrorEl) { spErrorEl.textContent = d.error ?? 'Bir hata oluştu.'; spErrorEl.style.display = 'block'; }
+      if (spErr) { spErr.textContent = d.error ?? 'Hata oluştu.'; spErr.style.display = 'block'; }
       return;
     }
-
-    // Sayfayı yenile (yeni playlist sunucudan gelsin)
     window.location.reload();
   }
 
-  spSubmitBtn?.addEventListener('click', addSpotifyPlaylist);
-  spUrlInput?.addEventListener('keydown', e => { if (e.key === 'Enter') addSpotifyPlaylist(); });
+  spBtn?.addEventListener('click', addSpotify);
+  spUrl?.addEventListener('keydown', e => { if (e.key === 'Enter') addSpotify(); });
 
-  // Playlist oynat/gizle toggle
-  document.querySelectorAll<HTMLButtonElement>('.sp-toggle-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const playlistId = btn.dataset.playlistId!;
-      const wrap = document.getElementById(`sp-embed-${playlistId}`);
-      if (!wrap) return;
-      const isOpen = wrap.style.display !== 'none';
-      wrap.style.display = isOpen ? 'none' : 'block';
-      btn.classList.toggle('active', !isOpen);
-      // Play/stop icon
-      btn.innerHTML = !isOpen
-        ? `<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`
-        : `<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><polygon points="5 3 19 12 5 21"/></svg>`;
+  // ── Add: YouTube ────────────────────────────────────────────────────────────
+  const ytUrl = document.getElementById('yt-url') as HTMLInputElement | null;
+  const ytBtn = document.getElementById('yt-btn') as HTMLButtonElement | null;
+  const ytErr = document.getElementById('yt-error') as HTMLElement | null;
+
+  async function addYouTube() {
+    const url = ytUrl?.value.trim() ?? '';
+    if (!url) return;
+    if (ytErr) ytErr.style.display = 'none';
+    if (ytBtn) { ytBtn.disabled = true; ytBtn.textContent = '...'; }
+
+    const res = await fetch('/api/youtube/item', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
     });
-  });
 
-  // Playlist sil
-  document.querySelectorAll<HTMLButtonElement>('.sp-delete-btn').forEach(btn => {
+    if (ytBtn) { ytBtn.disabled = false; ytBtn.textContent = 'Ekle'; }
+    if (res.status === 401) { window.location.href = '/login'; return; }
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({})) as { error?: string };
+      if (ytErr) { ytErr.textContent = d.error ?? 'Hata oluştu.'; ytErr.style.display = 'block'; }
+      return;
+    }
+    window.location.reload();
+  }
+
+  ytBtn?.addEventListener('click', addYouTube);
+  ytUrl?.addEventListener('keydown', e => { if (e.key === 'Enter') addYouTube(); });
+
+  // ── Delete ──────────────────────────────────────────────────────────────────
+  document.querySelectorAll<HTMLButtonElement>('.del-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
-      if (!confirm('Bu playlisti kaldırmak istiyor musun?')) return;
+      if (!confirm('Bu içeriği kaldırmak istiyor musun?')) return;
       const id = Number(btn.dataset.id);
-      const res = await fetch('/api/spotify/playlist', {
+      const api = btn.dataset.api!;
+      const res = await fetch(api, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
       });
-      if (res.ok) {
-        const card = btn.closest('.sp-card');
-        card?.remove();
-      }
+      if (res.ok) btn.closest('.music-card')?.remove();
     });
   });
 </script>
