@@ -1,8 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { supabase, createAuthClient, flattenPosts, type Post } from '../lib/supabase';
+import { supabase, createAuthClient, flattenFacts, type QuickFact } from '../lib/supabase';
 
-// Giriş yapan kullanıcıyı al
 const authHeaders = new Headers();
 const authClient = createAuthClient(Astro.request, authHeaders);
 const { data: { user: authUser } } = await authClient.auth.getUser();
@@ -10,86 +9,29 @@ const { data: { user: authUser } } = await authClient.auth.getUser();
 let currentUser: { id: number; display_name: string; username: string } | null = null;
 if (authUser) {
   const { data } = await supabase
-    .from('users')
-    .select('id, display_name, username')
-    .eq('auth_id', authUser.id)
-    .single();
+    .from('users').select('id, display_name, username').eq('auth_id', authUser.id).single();
   currentUser = data;
 }
 
-const { data: raw } = await supabase
-  .from('posts')
+// Tüm medya paylaşımları
+const { data: rawFacts } = await supabase
+  .from('quick_facts')
   .select('*, users(display_name, username, avatar)')
   .order('created_at', { ascending: false })
-  .limit(50);
+  .limit(30);
+const facts: QuickFact[] = flattenFacts(rawFacts ?? []);
 
-const posts: Post[] = flattenPosts(raw ?? []);
-
-// Anket verilerini çek
-type PollOption = { id: number; text: string; votes: number; position: number };
-type PollInfo   = { id: number; options: PollOption[]; voted_option_id: number | null; total_votes: number };
-
-const pollMap = new Map<number, PollInfo>();
-if (posts.length) {
-  const postIds = posts.map(p => p.id);
-  const { data: pollsRaw } = await supabase
-    .from('polls')
-    .select('id, post_id, poll_options(id, text, votes, position)')
-    .in('post_id', postIds);
-
-  if (pollsRaw?.length) {
-    const pollIds = pollsRaw.map(p => p.id);
-    let myVotes: Record<number, number> = {};
-
-    if (currentUser) {
-      const { data: votesRaw } = await supabase
-        .from('poll_votes')
-        .select('poll_id, option_id')
-        .eq('user_id', currentUser.id)
-        .in('poll_id', pollIds);
-      for (const v of votesRaw ?? []) myVotes[v.poll_id] = v.option_id;
-    }
-
-    for (const poll of pollsRaw) {
-      const options: PollOption[] = ((poll.poll_options as any[]) ?? [])
-        .sort((a, b) => a.position - b.position);
-      pollMap.set(poll.post_id, {
-        id: poll.id,
-        options,
-        voted_option_id: myVotes[poll.id] ?? null,
-        total_votes: options.reduce((s, o) => s + o.votes, 0),
-      });
-    }
-  }
+// Beğeni durumu
+let likedIds = new Set<number>();
+if (currentUser && facts.length) {
+  const { data: lr } = await supabase
+    .from('fact_likes').select('fact_id')
+    .eq('user_id', currentUser.id)
+    .in('fact_id', facts.map(f => f.id));
+  likedIds = new Set((lr ?? []).map((r: any) => r.fact_id));
 }
 
-function timeAgo(dateStr: string) {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `${mins}d`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}sa`;
-  return `${Math.floor(hrs / 24)}g`;
-}
-
-const trending = [
-  { topic: '#KaraDelik', label: 'Bilim · Trend', count: '2.4B gönderi' },
-  { topic: '#Kartaca', label: 'Tarih · Trend', count: '841B gönderi' },
-  { topic: '#RomaImparatorlugu', label: 'Tarih', count: '1.2B gönderi' },
-  { topic: '#BuyukYokOlus', label: 'Bilim · Trend', count: '523B gönderi' },
-];
-
-// ── Ortak yardımcılar
-function avatarBgSrv(u: string): string {
-  const gs = ['linear-gradient(135deg,#6366f1,#8b5cf6)','linear-gradient(135deg,#ec4899,#8b5cf6)',
-    'linear-gradient(135deg,#f97316,#ef4444)','linear-gradient(135deg,#10b981,#3b82f6)',
-    'linear-gradient(135deg,#f59e0b,#f97316)','linear-gradient(135deg,#14b8a6,#06b6d4)',
-    'linear-gradient(135deg,#3b82f6,#6366f1)','linear-gradient(135deg,#ef4444,#f97316)'];
-  let h = 0; for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff;
-  return gs[Math.abs(h) % gs.length];
-}
-
-// Takip listesi (hem öneri hem repost için kullanılıyor)
+// Takip listesi (öneri widget için)
 let myFollowIds: number[] = [];
 if (currentUser) {
   const { data: myFollows } = await supabase
@@ -97,7 +39,7 @@ if (currentUser) {
   myFollowIds = (myFollows ?? []).map((f: any) => f.following_id);
 }
 
-// ── "Tanıyor olabilirsin" önerileri
+// "Tanıyor olabilirsin" önerileri
 type SuggestedUser = { id: number; username: string; display_name: string; bio: string | null; mutual_count: number };
 let suggestedUsers: SuggestedUser[] = [];
 
@@ -113,12 +55,10 @@ if (currentUser) {
 
     if (fofRaw && fofRaw.length > 0) {
       const countMap = new Map<number, number>();
-      for (const f of fofRaw as any[]) {
+      for (const f of fofRaw as any[])
         countMap.set(f.following_id, (countMap.get(f.following_id) ?? 0) + 1);
-      }
       const topIds = [...countMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([id]) => id);
-      const { data: users } = await supabase
-        .from('users').select('id, username, display_name, bio').in('id', topIds);
+      const { data: users } = await supabase.from('users').select('id, username, display_name, bio').in('id', topIds);
       suggestedUsers = (users ?? []).map((u: any) => ({ ...u, mutual_count: countMap.get(u.id) ?? 0 }));
     }
   }
@@ -128,8 +68,7 @@ if (currentUser) {
     const { data: recent } = await supabase
       .from('users').select('id, username, display_name, bio')
       .not('id', 'in', `(${[...existingIds].join(',')})`)
-      .order('created_at', { ascending: false })
-      .limit(10);
+      .order('created_at', { ascending: false }).limit(10);
     for (const u of (recent ?? []) as any[]) {
       if (!existingIds.has(u.id) && suggestedUsers.length < 5) {
         suggestedUsers.push({ ...u, mutual_count: 0 });
@@ -139,213 +78,120 @@ if (currentUser) {
   }
 }
 
-// ── Repost feed (takip ettiklerinin paylaştıkları)
-type FeedItem = Post & { reposted_by?: string; reposted_by_display?: string; repost_time?: string };
-let repostFeedItems: FeedItem[] = [];
-let myRepostIds = new Set<number>();
-
-if (currentUser && myFollowIds.length > 0) {
-  const { data: repostsRaw } = await supabase
-    .from('reposts')
-    .select('post_id, user_id, created_at, users(username, display_name)')
-    .in('user_id', myFollowIds)
-    .order('created_at', { ascending: false })
-    .limit(20);
-
-  if (repostsRaw?.length) {
-    const repostPostIds = (repostsRaw as any[]).map(r => r.post_id);
-    const { data: rpPostsRaw } = await supabase
-      .from('posts')
-      .select('*, users(display_name, username, avatar)')
-      .in('id', repostPostIds);
-
-    const rpPostMap = new Map((rpPostsRaw ?? []).map((p: any) => [p.id, p]));
-    const existingPostIds = new Set(posts.map(p => p.id));
-
-    for (const r of repostsRaw as any[]) {
-      if (existingPostIds.has(r.post_id)) continue; // zaten feed'de var
-      const rawPost = rpPostMap.get(r.post_id);
-      if (!rawPost) continue;
-      const [fp] = flattenPosts([rawPost]);
-      repostFeedItems.push({
-        ...fp,
-        reposted_by: (r.users as any)?.username ?? '',
-        reposted_by_display: (r.users as any)?.display_name ?? '',
-        repost_time: r.created_at,
-      });
-    }
-  }
+function timeAgo(dateStr: string) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins}d`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}sa`;
+  return `${Math.floor(hrs / 24)}g`;
 }
 
-// Kendi repost durumlarım (feed'e de ekle)
-if (currentUser) {
-  const { data: myRpsRaw } = await supabase
-    .from('reposts')
-    .select('post_id, created_at')
-    .eq('user_id', currentUser.id)
-    .order('created_at', { ascending: false })
-    .limit(30);
-
-  if (myRpsRaw?.length) {
-    (myRpsRaw as any[]).forEach(r => myRepostIds.add(r.post_id));
-
-    const alreadyInFeed = new Set(repostFeedItems.map(r => r.id));
-    const toFetch = (myRpsRaw as any[]).map(r => r.post_id).filter((id: number) => !alreadyInFeed.has(id));
-
-    if (toFetch.length) {
-      const { data: myRpPostsRaw } = await supabase
-        .from('posts').select('*, users(display_name, username, avatar)').in('id', toFetch);
-      const myRpPostMap = new Map((myRpPostsRaw ?? []).map((p: any) => [p.id, p]));
-
-      for (const r of myRpsRaw as any[]) {
-        if (alreadyInFeed.has(r.post_id)) continue;
-        const rawPost = myRpPostMap.get(r.post_id);
-        if (!rawPost) continue;
-        const [fp] = flattenPosts([rawPost]);
-        repostFeedItems.push({
-          ...fp,
-          reposted_by: currentUser.username,
-          reposted_by_display: currentUser.display_name,
-          repost_time: r.created_at,
-        });
-      }
-    }
-  }
+function avatarBg(u: string): string {
+  const gs = [
+    'linear-gradient(135deg,#6366f1,#8b5cf6)', 'linear-gradient(135deg,#ec4899,#8b5cf6)',
+    'linear-gradient(135deg,#f97316,#ef4444)',  'linear-gradient(135deg,#10b981,#3b82f6)',
+    'linear-gradient(135deg,#f59e0b,#f97316)',  'linear-gradient(135deg,#14b8a6,#06b6d4)',
+    'linear-gradient(135deg,#3b82f6,#6366f1)',  'linear-gradient(135deg,#ef4444,#f97316)',
+  ];
+  let h = 0;
+  for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff;
+  return gs[Math.abs(h) % gs.length];
 }
-
-// Feed birleştir - repost versiyonu normal versiyona öncelikli
-const repostPostIds = new Set(repostFeedItems.map(r => r.id));
-const feedItems: FeedItem[] = [
-  ...posts.filter(p => !repostPostIds.has(p.id)).map(p => ({ ...p } as FeedItem)),
-  ...repostFeedItems,
-].sort((a, b) => {
-  const aTime = a.repost_time ? new Date(a.repost_time).getTime() : new Date(a.created_at).getTime();
-  const bTime = b.repost_time ? new Date(b.repost_time).getTime() : new Date(b.created_at).getTime();
-  return bTime - aTime;
-}).slice(0, 50);
 ---
 
 <BaseLayout title="Ana Sayfa" activeNav="home">
   <main class="main-content">
     <div class="feed-header">Ana Sayfa</div>
 
-    {feedItems.map(post => (
-      <article class="post-card">
-        {post.reposted_by && (
-          <div class="repost-banner">
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1 21 5l-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-            {post.reposted_by === currentUser?.username
-              ? 'Sen paylaştın'
-              : <><a href={`/u/${post.reposted_by}`}>{post.reposted_by_display}</a> paylaştı</>
-            }
-          </div>
-        )}
-        <div class="post-header">
-          <div class="avatar">{post.display_name[0]}</div>
-          <div class="post-meta">
-            <span class="post-author">{post.display_name}</span>
-            <span class="post-handle"> @{post.username}</span>
-            <span class="post-date"> · {timeAgo(post.created_at)}</span>
-          </div>
-        </div>
-
-        <div class="post-content">
-          <span class={`category-badge category-${post.category}`}>
-            {post.category === 'science' ? 'Bilim' : post.category === 'history' ? 'Tarih' : 'Genel'}
-          </span>
-          <br />
-          {post.content}
-        </div>
-
-        {post.image_url && (
-          <div class="post-image">
-            <img src={post.image_url} alt="post" loading="lazy" />
-          </div>
-        )}
-
-        {(() => {
-          const poll = pollMap.get(post.id);
-          if (!poll) return null;
-          const voted = poll.voted_option_id !== null;
+    {facts.length === 0 ? (
+      <div class="empty-feed">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+        <p>Henüz paylaşım yok.</p>
+      </div>
+    ) : (
+      <div class="ig-feed">
+        {facts.map(fact => {
+          const liked = likedIds.has(fact.id);
           return (
-            <div
-              class="poll-wrap"
-              data-post-id={post.id}
-              data-poll-id={poll.id}
-              data-voted={voted ? 'true' : 'false'}
-              data-my-vote={poll.voted_option_id ?? ''}
-              data-options={JSON.stringify(poll.options)}
-              data-total={poll.total_votes}
-            >
-              {voted ? (
-                poll.options.map(opt => {
-                  const pct = poll.total_votes > 0 ? Math.round(opt.votes / poll.total_votes * 100) : 0;
-                  const chosen = opt.id === poll.voted_option_id;
-                  return (
-                    <div class={`poll-bar${chosen ? ' poll-bar--chosen' : ''}`}>
-                      <div class="poll-bar-fill" style={`width:${pct}%`}></div>
-                      <span class="poll-bar-label">{opt.text}{chosen ? ' ✓' : ''}</span>
-                      <span class="poll-bar-pct">{pct}%</span>
-                    </div>
-                  );
-                })
-              ) : (
-                poll.options.map(opt => (
-                  <button class="poll-opt-btn" data-option-id={opt.id}>{opt.text}</button>
-                ))
-              )}
-              <div class="poll-meta">{poll.total_votes} oy</div>
-            </div>
-          );
-        })()}
+            <article class="ig-post" data-id={fact.id}>
+              {/* Başlık */}
+              <div class="ig-header">
+                <a href={`/u/${fact.username}`} class="ig-avatar" style={`background:${avatarBg(fact.username)}`}>
+                  {(fact.display_name[0] ?? '?').toUpperCase()}
+                </a>
+                <div class="ig-user">
+                  <a href={`/u/${fact.username}`} class="ig-name">{fact.display_name}</a>
+                  <span class="ig-handle">@{fact.username} · {timeAgo(fact.created_at)}</span>
+                </div>
+              </div>
 
-        <div class="post-actions">
-          <button class="action-btn like-btn" data-id={post.id}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
-            <span class="like-count">{post.likes}</span>
-          </button>
-          <button class="action-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            <span>Yorum</span>
-          </button>
-          <button
-            class="action-btn repost-btn"
-            data-id={post.id}
-            data-reposted={myRepostIds.has(post.id) ? 'true' : 'false'}
-            style={myRepostIds.has(post.id) ? 'color:#10b981' : ''}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1 21 5l-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-            <span class="repost-count">{post.reposts ?? 0}</span>
-          </button>
-        </div>
-      </article>
-    ))}
+              {/* Medya */}
+              <div class="ig-media">
+                {fact.media_type === 'video' ? (
+                  <video src={fact.media_url} controls muted playsinline loop preload="metadata" />
+                ) : (
+                  <img src={fact.media_url} alt={fact.caption ?? ''} loading="lazy" decoding="async" />
+                )}
+              </div>
+
+              {/* Aksiyon butonları */}
+              <div class="ig-actions">
+                <button
+                  class="ig-like-btn"
+                  data-id={fact.id}
+                  data-liked={liked ? 'true' : 'false'}
+                  style={liked ? 'color:#ef4444' : ''}
+                  aria-label="Beğen"
+                >
+                  {liked ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                  )}
+                  <span class="ig-like-count">{fact.likes}</span>
+                </button>
+
+                <a href="/akis" class="ig-comment-btn" aria-label="Yorumlar">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                </a>
+              </div>
+
+              {/* Beğeni sayısı */}
+              <div class="ig-likes-row">
+                <span class="ig-likes-text"><span class="ig-like-count-txt">{fact.likes}</span> beğeni</span>
+              </div>
+
+              {/* Açıklama */}
+              {fact.caption && (
+                <div class="ig-caption">
+                  <a href={`/u/${fact.username}`} class="ig-caption-user">{fact.display_name}</a>
+                  {' '}{fact.caption}
+                </div>
+              )}
+            </article>
+          );
+        })}
+      </div>
+    )}
   </main>
 
   <aside class="right-panel">
-
     {currentUser && suggestedUsers.length > 0 && (
       <div class="widget-card" id="suggestions-widget">
         <h3>Tanıyor olabilirsin</h3>
         <div class="sug-list">
           {suggestedUsers.map(u => (
-            <div class="sug-item" data-username={u.username}>
-              <a href={`/u/${u.username}`} class="sug-avatar" style={`background:${avatarBgSrv(u.username)}`}>
+            <div class="sug-item">
+              <a href={`/u/${u.username}`} class="sug-avatar" style={`background:${avatarBg(u.username)}`}>
                 {u.display_name[0].toUpperCase()}
               </a>
               <div class="sug-info">
                 <a href={`/u/${u.username}`} class="sug-name">{u.display_name}</a>
                 <div class="sug-handle">@{u.username}</div>
-                {u.mutual_count > 0 && (
-                  <div class="sug-mutual">{u.mutual_count} ortak takipçi</div>
-                )}
+                {u.mutual_count > 0 && <div class="sug-mutual">{u.mutual_count} ortak takipçi</div>}
               </div>
-              <button
-                class="sug-follow-btn"
-                data-username={u.username}
-              >
-                Takip Et
-              </button>
+              <button class="sug-follow-btn" data-username={u.username}>Takip Et</button>
             </div>
           ))}
         </div>
@@ -354,18 +200,7 @@ const feedItems: FeedItem[] = [
     )}
 
     <div class="widget-card">
-      <h3>Trendler</h3>
-      {trending.map(t => (
-        <div class="trending-item">
-          <div class="trending-label">{t.label}</div>
-          <div class="trending-topic">{t.topic}</div>
-          <div class="trending-count">{t.count}</div>
-        </div>
-      ))}
-    </div>
-
-    <div class="widget-card">
-      <h3>Kesfet</h3>
+      <h3>Keşfet</h3>
       <div style="display:flex; flex-direction:column; gap:8px;">
         <a href="/articles/black-hole" style="display:flex; align-items:center; gap:12px; padding:8px; border-radius:12px; text-decoration:none; color:inherit;">
           <span style="font-size:1.5rem;">Kara Delikler</span>
@@ -379,144 +214,193 @@ const feedItems: FeedItem[] = [
 </BaseLayout>
 
 <style>
-/* ── Repost banner */
-.repost-banner {
+/* ── Instagram feed */
+.ig-feed {
+  max-width: 470px;
+  margin: 0 auto;
   display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 16px 0;
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--color-text-muted);
+  flex-direction: column;
+  gap: 24px;
+  padding-bottom: 40px;
 }
-.repost-banner a {
-  color: var(--color-text-muted);
-  text-decoration: none;
-  font-weight: 700;
-}
-.repost-banner a:hover { text-decoration: underline; }
 
-/* ── Öneri widget */
-.sug-list { display: flex; flex-direction: column; gap: 2px; }
-.sug-item {
+.ig-post {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Header */
+.ig-header {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 4px;
-  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.ig-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-decoration: none;
+}
+
+.ig-user { flex: 1; min-width: 0; }
+
+.ig-name {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--color-text);
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ig-name:hover { text-decoration: underline; }
+
+.ig-handle {
+  font-size: 0.76rem;
+  color: var(--color-text-muted);
+}
+
+/* Media */
+.ig-media {
+  width: 100%;
+  background: #000;
+  line-height: 0;
+}
+
+.ig-media img {
+  width: 100%;
+  max-height: 600px;
+  object-fit: cover;
+  display: block;
+}
+
+.ig-media video {
+  width: 100%;
+  max-height: 600px;
+  display: block;
+  object-fit: cover;
+  background: #000;
+}
+
+/* Actions */
+.ig-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 10px 4px;
+}
+
+.ig-like-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 9999px;
+  color: var(--color-text);
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
   transition: background 0.12s;
+}
+.ig-like-btn:hover { background: rgba(239,68,68,0.08); }
+
+.ig-comment-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: 9999px;
+  color: var(--color-text);
+  text-decoration: none;
+  transition: background 0.12s;
+}
+.ig-comment-btn:hover { background: var(--color-border); }
+
+/* Likes row */
+.ig-likes-row {
+  padding: 2px 14px 4px;
+}
+
+.ig-likes-text {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+/* Caption */
+.ig-caption {
+  padding: 2px 14px 14px;
+  font-size: 0.87rem;
+  line-height: 1.5;
+  color: var(--color-text);
+}
+
+.ig-caption-user {
+  font-weight: 700;
+  color: var(--color-text);
+  text-decoration: none;
+}
+.ig-caption-user:hover { text-decoration: underline; }
+
+/* Empty state */
+.empty-feed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 64px 0;
+  color: var(--color-text-muted);
+}
+.empty-feed p { font-size: 1rem; margin: 0; }
+
+/* Suggestions widget */
+.sug-list { display: flex; flex-direction: column; gap: 2px; }
+.sug-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 4px; border-radius: 12px; transition: background 0.12s;
 }
 .sug-item:hover { background: var(--color-border); }
 .sug-avatar {
   width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  color: #fff; font-weight: 700; font-size: 1rem;
-  text-decoration: none;
+  color: #fff; font-weight: 700; font-size: 1rem; text-decoration: none;
 }
 .sug-info { flex: 1; min-width: 0; }
 .sug-name {
-  font-size: 0.85rem; font-weight: 700;
-  color: var(--color-text); text-decoration: none;
-  display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 0.85rem; font-weight: 700; color: var(--color-text);
+  text-decoration: none; display: block; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap;
 }
 .sug-name:hover { text-decoration: underline; }
 .sug-handle { font-size: 0.78rem; color: var(--color-text-muted); }
 .sug-mutual { font-size: 0.72rem; color: var(--color-text-muted); margin-top: 1px; }
 .sug-follow-btn {
-  flex-shrink: 0;
-  padding: 5px 14px;
-  border-radius: 9999px;
-  border: 1.5px solid var(--color-text);
-  background: transparent;
-  color: var(--color-text);
-  font-size: 0.78rem;
-  font-weight: 700;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.15s;
-  white-space: nowrap;
+  flex-shrink: 0; padding: 5px 14px; border-radius: 9999px;
+  border: 1.5px solid var(--color-text); background: transparent;
+  color: var(--color-text); font-size: 0.78rem; font-weight: 700;
+  cursor: pointer; font-family: inherit; transition: all 0.15s; white-space: nowrap;
 }
 .sug-follow-btn:hover { background: var(--color-text); color: #fff; }
-.sug-follow-btn.following {
-  border-color: var(--color-border);
-  color: var(--color-text-muted);
-  background: transparent;
-}
-.sug-more {
-  display: block;
-  margin-top: 8px;
-  font-size: 0.8rem;
-  color: var(--color-primary);
-  text-decoration: none;
-}
+.sug-follow-btn.following { border-color: var(--color-border); color: var(--color-text-muted); }
+.sug-more { display: block; margin-top: 8px; font-size: 0.8rem; color: var(--color-primary); text-decoration: none; }
 .sug-more:hover { text-decoration: underline; }
-
-/* Anket - post görünümü */
-.poll-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 12px 16px;
-  border-top: 1px solid var(--color-border);
-}
-.poll-opt-btn {
-  width: 100%;
-  text-align: left;
-  padding: 10px 16px;
-  border: 1.5px solid var(--color-border);
-  border-radius: 9999px;
-  background: transparent;
-  font-size: 0.9rem;
-  font-family: inherit;
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
-  color: var(--color-text);
-}
-.poll-opt-btn:hover { border-color: #3b82f6; background: rgba(59,130,246,0.05); }
-.poll-opt-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-
-.poll-bar {
-  position: relative;
-  border-radius: 8px;
-  overflow: hidden;
-  background: var(--color-border);
-  height: 38px;
-  display: flex;
-  align-items: center;
-}
-.poll-bar-fill {
-  position: absolute;
-  inset: 0;
-  background: rgba(59,130,246,0.18);
-  border-radius: 8px;
-  transition: width 0.5s ease;
-}
-.poll-bar--chosen .poll-bar-fill { background: rgba(59,130,246,0.35); }
-.poll-bar-label {
-  position: relative;
-  flex: 1;
-  padding: 0 12px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.poll-bar-pct {
-  position: relative;
-  padding-right: 12px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: #3b82f6;
-  flex-shrink: 0;
-}
-.poll-meta {
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
-  padding: 2px 4px;
-}
-
-
 </style>
 
 <script>
@@ -525,41 +409,28 @@ const feedItems: FeedItem[] = [
   }
 
   // ── Like
-  document.querySelectorAll('.like-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const el = btn as HTMLElement;
-      const id = el.getAttribute('data-id');
-      const res = await fetch(`/api/posts/${id}/like`, { method: 'POST' });
-      if (res.ok) {
-        const data = await res.json() as { likes: number; liked: boolean };
-        const countEl = btn.querySelector('.like-count');
-        if (countEl) countEl.textContent = String(data.likes);
-        el.style.color = data.liked ? '#ef4444' : '';
-        el.dataset.liked = String(data.liked);
-      } else if (res.status === 401) {
-        window.location.href = '/login';
-      }
-    });
-  });
-
-  // ── Repost
-  document.querySelectorAll<HTMLButtonElement>('.repost-btn').forEach(btn => {
+  document.querySelectorAll<HTMLButtonElement>('.ig-like-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
       const id = btn.dataset.id!;
-      const wasReposted = btn.dataset.reposted === 'true';
-      btn.disabled = true;
-
-      const res = await fetch(`/api/posts/${id}/repost`, { method: 'POST' });
+      const res = await fetch(`/api/quick-facts/${id}/like`, { method: 'POST' });
       if (res.status === 401) { window.location.href = '/login'; return; }
+      if (!res.ok) return;
 
-      if (res.ok) {
-        const data = await res.json() as { reposted: boolean; reposts: number };
-        const countEl = btn.querySelector('.repost-count');
-        if (countEl) countEl.textContent = String(data.reposts);
-        btn.dataset.reposted = String(data.reposted);
-        btn.style.color = data.reposted ? '#10b981' : '';
-      }
-      btn.disabled = false;
+      const data = await res.json() as { likes: number; liked: boolean };
+      const liked = data.liked;
+
+      // Kalp ikonunu güncelle
+      btn.innerHTML = liked
+        ? `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg><span class="ig-like-count">${data.likes}</span>`
+        : `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg><span class="ig-like-count">${data.likes}</span>`;
+
+      btn.style.color = liked ? '#ef4444' : '';
+      btn.dataset.liked = String(liked);
+
+      // Üstteki beğeni sayısını da güncelle
+      const post = btn.closest('.ig-post');
+      const likesTxt = post?.querySelector<HTMLElement>('.ig-like-count-txt');
+      if (likesTxt) likesTxt.textContent = String(data.likes);
     });
   });
 
@@ -571,64 +442,14 @@ const feedItems: FeedItem[] = [
       const res = await fetch(`/api/users/${username}/follow`, { method: 'POST' });
       if (res.ok) {
         const data = await res.json() as { following: boolean };
-        if (data.following) {
-          btn.textContent = 'Takip Ediliyor';
-          btn.classList.add('following');
-          btn.disabled = false;
-        } else {
-          // Takip kaldırıldıysa (normalde bu widgetten olmaz)
-          btn.textContent = 'Takip Et';
-          btn.classList.remove('following');
-          btn.disabled = false;
-        }
+        btn.textContent = data.following ? 'Takip Ediliyor' : 'Takip Et';
+        btn.classList.toggle('following', data.following);
+        btn.disabled = false;
       } else if (res.status === 401) {
         window.location.href = '/login';
       } else {
         btn.disabled = false;
       }
-    });
-  });
-
-  // ── Anket oy kullanma
-  type PollOpt = { id: number; text: string; votes: number; position: number };
-
-  function renderBars(wrap: HTMLElement, options: PollOpt[], totalVotes: number, myVote: number) {
-    const meta = wrap.querySelector('.poll-meta')!;
-    wrap.querySelectorAll('.poll-opt-btn, .poll-bar').forEach(el => el.remove());
-    for (const opt of options) {
-      const pct = totalVotes > 0 ? Math.round(opt.votes / totalVotes * 100) : 0;
-      const chosen = opt.id === myVote;
-      const bar = document.createElement('div');
-      bar.className = 'poll-bar' + (chosen ? ' poll-bar--chosen' : '');
-      bar.innerHTML = `<div class="poll-bar-fill" style="width:0%"></div><span class="poll-bar-label">${opt.text}${chosen ? ' ✓' : ''}</span><span class="poll-bar-pct">${pct}%</span>`;
-      wrap.insertBefore(bar, meta);
-      requestAnimationFrame(() => {
-        (bar.querySelector('.poll-bar-fill') as HTMLElement).style.width = `${pct}%`;
-      });
-    }
-    meta.textContent = `${totalVotes} oy`;
-    wrap.dataset.voted = 'true';
-  }
-
-  document.querySelectorAll<HTMLElement>('.poll-wrap').forEach(wrap => {
-    wrap.querySelectorAll<HTMLButtonElement>('.poll-opt-btn').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const postId   = wrap.dataset.postId!;
-        const optionId = Number(btn.dataset.optionId);
-        wrap.querySelectorAll('.poll-opt-btn').forEach(b => (b as HTMLButtonElement).disabled = true);
-
-        const res = await fetch(`/api/posts/${postId}/vote`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ option_id: optionId }),
-        });
-
-        if (res.status === 401) { window.location.href = '/login'; return; }
-        if (!res.ok) { wrap.querySelectorAll('.poll-opt-btn').forEach(b => (b as HTMLButtonElement).disabled = false); return; }
-
-        const data = await res.json() as { options: PollOpt[]; total_votes: number; voted_option_id: number };
-        renderBars(wrap, data.options, data.total_votes, data.voted_option_id);
-      });
     });
   });
 </script>

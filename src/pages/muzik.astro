@@ -1,5 +1,50 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { supabase, createAuthClient } from '../lib/supabase';
+
+const authHeaders = new Headers();
+const authClient = createAuthClient(Astro.request, authHeaders);
+const { data: { user: authUser } } = await authClient.auth.getUser();
+
+let currentUser: { id: number; username: string; display_name: string } | null = null;
+if (authUser) {
+  const { data } = await supabase
+    .from('users').select('id, username, display_name').eq('auth_id', authUser.id).single();
+  currentUser = data;
+}
+
+type SpotifyPlaylist = {
+  id: number;
+  playlist_id: string;
+  title: string;
+  created_at: string;
+  user_id: number;
+  username: string;
+  display_name: string;
+};
+
+const { data: spRaw } = await supabase
+  .from('spotify_playlists')
+  .select('id, playlist_id, title, created_at, user_id, users(username, display_name)')
+  .order('created_at', { ascending: false })
+  .limit(20);
+
+const spotifyPlaylists: SpotifyPlaylist[] = (spRaw ?? []).map((r: any) => ({
+  ...r,
+  username:     r.users?.username     ?? '',
+  display_name: r.users?.display_name ?? '',
+}));
+
+function avatarBg(u: string): string {
+  const gs = [
+    'linear-gradient(135deg,#6366f1,#8b5cf6)', 'linear-gradient(135deg,#1db954,#1ed760)',
+    'linear-gradient(135deg,#ec4899,#8b5cf6)',  'linear-gradient(135deg,#f97316,#ef4444)',
+    'linear-gradient(135deg,#14b8a6,#06b6d4)',  'linear-gradient(135deg,#3b82f6,#6366f1)',
+  ];
+  let h = 0;
+  for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff;
+  return gs[Math.abs(h) % gs.length];
+}
 ---
 
 <BaseLayout title="Müzik" activeNav="muzik">
@@ -134,6 +179,87 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         </button>
       </div>
       <div id="add-error" class="yt-add-error" style="display:none;"></div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         SPOTIFY PLAYLİSTLERİ
+    ══════════════════════════════════════════ -->
+    <div class="sp-section">
+      <div class="sp-header-row">
+        <div class="sp-title-wrap">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="#1db954"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.622.622 0 0 1-.857.207c-2.348-1.435-5.304-1.76-8.785-.964a.623.623 0 0 1-.277-1.215c3.809-.87 7.076-.496 9.712 1.115a.623.623 0 0 1 .207.857zm1.223-2.722a.78.78 0 0 1-1.072.257c-2.687-1.652-6.785-2.131-9.965-1.166a.78.78 0 0 1-.973-.517.781.781 0 0 1 .518-.973c3.632-1.102 8.147-.568 11.234 1.328a.78.78 0 0 1 .258 1.071zm.105-2.835C14.692 8.95 9.375 8.775 6.297 9.71a.937.937 0 1 1-.543-1.793c3.532-1.072 9.404-.865 13.115 1.338a.937.937 0 0 1-.955 1.612z"/></svg>
+          <span>Spotify Playlistleri</span>
+        </div>
+        {currentUser && (
+          <button class="sp-add-btn" id="sp-toggle-add">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+            Playlist Ekle
+          </button>
+        )}
+      </div>
+
+      {currentUser && (
+        <div class="sp-add-form" id="sp-add-form" style="display:none">
+          <div class="sp-add-inner">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="#1db954"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.622.622 0 0 1-.857.207c-2.348-1.435-5.304-1.76-8.785-.964a.623.623 0 0 1-.277-1.215c3.809-.87 7.076-.496 9.712 1.115a.623.623 0 0 1 .207.857zm1.223-2.722a.78.78 0 0 1-1.072.257c-2.687-1.652-6.785-2.131-9.965-1.166a.78.78 0 0 1-.973-.517.781.781 0 0 1 .518-.973c3.632-1.102 8.147-.568 11.234 1.328a.78.78 0 0 1 .258 1.071zm.105-2.835C14.692 8.95 9.375 8.775 6.297 9.71a.937.937 0 1 1-.543-1.793c3.532-1.072 9.404-.865 13.115 1.338a.937.937 0 0 1-.955 1.612z"/></svg>
+            <input
+              id="sp-url-input"
+              class="sp-url-input"
+              type="text"
+              placeholder="Spotify playlist URL yapıştır…"
+              autocomplete="off"
+            />
+            <button id="sp-submit-btn" class="sp-submit-btn">Ekle</button>
+          </div>
+          <div id="sp-error" class="sp-error" style="display:none"></div>
+        </div>
+      )}
+
+      <div class="sp-list" id="sp-list">
+        {spotifyPlaylists.length === 0 ? (
+          <div class="sp-empty">
+            <span>Henüz playlist eklenmedi.</span>
+            {currentUser
+              ? <span> Yukarıdan ilk playlistini ekle!</span>
+              : <span> Eklemek için <a href="/login">giriş yap</a>.</span>
+            }
+          </div>
+        ) : (
+          spotifyPlaylists.map(pl => (
+            <div class="sp-card" data-id={pl.id} data-playlist-id={pl.playlist_id}>
+              <div class="sp-card-header">
+                <a href={`/u/${pl.username}`} class="sp-avatar" style={`background:${avatarBg(pl.username)}`}>
+                  {(pl.display_name[0] ?? '?').toUpperCase()}
+                </a>
+                <div class="sp-card-meta">
+                  <a href={`/u/${pl.username}`} class="sp-card-user">{pl.display_name}</a>
+                  <span class="sp-card-title">{pl.title}</span>
+                </div>
+                <div class="sp-card-actions">
+                  <button class="sp-toggle-btn" data-playlist-id={pl.playlist_id} title="Oynat / Gizle">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><polygon points="5 3 19 12 5 21"/></svg>
+                  </button>
+                  {currentUser?.id === pl.user_id && (
+                    <button class="sp-delete-btn" data-id={pl.id} title="Kaldır">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div class="sp-embed-wrap" id={`sp-embed-${pl.playlist_id}`} style="display:none">
+                <iframe
+                  src={`https://open.spotify.com/embed/playlist/${pl.playlist_id}?utm_source=generator&theme=0`}
+                  width="100%"
+                  height="352"
+                  frameborder="0"
+                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                  loading="lazy"
+                ></iframe>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
     </div>
 
   </div><!-- /yt-left -->
@@ -679,6 +805,204 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   color: #f87171 !important;
 }
 
+/* ═══════════════════════════════════════════
+   SPOTIFY SECTION
+═══════════════════════════════════════════ */
+.sp-section {
+  background: #fff;
+  border-top: 1px solid #e5e5e5;
+  margin-top: 8px;
+  padding-bottom: 24px;
+}
+
+.sp-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 12px;
+}
+
+.sp-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f0f0f;
+}
+
+.sp-add-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #1db954;
+  color: #fff;
+  border: none;
+  border-radius: 9999px;
+  padding: 7px 16px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-family: inherit;
+}
+.sp-add-btn:hover { background: #1aa34a; }
+
+.sp-add-form {
+  padding: 0 16px 12px;
+}
+
+.sp-add-inner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f2f2f2;
+  border-radius: 9999px;
+  padding: 8px 14px;
+}
+
+.sp-url-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.88rem;
+  color: #0f0f0f;
+  font-family: inherit;
+}
+.sp-url-input::placeholder { color: #909090; }
+
+.sp-submit-btn {
+  background: #1db954;
+  color: #fff;
+  border: none;
+  border-radius: 9999px;
+  padding: 6px 16px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+.sp-submit-btn:hover { background: #1aa34a; }
+.sp-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.sp-error {
+  font-size: 0.8rem;
+  color: #cc0000;
+  margin-top: 8px;
+  padding-left: 8px;
+}
+
+.sp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 12px;
+}
+
+.sp-empty {
+  padding: 24px 4px;
+  font-size: 0.88rem;
+  color: #606060;
+}
+.sp-empty a { color: #1db954; text-decoration: none; }
+.sp-empty a:hover { text-decoration: underline; }
+
+.sp-card {
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.sp-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+}
+
+.sp-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.sp-card-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.sp-card-user {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #0f0f0f;
+  text-decoration: none;
+}
+.sp-card-user:hover { text-decoration: underline; }
+
+.sp-card-title {
+  font-size: 0.82rem;
+  color: #606060;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sp-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.sp-toggle-btn {
+  background: #1db954;
+  border: none;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #fff;
+  transition: background 0.15s, transform 0.15s;
+}
+.sp-toggle-btn:hover { background: #1aa34a; transform: scale(1.08); }
+.sp-toggle-btn.active { background: #0f0f0f; }
+
+.sp-delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  color: #909090;
+  display: flex;
+  align-items: center;
+  transition: all 0.15s;
+}
+.sp-delete-btn:hover { background: rgba(220,38,38,0.1); color: #ef4444; }
+
+.sp-embed-wrap {
+  border-top: 1px solid #e5e5e5;
+}
+.sp-embed-wrap iframe { display: block; }
+
 /* Empty state */
 .yt-empty {
   text-align: center;
@@ -1049,4 +1373,84 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     if (e.key === 'ArrowLeft')  { if (player) player.seekTo(Math.max(0, (player.getCurrentTime() || 0) - 10), true); }
   });
 })();
+</script>
+
+<script>
+  // ── Spotify bölümü ─────────────────────────────────────────────────────────
+  const spToggleAdd  = document.getElementById('sp-toggle-add') as HTMLButtonElement | null;
+  const spAddForm    = document.getElementById('sp-add-form') as HTMLElement | null;
+  const spUrlInput   = document.getElementById('sp-url-input') as HTMLInputElement | null;
+  const spSubmitBtn  = document.getElementById('sp-submit-btn') as HTMLButtonElement | null;
+  const spErrorEl    = document.getElementById('sp-error') as HTMLElement | null;
+  const spList       = document.getElementById('sp-list') as HTMLElement | null;
+
+  // Form göster/gizle
+  spToggleAdd?.addEventListener('click', () => {
+    const visible = spAddForm!.style.display !== 'none';
+    spAddForm!.style.display = visible ? 'none' : 'block';
+    if (!visible) spUrlInput?.focus();
+  });
+
+  // Playlist ekle
+  async function addSpotifyPlaylist() {
+    const url = spUrlInput?.value.trim() ?? '';
+    if (!url) return;
+    if (spErrorEl) spErrorEl.style.display = 'none';
+    if (spSubmitBtn) { spSubmitBtn.disabled = true; spSubmitBtn.textContent = '...'; }
+
+    const res = await fetch('/api/spotify/playlist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+    });
+
+    if (spSubmitBtn) { spSubmitBtn.disabled = false; spSubmitBtn.textContent = 'Ekle'; }
+
+    if (res.status === 401) { window.location.href = '/login'; return; }
+
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({})) as { error?: string };
+      if (spErrorEl) { spErrorEl.textContent = d.error ?? 'Bir hata oluştu.'; spErrorEl.style.display = 'block'; }
+      return;
+    }
+
+    // Sayfayı yenile (yeni playlist sunucudan gelsin)
+    window.location.reload();
+  }
+
+  spSubmitBtn?.addEventListener('click', addSpotifyPlaylist);
+  spUrlInput?.addEventListener('keydown', e => { if (e.key === 'Enter') addSpotifyPlaylist(); });
+
+  // Playlist oynat/gizle toggle
+  document.querySelectorAll<HTMLButtonElement>('.sp-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const playlistId = btn.dataset.playlistId!;
+      const wrap = document.getElementById(`sp-embed-${playlistId}`);
+      if (!wrap) return;
+      const isOpen = wrap.style.display !== 'none';
+      wrap.style.display = isOpen ? 'none' : 'block';
+      btn.classList.toggle('active', !isOpen);
+      // Play/stop icon
+      btn.innerHTML = !isOpen
+        ? `<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`
+        : `<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><polygon points="5 3 19 12 5 21"/></svg>`;
+    });
+  });
+
+  // Playlist sil
+  document.querySelectorAll<HTMLButtonElement>('.sp-delete-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!confirm('Bu playlisti kaldırmak istiyor musun?')) return;
+      const id = Number(btn.dataset.id);
+      const res = await fetch('/api/spotify/playlist', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      if (res.ok) {
+        const card = btn.closest('.sp-card');
+        card?.remove();
+      }
+    });
+  });
 </script>
