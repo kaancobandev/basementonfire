@@ -79,7 +79,7 @@ function timeAgo(d: string) {
     ></div>
 
     <!-- Story verisi JS'e aktarım -->
-    <script id="story-data" type="application/json" set:text={JSON.stringify({
+    <script id="story-data" type="application/json" set:html={JSON.stringify({
       ownStoryUser,
       otherStoryUsers,
       myId: currentDbUser?.id ?? null,
