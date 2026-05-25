@@ -10,7 +10,7 @@ export const GET: APIRoute = async ({ params }) => {
 
   const { data, error } = await supabase
     .from('comments')
-    .select('id, content, created_at, user_id, users(display_name, username)')
+    .select('id, content, created_at, user_id, parent_id, users(display_name, username)')
     .eq('post_id', postId)
     .order('created_at', { ascending: true });
 
@@ -18,6 +18,7 @@ export const GET: APIRoute = async ({ params }) => {
 
   const comments = (data ?? []).map((c: any) => ({
     id:           c.id,
+    parent_id:    c.parent_id ?? null,
     content:      c.content,
     created_at:   c.created_at,
     user_id:      c.user_id,

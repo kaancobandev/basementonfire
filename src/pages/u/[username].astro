@@ -6,7 +6,7 @@ const { username } = Astro.params;
 
 const { data: profileUser } = await supabase
   .from('users')
-  .select('id, username, display_name, bio, created_at, is_private')
+  .select('id, username, display_name, bio, created_at, is_private, birthdate, location, website, gender, interests')
   .eq('username', username)
   .single();
 
@@ -70,6 +70,21 @@ function avatarBg(u: string): string {
 }
 
 const bg = avatarBg(profileUser.username);
+
+function calcAge(bd: string | null): number | null {
+  if (!bd) return null;
+  const d = new Date(bd), t = new Date();
+  let a = t.getFullYear() - d.getFullYear();
+  const m = t.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && t.getDate() < d.getDate())) a--;
+  return a;
+}
+const age = calcAge((profileUser as any).birthdate ?? null);
+const GENDER_LABEL: Record<string, string> = { erkek: 'Erkek', kadin: 'Kadın', diger: 'Diğer' };
+const interests: string[] = (profileUser as any).interests ?? [];
+const location: string | null = (profileUser as any).location ?? null;
+const website: string | null  = (profileUser as any).website  ?? null;
+const gender: string          = (profileUser as any).gender   ?? '';
 ---
 
 <BaseLayout title={`${profileUser.display_name} (@${profileUser.username})`} activeNav="">
@@ -118,6 +133,36 @@ const bg = avatarBg(profileUser.username);
     </h1>
     <p class="pf-handle">@{profileUser.username}</p>
     {profileUser.bio && <p class="pf-bio">{profileUser.bio}</p>}
+
+    <div class="pf-meta-row">
+      {location && (
+        <span class="pf-meta-item">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          {location}
+        </span>
+      )}
+      {website && (
+        <a class="pf-meta-item pf-meta-link" href={website} target="_blank" rel="noopener noreferrer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          {website.replace(/^https?:\/\//, '')}
+        </a>
+      )}
+      {age !== null && (
+        <span class="pf-meta-item">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          {age} yaş
+        </span>
+      )}
+      {gender && <span class="pf-meta-item">{GENDER_LABEL[gender] ?? ''}</span>}
+    </div>
+
+    {interests.length > 0 && (
+      <div class="pf-interests">
+        {interests.map(tag => (
+          <span class="pf-interest-chip">{tag}</span>
+        ))}
+      </div>
+    )}
 
     <div class="pf-stats">
       <span><strong>{mediaPosts.length}</strong> Gönderi</span>
@@ -294,7 +339,13 @@ const bg = avatarBg(profileUser.username);
 
 .pf-name { font-size: 1.25rem; font-weight: 800; margin: 0 0 2px; }
 .pf-handle { color: var(--color-text-muted); font-size: 0.9rem; margin: 0 0 8px; }
-.pf-bio { font-size: 0.9rem; line-height: 1.5; margin: 0 0 12px; color: var(--color-text); }
+.pf-bio { font-size: 0.9rem; line-height: 1.5; margin: 0 0 10px; color: var(--color-text); }
+.pf-meta-row { display:flex; flex-wrap:wrap; gap:12px; margin:0 0 10px; }
+.pf-meta-item { display:inline-flex; align-items:center; gap:4px; font-size:0.82rem; color:var(--color-text-muted); }
+.pf-meta-link { color:var(--color-primary); text-decoration:none; }
+.pf-meta-link:hover { text-decoration:underline; }
+.pf-interests { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 12px; }
+.pf-interest-chip { background:rgba(212,165,100,0.12); color:#c4954e; border:1px solid rgba(212,165,100,0.35); border-radius:9999px; padding:3px 12px; font-size:0.78rem; font-weight:600; }
 
 .pf-stats {
   display: flex;
@@ -501,18 +552,40 @@ const cmForm    = document.getElementById('pf-cm-form') as HTMLFormElement | nul
 const cmInput   = document.getElementById('pf-cm-input') as HTMLInputElement | null;
 
 let lbPostId: number | null = null;
+let replyToId2: number | null = null;
 
-interface Cm2 { id:number; user_id:number; content:string; created_at:string; display_name:string; username:string; }
+interface Cm2 { id:number; parent_id:number|null; user_id:number; content:string; created_at:string; display_name:string; username:string; }
 
-function renderCm2(c: Cm2, myId: number | null): string {
+function renderCm2(c: Cm2, isReply=false): string {
   const bg = avatarBgJs(c.username);
-  return `<div class="cm-item"><a href="/u/${escJs(c.username)}" class="cm-avatar" style="background:${bg}">${c.display_name[0].toUpperCase()}</a><div class="cm-body"><span class="cm-author">${escJs(c.display_name)}</span><span class="cm-text">${escJs(c.content)}</span><div class="cm-time">${tAgoJs(c.created_at)}</div></div>${myId===c.user_id?`<button class="cm-delete" data-id="${c.id}">×</button>`:''}</div>`;
+  const replyBtn = !isReply ? `<button class="cm-reply-btn" data-cm-id="${c.id}" data-username="${escJs(c.username)}">Yanıtla</button>` : '';
+  return `<div class="cm-item${isReply?' cm-reply':''}" data-cid="${c.id}"><a href="/u/${escJs(c.username)}" class="cm-avatar" style="background:${bg}">${c.display_name[0].toUpperCase()}</a><div class="cm-body"><span class="cm-author">${escJs(c.display_name)}</span><span class="cm-text">${escJs(c.content)}</span><div class="cm-time-row"><span class="cm-time">${tAgoJs(c.created_at)}</span>${replyBtn}</div></div></div>`;
 }
-function bindDels2(myId: number | null) {
+function renderAllCm2(list: Cm2[]): string {
+  const top=list.filter(c=>!c.parent_id);
+  const rMap=new Map<number,Cm2[]>();
+  for(const c of list) if(c.parent_id){if(!rMap.has(c.parent_id))rMap.set(c.parent_id,[]);rMap.get(c.parent_id)!.push(c);}
+  let html=''; for(const c of top){html+=renderCm2(c,false);for(const r of rMap.get(c.id)??[])html+=renderCm2(r,true);}
+  return html;
+}
+function bindDels2() {
   cmList?.querySelectorAll<HTMLButtonElement>('.cm-delete').forEach(b=>{
     b.addEventListener('click',async()=>{
       const res=await fetch(`/api/comments/${b.dataset.id}`,{method:'DELETE'});
       if(res.ok) b.closest('.cm-item')?.remove();
+    });
+  });
+}
+function bindReplies2() {
+  if(!cmList||!cmInput||!cmForm) return;
+  cmList.querySelectorAll<HTMLButtonElement>('.cm-reply-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      replyToId2=Number(btn.dataset.cmId);
+      cmInput!.value=`@${btn.dataset.username} `;
+      cmInput!.focus();
+      let hint=cmForm!.querySelector('.cm-reply-hint');
+      if(!hint){hint=document.createElement('span');hint.className='cm-reply-hint';cmForm!.insertBefore(hint,cmInput);}
+      hint.textContent='↩ yanıtlanıyor';
     });
   });
 }
@@ -522,9 +595,8 @@ async function loadCm2(postId: number) {
   cmList.innerHTML='<div class="cm-loading">Yükleniyor…</div>';
   try {
     const d = await fetch(`/api/quick-facts/${postId}/comments`).then(r=>r.json()) as {comments:Cm2[]};
-    const myId = null; // viewer ID not needed here for delete (API enforces ownership)
-    cmList.innerHTML = d.comments.length ? d.comments.map(c=>renderCm2(c, null)).join('') : '<div class="cm-empty">Henüz yorum yok</div>';
-    bindDels2(null);
+    cmList.innerHTML = d.comments.length ? renderAllCm2(d.comments) : '<div class="cm-empty">Henüz yorum yok</div>';
+    bindDels2(); bindReplies2();
     cmList.scrollTop = cmList.scrollHeight;
   } catch { cmList.innerHTML='<div class="cm-empty">Yüklenemedi.</div>'; }
 }
@@ -533,13 +605,20 @@ cmForm?.addEventListener('submit',async e=>{
   e.preventDefault();
   const content=cmInput?.value.trim();
   if(!content||!lbPostId)return;
-  if(cmInput) cmInput.value='';
-  const res=await fetch(`/api/quick-facts/${lbPostId}/comment`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content})});
+  const parentId=replyToId2; replyToId2=null;
+  if(cmInput) cmInput.value=''; cmForm?.querySelector('.cm-reply-hint')?.remove();
+  const body: Record<string,unknown>={content}; if(parentId) body.parent_id=parentId;
+  const res=await fetch(`/api/quick-facts/${lbPostId}/comment`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
   const d=await res.json() as {comment:Cm2};
   if(d.comment&&cmList){
+    const cm=d.comment;
     cmList.querySelector('.cm-empty,.cm-loading')?.remove();
-    cmList.insertAdjacentHTML('beforeend',renderCm2(d.comment,null));
-    bindDels2(null);
+    if(cm.parent_id){
+      let ins: Element=cmList.querySelector<HTMLElement>(`[data-cid="${cm.parent_id}"]`)??cmList.lastElementChild!;
+      let nx=ins.nextElementSibling; while(nx?.classList.contains('cm-reply')){ins=nx;nx=nx.nextElementSibling;}
+      ins.insertAdjacentHTML('afterend',renderCm2(cm,true));
+    } else { cmList.insertAdjacentHTML('beforeend',renderCm2(cm,false)); }
+    bindDels2(); bindReplies2();
     cmList.scrollTop=cmList.scrollHeight;
   }
 });

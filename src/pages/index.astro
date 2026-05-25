@@ -25,6 +25,44 @@ const { data: raw } = await supabase
 
 const posts: Post[] = flattenPosts(raw ?? []);
 
+// Anket verilerini çek
+type PollOption = { id: number; text: string; votes: number; position: number };
+type PollInfo   = { id: number; options: PollOption[]; voted_option_id: number | null; total_votes: number };
+
+const pollMap = new Map<number, PollInfo>();
+if (posts.length) {
+  const postIds = posts.map(p => p.id);
+  const { data: pollsRaw } = await supabase
+    .from('polls')
+    .select('id, post_id, poll_options(id, text, votes, position)')
+    .in('post_id', postIds);
+
+  if (pollsRaw?.length) {
+    const pollIds = pollsRaw.map(p => p.id);
+    let myVotes: Record<number, number> = {};
+
+    if (currentUser) {
+      const { data: votesRaw } = await supabase
+        .from('poll_votes')
+        .select('poll_id, option_id')
+        .eq('user_id', currentUser.id)
+        .in('poll_id', pollIds);
+      for (const v of votesRaw ?? []) myVotes[v.poll_id] = v.option_id;
+    }
+
+    for (const poll of pollsRaw) {
+      const options: PollOption[] = ((poll.poll_options as any[]) ?? [])
+        .sort((a, b) => a.position - b.position);
+      pollMap.set(poll.post_id, {
+        id: poll.id,
+        options,
+        voted_option_id: myVotes[poll.id] ?? null,
+        total_votes: options.reduce((s, o) => s + o.votes, 0),
+      });
+    }
+  }
+}
+
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
@@ -40,6 +78,121 @@ const trending = [
   { topic: '#RomaImparatorlugu', label: 'Tarih', count: '1.2B gönderi' },
   { topic: '#BuyukYokOlus', label: 'Bilim · Trend', count: '523B gönderi' },
 ];
+
+// ── Ortak yardımcılar
+function avatarBgSrv(u: string): string {
+  const gs = ['linear-gradient(135deg,#6366f1,#8b5cf6)','linear-gradient(135deg,#ec4899,#8b5cf6)',
+    'linear-gradient(135deg,#f97316,#ef4444)','linear-gradient(135deg,#10b981,#3b82f6)',
+    'linear-gradient(135deg,#f59e0b,#f97316)','linear-gradient(135deg,#14b8a6,#06b6d4)',
+    'linear-gradient(135deg,#3b82f6,#6366f1)','linear-gradient(135deg,#ef4444,#f97316)'];
+  let h = 0; for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff;
+  return gs[Math.abs(h) % gs.length];
+}
+
+// Takip listesi (hem öneri hem repost için kullanılıyor)
+let myFollowIds: number[] = [];
+if (currentUser) {
+  const { data: myFollows } = await supabase
+    .from('follows').select('following_id').eq('follower_id', currentUser.id);
+  myFollowIds = (myFollows ?? []).map((f: any) => f.following_id);
+}
+
+// ── "Tanıyor olabilirsin" önerileri
+type SuggestedUser = { id: number; username: string; display_name: string; bio: string | null; mutual_count: number };
+let suggestedUsers: SuggestedUser[] = [];
+
+if (currentUser) {
+  const excludeIds = [currentUser.id, ...myFollowIds];
+  const excludeStr = `(${excludeIds.join(',')})`;
+
+  if (myFollowIds.length > 0) {
+    const { data: fofRaw } = await supabase
+      .from('follows').select('following_id')
+      .in('follower_id', myFollowIds)
+      .not('following_id', 'in', excludeStr);
+
+    if (fofRaw && fofRaw.length > 0) {
+      const countMap = new Map<number, number>();
+      for (const f of fofRaw as any[]) {
+        countMap.set(f.following_id, (countMap.get(f.following_id) ?? 0) + 1);
+      }
+      const topIds = [...countMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([id]) => id);
+      const { data: users } = await supabase
+        .from('users').select('id, username, display_name, bio').in('id', topIds);
+      suggestedUsers = (users ?? []).map((u: any) => ({ ...u, mutual_count: countMap.get(u.id) ?? 0 }));
+    }
+  }
+
+  if (suggestedUsers.length < 3) {
+    const existingIds = new Set([...excludeIds, ...suggestedUsers.map(u => u.id)]);
+    const { data: recent } = await supabase
+      .from('users').select('id, username, display_name, bio')
+      .not('id', 'in', `(${[...existingIds].join(',')})`)
+      .order('created_at', { ascending: false })
+      .limit(10);
+    for (const u of (recent ?? []) as any[]) {
+      if (!existingIds.has(u.id) && suggestedUsers.length < 5) {
+        suggestedUsers.push({ ...u, mutual_count: 0 });
+        existingIds.add(u.id);
+      }
+    }
+  }
+}
+
+// ── Repost feed (takip ettiklerinin paylaştıkları)
+type FeedItem = Post & { reposted_by?: string; reposted_by_display?: string; repost_time?: string };
+let repostFeedItems: FeedItem[] = [];
+let myRepostIds = new Set<number>();
+
+if (currentUser && myFollowIds.length > 0) {
+  const { data: repostsRaw } = await supabase
+    .from('reposts')
+    .select('post_id, user_id, created_at, users(username, display_name)')
+    .in('user_id', myFollowIds)
+    .order('created_at', { ascending: false })
+    .limit(20);
+
+  if (repostsRaw?.length) {
+    const repostPostIds = (repostsRaw as any[]).map(r => r.post_id);
+    const { data: rpPostsRaw } = await supabase
+      .from('posts')
+      .select('*, users(display_name, username, avatar)')
+      .in('id', repostPostIds);
+
+    const rpPostMap = new Map((rpPostsRaw ?? []).map((p: any) => [p.id, p]));
+    const existingPostIds = new Set(posts.map(p => p.id));
+
+    for (const r of repostsRaw as any[]) {
+      if (existingPostIds.has(r.post_id)) continue; // zaten feed'de var
+      const rawPost = rpPostMap.get(r.post_id);
+      if (!rawPost) continue;
+      const [fp] = flattenPosts([rawPost]);
+      repostFeedItems.push({
+        ...fp,
+        reposted_by: (r.users as any)?.username ?? '',
+        reposted_by_display: (r.users as any)?.display_name ?? '',
+        repost_time: r.created_at,
+      });
+    }
+  }
+}
+
+// Kendi repost durumlarım
+if (currentUser && posts.length > 0) {
+  const { data: myRps } = await supabase
+    .from('reposts').select('post_id')
+    .eq('user_id', currentUser.id)
+    .in('post_id', posts.map(p => p.id));
+  myRepostIds = new Set((myRps ?? []).map((r: any) => r.post_id));
+}
+
+// Feed birleştir
+const feedItems: FeedItem[] = [
+  ...posts.map(p => ({ ...p } as FeedItem)),
+  ...repostFeedItems,
+].sort((a, b) =>
+  new Date(b.repost_time ?? b.created_at).getTime() - new Date(a.repost_time ?? a.created_at).getTime()
+).slice(0, 50);
 ---
 
 <BaseLayout title="Ana Sayfa" activeNav="home">
@@ -58,8 +211,22 @@ const trending = [
                 placeholder="Ne düşünüyorsun?"
                 rows="3"
               ></textarea>
+              <!-- Anket alanı (gizli) -->
+              <div id="poll-area" style="display:none; flex-direction:column; gap:8px; padding:12px 0 4px;">
+                <div style="font-size:0.78rem; font-weight:700; color:#536471; margin-bottom:2px;">Anket Seçenekleri</div>
+                <input class="poll-opt-input" name="poll_opt_1" type="text" maxlength="80" placeholder="Seçenek 1" />
+                <input class="poll-opt-input" name="poll_opt_2" type="text" maxlength="80" placeholder="Seçenek 2" />
+                <div id="opt3-wrap" style="display:none"><input class="poll-opt-input" name="poll_opt_3" type="text" maxlength="80" placeholder="Seçenek 3 (isteğe bağlı)" /></div>
+                <div id="opt4-wrap" style="display:none"><input class="poll-opt-input" name="poll_opt_4" type="text" maxlength="80" placeholder="Seçenek 4 (isteğe bağlı)" /></div>
+                <button type="button" id="add-opt-btn" style="align-self:flex-start; background:none; border:1px dashed #cbd5e0; border-radius:8px; padding:5px 12px; font-size:0.8rem; color:#536471; cursor:pointer;">+ Seçenek ekle</button>
+              </div>
+
               <div class="compose-footer">
-                <select name="category" style="margin-right:12px; border:1px solid #e2e8f0; border-radius:8px; padding:6px 12px; font-size:0.85rem; background:white; cursor:pointer;">
+                <button type="button" id="poll-toggle-btn" title="Anket ekle" style="background:none; border:1.5px solid #e2e8f0; border-radius:8px; padding:5px 10px; cursor:pointer; display:flex; align-items:center; gap:5px; font-size:0.8rem; font-weight:600; color:#536471; transition:all 0.15s; margin-right:8px;">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/></svg>
+                  Anket
+                </button>
+                <select name="category" style="border:1px solid #e2e8f0; border-radius:8px; padding:6px 12px; font-size:0.85rem; background:white; cursor:pointer; margin-right:12px;">
                   <option value="general">Genel</option>
                   <option value="science">Bilim</option>
                   <option value="history">Tarih</option>
@@ -84,8 +251,14 @@ const trending = [
       )}
     </div>
 
-    {posts.map(post => (
+    {feedItems.map(post => (
       <article class="post-card">
+        {post.reposted_by && (
+          <div class="repost-banner">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1 21 5l-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+            <a href={`/u/${post.reposted_by}`}>{post.reposted_by_display}</a> paylaştı
+          </div>
+        )}
         <div class="post-header">
           <div class="avatar">{post.display_name[0]}</div>
           <div class="post-meta">
@@ -109,6 +282,42 @@ const trending = [
           </div>
         )}
 
+        {(() => {
+          const poll = pollMap.get(post.id);
+          if (!poll) return null;
+          const voted = poll.voted_option_id !== null;
+          return (
+            <div
+              class="poll-wrap"
+              data-post-id={post.id}
+              data-poll-id={poll.id}
+              data-voted={voted ? 'true' : 'false'}
+              data-my-vote={poll.voted_option_id ?? ''}
+              data-options={JSON.stringify(poll.options)}
+              data-total={poll.total_votes}
+            >
+              {voted ? (
+                poll.options.map(opt => {
+                  const pct = poll.total_votes > 0 ? Math.round(opt.votes / poll.total_votes * 100) : 0;
+                  const chosen = opt.id === poll.voted_option_id;
+                  return (
+                    <div class={`poll-bar${chosen ? ' poll-bar--chosen' : ''}`}>
+                      <div class="poll-bar-fill" style={`width:${pct}%`}></div>
+                      <span class="poll-bar-label">{opt.text}{chosen ? ' ✓' : ''}</span>
+                      <span class="poll-bar-pct">{pct}%</span>
+                    </div>
+                  );
+                })
+              ) : (
+                poll.options.map(opt => (
+                  <button class="poll-opt-btn" data-option-id={opt.id}>{opt.text}</button>
+                ))
+              )}
+              <div class="poll-meta">{poll.total_votes} oy</div>
+            </div>
+          );
+        })()}
+
         <div class="post-actions">
           <button class="action-btn like-btn" data-id={post.id}>
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
@@ -118,9 +327,14 @@ const trending = [
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             <span>Yorum</span>
           </button>
-          <button class="action-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/></svg>
-            <span>Paylas</span>
+          <button
+            class="action-btn repost-btn"
+            data-id={post.id}
+            data-reposted={myRepostIds.has(post.id) ? 'true' : 'false'}
+            style={myRepostIds.has(post.id) ? 'color:#10b981' : ''}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1 21 5l-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+            <span class="repost-count">{post.reposts ?? 0}</span>
           </button>
         </div>
       </article>
@@ -128,6 +342,36 @@ const trending = [
   </main>
 
   <aside class="right-panel">
+
+    {currentUser && suggestedUsers.length > 0 && (
+      <div class="widget-card" id="suggestions-widget">
+        <h3>Tanıyor olabilirsin</h3>
+        <div class="sug-list">
+          {suggestedUsers.map(u => (
+            <div class="sug-item" data-username={u.username}>
+              <a href={`/u/${u.username}`} class="sug-avatar" style={`background:${avatarBgSrv(u.username)}`}>
+                {u.display_name[0].toUpperCase()}
+              </a>
+              <div class="sug-info">
+                <a href={`/u/${u.username}`} class="sug-name">{u.display_name}</a>
+                <div class="sug-handle">@{u.username}</div>
+                {u.mutual_count > 0 && (
+                  <div class="sug-mutual">{u.mutual_count} ortak takipçi</div>
+                )}
+              </div>
+              <button
+                class="sug-follow-btn"
+                data-username={u.username}
+              >
+                Takip Et
+              </button>
+            </div>
+          ))}
+        </div>
+        <a href="/discover" class="sug-more">Daha fazla göster →</a>
+      </div>
+    )}
+
     <div class="widget-card">
       <h3>Trendler</h3>
       {trending.map(t => (
@@ -153,23 +397,294 @@ const trending = [
   </aside>
 </BaseLayout>
 
+<style>
+/* ── Repost banner */
+.repost-banner {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+.repost-banner a {
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-weight: 700;
+}
+.repost-banner a:hover { text-decoration: underline; }
+
+/* ── Öneri widget */
+.sug-list { display: flex; flex-direction: column; gap: 2px; }
+.sug-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 4px;
+  border-radius: 12px;
+  transition: background 0.12s;
+}
+.sug-item:hover { background: var(--color-border); }
+.sug-avatar {
+  width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 700; font-size: 1rem;
+  text-decoration: none;
+}
+.sug-info { flex: 1; min-width: 0; }
+.sug-name {
+  font-size: 0.85rem; font-weight: 700;
+  color: var(--color-text); text-decoration: none;
+  display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.sug-name:hover { text-decoration: underline; }
+.sug-handle { font-size: 0.78rem; color: var(--color-text-muted); }
+.sug-mutual { font-size: 0.72rem; color: var(--color-text-muted); margin-top: 1px; }
+.sug-follow-btn {
+  flex-shrink: 0;
+  padding: 5px 14px;
+  border-radius: 9999px;
+  border: 1.5px solid var(--color-text);
+  background: transparent;
+  color: var(--color-text);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.sug-follow-btn:hover { background: var(--color-text); color: #fff; }
+.sug-follow-btn.following {
+  border-color: var(--color-border);
+  color: var(--color-text-muted);
+  background: transparent;
+}
+.sug-more {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+.sug-more:hover { text-decoration: underline; }
+
+/* Anket - compose */
+.poll-opt-input {
+  width: 100%;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+.poll-opt-input:focus { border-color: #3b82f6; }
+
+/* Anket - post görünümü */
+.poll-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--color-border);
+}
+.poll-opt-btn {
+  width: 100%;
+  text-align: left;
+  padding: 10px 16px;
+  border: 1.5px solid var(--color-border);
+  border-radius: 9999px;
+  background: transparent;
+  font-size: 0.9rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  color: var(--color-text);
+}
+.poll-opt-btn:hover { border-color: #3b82f6; background: rgba(59,130,246,0.05); }
+.poll-opt-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.poll-bar {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--color-border);
+  height: 38px;
+  display: flex;
+  align-items: center;
+}
+.poll-bar-fill {
+  position: absolute;
+  inset: 0;
+  background: rgba(59,130,246,0.18);
+  border-radius: 8px;
+  transition: width 0.5s ease;
+}
+.poll-bar--chosen .poll-bar-fill { background: rgba(59,130,246,0.35); }
+.poll-bar-label {
+  position: relative;
+  flex: 1;
+  padding: 0 12px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.poll-bar-pct {
+  position: relative;
+  padding-right: 12px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #3b82f6;
+  flex-shrink: 0;
+}
+.poll-meta {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  padding: 2px 4px;
+}
+
+#poll-toggle-btn.active {
+  border-color: #3b82f6;
+  color: #3b82f6;
+  background: rgba(59,130,246,0.07);
+}
+</style>
+
 <script>
-  // Supabase, hatalı/süresi dolmuş recovery linklerini root URL'e yönlendirir.
-  // Bu hash'i yakalayıp reset-password sayfasına iletiyoruz.
   if (window.location.hash.includes('error=')) {
     window.location.replace('/reset-password' + window.location.hash);
   }
 
+  // ── Like
   document.querySelectorAll('.like-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
-      const id = (btn as HTMLElement).getAttribute('data-id');
+      const el = btn as HTMLElement;
+      const id = el.getAttribute('data-id');
       const res = await fetch(`/api/posts/${id}/like`, { method: 'POST' });
       if (res.ok) {
-        const data = await res.json() as { likes: number };
+        const data = await res.json() as { likes: number; liked: boolean };
         const countEl = btn.querySelector('.like-count');
         if (countEl) countEl.textContent = String(data.likes);
-        (btn as HTMLElement).style.color = '#ef4444';
+        el.style.color = data.liked ? '#ef4444' : '';
+        el.dataset.liked = String(data.liked);
+      } else if (res.status === 401) {
+        window.location.href = '/login';
       }
+    });
+  });
+
+  // ── Repost
+  document.querySelectorAll<HTMLButtonElement>('.repost-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.id!;
+      const wasReposted = btn.dataset.reposted === 'true';
+      btn.disabled = true;
+
+      const res = await fetch(`/api/posts/${id}/repost`, { method: 'POST' });
+      if (res.status === 401) { window.location.href = '/login'; return; }
+
+      if (res.ok) {
+        const data = await res.json() as { reposted: boolean; reposts: number };
+        const countEl = btn.querySelector('.repost-count');
+        if (countEl) countEl.textContent = String(data.reposts);
+        btn.dataset.reposted = String(data.reposted);
+        btn.style.color = data.reposted ? '#10b981' : '';
+      }
+      btn.disabled = false;
+    });
+  });
+
+  // ── Öneri takip butonları
+  document.querySelectorAll<HTMLButtonElement>('.sug-follow-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const username = btn.dataset.username!;
+      btn.disabled = true;
+      const res = await fetch(`/api/users/${username}/follow`, { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json() as { following: boolean };
+        if (data.following) {
+          btn.textContent = 'Takip Ediliyor';
+          btn.classList.add('following');
+          btn.disabled = false;
+        } else {
+          // Takip kaldırıldıysa (normalde bu widgetten olmaz)
+          btn.textContent = 'Takip Et';
+          btn.classList.remove('following');
+          btn.disabled = false;
+        }
+      } else if (res.status === 401) {
+        window.location.href = '/login';
+      } else {
+        btn.disabled = false;
+      }
+    });
+  });
+
+  // ── Anket compose toggle
+  const pollToggleBtn = document.getElementById('poll-toggle-btn');
+  const pollArea      = document.getElementById('poll-area');
+  const addOptBtn     = document.getElementById('add-opt-btn');
+  const opt3Wrap      = document.getElementById('opt3-wrap');
+  const opt4Wrap      = document.getElementById('opt4-wrap');
+  let optCount = 2;
+
+  pollToggleBtn?.addEventListener('click', () => {
+    const visible = pollArea!.style.display !== 'none';
+    pollArea!.style.display = visible ? 'none' : 'flex';
+    pollToggleBtn.classList.toggle('active', !visible);
+  });
+
+  addOptBtn?.addEventListener('click', () => {
+    if (optCount === 2) { opt3Wrap!.style.display = 'block'; optCount = 3; }
+    else if (optCount === 3) { opt4Wrap!.style.display = 'block'; optCount = 4; addOptBtn.style.display = 'none'; }
+  });
+
+  // ── Anket oy kullanma
+  type PollOpt = { id: number; text: string; votes: number; position: number };
+
+  function renderBars(wrap: HTMLElement, options: PollOpt[], totalVotes: number, myVote: number) {
+    const meta = wrap.querySelector('.poll-meta')!;
+    wrap.querySelectorAll('.poll-opt-btn, .poll-bar').forEach(el => el.remove());
+    for (const opt of options) {
+      const pct = totalVotes > 0 ? Math.round(opt.votes / totalVotes * 100) : 0;
+      const chosen = opt.id === myVote;
+      const bar = document.createElement('div');
+      bar.className = 'poll-bar' + (chosen ? ' poll-bar--chosen' : '');
+      bar.innerHTML = `<div class="poll-bar-fill" style="width:0%"></div><span class="poll-bar-label">${opt.text}${chosen ? ' ✓' : ''}</span><span class="poll-bar-pct">${pct}%</span>`;
+      wrap.insertBefore(bar, meta);
+      requestAnimationFrame(() => {
+        (bar.querySelector('.poll-bar-fill') as HTMLElement).style.width = `${pct}%`;
+      });
+    }
+    meta.textContent = `${totalVotes} oy`;
+    wrap.dataset.voted = 'true';
+  }
+
+  document.querySelectorAll<HTMLElement>('.poll-wrap').forEach(wrap => {
+    wrap.querySelectorAll<HTMLButtonElement>('.poll-opt-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const postId   = wrap.dataset.postId!;
+        const optionId = Number(btn.dataset.optionId);
+        wrap.querySelectorAll('.poll-opt-btn').forEach(b => (b as HTMLButtonElement).disabled = true);
+
+        const res = await fetch(`/api/posts/${postId}/vote`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ option_id: optionId }),
+        });
+
+        if (res.status === 401) { window.location.href = '/login'; return; }
+        if (!res.ok) { wrap.querySelectorAll('.poll-opt-btn').forEach(b => (b as HTMLButtonElement).disabled = false); return; }
+
+        const data = await res.json() as { options: PollOpt[]; total_votes: number; voted_option_id: number };
+        renderBars(wrap, data.options, data.total_votes, data.voted_option_id);
+      });
     });
   });
 </script>

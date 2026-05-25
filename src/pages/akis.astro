@@ -1192,20 +1192,42 @@ if (currentUserId && currentUserName) {
 }
 
 // ── Yorum fonksiyonları
-interface Comment { id: number; user_id: number; content: string; created_at: string; display_name: string; username: string; }
+interface Comment { id: number; parent_id: number | null; user_id: number; content: string; created_at: string; display_name: string; username: string; }
 
-function renderComment(c: Comment): string {
-  const bg     = avatarBg(c.username);
-  const isOwn  = currentUserId === c.user_id;
-  return `<div class="cm-item" data-cid="${c.id}">
+let replyToId: number | null = null;
+
+function renderComment(c: Comment, isReply = false): string {
+  const bg    = avatarBg(c.username);
+  const isOwn = currentUserId === c.user_id;
+  const replyBtn = !isReply
+    ? `<button class="cm-reply-btn" data-cm-id="${c.id}" data-username="${escHtml(c.username)}">Yanıtla</button>`
+    : '';
+  return `<div class="cm-item${isReply ? ' cm-reply' : ''}" data-cid="${c.id}">
     <a href="/u/${escHtml(c.username)}" class="cm-avatar" style="background:${bg}">${c.display_name[0].toUpperCase()}</a>
     <div class="cm-body">
       <span class="cm-author">${escHtml(c.display_name)}</span>
       <span class="cm-text">${escHtml(c.content)}</span>
-      <div class="cm-time">${timeAgoMs(c.created_at)}</div>
+      <div class="cm-time-row"><span class="cm-time">${timeAgoMs(c.created_at)}</span>${replyBtn}</div>
     </div>
     ${isOwn ? `<button class="cm-delete" data-id="${c.id}" title="Sil">×</button>` : ''}
   </div>`;
+}
+
+function renderAllComments(comments: Comment[]): string {
+  const top = comments.filter(c => !c.parent_id);
+  const repMap = new Map<number, Comment[]>();
+  for (const c of comments) {
+    if (c.parent_id) {
+      if (!repMap.has(c.parent_id)) repMap.set(c.parent_id, []);
+      repMap.get(c.parent_id)!.push(c);
+    }
+  }
+  let html = '';
+  for (const c of top) {
+    html += renderComment(c, false);
+    for (const r of repMap.get(c.id) ?? []) html += renderComment(r, true);
+  }
+  return html;
 }
 
 function attachDeleteListeners() {
@@ -1217,6 +1239,24 @@ function attachDeleteListeners() {
         btn.closest('.cm-item')?.remove();
         updateCommentCount(-1);
       }
+    });
+  });
+}
+
+function attachReplyListeners() {
+  commentsList.querySelectorAll<HTMLButtonElement>('.cm-reply-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      replyToId = Number(btn.dataset.cmId);
+      commentInput.value = `@${btn.dataset.username} `;
+      commentInput.focus();
+      // ipucu göster
+      let hint = commentForm.querySelector('.cm-reply-hint');
+      if (!hint) {
+        hint = document.createElement('span');
+        hint.className = 'cm-reply-hint';
+        commentForm.insertBefore(hint, commentInput);
+      }
+      hint.textContent = `↩ yanıtlanıyor`;
     });
   });
 }
@@ -1235,8 +1275,9 @@ async function loadComments(postId: number) {
     if (!data.comments.length) {
       commentsList.innerHTML = '<div class="cm-empty">Henüz yorum yok — ilk yorumu yaz!</div>';
     } else {
-      commentsList.innerHTML = data.comments.map(renderComment).join('');
+      commentsList.innerHTML = renderAllComments(data.comments);
       attachDeleteListeners();
+      attachReplyListeners();
     }
     cmCount.textContent = `${data.comments.length} yorum`;
     setTimeout(() => { commentsList.scrollTop = commentsList.scrollHeight; }, 50);
@@ -1252,19 +1293,36 @@ commentForm.addEventListener('submit', async e => {
   const content = commentInput.value.trim();
   if (!content || !currentPostId) return;
 
+  const parentId = replyToId;
+  replyToId = null;
   commentInput.value = '';
+  commentForm.querySelector('.cm-reply-hint')?.remove();
+
   try {
+    const body: Record<string, unknown> = { content };
+    if (parentId) body.parent_id = parentId;
     const res  = await fetch(`/api/quick-facts/${currentPostId}/comment`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content }),
+      body: JSON.stringify(body),
     });
     const data = await res.json() as { comment: Comment };
     if (data.comment) {
-      const empty = commentsList.querySelector('.cm-empty, .cm-loading');
-      if (empty) empty.remove();
-      commentsList.insertAdjacentHTML('beforeend', renderComment(data.comment));
+      const cm = data.comment;
+      commentsList.querySelector('.cm-empty, .cm-loading')?.remove();
+
+      if (cm.parent_id) {
+        const parentEl = commentsList.querySelector<HTMLElement>(`[data-cid="${cm.parent_id}"]`);
+        let insertAfter: Element = parentEl ?? commentsList.lastElementChild!;
+        let next = insertAfter?.nextElementSibling;
+        while (next?.classList.contains('cm-reply')) { insertAfter = next; next = next.nextElementSibling; }
+        insertAfter.insertAdjacentHTML('afterend', renderComment(cm, true));
+      } else {
+        commentsList.insertAdjacentHTML('beforeend', renderComment(cm, false));
+      }
+
       attachDeleteListeners();
+      attachReplyListeners();
       updateCommentCount(1);
       commentsList.scrollTop = commentsList.scrollHeight;
     }

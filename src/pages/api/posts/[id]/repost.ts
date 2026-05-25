@@ -13,10 +13,15 @@ export const POST: APIRoute = async ({ request, params }) => {
   const { data: { user: authUser } } = await authClient.auth.getUser();
   if (!authUser) return json({ error: 'Giriş gerekli' }, 401);
 
-  const { data: me } = await supabase.from('users').select('id').eq('auth_id', authUser.id).single();
+  const { data: me } = await supabase
+    .from('users').select('id').eq('auth_id', authUser.id).single();
   if (!me) return json({ error: 'Kullanıcı bulunamadı' }, 404);
 
-  const { data, error } = await supabase.rpc('toggle_post_like', { p_user_id: me.id, p_post_id: id });
+  const { data, error } = await supabase.rpc('toggle_post_repost', {
+    p_user_id: me.id,
+    p_post_id: id,
+  });
+
   if (error) return json({ error: error.message }, 500);
 
   return json(data);

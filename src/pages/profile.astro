@@ -42,6 +42,18 @@ function avatarBg(u: string): string {
 }
 
 const bg = avatarBg(user.username);
+
+function calcAge(bd: string | null): number | null {
+  if (!bd) return null;
+  const d = new Date(bd), t = new Date();
+  let a = t.getFullYear() - d.getFullYear();
+  const m = t.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && t.getDate() < d.getDate())) a--;
+  return a;
+}
+const age = calcAge(user.birthdate ?? null);
+
+const GENDER_LABEL: Record<string, string> = { erkek: 'Erkek', kadin: 'Kadın', diger: 'Diğer' };
 ---
 
 <BaseLayout title="Profil" activeNav="profile">
@@ -75,6 +87,42 @@ const bg = avatarBg(user.username);
     <p class="pf-handle">@{user.username}</p>
     {user.bio && <p class="pf-bio">{user.bio}</p>}
     {!user.bio && <p class="pf-bio pf-bio--empty">Bio eklemek için profili düzenle</p>}
+
+    <!-- Meta satırı: konum, website, yaş, cinsiyet -->
+    <div class="pf-meta-row">
+      {user.location && (
+        <span class="pf-meta-item">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          {user.location}
+        </span>
+      )}
+      {user.website && (
+        <a class="pf-meta-item pf-meta-link" href={user.website} target="_blank" rel="noopener noreferrer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          {user.website.replace(/^https?:\/\//, '')}
+        </a>
+      )}
+      {age !== null && (
+        <span class="pf-meta-item">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          {age} yaş
+        </span>
+      )}
+      {user.gender && (
+        <span class="pf-meta-item">
+          {GENDER_LABEL[user.gender] ?? ''}
+        </span>
+      )}
+    </div>
+
+    <!-- İlgi alanları -->
+    {user.interests && user.interests.length > 0 && (
+      <div class="pf-interests">
+        {user.interests.map(tag => (
+          <span class="pf-interest-chip">{tag}</span>
+        ))}
+      </div>
+    )}
 
     <div class="pf-stats">
       <span><strong>{mediaPosts.length}</strong> Gönderi</span>
@@ -159,6 +207,50 @@ const bg = avatarBg(user.username);
           placeholder="Kendinizden bahsedin..."
         >{user.bio}</textarea>
         <div id="bio-count" class="pf-char-count">{(user.bio ?? '').length} / 160</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div class="pf-field">
+          <label for="edit-location">Şehir / Konum</label>
+          <input id="edit-location" name="location" type="text" value={user.location ?? ''} maxlength="60" class="pf-input" placeholder="İstanbul" />
+        </div>
+        <div class="pf-field">
+          <label for="edit-gender">Cinsiyet</label>
+          <select id="edit-gender" name="gender" class="pf-input">
+            <option value="" selected={!user.gender}>Belirtmek istemiyorum</option>
+            <option value="erkek" selected={user.gender === 'erkek'}>Erkek</option>
+            <option value="kadin" selected={user.gender === 'kadin'}>Kadın</option>
+            <option value="diger" selected={user.gender === 'diger'}>Diğer</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div class="pf-field">
+          <label for="edit-website">Website</label>
+          <input id="edit-website" name="website" type="text" value={user.website ?? ''} maxlength="100" class="pf-input" placeholder="basementonfire.com" />
+        </div>
+        <div class="pf-field">
+          <label for="edit-birthdate">Doğum Tarihi</label>
+          <input id="edit-birthdate" name="birthdate" type="date" value={user.birthdate ?? ''} class="pf-input" />
+        </div>
+      </div>
+
+      <!-- İlgi alanları tag input -->
+      <div class="pf-field">
+        <label>İlgi Alanları <span style="font-weight:400;color:var(--color-text-muted)">(en fazla 10)</span></label>
+        <input type="hidden" name="interests" id="interests-value" value={(user.interests ?? []).join(',')} />
+        <div class="pf-tag-input-wrap" id="tag-wrap">
+          {(user.interests ?? []).map(tag => (
+            <span class="pf-tag-chip" data-tag={tag}>{tag}<button type="button" class="pf-tag-remove">×</button></span>
+          ))}
+          <input id="tag-input" class="pf-tag-text" type="text" placeholder="Ekle ve Enter'a bas…" maxlength="24" autocomplete="off" />
+        </div>
+        <div class="pf-interests-presets">
+          {['Müzik','Film','Spor','Seyahat','Yemek','Teknoloji','Sanat','Bilim','Tarih','Oyun','Kitap','Doğa','Fotoğraf','Dans','Moda'].map(p => (
+            <button type="button" class="pf-preset-chip" data-preset={p}>{p}</button>
+          ))}
+        </div>
       </div>
 
       <button type="submit" class="post-btn" style="margin-top:8px">Kaydet</button>
@@ -263,6 +355,112 @@ const bg = avatarBg(user.username);
 .pf-handle { color: var(--color-text-muted); font-size: 0.9rem; margin: 0 0 8px; }
 .pf-bio { font-size: 0.9rem; line-height: 1.5; margin: 0 0 12px; }
 .pf-bio--empty { color: var(--color-text-muted); font-style: italic; }
+
+/* Profile meta row */
+.pf-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 0 10px;
+}
+.pf-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+.pf-meta-link {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+.pf-meta-link:hover { text-decoration: underline; }
+
+/* Interests display */
+.pf-interests {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 12px;
+}
+.pf-interest-chip {
+  background: rgba(212,165,100,0.12);
+  color: #c4954e;
+  border: 1px solid rgba(212,165,100,0.35);
+  border-radius: 9999px;
+  padding: 3px 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+/* Tag input in edit modal */
+.pf-tag-input-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  min-height: 44px;
+  border: 1.5px solid var(--color-border);
+  border-radius: 10px;
+  padding: 6px 10px;
+  cursor: text;
+  background: var(--color-bg);
+  transition: border-color 0.15s;
+}
+.pf-tag-input-wrap:focus-within { border-color: var(--color-primary); }
+.pf-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(212,165,100,0.15);
+  color: #c4954e;
+  border-radius: 9999px;
+  padding: 2px 10px 2px 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.pf-tag-remove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #c4954e;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 0 0 2px;
+  opacity: 0.7;
+}
+.pf-tag-remove:hover { opacity: 1; }
+.pf-tag-text {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.85rem;
+  color: var(--color-text);
+  font-family: inherit;
+  flex: 1;
+  min-width: 80px;
+}
+.pf-tag-text::placeholder { color: var(--color-text-muted); }
+.pf-interests-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.pf-preset-chip {
+  background: var(--color-border);
+  color: var(--color-text-muted);
+  border: none;
+  border-radius: 9999px;
+  padding: 3px 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  font-family: inherit;
+}
+.pf-preset-chip:hover { background: rgba(212,165,100,0.2); color: #c4954e; }
+.pf-preset-chip.active { background: rgba(212,165,100,0.2); color: #c4954e; }
 
 .pf-stats {
   display: flex; gap: 20px;
@@ -450,6 +648,79 @@ bioTextarea.addEventListener('input', () => {
   bioCount.style.color = l > 145 ? '#ef4444' : 'var(--color-text-muted)';
 });
 
+// ── İlgi alanları tag input
+const tagWrap    = document.getElementById('tag-wrap')!;
+const tagInput   = document.getElementById('tag-input') as HTMLInputElement;
+const tagHidden  = document.getElementById('interests-value') as HTMLInputElement;
+
+function getTags(): string[] {
+  return tagHidden.value ? tagHidden.value.split(',').filter(Boolean) : [];
+}
+function syncHidden() {
+  tagHidden.value = getTags().join(',');
+}
+function addTag(val: string) {
+  const tag = val.trim().replace(/,/g, '');
+  if (!tag || tag.length > 24) return;
+  const tags = getTags();
+  if (tags.length >= 10 || tags.includes(tag)) return;
+  tags.push(tag);
+  tagHidden.value = tags.join(',');
+  renderTags();
+}
+function removeTag(tag: string) {
+  tagHidden.value = getTags().filter(t => t !== tag).join(',');
+  renderTags();
+}
+function renderTags() {
+  tagWrap.querySelectorAll('.pf-tag-chip').forEach(el => el.remove());
+  getTags().forEach(tag => {
+    const chip = document.createElement('span');
+    chip.className = 'pf-tag-chip';
+    chip.dataset.tag = tag;
+    chip.innerHTML = `${tag}<button type="button" class="pf-tag-remove">×</button>`;
+    chip.querySelector('.pf-tag-remove')!.addEventListener('click', () => removeTag(tag));
+    tagWrap.insertBefore(chip, tagInput);
+  });
+  // preset butonları güncelle
+  document.querySelectorAll<HTMLButtonElement>('.pf-preset-chip').forEach(btn => {
+    btn.classList.toggle('active', getTags().includes(btn.dataset.preset!));
+  });
+}
+
+tagInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ',') {
+    e.preventDefault();
+    addTag(tagInput.value);
+    tagInput.value = '';
+  } else if (e.key === 'Backspace' && !tagInput.value) {
+    const tags = getTags();
+    if (tags.length) removeTag(tags[tags.length - 1]);
+  }
+});
+tagInput.addEventListener('blur', () => {
+  if (tagInput.value.trim()) { addTag(tagInput.value); tagInput.value = ''; }
+});
+tagWrap.addEventListener('click', () => tagInput.focus());
+
+document.querySelectorAll<HTMLButtonElement>('.pf-preset-chip').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const preset = btn.dataset.preset!;
+    const tags = getTags();
+    if (tags.includes(preset)) { removeTag(preset); }
+    else { addTag(preset); }
+  });
+});
+
+// Mevcut chip'lere remove listener ekle
+tagWrap.querySelectorAll<HTMLSpanElement>('.pf-tag-chip').forEach(chip => {
+  chip.querySelector('.pf-tag-remove')?.addEventListener('click', () => removeTag(chip.dataset.tag!));
+});
+// preset durumlarını başlangıçta senkronize et
+document.querySelectorAll<HTMLButtonElement>('.pf-preset-chip').forEach(btn => {
+  btn.classList.toggle('active', getTags().includes(btn.dataset.preset!));
+});
+
 // ── Yardımcılar
 function avatarBg(u: string): string {
   const gs = ['linear-gradient(135deg,#6366f1,#8b5cf6)','linear-gradient(135deg,#ec4899,#8b5cf6)',
@@ -478,13 +749,22 @@ const cmInput   = document.getElementById('pf-cm-input') as HTMLInputElement;
 const myUserId  = parseInt(document.getElementById('pf-user-meta')?.dataset.uid ?? '0') || null;
 
 let lbPostId: number | null = null;
+let replyToId: number | null = null;
 
-interface Cm { id:number; user_id:number; content:string; created_at:string; display_name:string; username:string; }
+interface Cm { id:number; parent_id:number|null; user_id:number; content:string; created_at:string; display_name:string; username:string; }
 
-function renderCm(c: Cm): string {
-  const bg = avatarBg(c.username);
+function renderCm(c: Cm, isReply = false): string {
+  const bg  = avatarBg(c.username);
   const own = (c.user_id === myUserId);
-  return `<div class="cm-item"><a href="/u/${esc(c.username)}" class="cm-avatar" style="background:${bg}">${c.display_name[0].toUpperCase()}</a><div class="cm-body"><span class="cm-author">${esc(c.display_name)}</span><span class="cm-text">${esc(c.content)}</span><div class="cm-time">${tAgo(c.created_at)}</div></div>${own?`<button class="cm-delete" data-id="${c.id}">×</button>`:''}</div>`;
+  const replyBtn = !isReply ? `<button class="cm-reply-btn" data-cm-id="${c.id}" data-username="${esc(c.username)}">Yanıtla</button>` : '';
+  return `<div class="cm-item${isReply?' cm-reply':''}" data-cid="${c.id}"><a href="/u/${esc(c.username)}" class="cm-avatar" style="background:${bg}">${c.display_name[0].toUpperCase()}</a><div class="cm-body"><span class="cm-author">${esc(c.display_name)}</span><span class="cm-text">${esc(c.content)}</span><div class="cm-time-row"><span class="cm-time">${tAgo(c.created_at)}</span>${replyBtn}</div></div>${own?`<button class="cm-delete" data-id="${c.id}">×</button>`:''}</div>`;
+}
+function renderAllCm(list: Cm[]): string {
+  const top = list.filter(c=>!c.parent_id);
+  const rMap = new Map<number,Cm[]>();
+  for(const c of list) if(c.parent_id){ if(!rMap.has(c.parent_id))rMap.set(c.parent_id,[]); rMap.get(c.parent_id)!.push(c); }
+  let html=''; for(const c of top){ html+=renderCm(c,false); for(const r of rMap.get(c.id)??[]) html+=renderCm(r,true); }
+  return html;
 }
 function bindDeletes() {
   cmList.querySelectorAll<HTMLButtonElement>('.cm-delete').forEach(b=>{
@@ -494,12 +774,24 @@ function bindDeletes() {
     });
   });
 }
+function bindReplies() {
+  cmList.querySelectorAll<HTMLButtonElement>('.cm-reply-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      replyToId = Number(btn.dataset.cmId);
+      cmInput.value=`@${btn.dataset.username} `;
+      cmInput.focus();
+      let hint=cmForm.querySelector('.cm-reply-hint');
+      if(!hint){hint=document.createElement('span');hint.className='cm-reply-hint';cmForm.insertBefore(hint,cmInput);}
+      hint.textContent='↩ yanıtlanıyor';
+    });
+  });
+}
 async function loadCm(postId: number) {
   cmList.innerHTML='<div class="cm-loading">Yükleniyor…</div>';
   try {
     const d = await fetch(`/api/quick-facts/${postId}/comments`).then(r=>r.json()) as {comments:Cm[]};
-    cmList.innerHTML = d.comments.length ? d.comments.map(renderCm).join('') : '<div class="cm-empty">Henüz yorum yok</div>';
-    bindDeletes();
+    cmList.innerHTML = d.comments.length ? renderAllCm(d.comments) : '<div class="cm-empty">Henüz yorum yok</div>';
+    bindDeletes(); bindReplies();
     cmList.scrollTop = cmList.scrollHeight;
   } catch { cmList.innerHTML='<div class="cm-empty">Yüklenemedi.</div>'; }
 }
@@ -508,13 +800,20 @@ cmForm.addEventListener('submit',async e=>{
   e.preventDefault();
   const content=cmInput.value.trim();
   if(!content||!lbPostId)return;
-  cmInput.value='';
-  const res=await fetch(`/api/quick-facts/${lbPostId}/comment`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content})});
+  const parentId=replyToId; replyToId=null;
+  cmInput.value=''; cmForm.querySelector('.cm-reply-hint')?.remove();
+  const body: Record<string,unknown>={content}; if(parentId) body.parent_id=parentId;
+  const res=await fetch(`/api/quick-facts/${lbPostId}/comment`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
   const d=await res.json() as {comment:Cm};
   if(d.comment){
-    cmList.querySelector('.cm-empty, .cm-loading')?.remove();
-    cmList.insertAdjacentHTML('beforeend',renderCm(d.comment));
-    bindDeletes();
+    const cm=d.comment;
+    cmList.querySelector('.cm-empty,.cm-loading')?.remove();
+    if(cm.parent_id){
+      let ins: Element=cmList.querySelector<HTMLElement>(`[data-cid="${cm.parent_id}"]`)??cmList.lastElementChild!;
+      let nx=ins.nextElementSibling; while(nx?.classList.contains('cm-reply')){ins=nx;nx=nx.nextElementSibling;}
+      ins.insertAdjacentHTML('afterend',renderCm(cm,true));
+    } else { cmList.insertAdjacentHTML('beforeend',renderCm(cm,false)); }
+    bindDeletes(); bindReplies();
     cmList.scrollTop=cmList.scrollHeight;
   }
 });

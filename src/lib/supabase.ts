@@ -14,6 +14,7 @@ export type Post = {
   image_url: string | null;
   category: string;
   likes: number;
+  reposts: number;
   created_at: string;
   display_name: string;
   username: string;
@@ -41,6 +42,11 @@ export type DbUser = {
   is_private: boolean;
   dm_privacy: 'everyone' | 'followers' | 'none';
   comment_privacy: 'everyone' | 'followers' | 'none';
+  birthdate: string | null;
+  location: string | null;
+  website: string | null;
+  gender: '' | 'erkek' | 'kadin' | 'diger';
+  interests: string[];
 };
 
 // Supabase nested join'i SQLite'ın düz yapısına çevirir
