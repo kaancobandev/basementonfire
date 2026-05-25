@@ -177,22 +177,52 @@ if (currentUser && myFollowIds.length > 0) {
   }
 }
 
-// Kendi repost durumlarım
-if (currentUser && posts.length > 0) {
-  const { data: myRps } = await supabase
-    .from('reposts').select('post_id')
+// Kendi repost durumlarım (feed'e de ekle)
+if (currentUser) {
+  const { data: myRpsRaw } = await supabase
+    .from('reposts')
+    .select('post_id, created_at')
     .eq('user_id', currentUser.id)
-    .in('post_id', posts.map(p => p.id));
-  myRepostIds = new Set((myRps ?? []).map((r: any) => r.post_id));
+    .order('created_at', { ascending: false })
+    .limit(30);
+
+  if (myRpsRaw?.length) {
+    (myRpsRaw as any[]).forEach(r => myRepostIds.add(r.post_id));
+
+    const alreadyInFeed = new Set(repostFeedItems.map(r => r.id));
+    const toFetch = (myRpsRaw as any[]).map(r => r.post_id).filter((id: number) => !alreadyInFeed.has(id));
+
+    if (toFetch.length) {
+      const { data: myRpPostsRaw } = await supabase
+        .from('posts').select('*, users(display_name, username, avatar)').in('id', toFetch);
+      const myRpPostMap = new Map((myRpPostsRaw ?? []).map((p: any) => [p.id, p]));
+
+      for (const r of myRpsRaw as any[]) {
+        if (alreadyInFeed.has(r.post_id)) continue;
+        const rawPost = myRpPostMap.get(r.post_id);
+        if (!rawPost) continue;
+        const [fp] = flattenPosts([rawPost]);
+        repostFeedItems.push({
+          ...fp,
+          reposted_by: currentUser.username,
+          reposted_by_display: currentUser.display_name,
+          repost_time: r.created_at,
+        });
+      }
+    }
+  }
 }
 
-// Feed birleştir
+// Feed birleştir - repost versiyonu normal versiyona öncelikli
+const repostPostIds = new Set(repostFeedItems.map(r => r.id));
 const feedItems: FeedItem[] = [
-  ...posts.map(p => ({ ...p } as FeedItem)),
+  ...posts.filter(p => !repostPostIds.has(p.id)).map(p => ({ ...p } as FeedItem)),
   ...repostFeedItems,
-].sort((a, b) =>
-  new Date(b.repost_time ?? b.created_at).getTime() - new Date(a.repost_time ?? a.created_at).getTime()
-).slice(0, 50);
+].sort((a, b) => {
+  const aTime = a.repost_time ? new Date(a.repost_time).getTime() : new Date(a.created_at).getTime();
+  const bTime = b.repost_time ? new Date(b.repost_time).getTime() : new Date(b.created_at).getTime();
+  return bTime - aTime;
+}).slice(0, 50);
 ---
 
 <BaseLayout title="Ana Sayfa" activeNav="home">
@@ -256,7 +286,10 @@ const feedItems: FeedItem[] = [
         {post.reposted_by && (
           <div class="repost-banner">
             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1 21 5l-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-            <a href={`/u/${post.reposted_by}`}>{post.reposted_by_display}</a> paylaştı
+            {post.reposted_by === currentUser?.username
+              ? 'Sen paylaştın'
+              : <><a href={`/u/${post.reposted_by}`}>{post.reposted_by_display}</a> paylaştı</>
+            }
           </div>
         )}
         <div class="post-header">
