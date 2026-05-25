@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import { createAuthClient, supabase as db } from '../lib/supabase';
+import { ClientRouter } from 'astro:transitions';
 
 interface Props {
   title?: string;
@@ -57,6 +58,7 @@ const navItems = [
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title} | Basements</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <ClientRouter />
   </head>
   <body>
     <div class="app-shell">
@@ -193,14 +195,10 @@ const navItems = [
 <script>
 import { supa } from '../lib/supabase-browser';
 
-const rtMeta  = document.getElementById('rt-meta') as HTMLElement | null;
-const myId    = rtMeta?.dataset.myId ? parseInt(rtMeta.dataset.myId) : null;
-const convIds = rtMeta?.dataset.convIds ? (JSON.parse(rtMeta.dataset.convIds) as number[]) : [];
-
-// ── Toast helper ────────────────────────────────────────────────────────────
-const toastRoot = document.getElementById('toast-root')!;
-
+// ── Toast helper ─────────────────────────────────────────────────────────────
 function showToast(msg: string, cls = '') {
+  const toastRoot = document.getElementById('toast-root');
+  if (!toastRoot) return;
   const t = document.createElement('div');
   t.className = `toast ${cls}`.trim();
   t.innerHTML = msg;
@@ -211,7 +209,6 @@ function showToast(msg: string, cls = '') {
   }, 4000);
 }
 
-// ── Badge helper ─────────────────────────────────────────────────────────────
 function incrementBadges(selector: string) {
   document.querySelectorAll<HTMLElement>(selector).forEach(badge => {
     const cur = parseInt(badge.textContent ?? '0') || 0;
@@ -221,56 +218,53 @@ function incrementBadges(selector: string) {
   });
 }
 
-// ── Realtime: notifications ──────────────────────────────────────────────────
-if (myId) {
+// Realtime abonelikleri sadece bir kez kurulur
+let realtimeSetup = false;
+
+function setupRealtime() {
+  const rtMeta = document.getElementById('rt-meta') as HTMLElement | null;
+  const myId   = rtMeta?.dataset.myId ? parseInt(rtMeta.dataset.myId) : null;
+  const convIds = rtMeta?.dataset.convIds ? (JSON.parse(rtMeta.dataset.convIds) as number[]) : [];
+
+  if (!myId || realtimeSetup) return;
+  realtimeSetup = true;
+
   supa
     .channel(`notif-user-${myId}`)
-    .on(
-      'postgres_changes',
-      {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'notifications',
-        filter: `user_id=eq.${myId}`,
-      },
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${myId}` },
       (payload: any) => {
         const type: string = payload.new?.type ?? '';
-        const icons: Record<string, string> = { follow: '👤', comment: '💬', like: '❤️', mention: '@' };
+        const icons: Record<string, string>  = { follow: '👤', comment: '💬', like: '❤️', mention: '@' };
         const labels: Record<string, string> = {
           follow:  'Biri seni takip etmeye başladı',
           comment: 'Gönderine yeni bir yorum yapıldı',
           like:    'Gönderini biri beğendi',
           mention: 'Biri seni bir gönderide etiketledi',
         };
-        const icon  = icons[type]  ?? '🔔';
-        const label = labels[type] ?? 'Yeni bildirim';
-        showToast(`${icon} ${label}`, 'toast-notif');
+        showToast(`${icons[type] ?? '🔔'} ${labels[type] ?? 'Yeni bildirim'}`, 'toast-notif');
         incrementBadges('.js-notif-badge');
       }
-    )
-    .subscribe();
+    ).subscribe();
+
+  if (convIds.length) {
+    supa
+      .channel(`msg-user-${myId}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' },
+        (payload: any) => {
+          const msg = payload.new;
+          if (msg.sender_id === myId) return;
+          if (!convIds.includes(msg.conversation_id)) return;
+          const url = new URL(window.location.href);
+          const onMessages = url.pathname === '/messages';
+          const openConv = onMessages ? parseInt(url.searchParams.get('c') ?? '0') : 0;
+          if (onMessages && openConv === msg.conversation_id) return;
+          showToast('💬 Yeni mesaj aldın', 'toast-notif');
+          incrementBadges('.js-msg-badge');
+        }
+      ).subscribe();
+  }
 }
 
-// ── Realtime: messages ────────────────────────────────────────────────────────
-if (myId && convIds.length) {
-  supa
-    .channel(`msg-user-${myId}`)
-    .on(
-      'postgres_changes',
-      { event: 'INSERT', schema: 'public', table: 'messages' },
-      (payload: any) => {
-        const msg = payload.new;
-        if (msg.sender_id === myId) return;
-        if (!convIds.includes(msg.conversation_id)) return;
-        // Don't badge if already on messages page looking at this conversation
-        const url = new URL(window.location.href);
-        const onMessages = url.pathname === '/messages';
-        const openConv = onMessages ? parseInt(url.searchParams.get('c') ?? '0') : 0;
-        if (onMessages && openConv === msg.conversation_id) return;
-        showToast('💬 Yeni mesaj aldın', 'toast-notif');
-        incrementBadges('.js-msg-badge');
-      }
-    )
-    .subscribe();
-}
+// İlk yükleme + View Transitions sonrası her sayfa değişiminde
+document.addEventListener('astro:page-load', setupRealtime);
 </script>

@@ -229,58 +229,6 @@ const feedItems: FeedItem[] = [
   <main class="main-content">
     <div class="feed-header">Ana Sayfa</div>
 
-    <div class="compose-box" id="compose">
-      {currentUser ? (
-        <>
-          <div class="avatar">{currentUser.display_name[0].toUpperCase()}</div>
-          <div class="compose-input">
-            <form method="POST" action="/api/posts">
-              <textarea
-                class="compose-textarea"
-                name="content"
-                placeholder="Ne düşünüyorsun?"
-                rows="3"
-              ></textarea>
-              <!-- Anket alanı (gizli) -->
-              <div id="poll-area" style="display:none; flex-direction:column; gap:8px; padding:12px 0 4px;">
-                <div style="font-size:0.78rem; font-weight:700; color:#536471; margin-bottom:2px;">Anket Seçenekleri</div>
-                <input class="poll-opt-input" name="poll_opt_1" type="text" maxlength="80" placeholder="Seçenek 1" />
-                <input class="poll-opt-input" name="poll_opt_2" type="text" maxlength="80" placeholder="Seçenek 2" />
-                <div id="opt3-wrap" style="display:none"><input class="poll-opt-input" name="poll_opt_3" type="text" maxlength="80" placeholder="Seçenek 3 (isteğe bağlı)" /></div>
-                <div id="opt4-wrap" style="display:none"><input class="poll-opt-input" name="poll_opt_4" type="text" maxlength="80" placeholder="Seçenek 4 (isteğe bağlı)" /></div>
-                <button type="button" id="add-opt-btn" style="align-self:flex-start; background:none; border:1px dashed #cbd5e0; border-radius:8px; padding:5px 12px; font-size:0.8rem; color:#536471; cursor:pointer;">+ Seçenek ekle</button>
-              </div>
-
-              <div class="compose-footer">
-                <button type="button" id="poll-toggle-btn" title="Anket ekle" style="background:none; border:1.5px solid #e2e8f0; border-radius:8px; padding:5px 10px; cursor:pointer; display:flex; align-items:center; gap:5px; font-size:0.8rem; font-weight:600; color:#536471; transition:all 0.15s; margin-right:8px;">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/></svg>
-                  Anket
-                </button>
-                <select name="category" style="border:1px solid #e2e8f0; border-radius:8px; padding:6px 12px; font-size:0.85rem; background:white; cursor:pointer; margin-right:12px;">
-                  <option value="general">Genel</option>
-                  <option value="science">Bilim</option>
-                  <option value="history">Tarih</option>
-                </select>
-                <button type="submit" class="post-btn" style="width:auto; margin:0; padding:10px 24px; font-size:0.9rem;">
-                  Paylaş
-                </button>
-              </div>
-            </form>
-          </div>
-        </>
-      ) : (
-        <div style="flex:1; display:flex; align-items:center; gap:12px;">
-          <div class="avatar" style="background:linear-gradient(135deg,#cbd5e1,#94a3b8); color:#fff;">?</div>
-          <p style="flex:1; color:#536471; font-size:0.95rem; margin:0;">
-            Gönderi paylaşmak için
-            <a href="/login" style="color:#3b82f6; font-weight:700; text-decoration:none;">giriş yap</a>
-            veya
-            <a href="/register" style="color:#3b82f6; font-weight:700; text-decoration:none;">kayıt ol</a>.
-          </p>
-        </div>
-      )}
-    </div>
-
     {feedItems.map(post => (
       <article class="post-card">
         {post.reposted_by && (
@@ -503,20 +451,6 @@ const feedItems: FeedItem[] = [
 }
 .sug-more:hover { text-decoration: underline; }
 
-/* Anket - compose */
-.poll-opt-input {
-  width: 100%;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 8px 12px;
-  font-size: 0.9rem;
-  font-family: inherit;
-  outline: none;
-  transition: border-color 0.15s;
-  box-sizing: border-box;
-}
-.poll-opt-input:focus { border-color: #3b82f6; }
-
 /* Anket - post görünümü */
 .poll-wrap {
   display: flex;
@@ -582,11 +516,7 @@ const feedItems: FeedItem[] = [
   padding: 2px 4px;
 }
 
-#poll-toggle-btn.active {
-  border-color: #3b82f6;
-  color: #3b82f6;
-  background: rgba(59,130,246,0.07);
-}
+
 </style>
 
 <script>
@@ -657,25 +587,6 @@ const feedItems: FeedItem[] = [
         btn.disabled = false;
       }
     });
-  });
-
-  // ── Anket compose toggle
-  const pollToggleBtn = document.getElementById('poll-toggle-btn');
-  const pollArea      = document.getElementById('poll-area');
-  const addOptBtn     = document.getElementById('add-opt-btn');
-  const opt3Wrap      = document.getElementById('opt3-wrap');
-  const opt4Wrap      = document.getElementById('opt4-wrap');
-  let optCount = 2;
-
-  pollToggleBtn?.addEventListener('click', () => {
-    const visible = pollArea!.style.display !== 'none';
-    pollArea!.style.display = visible ? 'none' : 'flex';
-    pollToggleBtn.classList.toggle('active', !visible);
-  });
-
-  addOptBtn?.addEventListener('click', () => {
-    if (optCount === 2) { opt3Wrap!.style.display = 'block'; optCount = 3; }
-    else if (optCount === 3) { opt4Wrap!.style.display = 'block'; optCount = 4; addOptBtn.style.display = 'none'; }
   });
 
   // ── Anket oy kullanma
