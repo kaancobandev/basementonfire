@@ -154,6 +154,12 @@ const trending = [
 </BaseLayout>
 
 <script>
+  // Supabase, hatalı/süresi dolmuş recovery linklerini root URL'e yönlendirir.
+  // Bu hash'i yakalayıp reset-password sayfasına iletiyoruz.
+  if (window.location.hash.includes('error=')) {
+    window.location.replace('/reset-password' + window.location.hash);
+  }
+
   document.querySelectorAll('.like-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
       const id = (btn as HTMLElement).getAttribute('data-id');
