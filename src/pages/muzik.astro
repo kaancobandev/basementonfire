@@ -567,165 +567,149 @@ function timeAgo(d: string) {
 }
 .help-item svg { flex-shrink: 0; margin-top: 2px; }
 .help-item strong { color: var(--color-text); }
+
+@media (max-width: 640px) {
+  .music-tabs {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: 12px;
+    gap: 6px;
+  }
+  .music-tabs::-webkit-scrollbar { display: none; }
+  .music-tab { white-space: nowrap; padding: 7px 14px; font-size: 0.82rem; }
+
+  .card-header { padding: 10px 12px; gap: 8px; }
+  .card-btns { gap: 4px; }
+  .play-btn { padding: 6px 10px; font-size: 0.75rem; gap: 4px; }
+  .play-btn svg { width: 13px; height: 13px; }
+
+  .add-bar-inner { padding: 8px 10px; gap: 6px; }
+  .add-input { font-size: 0.82rem; }
+  .add-submit { padding: 6px 12px; font-size: 0.78rem; }
+
+  .yt-search-bar { padding: 8px 10px; gap: 6px; }
+}
 </style>
 
 <script>
-  // ── Tab switcher ────────────────────────────────────────────────────────────
-  function switchTab(name: string) {
-    document.querySelectorAll('.music-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.music-section').forEach(s => (s as HTMLElement).style.display = 'none');
-    const tab = document.querySelector<HTMLButtonElement>(`.music-tab[data-tab="${name}"]`);
-    if (tab) tab.classList.add('active');
-    const section = document.getElementById(`tab-${name}`);
-    if (section) section.style.display = 'block';
-  }
+  function initMuzik() {
+    if (!document.querySelector('.music-tab')) return;
 
-  // Reload sonrası sekmeyi geri yükle
-  const savedTab = sessionStorage.getItem('music-active-tab');
-  if (savedTab) { sessionStorage.removeItem('music-active-tab'); switchTab(savedTab); }
+    function switchTab(name: string) {
+      document.querySelectorAll('.music-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.music-section').forEach(s => (s as HTMLElement).style.display = 'none');
+      const tab = document.querySelector<HTMLButtonElement>(`.music-tab[data-tab="${name}"]`);
+      if (tab) tab.classList.add('active');
+      const section = document.getElementById(`tab-${name}`);
+      if (section) section.style.display = 'block';
+    }
 
-  document.querySelectorAll<HTMLButtonElement>('.music-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      switchTab(tab.dataset.tab!);
+    const savedTab = sessionStorage.getItem('music-active-tab');
+    if (savedTab) { sessionStorage.removeItem('music-active-tab'); switchTab(savedTab); }
+
+    document.querySelectorAll<HTMLButtonElement>('.music-tab').forEach(tab => {
+      tab.addEventListener('click', () => switchTab(tab.dataset.tab!));
     });
-  });
 
-  // ── Embed toggle (lazy-load src) ────────────────────────────────────────────
-  document.querySelectorAll<HTMLButtonElement>('.play-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const wrap = document.getElementById(btn.dataset.target!);
-      if (!wrap) return;
-      const isOpen = wrap.style.display !== 'none';
-      wrap.style.display = isOpen ? 'none' : 'block';
-      btn.classList.toggle('open', !isOpen);
-      btn.innerHTML = !isOpen
-        ? `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> Kapat`
-        : `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="5 3 19 12 5 21"/></svg> ${btn.classList.contains('sp-play') ? 'Dinle' : 'İzle'}`;
-
-      // iframe src'yi sadece ilk açılışta yükle
-      if (!isOpen) {
-        const iframe = wrap.querySelector('iframe')!;
-        if (!iframe.src || iframe.src === window.location.href) {
-          iframe.src = iframe.dataset.src!;
+    document.querySelectorAll<HTMLButtonElement>('.play-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const wrap = document.getElementById(btn.dataset.target!);
+        if (!wrap) return;
+        const isOpen = wrap.style.display !== 'none';
+        wrap.style.display = isOpen ? 'none' : 'block';
+        btn.classList.toggle('open', !isOpen);
+        btn.innerHTML = !isOpen
+          ? `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> Kapat`
+          : `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="5 3 19 12 5 21"/></svg> ${btn.classList.contains('sp-play') ? 'Dinle' : 'İzle'}`;
+        if (!isOpen) {
+          const iframe = wrap.querySelector('iframe')!;
+          if (!iframe.src || iframe.src === window.location.href) iframe.src = iframe.dataset.src!;
         }
-      }
-    });
-  });
-
-  // ── Add: Spotify ────────────────────────────────────────────────────────────
-  const spUrl    = document.getElementById('sp-url')    as HTMLInputElement | null;
-  const spBtn    = document.getElementById('sp-btn')    as HTMLButtonElement | null;
-  const spErr    = document.getElementById('sp-error')  as HTMLElement | null;
-
-  async function addSpotify() {
-    const url = spUrl?.value.trim() ?? '';
-    if (!url) return;
-    if (spErr) spErr.style.display = 'none';
-    if (spBtn) { spBtn.disabled = true; spBtn.textContent = '...'; }
-
-    const res = await fetch('/api/spotify/playlist', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url }),
-    });
-
-    if (spBtn) { spBtn.disabled = false; spBtn.textContent = 'Ekle'; }
-    if (res.status === 401) { window.location.href = '/login'; return; }
-    if (!res.ok) {
-      const d = await res.json().catch(() => ({})) as { error?: string };
-      if (spErr) { spErr.textContent = d.error ?? 'Hata oluştu.'; spErr.style.display = 'block'; }
-      return;
-    }
-    sessionStorage.setItem('music-active-tab', 'spotify');
-    window.location.reload();
-  }
-
-  spBtn?.addEventListener('click', addSpotify);
-  spUrl?.addEventListener('keydown', e => { if (e.key === 'Enter') addSpotify(); });
-
-  // ── YouTube arama / URL oynat ────────────────────────────────────────────────
-  const ytSearchInput = document.getElementById('yt-search-input') as HTMLInputElement | null;
-  const ytSearchBtn   = document.getElementById('yt-search-btn')   as HTMLButtonElement | null;
-  const ytMainIframe  = document.getElementById('yt-main-iframe')  as HTMLIFrameElement | null;
-
-  function parseVideoId(s: string): string | null {
-    const patterns = [
-      /[?&]v=([a-zA-Z0-9_-]{11})/,
-      /youtu\.be\/([a-zA-Z0-9_-]{11})/,
-      /embed\/([a-zA-Z0-9_-]{11})/,
-      /shorts\/([a-zA-Z0-9_-]{11})/,
-    ];
-    for (const p of patterns) { const m = s.match(p); if (m) return m[1]; }
-    if (/^[a-zA-Z0-9_-]{11}$/.test(s.trim())) return s.trim();
-    return null;
-  }
-
-  function parsePlaylistId(s: string): string | null {
-    const m = s.match(/[?&]list=([a-zA-Z0-9_-]+)/);
-    return m ? m[1] : null;
-  }
-
-  function ytSearch() {
-    if (!ytMainIframe || !ytSearchInput) return;
-    const val = ytSearchInput.value.trim();
-    if (!val) return;
-    const vid = parseVideoId(val);
-    const pl  = parsePlaylistId(val);
-    if (vid) {
-      ytMainIframe.src = `https://www.youtube.com/embed/${vid}?autoplay=1&rel=0&modestbranding=1`;
-    } else if (pl) {
-      ytMainIframe.src = `https://www.youtube.com/embed/videoseries?list=${pl}&autoplay=1&rel=0&modestbranding=1`;
-    } else {
-      ytMainIframe.src = `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(val)}&rel=0&modestbranding=1`;
-    }
-  }
-
-  ytSearchBtn?.addEventListener('click', ytSearch);
-  ytSearchInput?.addEventListener('keydown', e => { if (e.key === 'Enter') ytSearch(); });
-
-  // ── Add: YouTube ────────────────────────────────────────────────────────────
-  const ytUrl = document.getElementById('yt-url') as HTMLInputElement | null;
-  const ytBtn = document.getElementById('yt-btn') as HTMLButtonElement | null;
-  const ytErr = document.getElementById('yt-error') as HTMLElement | null;
-
-  async function addYouTube() {
-    const url = ytUrl?.value.trim() ?? '';
-    if (!url) return;
-    if (ytErr) ytErr.style.display = 'none';
-    if (ytBtn) { ytBtn.disabled = true; ytBtn.textContent = '...'; }
-
-    const res = await fetch('/api/youtube/item', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url }),
-    });
-
-    if (ytBtn) { ytBtn.disabled = false; ytBtn.textContent = 'Ekle'; }
-    if (res.status === 401) { window.location.href = '/login'; return; }
-    if (!res.ok) {
-      const d = await res.json().catch(() => ({})) as { error?: string };
-      if (ytErr) { ytErr.textContent = d.error ?? 'Hata oluştu.'; ytErr.style.display = 'block'; }
-      return;
-    }
-    sessionStorage.setItem('music-active-tab', 'youtube');
-    window.location.reload();
-  }
-
-  ytBtn?.addEventListener('click', addYouTube);
-  ytUrl?.addEventListener('keydown', e => { if (e.key === 'Enter') addYouTube(); });
-
-  // ── Delete ──────────────────────────────────────────────────────────────────
-  document.querySelectorAll<HTMLButtonElement>('.del-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      if (!confirm('Bu içeriği kaldırmak istiyor musun?')) return;
-      const id = Number(btn.dataset.id);
-      const api = btn.dataset.api!;
-      const res = await fetch(api, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
       });
-      if (res.ok) btn.closest('.music-card')?.remove();
     });
-  });
+
+    const spUrl = document.getElementById('sp-url') as HTMLInputElement | null;
+    const spBtn = document.getElementById('sp-btn') as HTMLButtonElement | null;
+    const spErr = document.getElementById('sp-error') as HTMLElement | null;
+
+    async function addSpotify() {
+      const url = spUrl?.value.trim() ?? '';
+      if (!url) return;
+      if (spErr) spErr.style.display = 'none';
+      if (spBtn) { spBtn.disabled = true; spBtn.textContent = '...'; }
+      const res = await fetch('/api/spotify/playlist', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) });
+      if (spBtn) { spBtn.disabled = false; spBtn.textContent = 'Ekle'; }
+      if (res.status === 401) { window.location.href = '/login'; return; }
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({})) as { error?: string };
+        if (spErr) { spErr.textContent = d.error ?? 'Hata oluştu.'; spErr.style.display = 'block'; }
+        return;
+      }
+      sessionStorage.setItem('music-active-tab', 'spotify');
+      window.location.reload();
+    }
+    spBtn?.addEventListener('click', addSpotify);
+    spUrl?.addEventListener('keydown', e => { if (e.key === 'Enter') addSpotify(); });
+
+    const ytSearchInput = document.getElementById('yt-search-input') as HTMLInputElement | null;
+    const ytSearchBtn   = document.getElementById('yt-search-btn')   as HTMLButtonElement | null;
+    const ytMainIframe  = document.getElementById('yt-main-iframe')  as HTMLIFrameElement | null;
+
+    function parseVideoId(s: string): string | null {
+      const patterns = [/[?&]v=([a-zA-Z0-9_-]{11})/, /youtu\.be\/([a-zA-Z0-9_-]{11})/, /embed\/([a-zA-Z0-9_-]{11})/, /shorts\/([a-zA-Z0-9_-]{11})/];
+      for (const p of patterns) { const m = s.match(p); if (m) return m[1]; }
+      if (/^[a-zA-Z0-9_-]{11}$/.test(s.trim())) return s.trim();
+      return null;
+    }
+    function parsePlaylistId(s: string): string | null {
+      const m = s.match(/[?&]list=([a-zA-Z0-9_-]+)/);
+      return m ? m[1] : null;
+    }
+    function ytSearch() {
+      if (!ytMainIframe || !ytSearchInput) return;
+      const val = ytSearchInput.value.trim();
+      if (!val) return;
+      const vid = parseVideoId(val);
+      const pl  = parsePlaylistId(val);
+      if (vid) ytMainIframe.src = `https://www.youtube.com/embed/${vid}?autoplay=1&rel=0&modestbranding=1`;
+      else if (pl) ytMainIframe.src = `https://www.youtube.com/embed/videoseries?list=${pl}&autoplay=1&rel=0&modestbranding=1`;
+      else ytMainIframe.src = `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(val)}&rel=0&modestbranding=1`;
+    }
+    ytSearchBtn?.addEventListener('click', ytSearch);
+    ytSearchInput?.addEventListener('keydown', e => { if (e.key === 'Enter') ytSearch(); });
+
+    const ytUrl = document.getElementById('yt-url') as HTMLInputElement | null;
+    const ytBtn = document.getElementById('yt-btn') as HTMLButtonElement | null;
+    const ytErr = document.getElementById('yt-error') as HTMLElement | null;
+
+    async function addYouTube() {
+      const url = ytUrl?.value.trim() ?? '';
+      if (!url) return;
+      if (ytErr) ytErr.style.display = 'none';
+      if (ytBtn) { ytBtn.disabled = true; ytBtn.textContent = '...'; }
+      const res = await fetch('/api/youtube/item', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) });
+      if (ytBtn) { ytBtn.disabled = false; ytBtn.textContent = 'Ekle'; }
+      if (res.status === 401) { window.location.href = '/login'; return; }
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({})) as { error?: string };
+        if (ytErr) { ytErr.textContent = d.error ?? 'Hata oluştu.'; ytErr.style.display = 'block'; }
+        return;
+      }
+      sessionStorage.setItem('music-active-tab', 'youtube');
+      window.location.reload();
+    }
+    ytBtn?.addEventListener('click', addYouTube);
+    ytUrl?.addEventListener('keydown', e => { if (e.key === 'Enter') addYouTube(); });
+
+    document.querySelectorAll<HTMLButtonElement>('.del-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Bu içeriği kaldırmak istiyor musun?')) return;
+        const res = await fetch(btn.dataset.api!, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: Number(btn.dataset.id) }) });
+        if (res.ok) btn.closest('.music-card')?.remove();
+      });
+    });
+  }
+
+  document.addEventListener('astro:page-load', initMuzik);
 </script>

@@ -671,10 +671,12 @@ function msgPreview(content: string) {
 <script>
 import { supa } from '../lib/supabase-browser';
 
-const metaEl     = document.getElementById('dm-meta') as HTMLElement;
-const myId       = parseInt(metaEl.dataset.myId!);
-const myUsername = metaEl.dataset.myUsername!;
-const myAvatar   = metaEl.dataset.myAvatar ?? '';
+function initMessages() {
+  const metaEl = document.getElementById('dm-meta') as HTMLElement | null;
+  if (!metaEl) return;
+  const myId       = parseInt(metaEl.dataset.myId!);
+  const myUsername = metaEl.dataset.myUsername!;
+  const myAvatar   = metaEl.dataset.myAvatar ?? '';
 
 const convList  = document.getElementById('dm-conv-list') as HTMLElement;
 const panel     = document.getElementById('dm-panel') as HTMLElement;
@@ -1035,4 +1037,7 @@ if (convParam) {
   const btn = document.querySelector<HTMLButtonElement>(`.dm-conv-item[data-conv-id="${convParam}"]`);
   if (btn) btn.click();
 }
+} // end initMessages
+
+document.addEventListener('astro:page-load', initMessages);
 </script>

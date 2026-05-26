@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import { createAuthClient, supabase as db } from '../lib/supabase';
+import { ClientRouter } from 'astro:transitions';
 
 interface Props {
   title?: string;
@@ -57,6 +58,7 @@ const navItems = [
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title} | Basements</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <ClientRouter />
   </head>
   <body>
     <div class="app-shell">
@@ -238,18 +240,25 @@ function incrementBadges(selector: string) {
   });
 }
 
-// Realtime abonelikleri sadece bir kez kurulur
-let realtimeSetup = false;
+// ── Realtime — kanallar window üzerinde saklanır, swap'ta yeniden kurulmaz ───
+const w = window as any;
 
 function setupRealtime() {
-  const rtMeta = document.getElementById('rt-meta') as HTMLElement | null;
-  const myId   = rtMeta?.dataset.myId ? parseInt(rtMeta.dataset.myId) : null;
+  const rtMeta  = document.getElementById('rt-meta') as HTMLElement | null;
+  const myId    = rtMeta?.dataset.myId ? parseInt(rtMeta.dataset.myId) : null;
   const convIds = rtMeta?.dataset.convIds ? (JSON.parse(rtMeta.dataset.convIds) as number[]) : [];
 
-  if (!myId || realtimeSetup) return;
-  realtimeSetup = true;
+  if (!myId) return;
 
-  supa
+  // Daha önce aynı kullanıcı için kurulduysa atlat
+  if (w.__rtUserId === myId) return;
+  w.__rtUserId = myId;
+
+  // Eski kanalları temizle
+  if (w.__rtNotifCh) { try { supa.removeChannel(w.__rtNotifCh); } catch {} }
+  if (w.__rtMsgCh)   { try { supa.removeChannel(w.__rtMsgCh);   } catch {} }
+
+  w.__rtNotifCh = supa
     .channel(`notif-user-${myId}`)
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${myId}` },
       (payload: any) => {
@@ -267,13 +276,15 @@ function setupRealtime() {
     ).subscribe();
 
   if (convIds.length) {
-    supa
+    w.__rtConvIds = convIds;
+    w.__rtMsgCh = supa
       .channel(`msg-user-${myId}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' },
         (payload: any) => {
           const msg = payload.new;
           if (msg.sender_id === myId) return;
-          if (!convIds.includes(msg.conversation_id)) return;
+          const activeConvIds: number[] = w.__rtConvIds ?? [];
+          if (!activeConvIds.includes(msg.conversation_id)) return;
           const url = new URL(window.location.href);
           const onMessages = url.pathname === '/messages';
           const openConv = onMessages ? parseInt(url.searchParams.get('c') ?? '0') : 0;
@@ -285,42 +296,50 @@ function setupRealtime() {
   }
 }
 
+// Her View Transitions swap'ından sonra conv listesi güncellenebilir
+function refreshConvIds() {
+  const rtMeta  = document.getElementById('rt-meta') as HTMLElement | null;
+  const convIds = rtMeta?.dataset.convIds ? (JSON.parse(rtMeta.dataset.convIds) as number[]) : [];
+  if (convIds.length) w.__rtConvIds = convIds;
+}
+
 setupRealtime();
+document.addEventListener('astro:after-swap', () => {
+  setupRealtime();
+  refreshConvIds();
+});
 
 // ── Page loading overlay ──────────────────────────────────────────────────────
-const loadingOverlay = document.getElementById('page-loading-overlay') as HTMLElement | null;
-let loadingTimer: ReturnType<typeof setTimeout> | null = null;
+const LOADING_GIFS = [
+  'https://media2.giphy.com/media/BSx6mzbW1ew7K/giphy.gif',
+  'https://media2.giphy.com/media/uEb7Wps1mWe5ffEkQv/giphy.gif',
+];
 
-document.addEventListener('click', (e) => {
-  const link = (e.target as Element).closest('a[href]') as HTMLAnchorElement | null;
-  if (!link) return;
-  if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+function getOverlay() {
+  return document.getElementById('page-loading-overlay') as HTMLElement | null;
+}
 
-  const href = link.getAttribute('href') ?? '';
-  if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
-  if (link.target === '_blank') return;
+function hideOverlay() {
+  if (w.__loadingTimer) { clearTimeout(w.__loadingTimer); w.__loadingTimer = null; }
+  const ov = getOverlay();
+  if (ov) ov.style.display = 'none';
+}
 
-  try {
-    const url = new URL(href, window.location.href);
-    if (url.origin !== window.location.origin) return;
-    if (url.pathname === window.location.pathname && url.search === window.location.search) return;
-  } catch { return; }
-
-  if (loadingTimer) clearTimeout(loadingTimer);
-  const loadingGifs = [
-    'https://media2.giphy.com/media/BSx6mzbW1ew7K/giphy.gif',
-    'https://media2.giphy.com/media/uEb7Wps1mWe5ffEkQv/giphy.gif',
-  ];
-  loadingTimer = setTimeout(() => {
-    if (!loadingOverlay) return;
-    const img = loadingOverlay.querySelector('img') as HTMLImageElement | null;
-    if (img) img.src = loadingGifs[Math.floor(Math.random() * loadingGifs.length)];
-    loadingOverlay.style.display = 'flex';
+// View Transitions navigasyonu başlayınca 1 saniyelik timer başlat
+document.addEventListener('astro:before-preparation', () => {
+  if (w.__loadingTimer) clearTimeout(w.__loadingTimer);
+  w.__loadingTimer = setTimeout(() => {
+    const ov = getOverlay();
+    if (!ov) return;
+    const img = ov.querySelector('img') as HTMLImageElement | null;
+    if (img) img.src = LOADING_GIFS[Math.floor(Math.random() * LOADING_GIFS.length)];
+    ov.style.display = 'flex';
   }, 1000);
 });
 
-window.addEventListener('pageshow', () => {
-  if (loadingTimer) { clearTimeout(loadingTimer); loadingTimer = null; }
-  if (loadingOverlay) loadingOverlay.style.display = 'none';
-});
+// Sayfa swap tamamlandığında overlay'i gizle
+document.addEventListener('astro:after-swap', hideOverlay);
+
+// Tam sayfa yüklemesi (VT dışı, örn. dış linkler) için
+window.addEventListener('pageshow', hideOverlay);
 </script>

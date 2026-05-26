@@ -466,4 +466,16 @@ body {
   .mobile-nav { display: flex; }
   .main-content { border-right: none; max-width: 100%; padding-bottom: 64px; }
   .app-shell { max-width: 100%; }
+
+  .feed-header { padding: 12px 16px; font-size: 1.05rem; }
+
+  .post-card { padding: 12px 16px; }
+  .post-content { margin: 4px 0 10px 52px; font-size: 0.9rem; }
+  .post-image { margin: 6px 0 10px 52px; }
+  .post-actions { margin-left: 52px; gap: 16px; }
+
+  .compose-box { padding: 12px 16px; }
+
+  .widget-card { display: none; }
+  .right-panel { display: none; }
 }

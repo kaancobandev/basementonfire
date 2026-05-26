@@ -271,6 +271,9 @@ function avatarBg(u: string): string {
 <script>
 import { renderCaption } from '../lib/caption';
 
+function initBookmarks() {
+  if (!document.querySelector('.bm-tab')) return;
+
 function avatarBgJs(u: string): string {
   const gs = ['linear-gradient(135deg,#6366f1,#8b5cf6)','linear-gradient(135deg,#ec4899,#8b5cf6)',
     'linear-gradient(135deg,#f97316,#ef4444)','linear-gradient(135deg,#10b981,#3b82f6)',
@@ -363,4 +366,7 @@ removeBtn.addEventListener('click', async () => {
     removeBtn.disabled = false;
   }
 });
+} // end initBookmarks
+
+document.addEventListener('astro:page-load', initBookmarks);
 </script>

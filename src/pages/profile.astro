@@ -220,7 +220,7 @@ const GENDER_LABEL: Record<string, string> = { erkek: 'Erkek', kadin: 'Kadın', 
         <div id="bio-count" class="pf-char-count">{(user.bio ?? '').length} / 160</div>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <div class="pf-form-grid">
         <div class="pf-field">
           <label for="edit-location">Şehir / Konum</label>
           <input id="edit-location" name="location" type="text" value={user.location ?? ''} maxlength="60" class="pf-input" placeholder="İstanbul" />
@@ -236,7 +236,7 @@ const GENDER_LABEL: Record<string, string> = { erkek: 'Erkek', kadin: 'Kadın', 
         </div>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <div class="pf-form-grid">
         <div class="pf-field">
           <label for="edit-website">Website</label>
           <input id="edit-website" name="website" type="text" value={user.website ?? ''} maxlength="100" class="pf-input" placeholder="basementonfire.com" />
@@ -550,6 +550,7 @@ const GENDER_LABEL: Record<string, string> = { erkek: 'Erkek', kadin: 'Kadın', 
 .pf-icon-btn:hover { background: var(--color-border); }
 
 .pf-edit-form { display: flex; flex-direction: column; gap: 16px; }
+.pf-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .pf-edit-avatar {
   width: 72px; height: 72px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
@@ -653,14 +654,20 @@ const GENDER_LABEL: Record<string, string> = { erkek: 'Erkek', kadin: 'Kadın', 
   .pf-lightbox-info { width: 100%; border-left: none; border-top: 1px solid var(--color-border); }
   .pf-lightbox-media { min-height: 240px; max-height: 45vh; }
   .pf-lightbox-bg { padding: 0; align-items: flex-end; }
+
+  .pf-form-grid { grid-template-columns: 1fr; }
+  .pf-modal-box { padding: 16px; }
+  .pf-banner { height: 120px; }
+  .pf-header { padding: 0 16px 12px; }
 }
 </style>
 
 <script>
 import { renderCaption } from '../lib/caption';
 
-// ── Edit modal
-const editModal  = document.getElementById('edit-modal')!;
+function initProfile() {
+  const editModal = document.getElementById('edit-modal');
+  if (!editModal) return;
 const openEdit   = document.getElementById('open-edit')!;
 const closeEdit  = document.getElementById('close-edit')!;
 const bioTextarea = document.getElementById('edit-bio') as HTMLTextAreaElement;
@@ -942,4 +949,7 @@ avatarFileInput?.addEventListener('change', async () => {
     }
   }
 });
+} // end initProfile
+
+document.addEventListener('astro:page-load', initProfile);
 </script>

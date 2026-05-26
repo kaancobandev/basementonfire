@@ -617,11 +617,13 @@ function timeAgo(d: string) {
 
 <script>
 import { renderCaption } from '../lib/caption';
+import { supa } from '../lib/supabase-browser';
 
-// ── Yükleme Modal ───────────────────────────────────────────────────────────
-const uploadModal  = document.getElementById('upload-modal')!;
-const openUploadBtn  = document.getElementById('open-upload')!;
-const closeUploadBtn = document.getElementById('close-upload')!;
+function initAkis() {
+  const uploadModal = document.getElementById('upload-modal');
+  if (!uploadModal) return;
+  const openUploadBtn  = document.getElementById('open-upload')!;
+  const closeUploadBtn = document.getElementById('close-upload')!;
 
 openUploadBtn.addEventListener('click',  () => { uploadModal.style.display = 'flex'; });
 closeUploadBtn.addEventListener('click', () => closeUpload());
@@ -1200,8 +1202,6 @@ initBlurUp();
 initVideoLazy();
 
 // ── Realtime ─────────────────────────────────────────────────────────────────
-import { supa } from '../lib/supabase-browser';
-
 const newPostsBar   = document.getElementById('new-posts-bar') as HTMLElement;
 const newPostsBtn   = document.getElementById('new-posts-btn') as HTMLButtonElement;
 const newPostsLabel = document.getElementById('new-posts-label') as HTMLElement;
@@ -1290,5 +1290,7 @@ onPostClose = () => {
   commentChannel?.unsubscribe();
   commentChannel = null;
 };
+} // end initAkis
 
+document.addEventListener('astro:page-load', initAkis);
 </script>

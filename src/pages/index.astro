@@ -754,6 +754,9 @@ function avatarBg(u: string): string {
 </style>
 
 <script>
+function initIndex() {
+  if (!document.getElementById('ig-feed') && !document.querySelector('.story-bar') && !document.querySelector('.ig-card')) return;
+
   if (window.location.hash.includes('error=')) {
     window.location.replace('/reset-password' + window.location.hash);
   }
@@ -1037,4 +1040,7 @@ function avatarBg(u: string): string {
       storySubmit.textContent = 'Hikayeyi Paylaş';
     }
   });
+} // end initIndex
+
+document.addEventListener('astro:page-load', initIndex);
 </script>

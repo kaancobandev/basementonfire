@@ -284,8 +284,9 @@ const commentPrivacy = me.comment_privacy ?? 'everyone';
 </style>
 
 <script>
-// Toggle → visual update
-const togglePrivate = document.getElementById('toggle-private') as HTMLInputElement;
+function initSettings() {
+  const togglePrivate = document.getElementById('toggle-private') as HTMLInputElement | null;
+  if (!togglePrivate) return;
 
 // Radio groups → visual .selected update
 function initRadios(groupId: string) {
@@ -338,4 +339,7 @@ saveBtn.addEventListener('click', async () => {
     saveBtn.disabled = false;
   }
 });
+} // end initSettings
+
+document.addEventListener('astro:page-load', initSettings);
 </script>
