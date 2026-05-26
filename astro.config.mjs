@@ -4,6 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 import netlify from '@astrojs/netlify';
 
 export default defineConfig({
+  devToolbar: { enabled: false },
   output: 'server',
   adapter: netlify(),
   prefetch: {

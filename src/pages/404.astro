@@ -1,0 +1,59 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="404 – Kayboldum">
+  <main class="not-found-page">
+    <img
+      src="https://media3.giphy.com/media/1EmBoG0IL50VIJLWTs/giphy.gif"
+      alt="Kayboldum"
+      class="not-found-gif"
+    />
+    <h1 class="not-found-title">Galiba yolumuzu kaybettik.</h1>
+    <a href="/" class="not-found-btn">Ana sayfaya dön</a>
+  </main>
+</BaseLayout>
+
+<style>
+  .not-found-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    min-height: 100vh;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .not-found-gif {
+    height: 70vh;
+    width: auto;
+    max-width: 100%;
+    border-radius: 16px;
+    object-fit: contain;
+  }
+
+  .not-found-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #000;
+    margin: 0;
+  }
+
+  .not-found-btn {
+    margin-top: 4px;
+    padding: 10px 22px;
+    background: var(--accent, #6366f1);
+    color: #fff;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: opacity 0.15s;
+  }
+
+  .not-found-btn:hover {
+    opacity: 0.85;
+  }
+</style>

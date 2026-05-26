@@ -42,6 +42,7 @@ function avatarBg(u: string): string {
 }
 
 const bg = avatarBg(user.username);
+const hasPhoto = !!user.avatar && user.avatar !== '/avatars/default.png';
 
 function calcAge(bd: string | null): number | null {
   if (!bd) return null;
@@ -72,8 +73,11 @@ const GENDER_LABEL: Record<string, string> = { erkek: 'Erkek', kadin: 'Kadın', 
   <!-- Profile header -->
   <div class="pf-header">
     <div class="pf-avatar-row">
-      <div class="pf-avatar" style={`background:${bg}`}>
-        {user.display_name[0].toUpperCase()}
+      <div class="pf-avatar" style={hasPhoto ? '' : `background:${bg}`}>
+        {hasPhoto
+          ? <img src={user.avatar} alt={user.display_name} class="pf-avatar-img" />
+          : user.display_name[0].toUpperCase()
+        }
       </div>
       <div style="display:flex;gap:8px;align-items:center;">
         <a href="/settings" class="pf-settings-btn" title="Ayarlar">
@@ -180,8 +184,15 @@ const GENDER_LABEL: Record<string, string> = { erkek: 'Erkek', kadin: 'Kadın', 
     </div>
 
     <form method="POST" action="/api/profile/edit" class="pf-edit-form">
-      <div class="pf-edit-avatar" style={`background:${bg}`}>
-        {user.display_name[0].toUpperCase()}
+      <div class="pf-edit-avatar" id="edit-avatar-wrap" style={hasPhoto ? '' : `background:${bg}`}>
+        {hasPhoto
+          ? <img src={user.avatar} alt="" class="pf-avatar-img" id="edit-avatar-img" />
+          : <span id="edit-avatar-letter">{user.display_name[0].toUpperCase()}</span>
+        }
+        <div class="pf-edit-avatar-overlay">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+        </div>
+        <input type="file" id="avatar-file-input" accept="image/jpeg,image/png,image/webp,image/gif" style="display:none" />
       </div>
 
       <div class="pf-field">
@@ -323,6 +334,13 @@ const GENDER_LABEL: Record<string, string> = { erkek: 'Erkek', kadin: 'Kadın', 
   box-shadow: 0 2px 12px rgba(0,0,0,0.12);
   display: flex; align-items: center; justify-content: center;
   color: white; font-size: 2rem; font-weight: 800;
+  overflow: hidden;
+}
+
+.pf-avatar-img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 .pf-edit-btn {
@@ -537,7 +555,17 @@ const GENDER_LABEL: Record<string, string> = { erkek: 'Erkek', kadin: 'Kadın', 
   display: flex; align-items: center; justify-content: center;
   color: white; font-size: 1.8rem; font-weight: 800;
   margin-bottom: 4px;
+  position: relative; overflow: hidden; cursor: pointer;
+  flex-shrink: 0;
 }
+.pf-edit-avatar-overlay {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.15s;
+  border-radius: 50%;
+}
+.pf-edit-avatar:hover .pf-edit-avatar-overlay { opacity: 1; }
 .pf-field { display: flex; flex-direction: column; gap: 6px; }
 .pf-field label { font-size: 0.8rem; font-weight: 700; color: var(--color-text-muted); }
 .pf-input, .pf-textarea {
@@ -847,6 +875,71 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     if (lightbox.style.display !== 'none') closeLb();
     if (editModal.style.display !== 'none') editModal.style.display = 'none';
+  }
+});
+
+// ── Profil fotoğrafı değiştirme ──────────────────────────────────────────────
+const editAvatarWrap  = document.getElementById('edit-avatar-wrap') as HTMLElement | null;
+const avatarFileInput = document.getElementById('avatar-file-input') as HTMLInputElement | null;
+
+editAvatarWrap?.addEventListener('click', () => avatarFileInput?.click());
+
+avatarFileInput?.addEventListener('change', async () => {
+  const file = avatarFileInput.files?.[0];
+  if (!file) return;
+
+  const overlay = editAvatarWrap?.querySelector<HTMLElement>('.pf-edit-avatar-overlay');
+  if (overlay) { overlay.style.opacity = '1'; overlay.innerHTML = '<span style="color:white;font-size:0.75rem">…</span>'; }
+
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    const res  = await fetch('/api/profile/avatar', { method: 'POST', body: fd });
+    const data = await res.json() as { avatar_url?: string; error?: string };
+
+    if (data.avatar_url) {
+      // Tüm avatar görselleri güncelle
+      document.querySelectorAll<HTMLImageElement>('.pf-avatar-img').forEach(img => {
+        img.src = data.avatar_url!;
+      });
+
+      // Header avatar – harften fotoğrafa geç
+      const headerAvatar = document.querySelector<HTMLElement>('.pf-avatar');
+      if (headerAvatar && !headerAvatar.querySelector('.pf-avatar-img')) {
+        headerAvatar.textContent = '';
+        headerAvatar.style.background = '';
+        const img = document.createElement('img');
+        img.className = 'pf-avatar-img';
+        img.alt = '';
+        img.src = data.avatar_url;
+        headerAvatar.appendChild(img);
+      } else if (headerAvatar) {
+        headerAvatar.style.background = '';
+      }
+
+      // Edit modal avatar – harften fotoğrafa geç
+      if (editAvatarWrap && !editAvatarWrap.querySelector('.pf-avatar-img')) {
+        editAvatarWrap.querySelector('#edit-avatar-letter')?.remove();
+        editAvatarWrap.style.background = '';
+        const img = document.createElement('img');
+        img.className = 'pf-avatar-img';
+        img.id = 'edit-avatar-img';
+        img.alt = '';
+        img.src = data.avatar_url;
+        editAvatarWrap.insertBefore(img, editAvatarWrap.firstChild);
+      } else if (editAvatarWrap) {
+        editAvatarWrap.style.background = '';
+      }
+    } else {
+      alert(data.error ?? 'Yükleme başarısız');
+    }
+  } catch {
+    alert('Yükleme başarısız');
+  } finally {
+    if (overlay) {
+      overlay.style.opacity = '';
+      overlay.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>`;
+    }
   }
 });
 </script>

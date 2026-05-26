@@ -204,7 +204,7 @@ function timeAgo(d: string) {
 
       <div class="items-list" id="yt-list">
         {youtubeItems.length === 0 ? null
-        ) : youtubeItems.map(item => {
+        : youtubeItems.map(item => {
           const embedSrc = item.item_type === 'playlist'
             ? `https://www.youtube.com/embed/videoseries?list=${item.item_id}&rel=0&modestbranding=1`
             : `https://www.youtube.com/embed/${item.item_id}?rel=0&modestbranding=1`;
