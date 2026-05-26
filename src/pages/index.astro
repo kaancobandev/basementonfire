@@ -107,6 +107,37 @@ if (currentUser) {
   }
 }
 
+// ── Stories
+interface StoryItem { id: number; mediaUrl: string; mediaType: string; createdAt: string; }
+interface StoryUser { userId: number; username: string; displayName: string; avatar: string | null; stories: StoryItem[]; }
+
+const storyNow = new Date().toISOString();
+const { data: storiesRaw } = await supabase
+  .from('stories')
+  .select('id, media_url, media_type, created_at, user_id, users(id, username, display_name, avatar)')
+  .gt('expires_at', storyNow)
+  .order('created_at', { ascending: false });
+
+const storyMap = new Map<number, StoryUser>();
+for (const s of (storiesRaw ?? []) as any[]) {
+  const u = s.users;
+  const uid: number = s.user_id;
+  if (!storyMap.has(uid)) {
+    storyMap.set(uid, { userId: uid, username: u.username, displayName: u.display_name, avatar: u.avatar ?? null, stories: [] });
+  }
+  storyMap.get(uid)!.stories.push({ id: s.id, mediaUrl: s.media_url, mediaType: s.media_type, createdAt: s.created_at });
+}
+const ownStoryUser: StoryUser | null = currentUser ? (storyMap.get(currentUser.id) ?? null) : null;
+if (currentUser) storyMap.delete(currentUser.id);
+const otherStoryUsers: StoryUser[] = [...storyMap.values()];
+
+const storyAvatarColors = ['linear-gradient(135deg,#667eea,#764ba2)','linear-gradient(135deg,#f093fb,#f5576c)','linear-gradient(135deg,#4facfe,#00f2fe)','linear-gradient(135deg,#43e97b,#38f9d7)','linear-gradient(135deg,#fa709a,#fee140)','linear-gradient(135deg,#a18cd1,#fbc2eb)','linear-gradient(135deg,#fda085,#f6d365)','linear-gradient(135deg,#96fbc4,#f9f586)'];
+function storyAvatarBg(username: string) {
+  let h = 0;
+  for (let i = 0; i < username.length; i++) h = (h * 31 + username.charCodeAt(i)) & 0xffffffff;
+  return storyAvatarColors[Math.abs(h) % storyAvatarColors.length];
+}
+
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
@@ -132,6 +163,42 @@ function avatarBg(u: string): string {
 <BaseLayout title="Ana Sayfa" activeNav="home">
   <main class="main-content">
     <div class="feed-header">Ana Sayfa</div>
+
+    <script id="story-data" type="application/json" set:html={JSON.stringify({
+      ownStoryUser,
+      otherStoryUsers,
+      myId: currentUser?.id ?? null,
+    })} />
+
+    <div class="story-bar" id="story-bar">
+      {currentUser && (
+        <button class="story-item" id="story-own-btn" data-has-story={ownStoryUser ? 'true' : 'false'}>
+          <div class={`story-ring ${ownStoryUser ? 'has-story' : 'add-story'}`}>
+            <div class="story-av" style={`background:${storyAvatarBg(currentUser.username)}`}>
+              {currentUser.display_name[0].toUpperCase()}
+            </div>
+            {!ownStoryUser && <span class="story-plus">+</span>}
+          </div>
+          <span class="story-label">{ownStoryUser ? 'Hikayem' : 'Ekle'}</span>
+        </button>
+      )}
+
+      {otherStoryUsers.map((u, i) => (
+        <button class="story-item" data-story-idx={i} aria-label={`${u.displayName} hikayesi`}>
+          <div class="story-ring has-story">
+            {u.avatar
+              ? <img src={u.avatar} alt="" class="story-av" />
+              : <div class="story-av" style={`background:${storyAvatarBg(u.username)}`}>{u.displayName[0].toUpperCase()}</div>
+            }
+          </div>
+          <span class="story-label">{u.username}</span>
+        </button>
+      ))}
+
+      {!currentUser && otherStoryUsers.length === 0 && (
+        <p class="story-empty">Henüz hikaye yok</p>
+      )}
+    </div>
 
     {feedItems.length === 0 ? (
       <div class="empty-feed">
@@ -262,6 +329,57 @@ function avatarBg(u: string): string {
       </div>
     </div>
   </aside>
+  <!-- Story oluşturma modal -->
+  <div id="story-create-modal" class="sv-overlay" style="display:none;">
+    <div class="story-create-box">
+      <div class="story-create-header">
+        <span>Yeni Hikaye</span>
+        <button class="sv-icon-btn" id="story-create-close">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div id="story-drop" class="story-drop">
+        <input type="file" id="story-file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" hidden />
+        <div id="story-drop-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px;color:#888"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+          <p style="font-weight:600;margin-bottom:4px;">Fotoğraf veya video seç</p>
+          <p style="font-size:0.8rem;color:#888;">Tıkla veya sürükle · Max 50MB</p>
+        </div>
+        <div id="story-drop-preview" style="display:none;width:100%;height:100%;position:relative;">
+          <img id="story-prev-img" style="width:100%;height:100%;object-fit:contain;display:none;" alt="" />
+          <video id="story-prev-vid" style="width:100%;height:100%;object-fit:contain;display:none;" muted controls></video>
+        </div>
+      </div>
+      <p id="story-error" style="color:#ef4444;font-size:0.85rem;display:none;margin:8px 0 0;"></p>
+      <button id="story-submit-btn" class="story-submit-btn" disabled>Hikayeyi Paylaş</button>
+    </div>
+  </div>
+
+  <!-- Story Viewer Modal -->
+  <div id="story-viewer" class="sv-overlay" style="display:none;" role="dialog" aria-modal="true">
+    <div class="sv-bg" id="sv-bg"></div>
+    <div class="sv-shell">
+      <div class="sv-top">
+        <div class="sv-bars" id="sv-bars"></div>
+        <div class="sv-meta">
+          <div class="sv-meta-av" id="sv-meta-av"></div>
+          <div>
+            <div class="sv-meta-name" id="sv-meta-name"></div>
+            <div class="sv-meta-time" id="sv-meta-time"></div>
+          </div>
+          <button class="sv-icon-btn" id="sv-close" style="margin-left:auto;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="sv-media-wrap">
+        <img id="sv-img" class="sv-media" style="display:none;" alt="" />
+        <video id="sv-vid" class="sv-media" style="display:none;" muted playsinline></video>
+      </div>
+      <div class="sv-zone sv-zone-prev" id="sv-prev"></div>
+      <div class="sv-zone sv-zone-next" id="sv-next"></div>
+    </div>
+  </div>
 </BaseLayout>
 
 <style>
@@ -476,6 +594,163 @@ function avatarBg(u: string): string {
 .sug-follow-btn.following { border-color: var(--color-border); color: var(--color-text-muted); }
 .sug-more { display: block; margin-top: 8px; font-size: 0.8rem; color: var(--color-primary); text-decoration: none; }
 .sug-more:hover { text-decoration: underline; }
+
+/* ── Story Bar */
+.story-bar {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  scrollbar-width: none;
+}
+.story-bar::-webkit-scrollbar { display: none; }
+
+.story-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 2px;
+}
+
+.story-ring {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  padding: 2.5px;
+  position: relative;
+  transition: transform 0.15s;
+}
+.story-item:hover .story-ring { transform: scale(1.06); }
+.story-ring.has-story { background: linear-gradient(135deg, #f58529, #dd2a7b, #8134af, #515bd4); }
+.story-ring.add-story { background: rgba(255,255,255,0.12); border: 2px dashed rgba(255,255,255,0.25); }
+
+.story-av {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: #fff;
+  background: #1e1a14;
+  border: 2px solid #0f0e0d;
+}
+
+.story-plus {
+  position: absolute;
+  bottom: -1px; right: -1px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: #d4a564;
+  color: #0f0e0d;
+  font-size: 1rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid #0f0e0d;
+  line-height: 1;
+}
+
+.story-label {
+  font-size: 0.7rem; color: #aaa;
+  max-width: 64px; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; text-align: center;
+}
+.story-empty { color: #666; font-size: 0.85rem; align-self: center; padding: 0 8px; }
+
+/* Story Create Modal */
+.story-create-box {
+  background: #1a1510; border-radius: 20px;
+  width: 100%; max-width: 400px; padding: 20px;
+  position: relative; z-index: 1;
+}
+.story-create-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 16px; font-weight: 700; font-size: 1rem; color: #e8e0d8;
+}
+.story-drop {
+  border: 2px dashed rgba(255,255,255,0.15); border-radius: 16px;
+  height: 260px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; text-align: center; overflow: hidden; position: relative;
+  transition: border-color 0.2s, background 0.2s; color: #ccc;
+}
+.story-drop:hover, .story-drop.drag-over { border-color: #d4a564; background: rgba(212,165,100,0.05); }
+.story-submit-btn {
+  width: 100%; margin-top: 14px; padding: 12px; border: none;
+  border-radius: 9999px; background: #d4a564; color: #0f0e0d;
+  font-weight: 700; font-size: 0.95rem; cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+}
+.story-submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.story-submit-btn:not(:disabled):hover { background: #c4954e; }
+
+/* Story Viewer */
+.sv-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.92);
+  z-index: 500; display: flex; align-items: center; justify-content: center;
+}
+.sv-bg {
+  position: absolute; inset: 0; background-size: cover; background-position: center;
+  filter: blur(30px) brightness(0.3); transform: scale(1.1); transition: background-image 0.3s;
+}
+.sv-shell {
+  position: relative; z-index: 1; width: 100%; max-width: 420px;
+  height: 100dvh; max-height: 780px; display: flex; flex-direction: column;
+  border-radius: 16px; overflow: hidden; background: #000;
+}
+.sv-top {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 10;
+  padding: 10px 12px 8px;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
+}
+.sv-bars { display: flex; gap: 4px; margin-bottom: 10px; }
+.sv-bar {
+  flex: 1; height: 2.5px; border-radius: 9999px;
+  background: rgba(255,255,255,0.3); overflow: hidden; position: relative;
+}
+.sv-bar-fill {
+  position: absolute; inset: 0; background: #fff;
+  transform-origin: left; transform: scaleX(0);
+}
+.sv-bar.active .sv-bar-fill { animation: sv-progress var(--dur, 5s) linear forwards; }
+.sv-bar.done .sv-bar-fill   { transform: scaleX(1); }
+@keyframes sv-progress { to { transform: scaleX(1); } }
+
+.sv-meta { display: flex; align-items: center; gap: 10px; }
+.sv-meta-av {
+  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+  background: #555; display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 0.9rem; color: #fff; overflow: hidden;
+}
+.sv-meta-av img { width: 100%; height: 100%; object-fit: cover; }
+.sv-meta-name { font-weight: 700; font-size: 0.88rem; color: #fff; }
+.sv-meta-time { font-size: 0.72rem; color: rgba(255,255,255,0.6); }
+.sv-icon-btn {
+  background: none; border: none; cursor: pointer; padding: 4px;
+  display: flex; align-items: center; border-radius: 50%;
+  transition: background 0.15s; color: white;
+}
+.sv-icon-btn:hover { background: rgba(255,255,255,0.15); }
+.sv-media-wrap {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  background: #000; overflow: hidden;
+}
+.sv-media { max-width: 100%; max-height: 100%; object-fit: contain; }
+.sv-zone {
+  position: absolute; top: 60px; bottom: 0; width: 40%; cursor: pointer; z-index: 5;
+}
+.sv-zone-prev { left: 0; }
+.sv-zone-next { right: 0; }
+@media (max-width: 480px) {
+  .sv-shell { max-width: 100%; border-radius: 0; max-height: 100dvh; }
+}
 </style>
 
 <script>
@@ -535,5 +810,231 @@ function avatarBg(u: string): string {
         btn.disabled = false;
       }
     });
+  });
+
+  // ── Stories
+  interface StoryItemJS  { id: number; mediaUrl: string; mediaType: string; createdAt: string; }
+  interface StoryUserJS  { userId: number; username: string; displayName: string; avatar: string | null; stories: StoryItemJS[]; }
+
+  const storyDataEl = document.getElementById('story-data');
+  const storyData   = storyDataEl ? JSON.parse(storyDataEl.textContent ?? '{}') : {};
+  const allStoryUsers: StoryUserJS[] = [
+    ...(storyData.ownStoryUser ? [storyData.ownStoryUser] : []),
+    ...(storyData.otherStoryUsers ?? []),
+  ];
+  const myIdStory: number | null = storyData.myId ?? null;
+
+  function svEsc(s: string) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function svAvatarBg(u: string) {
+    const gs = ['linear-gradient(135deg,#667eea,#764ba2)','linear-gradient(135deg,#f093fb,#f5576c)','linear-gradient(135deg,#4facfe,#00f2fe)','linear-gradient(135deg,#43e97b,#38f9d7)','linear-gradient(135deg,#fa709a,#fee140)','linear-gradient(135deg,#a18cd1,#fbc2eb)','linear-gradient(135deg,#fda085,#f6d365)','linear-gradient(135deg,#96fbc4,#f9f586)'];
+    let h = 0;
+    for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff;
+    return gs[Math.abs(h) % gs.length];
+  }
+  function svTimeAgo(iso: string) {
+    const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+    if (s < 60) return `${s}sn`;
+    if (s < 3600) return `${Math.floor(s / 60)}dk`;
+    return `${Math.floor(s / 3600)}sa`;
+  }
+  function getViewed(): Set<number> {
+    try { return new Set(JSON.parse(localStorage.getItem('sv_viewed') ?? '[]')); } catch { return new Set(); }
+  }
+  function markViewed(id: number) {
+    const sv = getViewed(); sv.add(id);
+    localStorage.setItem('sv_viewed', JSON.stringify([...sv]));
+  }
+
+  const viewer   = document.getElementById('story-viewer') as HTMLElement;
+  const svBg     = document.getElementById('sv-bg') as HTMLElement;
+  const svBars   = document.getElementById('sv-bars') as HTMLElement;
+  const svMetaAv = document.getElementById('sv-meta-av') as HTMLElement;
+  const svMetaNm = document.getElementById('sv-meta-name') as HTMLElement;
+  const svMetaTm = document.getElementById('sv-meta-time') as HTMLElement;
+  const svImg    = document.getElementById('sv-img') as HTMLImageElement;
+  const svVid    = document.getElementById('sv-vid') as HTMLVideoElement;
+  const svClose  = document.getElementById('sv-close') as HTMLButtonElement;
+  const svPrev   = document.getElementById('sv-prev') as HTMLElement;
+  const svNext   = document.getElementById('sv-next') as HTMLElement;
+
+  let svUserIdx  = 0;
+  let svStoryIdx = 0;
+  let svTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function clearSvTimer() {
+    if (svTimer) { clearTimeout(svTimer); svTimer = null; }
+  }
+
+  function showStory(userIdx: number, storyIdx: number) {
+    clearSvTimer();
+    svUserIdx  = userIdx;
+    svStoryIdx = storyIdx;
+    const u = allStoryUsers[userIdx];
+    const s = u.stories[storyIdx];
+    markViewed(s.id);
+
+    if (u.avatar) {
+      svMetaAv.innerHTML = `<img src="${svEsc(u.avatar)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    } else {
+      svMetaAv.style.background = svAvatarBg(u.username);
+      svMetaAv.textContent = u.displayName[0].toUpperCase();
+    }
+    svMetaNm.textContent = u.displayName;
+    svMetaTm.textContent = svTimeAgo(s.createdAt);
+
+    if (s.mediaType === 'image') svBg.style.backgroundImage = `url(${s.mediaUrl})`;
+
+    svImg.style.display = 'none';
+    svVid.style.display = 'none';
+    svVid.pause();
+
+    if (s.mediaType === 'video') {
+      svVid.src = s.mediaUrl; svVid.style.display = 'block';
+      svVid.load(); svVid.play().catch(() => {});
+    } else {
+      svImg.src = s.mediaUrl; svImg.style.display = 'block';
+    }
+
+    svBars.innerHTML = u.stories.map((_, i) => `
+      <div class="sv-bar ${i < storyIdx ? 'done' : i === storyIdx ? 'active' : ''}" style="--dur:${s.mediaType === 'video' ? '15s' : '5s'}">
+        <div class="sv-bar-fill"></div>
+      </div>`).join('');
+
+    svTimer = setTimeout(() => advanceStory(1), s.mediaType === 'video' ? 15000 : 5000);
+  }
+
+  function advanceStory(dir: 1 | -1) {
+    const u = allStoryUsers[svUserIdx];
+    const nextStory = svStoryIdx + dir;
+    if (nextStory >= 0 && nextStory < u.stories.length) { showStory(svUserIdx, nextStory); return; }
+    const nextUser = svUserIdx + dir;
+    if (nextUser >= 0 && nextUser < allStoryUsers.length) {
+      showStory(nextUser, dir === 1 ? 0 : allStoryUsers[nextUser].stories.length - 1);
+      return;
+    }
+    closeViewer();
+  }
+
+  function openViewer(userIdx: number) {
+    if (allStoryUsers.length === 0) return;
+    viewer.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    showStory(userIdx, 0);
+  }
+
+  function closeViewer() {
+    clearSvTimer();
+    viewer.style.display = 'none';
+    document.body.style.overflow = '';
+    svVid.pause(); svVid.src = ''; svImg.src = '';
+  }
+
+  svClose.addEventListener('click', closeViewer);
+  svPrev.addEventListener('click', () => advanceStory(-1));
+  svNext.addEventListener('click', () => advanceStory(1));
+  viewer.addEventListener('click', e => { if (e.target === viewer) closeViewer(); });
+  document.addEventListener('keydown', e => {
+    if (viewer.style.display === 'none') return;
+    if (e.key === 'ArrowRight') advanceStory(1);
+    if (e.key === 'ArrowLeft')  advanceStory(-1);
+    if (e.key === 'Escape')     closeViewer();
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('.story-item[data-story-idx]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const ownOffset = storyData.ownStoryUser ? 1 : 0;
+      openViewer(parseInt(btn.dataset.storyIdx!) + ownOffset);
+    });
+  });
+
+  // Story Create
+  const createModal  = document.getElementById('story-create-modal') as HTMLElement;
+  const createClose  = document.getElementById('story-create-close') as HTMLButtonElement;
+  const storyDrop    = document.getElementById('story-drop') as HTMLElement;
+  const storyFile    = document.getElementById('story-file') as HTMLInputElement;
+  const storyPrevImg = document.getElementById('story-prev-img') as HTMLImageElement;
+  const storyPrevVid = document.getElementById('story-prev-vid') as HTMLVideoElement;
+  const storyDropPh  = document.getElementById('story-drop-placeholder') as HTMLElement;
+  const storyDropPv  = document.getElementById('story-drop-preview') as HTMLElement;
+  const storyError   = document.getElementById('story-error') as HTMLElement;
+  const storySubmit  = document.getElementById('story-submit-btn') as HTMLButtonElement;
+  const ownBtn       = document.getElementById('story-own-btn') as HTMLButtonElement | null;
+
+  ownBtn?.addEventListener('click', () => {
+    if (ownBtn.dataset.hasStory === 'true') openViewer(0);
+    else openCreateModal();
+  });
+
+  function openCreateModal() { createModal.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+  function closeCreateModal() {
+    createModal.style.display = 'none'; document.body.style.overflow = '';
+    clearStoryFile(); storyError.style.display = 'none';
+  }
+
+  createClose.addEventListener('click', closeCreateModal);
+  createModal.addEventListener('click', e => { if (e.target === createModal) closeCreateModal(); });
+
+  storyDrop.addEventListener('click', e => {
+    if ((e.target as HTMLElement).closest('video,button')) return;
+    storyFile.click();
+  });
+  storyDrop.addEventListener('dragover',  e => { e.preventDefault(); storyDrop.classList.add('drag-over'); });
+  storyDrop.addEventListener('dragleave', () => storyDrop.classList.remove('drag-over'));
+  storyDrop.addEventListener('drop', e => {
+    e.preventDefault(); storyDrop.classList.remove('drag-over');
+    const f = e.dataTransfer?.files[0];
+    if (f) applyStoryFile(f);
+  });
+  storyFile.addEventListener('change', () => { if (storyFile.files?.[0]) applyStoryFile(storyFile.files[0]); });
+
+  function applyStoryFile(file: File) {
+    const url = URL.createObjectURL(file);
+    const isVid = file.type.startsWith('video/');
+    storyPrevImg.style.display = isVid ? 'none' : 'block';
+    storyPrevVid.style.display = isVid ? 'block' : 'none';
+    if (isVid) storyPrevVid.src = url; else storyPrevImg.src = url;
+    storyDropPh.style.display = 'none';
+    storyDropPv.style.display = 'block';
+    storySubmit.disabled = false;
+  }
+
+  function clearStoryFile() {
+    storyFile.value = ''; storyPrevImg.src = ''; storyPrevVid.src = '';
+    storyDropPv.style.display = 'none'; storyDropPh.style.display = 'flex';
+    storySubmit.disabled = true;
+  }
+
+  storySubmit.addEventListener('click', async () => {
+    const file = storyFile.files?.[0];
+    if (!file) return;
+    storySubmit.disabled = true;
+    storySubmit.textContent = 'Yükleniyor…';
+    storyError.style.display = 'none';
+    const fd = new FormData();
+    fd.append('media', file);
+    try {
+      const res  = await fetch('/api/stories/create', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Hata');
+      closeCreateModal();
+      if (ownBtn) {
+        ownBtn.dataset.hasStory = 'true';
+        const ring = ownBtn.querySelector('.story-ring');
+        ring?.classList.remove('add-story'); ring?.classList.add('has-story');
+        ownBtn.querySelector('.story-plus')?.remove();
+        const label = ownBtn.querySelector('.story-label');
+        if (label) label.textContent = 'Hikayem';
+        if (allStoryUsers[0]?.userId === myIdStory) {
+          allStoryUsers[0].stories.unshift({ id: data.story.id, mediaUrl: data.story.media_url, mediaType: data.story.media_type, createdAt: data.story.created_at });
+        }
+      }
+    } catch (e: any) {
+      storyError.textContent = e.message;
+      storyError.style.display = 'block';
+      storySubmit.disabled = false;
+      storySubmit.textContent = 'Hikayeyi Paylaş';
+    }
   });
 </script>
