@@ -1,7 +1,6 @@
 ---
 import '../styles/global.css';
 import { createAuthClient, supabase as db } from '../lib/supabase';
-import { ClientRouter } from 'astro:transitions';
 
 interface Props {
   title?: string;
@@ -58,7 +57,6 @@ const navItems = [
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title} | Basements</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <ClientRouter />
   </head>
   <body>
     <div class="app-shell">
@@ -265,6 +263,5 @@ function setupRealtime() {
   }
 }
 
-// İlk yükleme + View Transitions sonrası her sayfa değişiminde
-document.addEventListener('astro:page-load', setupRealtime);
+setupRealtime();
 </script>
