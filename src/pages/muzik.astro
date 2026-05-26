@@ -571,13 +571,22 @@ function timeAgo(d: string) {
 
 <script>
   // ── Tab switcher ────────────────────────────────────────────────────────────
+  function switchTab(name: string) {
+    document.querySelectorAll('.music-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.music-section').forEach(s => (s as HTMLElement).style.display = 'none');
+    const tab = document.querySelector<HTMLButtonElement>(`.music-tab[data-tab="${name}"]`);
+    if (tab) tab.classList.add('active');
+    const section = document.getElementById(`tab-${name}`);
+    if (section) section.style.display = 'block';
+  }
+
+  // Reload sonrası sekmeyi geri yükle
+  const savedTab = sessionStorage.getItem('music-active-tab');
+  if (savedTab) { sessionStorage.removeItem('music-active-tab'); switchTab(savedTab); }
+
   document.querySelectorAll<HTMLButtonElement>('.music-tab').forEach(tab => {
     tab.addEventListener('click', () => {
-      const target = tab.dataset.tab!;
-      document.querySelectorAll('.music-tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.music-section').forEach(s => (s as HTMLElement).style.display = 'none');
-      tab.classList.add('active');
-      (document.getElementById(`tab-${target}`) as HTMLElement).style.display = 'block';
+      switchTab(tab.dataset.tab!);
     });
   });
 
@@ -627,6 +636,7 @@ function timeAgo(d: string) {
       if (spErr) { spErr.textContent = d.error ?? 'Hata oluştu.'; spErr.style.display = 'block'; }
       return;
     }
+    sessionStorage.setItem('music-active-tab', 'spotify');
     window.location.reload();
   }
 
@@ -697,6 +707,7 @@ function timeAgo(d: string) {
       if (ytErr) { ytErr.textContent = d.error ?? 'Hata oluştu.'; ytErr.style.display = 'block'; }
       return;
     }
+    sessionStorage.setItem('music-active-tab', 'youtube');
     window.location.reload();
   }
 
