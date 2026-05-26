@@ -977,6 +977,10 @@ function initIndex() {
   }
 
   createClose.addEventListener('click', closeCreateModal);
+
+  if (new URLSearchParams(window.location.search).get('story') === '1') {
+    openCreateModal();
+  }
   createModal.addEventListener('click', e => { if (e.target === createModal) closeCreateModal(); });
 
   storyDrop.addEventListener('click', e => {

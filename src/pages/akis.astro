@@ -629,6 +629,10 @@ openUploadBtn.addEventListener('click',  () => { uploadModal.style.display = 'fl
 closeUploadBtn.addEventListener('click', () => closeUpload());
 uploadModal.addEventListener('click', e => { if (e.target === uploadModal) closeUpload(); });
 
+if (new URLSearchParams(window.location.search).get('create') === '1') {
+  uploadModal.style.display = 'flex';
+}
+
 function closeUpload() {
   uploadModal.style.display = 'none';
   clearFile();

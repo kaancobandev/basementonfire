@@ -31,6 +31,7 @@ const commentPrivacy = me.comment_privacy ?? 'everyone';
   <!-- Nav tabs -->
   <div class="st-tabs">
     <button class="st-tab active" data-tab="privacy">Gizlilik</button>
+    <button class="st-tab" data-tab="appearance">Görünüm</button>
   </div>
 
   <!-- Privacy Section -->
@@ -100,6 +101,24 @@ const commentPrivacy = me.comment_privacy ?? 'everyone';
     <div class="st-save-row">
       <div id="st-status" class="st-status" hidden></div>
       <button id="st-save-btn" class="st-save-btn">Kaydet</button>
+    </div>
+  </div>
+
+  <!-- Appearance Section -->
+  <div class="st-section" id="tab-appearance" style="display:none">
+    <div class="st-card">
+      <div class="st-card-title" style="margin-bottom:4px">Tema</div>
+      <div class="st-card-desc" style="margin-bottom:18px">Uygulamanın görünümünü seç</div>
+      <div class="st-theme-options">
+        <button class="st-theme-opt" data-theme-val="light" type="button">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+          Açık
+        </button>
+        <button class="st-theme-opt" data-theme-val="dark" type="button">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          Koyu
+        </button>
+      </div>
     </div>
   </div>
 </main>
@@ -281,12 +300,70 @@ const commentPrivacy = me.comment_privacy ?? 'everyone';
 }
 .st-save-btn:hover    { background: #c4954e; }
 .st-save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Theme picker */
+.st-theme-options {
+  display: flex;
+  gap: 12px;
+}
+.st-theme-opt {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 22px 12px;
+  border: 2px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-bg);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  font-family: inherit;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.st-theme-opt:hover        { border-color: var(--color-text-muted); color: var(--color-text); }
+.st-theme-opt.active       { border-color: #d4a564; color: #d4a564; background: rgba(212,165,100,0.07); }
 </style>
 
 <script>
 function initSettings() {
   const togglePrivate = document.getElementById('toggle-private') as HTMLInputElement | null;
   if (!togglePrivate) return;
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+document.querySelectorAll<HTMLButtonElement>('.st-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.st-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    const tabId = btn.dataset.tab;
+    document.querySelectorAll<HTMLElement>('.st-section').forEach(s => {
+      s.style.display = s.id === `tab-${tabId}` ? 'flex' : 'none';
+    });
+  });
+});
+
+// ── Theme picker ──────────────────────────────────────────────────────────────
+function applyTheme(t: string) {
+  if (t === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+  }
+  try { localStorage.setItem('theme', t); } catch {}
+  document.querySelectorAll<HTMLButtonElement>('.st-theme-opt').forEach(b => {
+    b.classList.toggle('active', b.dataset.themeVal === t);
+  });
+}
+
+const savedTheme = (() => { try { return localStorage.getItem('theme') ?? 'light'; } catch { return 'light'; } })();
+applyTheme(savedTheme);
+
+document.querySelectorAll<HTMLButtonElement>('.st-theme-opt').forEach(btn => {
+  btn.addEventListener('click', () => applyTheme(btn.dataset.themeVal!));
+});
 
 // Radio groups → visual .selected update
 function initRadios(groupId: string) {
