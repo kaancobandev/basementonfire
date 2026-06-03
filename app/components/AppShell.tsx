@@ -1,0 +1,263 @@
+'use client';
+
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import dynamic from 'next/dynamic';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Toaster, toast } from 'sonner';
+import Logo from './Logo';
+
+const RealtimeProvider = dynamic(() => import('./RealtimeProvider'), { ssr: false });
+
+interface AppShellProps {
+  children: React.ReactNode;
+  user: { id: number; username: string; display_name: string } | null;
+  unreadCount: number;
+  unreadMsgCount: number;
+  myId: number | null;
+  convIds: number[];
+}
+
+const navItems = [
+  { href: '/', id: 'home', label: 'Ana Sayfa', icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
+  { href: '/discover', id: 'discover', label: 'İçerikler', icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> },
+  { href: '/akis', id: 'akis', label: 'Akış', icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg> },
+  { href: '/muzik', id: 'muzik', label: 'Müzik', icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> },
+  { href: '/messages', id: 'messages', label: 'Mesajlar', icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> },
+  { href: '/profile', id: 'profile', label: 'Profil', icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg> },
+];
+
+function getActiveId(pathname: string) {
+  if (pathname === '/') return 'home';
+  if (pathname.startsWith('/discover')) return 'discover';
+  if (pathname.startsWith('/akis')) return 'akis';
+  if (pathname.startsWith('/muzik')) return 'muzik';
+  if (pathname.startsWith('/messages')) return 'messages';
+  if (pathname.startsWith('/profile')) return 'profile';
+  if (pathname.startsWith('/settings')) return 'settings';
+  return '';
+}
+
+const NOTIF_ICONS: Record<string, string> = { follow: '👤', comment: '💬', like: '❤️', mention: '@' };
+const NOTIF_TEXT: Record<string, string> = {
+  follow: 'Biri seni takip etmeye başladı',
+  comment: 'Gönderine yeni bir yorum yapıldı',
+  like: 'Gönderini biri beğendi',
+  mention: 'Biri seni bir gönderide etiketledi',
+};
+
+export default function AppShell({ children, user, unreadCount: initialNotif, unreadMsgCount: initialMsg, myId, convIds }: AppShellProps) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const activeId = getActiveId(pathname);
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  // ── Badge sayaçları (başlangıç değeri server'dan, realtime ile artar)
+  const [notifCount, setNotifCount] = useState(initialNotif);
+  const [msgCount, setMsgCount] = useState(initialMsg);
+
+  // ── Tema durumu (sonner Toaster'ını uygulama temasıyla eşleştirmek için)
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+
+  // ── Realtime callbacks
+  const handleNotif = useCallback((type: string) => {
+    const icon = NOTIF_ICONS[type] ?? '🔔';
+    const text = NOTIF_TEXT[type] ?? 'Yeni bildirim';
+    toast(text, { icon });
+    setNotifCount(n => n + 1);
+  }, []);
+
+  const handleMsg = useCallback((convId: number) => {
+    // Mesajlar sayfasındaki aktif konuşmaysa toast gösterme
+    const onMessages = pathname === '/messages';
+    if (onMessages) {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('c') === String(convId)) return;
+    }
+    toast('Yeni mesaj aldın', { icon: '💬' });
+    setMsgCount(n => n + 1);
+  }, [pathname]);
+
+  // Bildirimler sayfasına gidince sayacı sıfırla
+  useEffect(() => {
+    if (pathname === '/notifications') setNotifCount(0);
+    if (pathname === '/messages') setMsgCount(0);
+  }, [pathname]);
+
+  // Theme init + data-theme değişimini izle (sonner Toaster teması için)
+  useEffect(() => {
+    try {
+      const t = localStorage.getItem('theme');
+      if (t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+    } catch {}
+    const read = () => setTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light');
+    read();
+    const obs = new MutationObserver(read);
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => obs.disconnect();
+  }, []);
+
+  function openSheet() { setSheetOpen(true); }
+  function closeSheet() { setSheetOpen(false); }
+
+  const isAuthPage = pathname === '/login' || pathname === '/register' || pathname === '/forgot-password' || pathname === '/reset-password';
+  if (isAuthPage) return <>{children}</>;
+
+  return (
+    <>
+      <div className="app-shell">
+        {/* Desktop Sidebar */}
+        <aside className="sidebar">
+          <Link href="/" className="sidebar-logo">
+            <Logo size={36} className="sidebar-logo-img" />
+            <span>Basements</span>
+          </Link>
+
+          <nav className="sidebar-nav">
+            {navItems.map(item => (
+              <Link key={item.id} href={item.href} className={`nav-link${activeId === item.id ? ' active' : ''}`}>
+                <span className="nav-icon-wrap">
+                  {item.icon}
+                  {item.id === 'messages' && msgCount > 0 && (
+                    <span className="notif-badge">{msgCount > 99 ? '99+' : msgCount}</span>
+                  )}
+                </span>
+                <span>{item.label}</span>
+              </Link>
+            ))}
+          </nav>
+
+          {user ? (
+            <>
+              <Link href="/gonderi-olustur" className="post-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                <span>Gönderi Paylaş</span>
+              </Link>
+              <Link href="/settings" className={`nav-link${activeId === 'settings' ? ' active' : ''}`}>
+                <span className="nav-icon-wrap">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                </span>
+                <span>Ayarlar</span>
+              </Link>
+              <form action="/api/auth/logout" method="POST" style={{ margin: 0 }}>
+                <button type="submit" className="nav-link" style={{ color: '#ef4444' }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+                  <span>Çıkış Yap</span>
+                </button>
+              </form>
+            </>
+          ) : (
+            <Link href="/login" className="post-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>
+              <span>Giriş Yap</span>
+            </Link>
+          )}
+        </aside>
+
+        {children}
+      </div>
+
+      {/* Floating notification bell (only on home) */}
+      {activeId === 'home' && (
+        <Link href="/notifications" className="notif-float" aria-label="Bildirimler">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          {notifCount > 0 && (
+            <span className="notif-float-badge">{notifCount > 99 ? '99+' : notifCount}</span>
+          )}
+        </Link>
+      )}
+
+      {/* Mobile Bottom Nav */}
+      <nav className="mobile-nav">
+        <div className="mobile-nav-inner">
+          {[
+            { href: '/', id: 'home', icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
+            { href: '/discover', id: 'discover', icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> },
+            { href: '/akis', id: 'akis', icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg> },
+            { href: '/muzik', id: 'muzik', icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> },
+          ].map(item => (
+            <Link key={item.id} href={item.href} className={`mobile-nav-btn${activeId === item.id ? ' active' : ''}`}>
+              {item.icon}
+            </Link>
+          ))}
+
+          {user && (
+            <button className="mobile-create-btn" type="button" aria-label="Paylaş" onClick={openSheet}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
+          )}
+
+          <Link href="/messages" className={`mobile-nav-btn${activeId === 'messages' ? ' active' : ''}`}>
+            <span className="nav-icon-wrap">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              {msgCount > 0 && <span className="notif-badge">{msgCount > 99 ? '99+' : msgCount}</span>}
+            </span>
+          </Link>
+
+          <Link href="/profile" className={`mobile-nav-btn${activeId === 'profile' ? ' active' : ''}`}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
+          </Link>
+        </div>
+      </nav>
+
+      {/* Mobile create sheet — Framer Motion */}
+      <AnimatePresence>
+        {sheetOpen && (
+          <motion.div
+            key="sheet-bg"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, pointerEvents: 'none' }}
+            transition={{ duration: 0.18 }}
+            style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'flex-end' }}
+            onClick={closeSheet}
+          >
+            <motion.div
+              key="sheet"
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+              onClick={e => e.stopPropagation()}
+              className="mc-sheet"
+              style={{ width: '100%' }}
+            >
+              <div className="mc-sheet-handle" />
+              <p className="mc-sheet-title">Ne paylaşmak istiyorsun?</p>
+              <div className="mc-sheet-options">
+                <motion.button whileTap={{ scale: 0.97 }} className="mc-option" type="button" onClick={() => { closeSheet(); router.push('/akis?create=1'); }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                  Fotoğraf
+                </motion.button>
+                <motion.button whileTap={{ scale: 0.97 }} className="mc-option" type="button" onClick={() => { closeSheet(); router.push('/akis?create=1'); }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="23 7 16 12 23 17 23 7"/><rect width="15" height="14" x="1" y="5" rx="2" ry="2"/></svg>
+                  Reels
+                </motion.button>
+                <motion.button whileTap={{ scale: 0.97 }} className="mc-option" type="button" onClick={() => { closeSheet(); router.push('/?story=1'); }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+                  Hikaye
+                </motion.button>
+              </div>
+              <button className="mc-cancel" type="button" onClick={closeSheet}>İptal</button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Toasts — sonner */}
+      <Toaster theme={theme} position="bottom-center" />
+
+      {/* Supabase Realtime — sadece giriş yapılmışsa */}
+      {myId && (
+        <RealtimeProvider
+          myId={myId}
+          convIds={convIds}
+          onNotif={handleNotif}
+          onMsg={handleMsg}
+        />
+      )}
+    </>
+  );
+}

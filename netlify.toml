@@ -1,0 +1,14 @@
+# Netlify config for the Next.js (App Router) app.
+# The official Next.js runtime plugin handles SSR, API route handlers,
+# middleware and ISR automatically — this is NOT a static export.
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  # Next.js 15 needs Node >= 18.18; 20 is the safe current LTS.
+  NODE_VERSION = "20"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

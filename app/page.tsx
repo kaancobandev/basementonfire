@@ -1,103 +1,104 @@
-import Image from "next/image";
+import { db, getMe, logIfError } from '@/lib/supabase/server';
+import { flattenFacts, flattenPosts, type QuickFact, type Post } from '@/lib/types';
+import HomeFeed from './components/HomeFeed';
 
-export default function Home() {
+export const dynamic = 'force-dynamic';
+
+export default async function HomePage() {
+  const { me } = await getMe();
+
+  const [{ data: rawFacts, error: factsErr }, { data: rawPosts, error: postsErr }] = await Promise.all([
+    db.from('quick_facts').select('*, users!quick_facts_user_id_fkey(display_name, username, avatar)').order('created_at', { ascending: false }).limit(30),
+    db.from('posts').select('*, users!posts_user_id_fkey(display_name, username, avatar)').order('created_at', { ascending: false }).limit(30),
+  ]);
+  logIfError('home quick_facts', factsErr);
+  logIfError('home posts', postsErr);
+
+  const facts: QuickFact[] = flattenFacts(rawFacts ?? []);
+  const posts: Post[] = flattenPosts(rawPosts ?? []);
+
+  type FeedItem = (QuickFact & { kind: 'fact' }) | (Post & { kind: 'post' });
+  const feedItems: FeedItem[] = [
+    ...facts.map(f => ({ ...f, kind: 'fact' as const })),
+    ...posts.map(p => ({ ...p, kind: 'post' as const })),
+  ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 50);
+
+  let likedFactIds: number[] = [];
+  let likedPostIds: number[] = [];
+  if (me) {
+    const [fr, pr] = await Promise.all([
+      facts.length ? db.from('fact_likes').select('fact_id').eq('user_id', me.id).in('fact_id', facts.map(f => f.id)) : { data: [] },
+      posts.length ? db.from('post_likes').select('post_id').eq('user_id', me.id).in('post_id', posts.map(p => p.id)) : { data: [] },
+    ]);
+    likedFactIds = (fr.data ?? []).map((r: any) => r.fact_id);
+    likedPostIds = (pr.data ?? []).map((r: any) => r.post_id);
+  }
+
+  // Suggested users
+  let suggestedUsers: Array<{ id: number; username: string; display_name: string; bio: string | null; mutual_count: number }> = [];
+  if (me) {
+    const { data: myFollows } = await db.from('follows').select('following_id').eq('follower_id', me.id);
+    const myFollowIds: number[] = (myFollows ?? []).map((f: any) => f.following_id);
+    const excludeIds = [me.id, ...myFollowIds];
+    const excludeStr = `(${excludeIds.join(',')})`;
+
+    if (myFollowIds.length > 0) {
+      const { data: fofRaw } = await db.from('follows').select('following_id').in('follower_id', myFollowIds).not('following_id', 'in', excludeStr);
+      if (fofRaw?.length) {
+        const countMap = new Map<number, number>();
+        for (const f of fofRaw as any[]) countMap.set(f.following_id, (countMap.get(f.following_id) ?? 0) + 1);
+        const topIds = [...countMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([id]) => id);
+        const { data: users } = await db.from('users').select('id, username, display_name, bio').in('id', topIds);
+        suggestedUsers = (users ?? []).map((u: any) => ({ ...u, mutual_count: countMap.get(u.id) ?? 0 }));
+      }
+    }
+
+    if (suggestedUsers.length < 3) {
+      const existingIds = new Set([...excludeIds, ...suggestedUsers.map(u => u.id)]);
+      const { data: recent } = await db.from('users').select('id, username, display_name, bio')
+        .not('id', 'in', `(${[...existingIds].join(',')})`)
+        .order('created_at', { ascending: false }).limit(10);
+      for (const u of (recent ?? []) as any[]) {
+        if (!existingIds.has(u.id) && suggestedUsers.length < 5) {
+          suggestedUsers.push({ ...u, mutual_count: 0 });
+          existingIds.add(u.id);
+        }
+      }
+    }
+  }
+
+  // Stories
+  interface StoryItem { id: number; mediaUrl: string; mediaType: string; createdAt: string; }
+  interface StoryUser { userId: number; username: string; displayName: string; avatar: string | null; stories: StoryItem[]; }
+
+  const { data: storiesRaw, error: storiesErr } = await db
+    .from('stories')
+    .select('id, media_url, media_type, created_at, user_id, users(id, username, display_name, avatar)')
+    .gt('expires_at', new Date().toISOString())
+    .order('created_at', { ascending: false });
+  logIfError('home stories', storiesErr);
+
+  const storyMap = new Map<number, StoryUser>();
+  for (const s of (storiesRaw ?? []) as any[]) {
+    const u = s.users;
+    const uid: number = s.user_id;
+    if (!storyMap.has(uid)) storyMap.set(uid, { userId: uid, username: u.username, displayName: u.display_name, avatar: u.avatar ?? null, stories: [] });
+    storyMap.get(uid)!.stories.push({ id: s.id, mediaUrl: s.media_url, mediaType: s.media_type, createdAt: s.created_at });
+  }
+
+  const ownStoryUser = me ? (storyMap.get(me.id) ?? null) : null;
+  if (me) storyMap.delete(me.id);
+  const otherStoryUsers = [...storyMap.values()];
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+    <HomeFeed
+      feedItems={feedItems as any}
+      likedFactIds={likedFactIds}
+      likedPostIds={likedPostIds}
+      suggestedUsers={suggestedUsers}
+      currentUser={me ? { id: me.id, username: me.username, display_name: me.display_name } : null}
+      ownStoryUser={ownStoryUser}
+      otherStoryUsers={otherStoryUsers}
+    />
   );
 }
