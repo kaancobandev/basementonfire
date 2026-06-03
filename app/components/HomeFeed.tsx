@@ -6,10 +6,6 @@ import Caption from './Caption';
 import Logo from './Logo';
 import { uploadToStorage } from '@/lib/upload';
 import { motion, AnimatePresence } from 'framer-motion';
-import dynamic from 'next/dynamic';
-
-// 3D hero — loaded client-side only (WebGL)
-const Hero3D = dynamic(() => import('./three/Hero3D'), { ssr: false, loading: () => null });
 
 interface StoryItem { id: number; mediaUrl: string; mediaType: string; createdAt: string; }
 interface StoryUser { userId: number; username: string; displayName: string; avatar: string | null; stories: StoryItem[]; }
@@ -233,9 +229,8 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
   return (
     <>
       <main className="main-content">
-        {/* 3D Hero — Three.js / React Three Fiber */}
+        {/* Hero banner */}
         <div style={{ position: 'relative', height: 200, overflow: 'hidden', borderBottom: '1px solid var(--color-border)', background: 'radial-gradient(120% 130% at 72% 25%, #241f52 0%, #14121f 55%, #0b0a12 100%)' }}>
-          <Hero3D />
           <div style={{ position: 'absolute', left: 24, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <Logo size={54} />
