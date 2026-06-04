@@ -243,19 +243,29 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
                 <input id="pf-avatar-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden onChange={handleAvatarChange} />
               </div>
 
-              {[['display_name','Ad Soyad','text',user.display_name,'50'],['bio','Bio','textarea',user.bio ?? '','160']].map(([name, label, type, val, max]) => (
-                <div key={name} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-muted)' }}>{label}</label>
-                  {type === 'textarea' ? (
-                    <>
-                      <textarea name={name} defaultValue={val} maxLength={Number(max)} onChange={e => setBioLen(e.target.value.length)} style={{ width: '100%', border: '1.5px solid var(--color-border)', borderRadius: 10, padding: '10px 14px', fontSize: '0.95rem', fontFamily: 'inherit', outline: 'none', background: 'var(--color-bg)', color: 'var(--color-text)', minHeight: 80, resize: 'vertical', boxSizing: 'border-box' }} />
-                      <div style={{ fontSize: '0.75rem', color: bioLen > 145 ? '#ef4444' : 'var(--color-text-muted)', textAlign: 'right' }}>{bioLen} / 160</div>
-                    </>
-                  ) : (
-                    <input type={type} name={name} defaultValue={val} maxLength={Number(max)} required style={{ width: '100%', border: '1.5px solid var(--color-border)', borderRadius: 10, padding: '10px 14px', fontSize: '0.95rem', fontFamily: 'inherit', outline: 'none', background: 'var(--color-bg)', color: 'var(--color-text)', boxSizing: 'border-box' }} />
-                  )}
+              {/* Ad — günde 1 kez */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-muted)' }}>Ad</label>
+                <input type="text" name="display_name" defaultValue={user.display_name} maxLength={50} required style={{ width: '100%', border: '1.5px solid var(--color-border)', borderRadius: 10, padding: '10px 14px', fontSize: '0.95rem', fontFamily: 'inherit', outline: 'none', background: 'var(--color-bg)', color: 'var(--color-text)', boxSizing: 'border-box' }} />
+                <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>Günde bir kez değiştirilebilir.</div>
+              </div>
+
+              {/* Kullanıcı adı — 30 günde 1 kez */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-muted)' }}>Kullanıcı adı</label>
+                <div style={{ position: 'relative' }}>
+                  <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)', fontSize: '0.95rem', pointerEvents: 'none' }}>@</span>
+                  <input type="text" name="username" defaultValue={user.username} maxLength={30} required autoCapitalize="none" autoCorrect="off" spellCheck={false} style={{ width: '100%', border: '1.5px solid var(--color-border)', borderRadius: 10, padding: '10px 14px 10px 26px', fontSize: '0.95rem', fontFamily: 'inherit', outline: 'none', background: 'var(--color-bg)', color: 'var(--color-text)', boxSizing: 'border-box' }} />
                 </div>
-              ))}
+                <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>30 günde bir değiştirilebilir · sadece küçük harf, rakam ve _</div>
+              </div>
+
+              {/* Bio */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-muted)' }}>Bio</label>
+                <textarea name="bio" defaultValue={user.bio ?? ''} maxLength={160} onChange={e => setBioLen(e.target.value.length)} style={{ width: '100%', border: '1.5px solid var(--color-border)', borderRadius: 10, padding: '10px 14px', fontSize: '0.95rem', fontFamily: 'inherit', outline: 'none', background: 'var(--color-bg)', color: 'var(--color-text)', minHeight: 80, resize: 'vertical', boxSizing: 'border-box' }} />
+                <div style={{ fontSize: '0.75rem', color: bioLen > 145 ? '#ef4444' : 'var(--color-text-muted)', textAlign: 'right' }}>{bioLen} / 160</div>
+              </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
