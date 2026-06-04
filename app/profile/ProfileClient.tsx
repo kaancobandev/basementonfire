@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Caption from '@/app/components/Caption';
 import AnimatedNumber from '@/app/components/AnimatedNumber';
 import type { DbUser } from '@/lib/types';
+import { toast } from 'sonner';
 
 interface MediaPost { id: number; media_url: string; media_type: string; caption: string; likes: number; created_at: string; }
 interface RepostedPost { id: number; content: string; image_url: string | null; category: string; likes: number; reposts: number; created_at: string; display_name: string; username: string; }
@@ -41,6 +42,9 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
   const [tagInput, setTagInput] = useState('');
   const [bioLen, setBioLen] = useState((user.bio ?? '').length);
   const [avatarUrl, setAvatarUrl] = useState(user.avatar);
+  const [posts, setPosts] = useState(mediaPosts);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   function addTag(val: string) {
     const tag = val.trim().replace(/,/g, '');
@@ -48,6 +52,24 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
     setInterests(prev => [...prev, tag]);
   }
   function removeTag(tag: string) { setInterests(prev => prev.filter(t => t !== tag)); }
+
+  async function handleDelete() {
+    if (!lightbox) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/quick-facts/${lightbox.id}`, { method: 'DELETE' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? 'Silinemedi');
+      setPosts(prev => prev.filter(p => p.id !== lightbox.id));
+      setLightbox(null);
+      setConfirmingDelete(false);
+      toast.success('İçerik profilinden kaldırıldı');
+    } catch (e: any) {
+      toast.error(e?.message ?? 'Bir hata oluştu');
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]; if (!file) return;
@@ -98,7 +120,7 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
         )}
 
         <div style={{ display: 'flex', gap: 20, fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
-          <span><strong style={{ color: 'var(--color-text)' }}><AnimatedNumber value={mediaPosts.length} /></strong> Gönderi</span>
+          <span><strong style={{ color: 'var(--color-text)' }}><AnimatedNumber value={posts.length} /></strong> Gönderi</span>
           <span><strong style={{ color: 'var(--color-text)' }}><AnimatedNumber value={followersCount} /></strong> Takipçi</span>
           <span><strong style={{ color: 'var(--color-text)' }}><AnimatedNumber value={followingCount} /></strong> Takip</span>
         </div>
@@ -115,7 +137,7 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
 
       {/* Posts grid */}
       {tab === 'posts' && (
-        mediaPosts.length === 0 ? (
+        posts.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '80px 20px', color: 'var(--color-text-muted)' }}>
             <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>📷</div>
             <p style={{ fontWeight: 700, marginBottom: 4 }}>Henüz gönderi yok</p>
@@ -123,8 +145,8 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 3, padding: 3 }}>
-            {mediaPosts.map(post => (
-              <button key={post.id} onClick={() => setLightbox(post)} style={{ aspectRatio: '1', overflow: 'hidden', background: 'var(--color-border)', border: 'none', padding: 0, cursor: 'pointer', position: 'relative' }} className="hb-cell">
+            {posts.map(post => (
+              <button key={post.id} onClick={() => { setLightbox(post); setConfirmingDelete(false); }} style={{ aspectRatio: '1', overflow: 'hidden', background: 'var(--color-border)', border: 'none', padding: 0, cursor: 'pointer', position: 'relative' }} className="hb-cell">
                 {post.media_type === 'image' ? <img src={post.media_url} alt={post.caption} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.2s' }} /> : <video src={post.media_url} muted preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
                 <div className="hb-cell-overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.32)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.15s' }}>
                   <span style={{ color: 'white', fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -287,9 +309,9 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
 
       {/* Lightbox */}
       {lightbox && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={e => { if (e.target === e.currentTarget) setLightbox(null); }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={e => { if (e.target === e.currentTarget) { setLightbox(null); setConfirmingDelete(false); } }}>
           <div style={{ background: 'var(--color-surface)', borderRadius: 16, display: 'flex', maxWidth: 860, width: '100%', maxHeight: '90vh', overflow: 'hidden', position: 'relative' }}>
-            <button onClick={() => setLightbox(null)} style={{ position: 'absolute', top: 10, right: 10, zIndex: 1, background: 'rgba(0,0,0,0.4)', border: 'none', color: 'white', width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+            <button onClick={() => { setLightbox(null); setConfirmingDelete(false); }} style={{ position: 'absolute', top: 10, right: 10, zIndex: 1, background: 'rgba(0,0,0,0.4)', border: 'none', color: 'white', width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
               <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
             </button>
             <div style={{ flex: 1, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 360, maxHeight: '90vh' }}>
@@ -308,6 +330,24 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
                 </div>
               </div>
               <p style={{ fontSize: '0.9rem', lineHeight: 1.6, margin: 0 }}><Caption text={lightbox.caption} /></p>
+              {posts.some(p => p.id === lightbox.id) && (
+                <div style={{ marginTop: 'auto', paddingTop: 12, borderTop: '1px solid var(--color-border)' }}>
+                  {!confirmingDelete ? (
+                    <button onClick={() => setConfirmingDelete(true)} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', color: '#ef4444', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'inherit', padding: '6px 0' }}>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                      Sil
+                    </button>
+                  ) : (
+                    <div>
+                      <p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', margin: '0 0 8px' }}>Bu içerik profilinden kaldırılacak. Emin misin?</p>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button onClick={() => setConfirmingDelete(false)} disabled={deleting} style={{ flex: 1, padding: 8, border: '1px solid var(--color-border)', borderRadius: 8, background: 'none', color: 'var(--color-text)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'inherit' }}>Vazgeç</button>
+                        <button onClick={handleDelete} disabled={deleting} style={{ flex: 1, padding: 8, border: 'none', borderRadius: 8, background: '#ef4444', color: '#fff', fontWeight: 700, fontSize: '0.85rem', cursor: deleting ? 'not-allowed' : 'pointer', opacity: deleting ? 0.7 : 1, fontFamily: 'inherit' }}>{deleting ? 'Siliniyor…' : 'Evet, sil'}</button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
