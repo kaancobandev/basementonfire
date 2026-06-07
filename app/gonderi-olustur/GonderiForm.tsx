@@ -4,6 +4,9 @@ import { useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { uploadToStorage } from '@/lib/upload';
+import dynamic from 'next/dynamic';
+
+const ImageCropper = dynamic(() => import('@/app/components/ImageCropper'), { ssr: false });
 
 interface Props {
   error: string | null;
@@ -20,8 +23,15 @@ export default function GonderiForm({ error: initialError }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(initialError ?? '');
   const [dragOver, setDragOver] = useState(false);
+  const [cropFile, setCropFile] = useState<File | null>(null);
 
   function applyFile(f: File) {
+    // Statik görselleri kırpma ekranına al; GIF ve videolar doğrudan geçer.
+    if (f.type.startsWith('image/') && f.type !== 'image/gif') {
+      setCropFile(f);
+      setError('');
+      return;
+    }
     setFile(f);
     setPreviewUrl(URL.createObjectURL(f));
     setError('');
@@ -301,6 +311,19 @@ export default function GonderiForm({ error: initialError }: Props) {
           80%     { transform: translateX(6px); }
         }
       `}</style>
+
+      {cropFile && (
+        <ImageCropper
+          file={cropFile}
+          onCancel={() => setCropFile(null)}
+          onCropped={f => {
+            setFile(f);
+            setPreviewUrl(URL.createObjectURL(f));
+            setCropFile(null);
+            setError('');
+          }}
+        />
+      )}
     </main>
   );
 }

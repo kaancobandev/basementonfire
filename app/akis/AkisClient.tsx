@@ -9,6 +9,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { celebrate } from '@/lib/confetti';
 import { uploadToStorage } from '@/lib/upload';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
+import dynamic from 'next/dynamic';
+
+const ImageCropper = dynamic(() => import('@/app/components/ImageCropper'), { ssr: false });
 
 interface CurrentUser { id: number; username: string; display_name: string; }
 interface Comment { id: number; parent_id: number | null; user_id: number; content: string; created_at: string; display_name: string; username: string; }
@@ -40,6 +43,7 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
   // Upload modal
   const [uploadOpen, setUploadOpen] = useState(false);
   const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [cropFile, setCropFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
   const [caption, setCaption] = useState('');
   const [uploading, setUploading] = useState(false);
@@ -89,6 +93,12 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
 
   // File handling
   function applyFile(file: File) {
+    // Statik görselleri kırpma ekranına al; GIF ve videolar doğrudan geçer.
+    if (file.type.startsWith('image/') && file.type !== 'image/gif') {
+      setCropFile(file);
+      setUploadError('');
+      return;
+    }
     setMediaFile(file);
     setPreviewUrl(URL.createObjectURL(file));
     setUploadError('');
@@ -479,6 +489,19 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
         </motion.div>
       )}
       </AnimatePresence>
+
+      {cropFile && (
+        <ImageCropper
+          file={cropFile}
+          onCancel={() => setCropFile(null)}
+          onCropped={f => {
+            setMediaFile(f);
+            setPreviewUrl(URL.createObjectURL(f));
+            setCropFile(null);
+            setUploadError('');
+          }}
+        />
+      )}
     </>
   );
 }
