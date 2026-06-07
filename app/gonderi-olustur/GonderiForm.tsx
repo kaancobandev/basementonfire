@@ -75,7 +75,7 @@ export default function GonderiForm({ error: initialError }: Props) {
 
   const isVideo = file?.type.startsWith('video/') ?? false;
   const charLen = caption.length;
-  const charOver = charLen > 270;
+  const charOver = charLen > 9900;
 
   return (
     <main className="main-content" style={{ minHeight: '100vh', background: 'var(--color-bg)', display: 'flex', flexDirection: 'column' }}>
@@ -216,7 +216,7 @@ export default function GonderiForm({ error: initialError }: Props) {
               value={caption}
               onChange={e => setCaption(e.target.value)}
               placeholder="Açıklama yaz..."
-              maxLength={300}
+              maxLength={10000}
               required
               style={{
                 width: '100%',
@@ -244,7 +244,7 @@ export default function GonderiForm({ error: initialError }: Props) {
               color: charOver ? '#ef4444' : '#9ca3af',
               transition: 'color 0.15s',
             }}>
-              {charLen} / 300
+              {charLen} / 10000
             </span>
           </div>
 

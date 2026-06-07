@@ -19,7 +19,7 @@ export async function POST(req: Request) {
   const mediaType = body.mediaType === 'video' ? 'video' : 'image';
 
   if (!caption) return json({ error: 'Açıklama boş olamaz.' }, 400);
-  if (caption.length > 300) return json({ error: 'Açıklama en fazla 300 karakter.' }, 400);
+  if (caption.length > 10000) return json({ error: 'Açıklama en fazla 10000 karakter.' }, 400);
   // Yol bu kullanıcıya ait olmalı (imza route'u "{me.id}/..." üretir).
   if (!path.startsWith(`${me.id}/`)) return json({ error: 'Geçersiz dosya yolu.' }, 400);
 

@@ -333,12 +333,12 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
                 <textarea
                   value={caption}
                   onChange={e => setCaption(e.target.value)}
-                  placeholder="Hızlı bir bilgi yaz... (max 300 karakter)"
-                  maxLength={300}
+                  placeholder="Hızlı bir bilgi yaz... (max 10000 karakter)"
+                  maxLength={10000}
                   required
                   style={{ width: '100%', border: '1px solid var(--color-border)', borderRadius: 12, padding: '12px 14px', fontSize: '0.95rem', fontFamily: 'inherit', resize: 'vertical', minHeight: 88, outline: 'none', background: 'var(--color-bg)', color: 'var(--color-text)', boxSizing: 'border-box' }}
                 />
-                <div style={{ textAlign: 'right', fontSize: '0.78rem', color: caption.length > 270 ? '#ef4444' : 'var(--color-text-muted)', marginTop: 4 }}>{caption.length} / 300</div>
+                <div style={{ textAlign: 'right', fontSize: '0.78rem', color: caption.length > 9900 ? '#ef4444' : 'var(--color-text-muted)', marginTop: 4 }}>{caption.length} / 10000</div>
               </div>
 
               <button type="submit" disabled={uploading || !mediaFile} className="post-btn" style={{ marginTop: 16, width: '100%', opacity: mediaFile ? 1 : 0.6 }}>
