@@ -339,7 +339,7 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
                   {lightbox.likes}
                 </div>
               </div>
-              <p style={{ fontSize: '0.9rem', lineHeight: 1.6, margin: 0 }}><Caption text={lightbox.caption} /></p>
+              <p style={{ fontSize: '0.9rem', lineHeight: 1.6, margin: 0 }}><Caption text={lightbox.caption} clamp /></p>
               {posts.some(p => p.id === lightbox.id) && (
                 <div style={{ marginTop: 'auto', paddingTop: 12, borderTop: '1px solid var(--color-border)' }}>
                   {!confirmingDelete ? (

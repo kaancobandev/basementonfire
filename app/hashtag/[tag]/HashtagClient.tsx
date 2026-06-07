@@ -162,7 +162,7 @@ export default function HashtagClient({ tag, posts }: Props) {
               {/* Caption — hashtag ve mention linkleri */}
               {selected.caption && (
                 <p style={{ fontSize: '0.88rem', lineHeight: 1.6, margin: 0, wordBreak: 'break-word', color: 'var(--color-text)' }}>
-                  <Caption text={selected.caption} />
+                  <Caption text={selected.caption} clamp />
                 </p>
               )}
             </div>

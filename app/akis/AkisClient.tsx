@@ -404,7 +404,7 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
               {detail.caption && (
                 <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border)', flexShrink: 0 }}>
                   <p style={{ fontSize: '0.9rem', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' }}>
-                    <Caption text={detail.caption} />
+                    <Caption text={detail.caption} clamp />
                   </p>
                 </div>
               )}

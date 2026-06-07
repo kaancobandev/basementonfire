@@ -214,7 +214,7 @@ export default function BookmarksClient({ initialPosts }: Props) {
               {/* Açıklama */}
               {selected.caption && (
                 <p style={{ fontSize: '0.88rem', lineHeight: 1.6, margin: 0, flex: 1, color: 'var(--color-text)' }}>
-                  <Caption text={selected.caption} />
+                  <Caption text={selected.caption} clamp />
                 </p>
               )}
 

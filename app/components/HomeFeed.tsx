@@ -340,8 +340,11 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                     </div>
                     {item.caption && (
                       <div style={{ padding: '2px 14px 14px', fontSize: '0.87rem', lineHeight: 1.5, color: 'var(--color-text)' }}>
-                        <Link href={`/u/${item.username}`} style={{ fontWeight: 700, color: 'var(--color-text)', textDecoration: 'none' }}>{item.display_name}</Link>{' '}
-                        <Caption text={item.caption} />
+                        <Caption
+                          text={item.caption}
+                          clamp
+                          prefix={<Link href={`/u/${item.username}`} style={{ fontWeight: 700, color: 'var(--color-text)', textDecoration: 'none' }}>{item.display_name}</Link>}
+                        />
                       </div>
                     )}
                   </motion.article>
@@ -373,7 +376,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                     </span>
                   </div>
                   <div style={{ padding: '12px 16px 4px', fontSize: '0.95rem', lineHeight: 1.6, color: 'var(--color-text)', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                    <Caption text={item.content} />
+                    <Caption text={item.content} clamp />
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 10px 12px' }}>
                     <motion.button
