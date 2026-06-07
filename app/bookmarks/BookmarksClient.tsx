@@ -1,5 +1,7 @@
 'use client';
 
+import Img from '@/app/components/Img';
+
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Caption from '@/app/components/Caption';
@@ -109,11 +111,12 @@ export default function BookmarksClient({ initialPosts }: Props) {
               className="bk-cell"
             >
               {post.media_type === 'image' ? (
-                <img
+                <Img
                   src={post.media_url}
                   alt={post.caption}
                   loading="lazy"
                   decoding="async"
+                  sizes="(max-width:700px) 33vw, 240px"
                   style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.2s' }}
                 />
               ) : (
@@ -174,9 +177,10 @@ export default function BookmarksClient({ initialPosts }: Props) {
                   style={{ maxWidth: '100%', maxHeight: '90vh', objectFit: 'contain' }}
                 />
               ) : (
-                <img
+                <Img
                   src={selected.media_url}
                   alt={selected.caption}
+                  sizes="(max-width:900px) 100vw, 860px"
                   style={{ maxWidth: '100%', maxHeight: '90vh', objectFit: 'contain' }}
                 />
               )}

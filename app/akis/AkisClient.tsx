@@ -1,5 +1,7 @@
 'use client';
 
+import Img from '@/app/components/Img';
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import type { QuickFact } from '@/lib/types';
@@ -258,7 +260,7 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
                 className="hb-cell"
               >
                 {post.media_type === 'image'
-                  ? <img src={post.media_url} alt={post.caption} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.25s' }} />
+                  ? <Img src={post.media_url} alt={post.caption} loading="lazy" sizes="(max-width:700px) 33vw, 240px" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.25s' }} />
                   : <video src={post.media_url} muted preload="none" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                 }
                 <div className="hb-cell-overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, opacity: 0, transition: 'opacity 0.2s' }}>
@@ -386,7 +388,7 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
               </motion.button>
               {detail.media_type === 'video'
                 ? <video src={detail.media_url} controls style={{ maxWidth: '100%', maxHeight: '90vh', objectFit: 'contain' }} />
-                : <img src={detail.media_url} alt="" style={{ maxWidth: '100%', maxHeight: '90vh', objectFit: 'contain' }} />
+                : <Img src={detail.media_url} alt="" sizes="(max-width:900px) 100vw, 860px" style={{ maxWidth: '100%', maxHeight: '90vh', objectFit: 'contain' }} />
               }
             </div>
             {/* Info panel */}

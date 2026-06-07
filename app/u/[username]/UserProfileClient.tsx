@@ -1,5 +1,7 @@
 'use client';
 
+import Img from '@/app/components/Img';
+
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -256,7 +258,7 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
               className="hb-cell"
             >
               {post.media_type === 'image'
-                ? <img src={post.media_url} alt={post.caption} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.2s' }} />
+                ? <Img src={post.media_url} alt={post.caption} loading="lazy" sizes="(max-width:700px) 33vw, 240px" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.2s' }} />
                 : <video src={post.media_url} muted preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
               }
               <div className="hb-cell-overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.32)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.15s' }}>
@@ -283,7 +285,7 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
             <div style={{ flex: 1, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 360, maxHeight: '90vh' }}>
               {lightbox.media_type === 'video'
                 ? <video src={lightbox.media_url} controls style={{ maxWidth: '100%', maxHeight: '90vh', objectFit: 'contain' }} />
-                : <img src={lightbox.media_url} alt="" style={{ maxWidth: '100%', maxHeight: '90vh', objectFit: 'contain' }} />
+                : <Img src={lightbox.media_url} alt="" sizes="(max-width:900px) 100vw, 860px" style={{ maxWidth: '100%', maxHeight: '90vh', objectFit: 'contain' }} />
               }
             </div>
 

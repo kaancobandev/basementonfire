@@ -11,7 +11,25 @@ const ASPECTS: { label: string; value: number }[] = [
   { label: 'Dikey 4:5', value: 4 / 5 },
   { label: 'Yatay 1.91:1', value: 1.91 },
 ];
-const MAX_OUT = 1440; // kırpılan çıktıyı bu boyuta indir (dosya boyutu da küçülür)
+const MAX_OUT = 2048; // master (uzun kenar); gösterimde CDN cihaza göre küçültür
+
+function makeCanvas(w: number, h: number) {
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, w);
+  canvas.height = Math.max(1, h);
+  const ctx = canvas.getContext('2d')!;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  return { canvas, ctx };
+}
+
+async function encodeBest(canvas: HTMLCanvasElement): Promise<{ blob: Blob; ext: string; type: string }> {
+  // WebP (daha iyi kalite/boyut + alpha) dene; desteklenmiyorsa JPEG'e düş.
+  const webp = await new Promise<Blob | null>(r => canvas.toBlob(r, 'image/webp', 0.92));
+  if (webp && webp.type === 'image/webp') return { blob: webp, ext: 'webp', type: 'image/webp' };
+  const jpeg = await new Promise<Blob | null>(r => canvas.toBlob(r, 'image/jpeg', 0.92));
+  return { blob: jpeg ?? new Blob(), ext: 'jpg', type: 'image/jpeg' };
+}
 
 async function cropToFile(src: string, area: Area, origName: string): Promise<File> {
   const img = await new Promise<HTMLImageElement>((resolve, reject) => {
@@ -20,17 +38,32 @@ async function cropToFile(src: string, area: Area, origName: string): Promise<Fi
     i.onerror = reject;
     i.src = src;
   });
-  const scale = Math.min(1, MAX_OUT / Math.max(area.width, area.height));
-  const w = Math.max(1, Math.round(area.width * scale));
-  const h = Math.max(1, Math.round(area.height * scale));
-  const canvas = document.createElement('canvas');
-  canvas.width = w;
-  canvas.height = h;
-  const ctx = canvas.getContext('2d');
-  if (ctx) ctx.drawImage(img, area.x, area.y, area.width, area.height, 0, 0, w, h);
-  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.9));
+
+  // 1) Seçilen alanı tam çözünürlükte tuvale al
+  const first = makeCanvas(Math.round(area.width), Math.round(area.height));
+  first.ctx.drawImage(img, area.x, area.y, area.width, area.height, 0, 0, first.canvas.width, first.canvas.height);
+  let canvas = first.canvas;
+
+  // 2) Hedef boyuta KADEMELİ küçült (her adımda en çok yarıya) — tek hamlede
+  //    büyük küçültmeye kıyasla belirgin daha net sonuç verir
+  const scale = Math.min(1, MAX_OUT / Math.max(canvas.width, canvas.height));
+  const targetW = Math.max(1, Math.round(canvas.width * scale));
+  const targetH = Math.max(1, Math.round(canvas.height * scale));
+  while (canvas.width > targetW * 2 || canvas.height > targetH * 2) {
+    const step = makeCanvas(Math.max(targetW, Math.floor(canvas.width / 2)), Math.max(targetH, Math.floor(canvas.height / 2)));
+    step.ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, step.canvas.width, step.canvas.height);
+    canvas = step.canvas;
+  }
+  if (canvas.width !== targetW || canvas.height !== targetH) {
+    const fin = makeCanvas(targetW, targetH);
+    fin.ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, targetW, targetH);
+    canvas = fin.canvas;
+  }
+
+  // 3) En iyi formatta kodla (WebP, yoksa JPEG)
+  const { blob, ext, type } = await encodeBest(canvas);
   const base = origName.replace(/\.[^.]+$/, '') || 'image';
-  return new File([blob ?? new Blob()], `${base}.jpg`, { type: 'image/jpeg' });
+  return new File([blob], `${base}.${ext}`, { type });
 }
 
 /** Instagram tarzı kırpma ekranı: oran seç (1:1/4:5/1.91:1) + yakınlaştır + sürükle. */

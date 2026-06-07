@@ -12,3 +12,8 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+# Netlify Image CDN — uzak (Supabase Storage) görsellerin /.netlify/images
+# üzerinden yeniden boyutlandırılıp WebP olarak sunulabilmesi için allowlist.
+[images]
+  remote_images = ['https://.*\.supabase\.co/.*']

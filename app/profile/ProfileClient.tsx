@@ -1,5 +1,7 @@
 'use client';
 
+import Img from '@/app/components/Img';
+
 import { useState } from 'react';
 import Link from 'next/link';
 import Caption from '@/app/components/Caption';
@@ -147,7 +149,7 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 3, padding: 3 }}>
             {posts.map(post => (
               <button key={post.id} onClick={() => { setLightbox(post); setConfirmingDelete(false); }} style={{ aspectRatio: '1', overflow: 'hidden', background: 'var(--color-border)', border: 'none', padding: 0, cursor: 'pointer', position: 'relative' }} className="hb-cell">
-                {post.media_type === 'image' ? <img src={post.media_url} alt={post.caption} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.2s' }} /> : <video src={post.media_url} muted preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
+                {post.media_type === 'image' ? <Img src={post.media_url} alt={post.caption} loading="lazy" sizes="(max-width:700px) 33vw, 240px" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.2s' }} /> : <video src={post.media_url} muted preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
                 <div className="hb-cell-overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.32)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.15s' }}>
                   <span style={{ color: 'white', fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 4 }}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
@@ -171,7 +173,7 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 3, padding: 3 }}>
             {savedPosts.map(post => (
               <button key={post.id} onClick={() => setLightbox(post)} style={{ aspectRatio: '1', overflow: 'hidden', background: 'var(--color-border)', border: 'none', padding: 0, cursor: 'pointer', position: 'relative' }} className="hb-cell">
-                {post.media_type === 'image' ? <img src={post.media_url} alt={post.caption} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} /> : <video src={post.media_url} muted preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
+                {post.media_type === 'image' ? <Img src={post.media_url} alt={post.caption} loading="lazy" sizes="(max-width:700px) 33vw, 240px" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} /> : <video src={post.media_url} muted preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
                 <div className="hb-cell-overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.32)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.15s' }}>
                   <span style={{ color: 'white', fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 4 }}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
@@ -210,7 +212,7 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
                     <span style={{ marginLeft: 'auto', fontSize: '0.7rem', fontWeight: 700, padding: '3px 8px', borderRadius: '9999px', background: post.category === 'science' ? '#dbeafe' : post.category === 'history' ? '#fef3c7' : '#f3f4f6', color: post.category === 'science' ? '#1d4ed8' : post.category === 'history' ? '#92400e' : '#374151' }}>{catLabel}</span>
                   </div>
                   <p style={{ fontSize: '0.92rem', lineHeight: 1.6, margin: '0 0 10px', color: 'var(--color-text)' }}>{post.content}</p>
-                  {post.image_url && <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid var(--color-border)', marginBottom: 10 }}><img src={post.image_url} alt="" loading="lazy" style={{ width: '100%', display: 'block', maxHeight: 300, objectFit: 'cover' }} /></div>}
+                  {post.image_url && <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid var(--color-border)', marginBottom: 10 }}><Img src={post.image_url} alt="" loading="lazy" sizes="(max-width:620px) 100vw, 560px" style={{ width: '100%', display: 'block', maxHeight: 300, objectFit: 'cover' }} /></div>}
                   <div style={{ display: 'flex', gap: 20, color: 'var(--color-text-muted)', fontSize: '0.82rem' }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>{post.likes}</span>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m17 1 4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="m7 23-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>{post.reposts}</span>
@@ -325,7 +327,7 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
               <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
             </button>
             <div style={{ flex: 1, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 360, maxHeight: '90vh' }}>
-              {lightbox.media_type === 'video' ? <video src={lightbox.media_url} controls style={{ maxWidth: '100%', maxHeight: '90vh', objectFit: 'contain' }} /> : <img src={lightbox.media_url} alt="" style={{ maxWidth: '100%', maxHeight: '90vh', objectFit: 'contain' }} />}
+              {lightbox.media_type === 'video' ? <video src={lightbox.media_url} controls style={{ maxWidth: '100%', maxHeight: '90vh', objectFit: 'contain' }} /> : <Img src={lightbox.media_url} alt="" sizes="(max-width:900px) 100vw, 860px" style={{ maxWidth: '100%', maxHeight: '90vh', objectFit: 'contain' }} />}
             </div>
             <div style={{ width: 280, flexShrink: 0, borderLeft: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', padding: 16, gap: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

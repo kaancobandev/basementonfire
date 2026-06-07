@@ -1,5 +1,7 @@
 'use client';
 
+import Img from '@/app/components/Img';
+
 import { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Caption from './Caption';
@@ -315,7 +317,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                     <div style={{ width: '100%', background: '#000', lineHeight: 0 }}>
                       {item.media_type === 'video'
                         ? <video src={item.media_url} controls muted playsInline loop preload="metadata" style={{ width: '100%', maxHeight: 600, display: 'block', objectFit: 'cover', background: '#000' }} />
-                        : <img src={item.media_url} alt={item.caption ?? ''} loading="lazy" style={{ width: '100%', maxHeight: 600, objectFit: 'cover', display: 'block' }} />
+                        : <Img src={item.media_url} alt={item.caption ?? ''} loading="lazy" sizes="(max-width:620px) 100vw, 600px" style={{ width: '100%', maxHeight: 600, objectFit: 'cover', display: 'block' }} />
                       }
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 10px 4px' }}>

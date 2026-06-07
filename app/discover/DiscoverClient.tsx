@@ -1,5 +1,7 @@
 'use client';
 
+import Img from '@/app/components/Img';
+
 import { useState } from 'react';
 import Link from 'next/link';
 
@@ -116,7 +118,7 @@ export default function DiscoverClient({ users, media, articles, isLoggedIn }: P
                 {searchResults.posts.map((p: any) => (
                   <Link key={p.id} href="/akis" className="dc-cell">
                     {p.media_type === 'image'
-                      ? <img src={p.media_url} alt="" loading="lazy" />
+                      ? <Img src={p.media_url} alt="" loading="lazy" sizes="(max-width:700px) 33vw, 200px" />
                       : <video src={p.media_url} muted preload="none" />
                     }
                   </Link>
@@ -162,7 +164,7 @@ export default function DiscoverClient({ users, media, articles, isLoggedIn }: P
                 {media.map(m => (
                   <Link key={m.id} href="/akis" className="dc-cell">
                     {m.media_type === 'image'
-                      ? <img src={m.media_url} alt={m.caption} loading="lazy" />
+                      ? <Img src={m.media_url} alt={m.caption} loading="lazy" sizes="(max-width:700px) 33vw, 200px" />
                       : <video src={m.media_url} muted preload="none" />
                     }
                   </Link>
