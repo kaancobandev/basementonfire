@@ -1,6 +1,8 @@
 'use client';
 
 import Img from '@/app/components/Img';
+import MediaCarousel, { MultiBadge } from '@/app/components/MediaCarousel';
+import { factMediaList } from '@/lib/types';
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -9,7 +11,7 @@ import AnimatedNumber from '@/app/components/AnimatedNumber';
 import type { DbUser } from '@/lib/types';
 import { toast } from 'sonner';
 
-interface MediaPost { id: number; media_url: string; media_type: string; caption: string; likes: number; created_at: string; }
+interface MediaPost { id: number; media_url: string; media_type: string; caption: string; likes: number; created_at: string; media?: { url: string; type: 'image' | 'video' }[] | null; }
 interface RepostedPost { id: number; content: string; image_url: string | null; category: string; likes: number; reposts: number; created_at: string; display_name: string; username: string; }
 
 interface Props {
@@ -150,6 +152,7 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
             {posts.map(post => (
               <button key={post.id} onClick={() => { setLightbox(post); setConfirmingDelete(false); }} style={{ aspectRatio: '1', overflow: 'hidden', background: 'var(--color-border)', border: 'none', padding: 0, cursor: 'pointer', position: 'relative' }} className="hb-cell">
                 {post.media_type === 'image' ? <Img src={post.media_url} alt={post.caption} loading="lazy" sizes="(max-width:700px) 33vw, 240px" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.2s' }} /> : <video src={post.media_url} muted preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
+                {factMediaList(post).length > 1 && <MultiBadge />}
                 <div className="hb-cell-overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.32)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.15s' }}>
                   <span style={{ color: 'white', fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 4 }}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
@@ -174,6 +177,7 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
             {savedPosts.map(post => (
               <button key={post.id} onClick={() => setLightbox(post)} style={{ aspectRatio: '1', overflow: 'hidden', background: 'var(--color-border)', border: 'none', padding: 0, cursor: 'pointer', position: 'relative' }} className="hb-cell">
                 {post.media_type === 'image' ? <Img src={post.media_url} alt={post.caption} loading="lazy" sizes="(max-width:700px) 33vw, 240px" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} /> : <video src={post.media_url} muted preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
+                {factMediaList(post).length > 1 && <MultiBadge />}
                 <div className="hb-cell-overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.32)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.15s' }}>
                   <span style={{ color: 'white', fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 4 }}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
@@ -327,7 +331,7 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
               <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
             </button>
             <div style={{ flex: 1, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 360, maxHeight: '90vh' }}>
-              {lightbox.media_type === 'video' ? <video src={lightbox.media_url} controls style={{ maxWidth: '100%', maxHeight: '90vh', objectFit: 'contain' }} /> : <Img src={lightbox.media_url} alt="" sizes="(max-width:900px) 100vw, 860px" style={{ maxWidth: '100%', maxHeight: '90vh', objectFit: 'contain' }} />}
+              <MediaCarousel media={factMediaList(lightbox)} sizes="(max-width:900px) 100vw, 860px" />
             </div>
             <div style={{ width: 280, flexShrink: 0, borderLeft: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', padding: 16, gap: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

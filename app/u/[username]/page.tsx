@@ -54,13 +54,14 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
     isHidden
       ? Promise.resolve({ data: [] })
       : db.from('quick_facts')
-          .select('id, media_url, media_type, caption, likes, created_at')
+          .select('*')
           .eq('user_id', profileUser.id)
           .order('created_at', { ascending: false }),
   ]);
 
   const mediaPosts = (postsRes.data ?? []) as Array<{
     id: number; media_url: string; media_type: string; caption: string; likes: number; created_at: string;
+    media?: { url: string; type: 'image' | 'video' }[] | null;
   }>;
 
   return (

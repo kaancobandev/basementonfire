@@ -11,11 +11,14 @@ export type Post = {
   avatar: string;
 };
 
+export type MediaItem = { url: string; type: 'image' | 'video' };
+
 export type QuickFact = {
   id: number;
   caption: string;
   media_url: string;
   media_type: 'image' | 'video';
+  media?: MediaItem[];
   likes: number;
   created_at: string;
   display_name: string;
@@ -57,4 +60,18 @@ export function flattenFacts(rows: any[]): QuickFact[] {
     username: r.users?.username ?? '',
     avatar: r.users?.avatar ?? null,
   }));
+}
+
+/**
+ * Bir gönderinin medya listesini normalize eder: `media` (jsonb dizi) doluysa
+ * onu döner; değilse geriye dönük olarak tek öğeli [media_url] döner. Böylece
+ * eski (tek görselli) ve yeni (çoklu) gönderiler aynı şekilde işlenir.
+ */
+export function factMediaList(f: { media_url?: string | null; media_type?: string | null; media?: unknown }): MediaItem[] {
+  const arr = Array.isArray(f.media) ? f.media : [];
+  const cleaned: MediaItem[] = arr
+    .filter((m: any) => m && typeof m.url === 'string' && m.url)
+    .map((m: any) => ({ url: m.url as string, type: (m.type === 'video' ? 'video' : 'image') as 'image' | 'video' }));
+  if (cleaned.length) return cleaned;
+  return f.media_url ? [{ url: f.media_url, type: f.media_type === 'video' ? 'video' : 'image' }] : [];
 }

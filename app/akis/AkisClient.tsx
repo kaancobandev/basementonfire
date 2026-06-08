@@ -5,6 +5,8 @@ import Img from '@/app/components/Img';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import type { QuickFact } from '@/lib/types';
+import { factMediaList } from '@/lib/types';
+import MediaCarousel, { MultiBadge } from '@/app/components/MediaCarousel';
 import Link from 'next/link';
 import Caption from '@/app/components/Caption';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -44,12 +46,13 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
 
   // Upload modal
   const [uploadOpen, setUploadOpen] = useState(false);
-  const [mediaFile, setMediaFile] = useState<File | null>(null);
-  const [cropFile, setCropFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState('');
+  const [items, setItems] = useState<{ id: number; file: File; url: string; type: 'image' | 'video' }[]>([]);
+  const [cropQueue, setCropQueue] = useState<File[]>([]);
   const [caption, setCaption] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{ done: number; total: number } | null>(null);
   const [uploadError, setUploadError] = useState('');
+  const nextMediaId = useRef(1);
 
   // Detail modal
   const [detail, setDetail] = useState<QuickFact | null>(null);
@@ -93,30 +96,48 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
     return () => observer.disconnect();
   }, [loadMore]);
 
-  // File handling
-  function applyFile(file: File) {
-    // Statik görselleri kırpma ekranına al; GIF ve videolar doğrudan geçer.
-    if (file.type.startsWith('image/') && file.type !== 'image/gif') {
-      setCropFile(file);
-      setUploadError('');
-      return;
+  // File handling (çoklu — en fazla 20)
+  function addFiles(files: File[]) {
+    if (!files.length) return;
+    const room = 20 - (items.length + cropQueue.length);
+    if (room <= 0) { setUploadError('En fazla 20 medya ekleyebilirsin.'); return; }
+    const accepted = files.slice(0, room);
+    const toCrop: File[] = [];
+    const ready: { id: number; file: File; url: string; type: 'image' | 'video' }[] = [];
+    for (const f of accepted) {
+      // Statik görseller kırpma ekranına; GIF ve videolar doğrudan geçer.
+      if (f.type.startsWith('image/') && f.type !== 'image/gif') toCrop.push(f);
+      else ready.push({ id: nextMediaId.current++, file: f, url: URL.createObjectURL(f), type: f.type.startsWith('video/') ? 'video' : 'image' });
     }
-    setMediaFile(file);
-    setPreviewUrl(URL.createObjectURL(file));
-    setUploadError('');
+    if (ready.length) setItems(prev => [...prev, ...ready]);
+    if (toCrop.length) setCropQueue(prev => [...prev, ...toCrop]);
+    setUploadError(files.length > room ? 'En fazla 20 medya — fazlası atlandı.' : '');
   }
-  function clearFile() { setMediaFile(null); setPreviewUrl(''); }
+  function onCropped(f: File) {
+    setItems(prev => [...prev, { id: nextMediaId.current++, file: f, url: URL.createObjectURL(f), type: 'image' }]);
+    setCropQueue(prev => prev.slice(1));
+  }
+  function removeItem(id: number) {
+    setItems(prev => { const it = prev.find(p => p.id === id); if (it) URL.revokeObjectURL(it.url); return prev.filter(p => p.id !== id); });
+  }
+  function clearFile() { setItems(prev => { prev.forEach(p => URL.revokeObjectURL(p.url)); return []; }); setCropQueue([]); }
 
   async function handleUpload(e: React.FormEvent) {
     e.preventDefault();
-    if (!mediaFile || !caption.trim()) { setUploadError('Lütfen dosya ve açıklama ekle.'); return; }
+    if (!items.length || !caption.trim()) { setUploadError('Lütfen en az bir medya ve açıklama ekle.'); return; }
     setUploading(true);
+    setUploadProgress({ done: 0, total: items.length });
     try {
-      const { path, mediaType } = await uploadToStorage(mediaFile, 'media');
+      const media: { path: string; mediaType: 'image' | 'video' }[] = [];
+      for (let i = 0; i < items.length; i++) {
+        const up = await uploadToStorage(items[i].file, 'media');
+        media.push({ path: up.path, mediaType: up.mediaType });
+        setUploadProgress({ done: i + 1, total: items.length });
+      }
       const res = await fetch('/api/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ path, caption, mediaType }),
+        body: JSON.stringify({ media, caption }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Yükleme başarısız');
@@ -134,6 +155,7 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
       setUploadError(err.message);
     } finally {
       setUploading(false);
+      setUploadProgress(null);
     }
   }
 
@@ -263,6 +285,7 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
                   ? <Img src={post.media_url} alt={post.caption} loading="lazy" sizes="(max-width:700px) 33vw, 240px" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.25s' }} />
                   : <video src={post.media_url} muted preload="none" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                 }
+                {factMediaList(post).length > 1 && <MultiBadge />}
                 <div className="hb-cell-overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, opacity: 0, transition: 'opacity 0.2s' }}>
                   <span style={{ color: 'white', fontWeight: 700, fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: 5 }}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="white" stroke="white" strokeWidth="1"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
@@ -319,25 +342,46 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
             </div>
 
             <form onSubmit={handleUpload}>
-              <div
-                style={{ border: '2px dashed var(--color-border)', borderRadius: 16, height: 220, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'border-color 0.15s', textAlign: 'center', overflow: 'hidden', position: 'relative' }}
-                onClick={() => document.getElementById('akis-media-input')?.click()}
-                onDragOver={e => { e.preventDefault(); (e.currentTarget as HTMLElement).style.borderColor = 'var(--color-primary)'; }}
-                onDragLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--color-border)'; }}
-                onDrop={e => { e.preventDefault(); (e.currentTarget as HTMLElement).style.borderColor = 'var(--color-border)'; const f = e.dataTransfer.files[0]; if (f) applyFile(f); }}
-              >
-                {previewUrl ? (
-                  <>
-                    {mediaFile?.type.startsWith('video/') ? <video src={previewUrl} controls style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <img src={previewUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />}
-                    <button type="button" onClick={e => { e.stopPropagation(); clearFile(); }} style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
-                    </button>
-                  </>
-                ) : (
-                  <div><div style={{ fontSize: '2.5rem', marginBottom: 12 }}>🖼️</div><p style={{ fontWeight: 600, marginBottom: 4 }}>Resim veya video seç</p><p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>Tıkla veya sürükle · JPG PNG WEBP GIF MP4 · Max 100 MB</p></div>
-                )}
-              </div>
-              <input id="akis-media-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" hidden onChange={e => { const f = e.target.files?.[0]; if (f) applyFile(f); }} />
+              <input id="akis-media-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" hidden multiple onChange={e => { addFiles(Array.from(e.target.files ?? [])); (e.currentTarget as HTMLInputElement).value = ''; }} />
+              {items.length === 0 ? (
+                <div
+                  style={{ border: '2px dashed var(--color-border)', borderRadius: 16, height: 220, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'border-color 0.15s', textAlign: 'center', overflow: 'hidden', position: 'relative' }}
+                  onClick={() => document.getElementById('akis-media-input')?.click()}
+                  onDragOver={e => { e.preventDefault(); (e.currentTarget as HTMLElement).style.borderColor = 'var(--color-primary)'; }}
+                  onDragLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--color-border)'; }}
+                  onDrop={e => { e.preventDefault(); (e.currentTarget as HTMLElement).style.borderColor = 'var(--color-border)'; addFiles(Array.from(e.dataTransfer.files)); }}
+                >
+                  <div><div style={{ fontSize: '2.5rem', marginBottom: 12 }}>🖼️</div><p style={{ fontWeight: 600, marginBottom: 4 }}>Resim veya video seç</p><p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>Tıkla veya sürükle · en fazla 20 · JPG PNG WEBP GIF MP4 · Max 100 MB</p></div>
+                </div>
+              ) : (
+                <div
+                  style={{ border: '1px solid var(--color-border)', borderRadius: 16, padding: 10 }}
+                  onDragOver={e => { e.preventDefault(); }}
+                  onDrop={e => { e.preventDefault(); addFiles(Array.from(e.dataTransfer.files)); }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--color-text-muted)' }}>{items.length} / 20 medya</span>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>İlk öğe kapak</span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: 8 }}>
+                    {items.map((it, i) => (
+                      <div key={it.id} style={{ position: 'relative', aspectRatio: '1', borderRadius: 10, overflow: 'hidden', background: '#000', border: i === 0 ? '2px solid var(--color-primary)' : '1px solid var(--color-border)' }}>
+                        {it.type === 'video'
+                          ? <video src={it.url} muted style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                          : <img src={it.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
+                        <button type="button" onClick={() => removeItem(it.id)} aria-label="Kaldır" style={{ position: 'absolute', top: 3, right: 3, width: 20, height: 20, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.6)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                        </button>
+                      </div>
+                    ))}
+                    {(items.length + cropQueue.length) < 20 && (
+                      <button type="button" onClick={() => document.getElementById('akis-media-input')?.click()} aria-label="Ekle" style={{ aspectRatio: '1', borderRadius: 10, border: '2px dashed var(--color-border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)' }}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {uploadError && <p style={{ color: '#ef4444', fontSize: '0.85rem', margin: '8px 0 0' }}>{uploadError}</p>}
 
@@ -353,8 +397,8 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
                 <div style={{ textAlign: 'right', fontSize: '0.78rem', color: caption.length > 9900 ? '#ef4444' : 'var(--color-text-muted)', marginTop: 4 }}>{caption.length} / 10000</div>
               </div>
 
-              <button type="submit" disabled={uploading || !mediaFile} className="post-btn" style={{ marginTop: 16, width: '100%', opacity: mediaFile ? 1 : 0.6 }}>
-                {uploading ? 'Yükleniyor...' : 'Paylaş'}
+              <button type="submit" disabled={uploading || items.length === 0} className="post-btn" style={{ marginTop: 16, width: '100%', opacity: items.length ? 1 : 0.6 }}>
+                {uploading ? (uploadProgress ? `Yükleniyor ${uploadProgress.done}/${uploadProgress.total}` : 'Yükleniyor...') : 'Paylaş'}
               </button>
             </form>
           </motion.div>
@@ -386,10 +430,7 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
               </motion.button>
-              {detail.media_type === 'video'
-                ? <video src={detail.media_url} controls style={{ maxWidth: '100%', maxHeight: '90vh', objectFit: 'contain' }} />
-                : <Img src={detail.media_url} alt="" sizes="(max-width:900px) 100vw, 860px" style={{ maxWidth: '100%', maxHeight: '90vh', objectFit: 'contain' }} />
-              }
+              <MediaCarousel media={factMediaList(detail)} sizes="(max-width:900px) 100vw, 860px" />
             </div>
             {/* Info panel */}
             <div style={{ width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', borderLeft: '1px solid var(--color-border)', maxHeight: '90vh' }}>
@@ -492,16 +533,12 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
       )}
       </AnimatePresence>
 
-      {cropFile && (
+      {cropQueue.length > 0 && (
         <ImageCropper
-          file={cropFile}
-          onCancel={() => setCropFile(null)}
-          onCropped={f => {
-            setMediaFile(f);
-            setPreviewUrl(URL.createObjectURL(f));
-            setCropFile(null);
-            setUploadError('');
-          }}
+          key={`${cropQueue.length}-${items.length}`}
+          file={cropQueue[0]}
+          onCancel={() => setCropQueue(prev => prev.slice(1))}
+          onCropped={onCropped}
         />
       )}
     </>

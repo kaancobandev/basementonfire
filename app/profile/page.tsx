@@ -23,16 +23,16 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
   const [followersRes, followingRes, mediaRes, bookmarksRes, repostsRes] = await Promise.all([
     db.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', user.id),
     db.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', user.id),
-    db.from('quick_facts').select('id, media_url, media_type, caption, likes, created_at').eq('user_id', user.id).order('created_at', { ascending: false }),
-    db.from('bookmarks').select('id, post:post_id(id, media_url, media_type, caption, likes, created_at)').eq('user_id', user.id).order('created_at', { ascending: false }),
+    db.from('quick_facts').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+    db.from('bookmarks').select('id, post:post_id(*)').eq('user_id', user.id).order('created_at', { ascending: false }),
     db.from('reposts').select('created_at, post:post_id(id, content, image_url, category, likes, reposts, created_at, users!posts_user_id_fkey(display_name, username))').eq('user_id', user.id).order('created_at', { ascending: false }),
   ]);
   logIfError('profile media', mediaRes.error);
   logIfError('profile bookmarks', bookmarksRes.error);
   logIfError('profile reposts', repostsRes.error);
 
-  const mediaPosts = (mediaRes.data ?? []) as Array<{ id: number; media_url: string; media_type: string; caption: string; likes: number; created_at: string }>;
-  const savedPosts = ((bookmarksRes.data ?? []) as any[]).map((b: any) => b.post).filter(Boolean) as Array<{ id: number; media_url: string; media_type: string; caption: string; likes: number; created_at: string }>;
+  const mediaPosts = (mediaRes.data ?? []) as Array<{ id: number; media_url: string; media_type: string; caption: string; likes: number; created_at: string; media?: { url: string; type: 'image' | 'video' }[] | null }>;
+  const savedPosts = ((bookmarksRes.data ?? []) as any[]).map((b: any) => b.post).filter(Boolean) as Array<{ id: number; media_url: string; media_type: string; caption: string; likes: number; created_at: string; media?: { url: string; type: 'image' | 'video' }[] | null }>;
   const repostedPosts = ((repostsRes.data ?? []) as any[]).map((r: any) => {
     const p = r.post; if (!p) return null;
     return { id: p.id, content: p.content, image_url: p.image_url, category: p.category, likes: p.likes, reposts: p.reposts, created_at: p.created_at, display_name: p.users?.display_name ?? '', username: p.users?.username ?? '' };

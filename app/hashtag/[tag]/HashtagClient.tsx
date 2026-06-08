@@ -1,6 +1,8 @@
 'use client';
 
 import Img from '@/app/components/Img';
+import MediaCarousel, { MultiBadge } from '@/app/components/MediaCarousel';
+import { factMediaList } from '@/lib/types';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -10,6 +12,7 @@ interface Post {
   id: number; media_url: string; media_type: string;
   caption: string; likes: number; created_at: string;
   display_name: string; username: string; avatarBg: string;
+  media?: { url: string; type: 'image' | 'video' }[] | null;
 }
 
 interface Props { tag: string; posts: Post[]; }
@@ -85,6 +88,7 @@ export default function HashtagClient({ tag, posts }: Props) {
                   style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.2s' }} />
               )}
               {/* Hover overlay */}
+              {factMediaList(post).length > 1 && <MultiBadge />}
               <div className="ht-cell-overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.15s' }}>
                 <span style={{ color: 'white', fontWeight: 700, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 4 }}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="white">
@@ -124,14 +128,7 @@ export default function HashtagClient({ tag, posts }: Props) {
 
             {/* Medya */}
             <div style={{ flex: 1, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 300, maxHeight: '90vh' }}>
-              {selected.media_type === 'video' ? (
-                <video key={selected.id} src={selected.media_url} controls autoPlay
-                  style={{ maxWidth: '100%', maxHeight: '90vh', objectFit: 'contain' }} />
-              ) : (
-                <Img src={selected.media_url} alt={selected.caption}
-                  sizes="(max-width:900px) 100vw, 860px"
-                  style={{ maxWidth: '100%', maxHeight: '90vh', objectFit: 'contain' }} />
-              )}
+              <MediaCarousel media={factMediaList(selected)} sizes="(max-width:900px) 100vw, 860px" />
             </div>
 
             {/* Bilgi paneli */}

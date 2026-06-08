@@ -33,6 +33,7 @@ export default async function HashtagPage({ params }: { params: Promise<{ tag: s
     id: number; media_url: string; media_type: string;
     caption: string; likes: number; created_at: string;
     display_name: string; username: string; avatarBg: string;
+    media?: { url: string; type: 'image' | 'video' }[] | null;
   };
 
   let posts: Post[] = [];
@@ -42,7 +43,7 @@ export default async function HashtagPage({ params }: { params: Promise<{ tag: s
       .from('post_hashtags')
       .select(`
         post:post_id(
-          id, media_url, media_type, caption, likes, created_at,
+          *,
           users!quick_facts_user_id_fkey(display_name, username)
         )
       `)
@@ -62,6 +63,7 @@ export default async function HashtagPage({ params }: { params: Promise<{ tag: s
           caption:      p.caption      as string,
           likes:        p.likes        as number,
           created_at:   p.created_at   as string,
+          media:        (p.media ?? null) as { url: string; type: 'image' | 'video' }[] | null,
           display_name: (p.users?.display_name ?? '') as string,
           username:     (p.users?.username ?? '')     as string,
           avatarBg:     avatarBg(p.users?.username ?? 'a'),

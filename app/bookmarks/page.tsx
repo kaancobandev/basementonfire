@@ -22,7 +22,7 @@ export default async function BookmarksPage() {
 
   const { data: raw, error } = await db
     .from('bookmarks')
-    .select('id, post:post_id(id, media_url, media_type, caption, likes, created_at, users!quick_facts_user_id_fkey(display_name, username))')
+    .select('id, post:post_id(*, users!quick_facts_user_id_fkey(display_name, username))')
     .eq('user_id', me.id)
     .order('created_at', { ascending: false });
   logIfError('bookmarks', error);
@@ -38,6 +38,7 @@ export default async function BookmarksPage() {
         caption:      p.caption      as string,
         likes:        p.likes        as number,
         created_at:   p.created_at   as string,
+        media:        (p.media ?? null) as { url: string; type: 'image' | 'video' }[] | null,
         display_name: (p.users?.display_name ?? '') as string,
         username:     (p.users?.username ?? '')     as string,
         avatarBg:     avatarBg(p.users?.username ?? 'a'),
@@ -46,6 +47,7 @@ export default async function BookmarksPage() {
     .filter(Boolean) as Array<{
       id: number; media_url: string; media_type: string; caption: string;
       likes: number; created_at: string; display_name: string; username: string; avatarBg: string;
+      media?: { url: string; type: 'image' | 'video' }[] | null;
     }>;
 
   return <BookmarksClient initialPosts={posts} />;
