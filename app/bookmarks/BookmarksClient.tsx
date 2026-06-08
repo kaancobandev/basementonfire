@@ -1,7 +1,7 @@
 'use client';
 
 import Img from '@/app/components/Img';
-import MediaCarousel, { MultiBadge, AudioThumb } from '@/app/components/MediaCarousel';
+import MediaCarousel, { MultiBadge, AudioThumb, MusicBadge } from '@/app/components/MediaCarousel';
 import { factMediaList } from '@/lib/types';
 
 import { useState, useEffect } from 'react';
@@ -134,7 +134,8 @@ export default function BookmarksClient({ initialPosts }: Props) {
               )}
 
               {/* Hover overlay */}
-              {factMediaList(post).length > 1 && <MultiBadge />}
+              {factMediaList(post).filter(m => m.type !== 'audio').length > 1 && <MultiBadge />}
+              {post.media_type !== 'audio' && factMediaList(post).some(m => m.type === 'audio') && <MusicBadge />}
               <div className="bk-cell-overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.32)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.15s' }}>
                 <span style={{ color: 'white', fontWeight: 700, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 4 }}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="white">

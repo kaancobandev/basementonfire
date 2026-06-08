@@ -6,7 +6,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import type { QuickFact } from '@/lib/types';
 import { factMediaList } from '@/lib/types';
-import MediaCarousel, { MultiBadge, AudioThumb } from '@/app/components/MediaCarousel';
+import MediaCarousel, { MultiBadge, AudioThumb, MusicBadge } from '@/app/components/MediaCarousel';
 import Link from 'next/link';
 import Caption from '@/app/components/Caption';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -113,7 +113,11 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
       else readyMedia.push({ id: nextMediaId.current++, file: f, url: URL.createObjectURL(f), type: f.type.startsWith('video/') ? 'video' : 'image' });
     }
     if (readyMedia.length) setItems(prev => [...prev, ...readyMedia]);
-    if (readyAudio.length) setAudioItems(prev => [...prev, ...readyAudio]);
+    if (readyAudio.length) {
+      const keep = readyAudio[readyAudio.length - 1];                  // tek müzik: en yenisi kalır
+      readyAudio.slice(0, -1).forEach(p => URL.revokeObjectURL(p.url));
+      setAudioItems(prev => { prev.forEach(p => URL.revokeObjectURL(p.url)); return [keep]; });
+    }
     if (toCrop.length) setCropQueue(prev => [...prev, ...toCrop]);
     setUploadError(files.length > room ? 'En fazla 20 dosya — fazlası atlandı.' : '');
   }
@@ -299,7 +303,8 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
                   ? <Img src={post.media_url} alt={post.caption} loading="lazy" sizes="(max-width:700px) 33vw, 240px" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.25s' }} />
                   : <video src={post.media_url} muted preload="none" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                 }
-                {factMediaList(post).length > 1 && <MultiBadge />}
+                {factMediaList(post).filter(m => m.type !== 'audio').length > 1 && <MultiBadge />}
+                {post.media_type !== 'audio' && factMediaList(post).some(m => m.type === 'audio') && <MusicBadge />}
                 <div className="hb-cell-overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, opacity: 0, transition: 'opacity 0.2s' }}>
                   <span style={{ color: 'white', fontWeight: 700, fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: 5 }}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="white" stroke="white" strokeWidth="1"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
@@ -403,8 +408,9 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
               <input id="akis-audio-input" type="file" accept="audio/*" hidden multiple onChange={e => { addFiles(Array.from(e.target.files ?? [])); (e.currentTarget as HTMLInputElement).value = ''; }} />
               <button type="button" onClick={() => document.getElementById('akis-audio-input')?.click()} disabled={(items.length + audioItems.length + cropQueue.length) >= 20} style={{ marginTop: 12, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, border: '1.5px dashed var(--color-border)', borderRadius: 12, padding: '11px 14px', background: 'var(--color-bg)', color: 'var(--color-text)', fontFamily: 'inherit', fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer' }}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>
-                Ses dosyası ekle
+                {audioItems.length ? 'Müziği değiştir' : 'Ses / müzik ekle'}
               </button>
+              <p style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', margin: '6px 2px 0' }}>Arka planda çalar; sağ alttaki düğmeyle ses aç/kapat.</p>
               {audioItems.length > 0 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10 }}>
                   {audioItems.map(a => (

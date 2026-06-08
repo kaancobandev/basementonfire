@@ -76,3 +76,14 @@ export function factMediaList(f: { media_url?: string | null; media_type?: strin
   if (cleaned.length) return cleaned;
   return f.media_url ? [{ url: f.media_url, type: norm(f.media_type) }] : [];
 }
+
+/**
+ * Medya listesini görseller (resim/video) ve arka plan sesi olarak ayırır.
+ * Ses artık karuselde slayt değil; ilk ses dosyası gönderinin arka plan müziği
+ * olarak kullanılır (kalanlar yok sayılır).
+ */
+export function splitMedia(list: MediaItem[]): { visuals: MediaItem[]; audio: string | null } {
+  const visuals = list.filter(m => m.type !== 'audio');
+  const audio = list.find(m => m.type === 'audio')?.url ?? null;
+  return { visuals, audio };
+}

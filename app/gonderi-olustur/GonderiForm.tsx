@@ -54,7 +54,11 @@ export default function GonderiForm({ error: initialError }: Props) {
       else readyMedia.push(mk(f, f.type.startsWith('video/') ? 'video' : 'image'));    // gif + video
     }
     if (readyMedia.length) setItems(prev => [...prev, ...readyMedia]);
-    if (readyAudio.length) setAudioItems(prev => [...prev, ...readyAudio]);
+    if (readyAudio.length) {
+      const keep = readyAudio[readyAudio.length - 1];                  // tek müzik: en yenisi kalır
+      readyAudio.slice(0, -1).forEach(p => URL.revokeObjectURL(p.url));
+      setAudioItems(prev => { prev.forEach(p => URL.revokeObjectURL(p.url)); return [keep]; });
+    }
     if (toCrop.length) setCropQueue(prev => [...prev, ...toCrop]);
     setError(files.length > room ? `En fazla ${MAX_MEDIA} dosya — fazlası atlandı.` : '');
   }
@@ -258,8 +262,9 @@ export default function GonderiForm({ error: initialError }: Props) {
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" />
               </svg>
-              Ses dosyası ekle
+              {audioItems.length ? 'Müziği değiştir' : 'Ses / müzik ekle'}
             </button>
+            <p style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', margin: '6px 2px 0' }}>Ses, fotoğraf/videonun arka planında çalar; izleyen sağ alttaki düğmeyle açar.</p>
 
             {audioItems.length > 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10 }}>
