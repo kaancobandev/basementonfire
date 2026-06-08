@@ -4,7 +4,6 @@ import { useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { uploadToStorage } from '@/lib/upload';
-import { AudioThumb } from '@/app/components/MediaCarousel';
 import dynamic from 'next/dynamic';
 
 const ImageCropper = dynamic(() => import('@/app/components/ImageCropper'), { ssr: false });
@@ -20,10 +19,12 @@ type Item = { id: number; file: File; url: string; type: 'image' | 'video' | 'au
 export default function GonderiForm({ error: initialError }: Props) {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
+  const audioRef = useRef<HTMLInputElement>(null);
   const dropzoneRef = useRef<HTMLDivElement>(null);
   const nextId = useRef(1);
 
-  const [items, setItems] = useState<Item[]>([]);
+  const [items, setItems] = useState<Item[]>([]);        // fotoğraf + video
+  const [audioItems, setAudioItems] = useState<Item[]>([]); // ses dosyaları (ayrı alan)
   const [cropQueue, setCropQueue] = useState<File[]>([]);
   const [caption, setCaption] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -32,55 +33,53 @@ export default function GonderiForm({ error: initialError }: Props) {
   const [dragOver, setDragOver] = useState(false);
   const [shake, setShake] = useState(false);
 
-  const slotsUsed = items.length + cropQueue.length;
+  const total = items.length + audioItems.length + cropQueue.length;
 
+  function mk(f: File, type: Item['type']): Item {
+    return { id: nextId.current++, file: f, url: URL.createObjectURL(f), type };
+  }
+
+  // Tüm girişler buradan geçer; tür'e göre doğru alana (medya / ses) ayrılır.
   function addFiles(files: File[]) {
     if (!files.length) return;
-    const room = MAX_MEDIA - slotsUsed;
-    if (room <= 0) { setError(`En fazla ${MAX_MEDIA} medya ekleyebilirsin.`); return; }
+    const room = MAX_MEDIA - total;
+    if (room <= 0) { setError(`En fazla ${MAX_MEDIA} dosya ekleyebilirsin.`); return; }
     const accepted = files.slice(0, room);
     const toCrop: File[] = [];
-    const ready: Item[] = [];
+    const readyMedia: Item[] = [];
+    const readyAudio: Item[] = [];
     for (const f of accepted) {
-      // Statik görseller kırpma ekranına; GIF ve videolar doğrudan geçer.
-      if (f.type.startsWith('image/') && f.type !== 'image/gif') {
-        toCrop.push(f);
-      } else {
-        ready.push({ id: nextId.current++, file: f, url: URL.createObjectURL(f), type: f.type.startsWith('video/') ? 'video' : f.type.startsWith('audio/') ? 'audio' : 'image' });
-      }
+      if (f.type.startsWith('audio/')) readyAudio.push(mk(f, 'audio'));
+      else if (f.type.startsWith('image/') && f.type !== 'image/gif') toCrop.push(f); // kırpma ekranına
+      else readyMedia.push(mk(f, f.type.startsWith('video/') ? 'video' : 'image'));    // gif + video
     }
-    if (ready.length) setItems(prev => [...prev, ...ready]);
+    if (readyMedia.length) setItems(prev => [...prev, ...readyMedia]);
+    if (readyAudio.length) setAudioItems(prev => [...prev, ...readyAudio]);
     if (toCrop.length) setCropQueue(prev => [...prev, ...toCrop]);
-    if (files.length > room) setError(`En fazla ${MAX_MEDIA} medya — fazlası atlandı.`);
-    else setError('');
+    setError(files.length > room ? `En fazla ${MAX_MEDIA} dosya — fazlası atlandı.` : '');
   }
 
   function onCropped(f: File) {
-    setItems(prev => [...prev, { id: nextId.current++, file: f, url: URL.createObjectURL(f), type: 'image' }]);
+    setItems(prev => [...prev, mk(f, 'image')]);
     setCropQueue(prev => prev.slice(1));
   }
-  function skipCrop() {
-    setCropQueue(prev => prev.slice(1));
-  }
+  function skipCrop() { setCropQueue(prev => prev.slice(1)); }
 
   function removeItem(id: number) {
-    setItems(prev => {
-      const it = prev.find(p => p.id === id);
-      if (it) URL.revokeObjectURL(it.url);
-      return prev.filter(p => p.id !== id);
-    });
+    setItems(prev => { const it = prev.find(p => p.id === id); if (it) URL.revokeObjectURL(it.url); return prev.filter(p => p.id !== id); });
+  }
+  function removeAudio(id: number) {
+    setAudioItems(prev => { const it = prev.find(p => p.id === id); if (it) URL.revokeObjectURL(it.url); return prev.filter(p => p.id !== id); });
   }
 
-  function openPicker() {
-    fileRef.current?.click();
-  }
+  function openPicker() { fileRef.current?.click(); }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
 
-    if (items.length === 0) {
-      setError('⚠ Önce en az bir fotoğraf veya video seçmelisin.');
+    if (items.length === 0 && audioItems.length === 0) {
+      setError('⚠ Önce en az bir dosya (fotoğraf, video veya ses) seçmelisin.');
       setShake(true);
       setTimeout(() => setShake(false), 500);
       dropzoneRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -88,14 +87,16 @@ export default function GonderiForm({ error: initialError }: Props) {
     }
     if (!caption.trim()) { setError('⚠ Açıklama boş olamaz.'); return; }
 
+    // Önce fotoğraf/video (kapak), sonra ses dosyaları
+    const all = [...items, ...audioItems];
     setSubmitting(true);
-    setProgress({ done: 0, total: items.length });
+    setProgress({ done: 0, total: all.length });
     try {
       const media: { path: string; mediaType: 'image' | 'video' | 'audio' }[] = [];
-      for (let i = 0; i < items.length; i++) {
-        const { path, mediaType } = await uploadToStorage(items[i].file, 'media');
+      for (let i = 0; i < all.length; i++) {
+        const { path, mediaType } = await uploadToStorage(all[i].file, 'media');
         media.push({ path, mediaType });
-        setProgress({ done: i + 1, total: items.length });
+        setProgress({ done: i + 1, total: all.length });
       }
       const res = await fetch('/api/upload', {
         method: 'POST',
@@ -144,11 +145,11 @@ export default function GonderiForm({ error: initialError }: Props) {
 
         <form onSubmit={handleSubmit} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-          {/* Gizli dosya girişi (çoklu) */}
+          {/* Fotoğraf/video dosya girişi (çoklu) */}
           <input
             ref={fileRef}
             type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/ogg,audio/*"
+            accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/ogg"
             hidden
             multiple
             onChange={e => { addFiles(Array.from(e.target.files ?? [])); if (fileRef.current) fileRef.current.value = ''; }}
@@ -183,7 +184,7 @@ export default function GonderiForm({ error: initialError }: Props) {
                 </div>
                 <p style={{ fontSize: '1rem', fontWeight: 700, color: '#374151', margin: 0 }}>Fotoğraf veya video seç</p>
                 <p style={{ fontSize: '0.85rem', color: '#6b7280', margin: 0 }}>Tıkla veya sürükle bırak · en fazla {MAX_MEDIA}</p>
-                <p style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: 4, margin: 0 }}>JPG · PNG · WEBP · GIF · MP4 · WEBM · MP3 · WAV · max 100 MB</p>
+                <p style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: 4, margin: 0 }}>JPG · PNG · WEBP · GIF · MP4 · WEBM · max 100 MB</p>
               </div>
             </div>
           ) : (
@@ -196,15 +197,13 @@ export default function GonderiForm({ error: initialError }: Props) {
               style={{ width: '100%', border: `2px dashed ${dragOver ? '#6366f1' : 'var(--color-border)'}`, borderRadius: 16, padding: 10, background: 'var(--color-surface)', transition: 'border-color 0.15s' }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-muted)' }}>{items.length} / {MAX_MEDIA} medya</span>
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-muted)' }}>{items.length} fotoğraf/video</span>
                 <span style={{ fontSize: '0.72rem', color: '#9ca3af' }}>İlk öğe kapak olur</span>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(92px, 1fr))', gap: 8 }}>
                 {items.map((it, i) => (
                   <div key={it.id} style={{ position: 'relative', aspectRatio: '1', borderRadius: 10, overflow: 'hidden', background: '#000', border: i === 0 ? '2px solid #6366f1' : '1px solid var(--color-border)' }}>
-                    {it.type === 'audio'
-                      ? <AudioThumb />
-                      : it.type === 'video'
+                    {it.type === 'video'
                       ? <video src={it.url} muted style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                       : <img src={it.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
                     {i === 0 && (
@@ -220,7 +219,7 @@ export default function GonderiForm({ error: initialError }: Props) {
                     </button>
                   </div>
                 ))}
-                {slotsUsed < MAX_MEDIA && (
+                {total < MAX_MEDIA && (
                   <button
                     type="button"
                     onClick={openPicker}
@@ -233,6 +232,54 @@ export default function GonderiForm({ error: initialError }: Props) {
               </div>
             </div>
           )}
+
+          {/* Ses dosyası — kendi alanı */}
+          <div style={{ width: '100%' }}>
+            <input
+              ref={audioRef}
+              type="file"
+              accept="audio/*"
+              hidden
+              multiple
+              onChange={e => { addFiles(Array.from(e.target.files ?? [])); if (audioRef.current) audioRef.current.value = ''; }}
+            />
+            <button
+              type="button"
+              onClick={() => audioRef.current?.click()}
+              disabled={total >= MAX_MEDIA}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                border: '1.5px dashed var(--color-border)', borderRadius: 14, padding: '12px 14px',
+                background: 'var(--color-surface)', color: 'var(--color-text)', fontFamily: 'inherit',
+                fontSize: '0.92rem', fontWeight: 700, cursor: total >= MAX_MEDIA ? 'not-allowed' : 'pointer',
+                opacity: total >= MAX_MEDIA ? 0.5 : 1,
+              }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" />
+              </svg>
+              Ses dosyası ekle
+            </button>
+
+            {audioItems.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10 }}>
+                {audioItems.map(a => (
+                  <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12 }}>
+                    <span style={{ flexShrink: 0, width: 34, height: 34, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg,#312e81,#4c1d95)', color: '#fff' }}>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>
+                    </span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.file.name}</div>
+                      <audio src={a.url} controls style={{ width: '100%', height: 32, marginTop: 4 }} />
+                    </div>
+                    <button type="button" onClick={() => removeAudio(a.id)} aria-label="Kaldır" style={{ flexShrink: 0, width: 26, height: 26, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.08)', color: 'var(--color-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* Açıklama */}
           <div style={{ width: '100%', position: 'relative' }}>

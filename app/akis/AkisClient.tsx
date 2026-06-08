@@ -47,6 +47,7 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
   // Upload modal
   const [uploadOpen, setUploadOpen] = useState(false);
   const [items, setItems] = useState<{ id: number; file: File; url: string; type: 'image' | 'video' | 'audio' }[]>([]);
+  const [audioItems, setAudioItems] = useState<{ id: number; file: File; url: string; type: 'image' | 'video' | 'audio' }[]>([]);
   const [cropQueue, setCropQueue] = useState<File[]>([]);
   const [caption, setCaption] = useState('');
   const [uploading, setUploading] = useState(false);
@@ -99,19 +100,22 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
   // File handling (çoklu — en fazla 20)
   function addFiles(files: File[]) {
     if (!files.length) return;
-    const room = 20 - (items.length + cropQueue.length);
-    if (room <= 0) { setUploadError('En fazla 20 medya ekleyebilirsin.'); return; }
+    const room = 20 - (items.length + audioItems.length + cropQueue.length);
+    if (room <= 0) { setUploadError('En fazla 20 dosya ekleyebilirsin.'); return; }
     const accepted = files.slice(0, room);
     const toCrop: File[] = [];
-    const ready: { id: number; file: File; url: string; type: 'image' | 'video' | 'audio' }[] = [];
+    const readyMedia: { id: number; file: File; url: string; type: 'image' | 'video' | 'audio' }[] = [];
+    const readyAudio: { id: number; file: File; url: string; type: 'image' | 'video' | 'audio' }[] = [];
     for (const f of accepted) {
-      // Statik görseller kırpma ekranına; GIF, video ve ses doğrudan geçer.
-      if (f.type.startsWith('image/') && f.type !== 'image/gif') toCrop.push(f);
-      else ready.push({ id: nextMediaId.current++, file: f, url: URL.createObjectURL(f), type: f.type.startsWith('video/') ? 'video' : f.type.startsWith('audio/') ? 'audio' : 'image' });
+      // Ses → ayrı alan; statik görsel → kırpma; GIF + video → medya
+      if (f.type.startsWith('audio/')) readyAudio.push({ id: nextMediaId.current++, file: f, url: URL.createObjectURL(f), type: 'audio' });
+      else if (f.type.startsWith('image/') && f.type !== 'image/gif') toCrop.push(f);
+      else readyMedia.push({ id: nextMediaId.current++, file: f, url: URL.createObjectURL(f), type: f.type.startsWith('video/') ? 'video' : 'image' });
     }
-    if (ready.length) setItems(prev => [...prev, ...ready]);
+    if (readyMedia.length) setItems(prev => [...prev, ...readyMedia]);
+    if (readyAudio.length) setAudioItems(prev => [...prev, ...readyAudio]);
     if (toCrop.length) setCropQueue(prev => [...prev, ...toCrop]);
-    setUploadError(files.length > room ? 'En fazla 20 medya — fazlası atlandı.' : '');
+    setUploadError(files.length > room ? 'En fazla 20 dosya — fazlası atlandı.' : '');
   }
   function onCropped(f: File) {
     setItems(prev => [...prev, { id: nextMediaId.current++, file: f, url: URL.createObjectURL(f), type: 'image' }]);
@@ -120,19 +124,27 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
   function removeItem(id: number) {
     setItems(prev => { const it = prev.find(p => p.id === id); if (it) URL.revokeObjectURL(it.url); return prev.filter(p => p.id !== id); });
   }
-  function clearFile() { setItems(prev => { prev.forEach(p => URL.revokeObjectURL(p.url)); return []; }); setCropQueue([]); }
+  function removeAudio(id: number) {
+    setAudioItems(prev => { const it = prev.find(p => p.id === id); if (it) URL.revokeObjectURL(it.url); return prev.filter(p => p.id !== id); });
+  }
+  function clearFile() {
+    setItems(prev => { prev.forEach(p => URL.revokeObjectURL(p.url)); return []; });
+    setAudioItems(prev => { prev.forEach(p => URL.revokeObjectURL(p.url)); return []; });
+    setCropQueue([]);
+  }
 
   async function handleUpload(e: React.FormEvent) {
     e.preventDefault();
-    if (!items.length || !caption.trim()) { setUploadError('Lütfen en az bir medya ve açıklama ekle.'); return; }
+    if ((!items.length && !audioItems.length) || !caption.trim()) { setUploadError('Lütfen en az bir dosya ve açıklama ekle.'); return; }
+    const all = [...items, ...audioItems];
     setUploading(true);
-    setUploadProgress({ done: 0, total: items.length });
+    setUploadProgress({ done: 0, total: all.length });
     try {
       const media: { path: string; mediaType: 'image' | 'video' | 'audio' }[] = [];
-      for (let i = 0; i < items.length; i++) {
-        const up = await uploadToStorage(items[i].file, 'media');
+      for (let i = 0; i < all.length; i++) {
+        const up = await uploadToStorage(all[i].file, 'media');
         media.push({ path: up.path, mediaType: up.mediaType });
-        setUploadProgress({ done: i + 1, total: items.length });
+        setUploadProgress({ done: i + 1, total: all.length });
       }
       const res = await fetch('/api/upload', {
         method: 'POST',
@@ -344,7 +356,7 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
             </div>
 
             <form onSubmit={handleUpload}>
-              <input id="akis-media-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,audio/*" hidden multiple onChange={e => { addFiles(Array.from(e.target.files ?? [])); (e.currentTarget as HTMLInputElement).value = ''; }} />
+              <input id="akis-media-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" hidden multiple onChange={e => { addFiles(Array.from(e.target.files ?? [])); (e.currentTarget as HTMLInputElement).value = ''; }} />
               {items.length === 0 ? (
                 <div
                   style={{ border: '2px dashed var(--color-border)', borderRadius: 16, height: 220, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'border-color 0.15s', textAlign: 'center', overflow: 'hidden', position: 'relative' }}
@@ -362,7 +374,7 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
                   onDrop={e => { e.preventDefault(); addFiles(Array.from(e.dataTransfer.files)); }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--color-text-muted)' }}>{items.length} / 20 medya</span>
+                    <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--color-text-muted)' }}>{items.length} fotoğraf/video</span>
                     <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>İlk öğe kapak</span>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: 8 }}>
@@ -378,12 +390,37 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
                         </button>
                       </div>
                     ))}
-                    {(items.length + cropQueue.length) < 20 && (
+                    {(items.length + audioItems.length + cropQueue.length) < 20 && (
                       <button type="button" onClick={() => document.getElementById('akis-media-input')?.click()} aria-label="Ekle" style={{ aspectRatio: '1', borderRadius: 10, border: '2px dashed var(--color-border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)' }}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
                       </button>
                     )}
                   </div>
+                </div>
+              )}
+
+              {/* Ses dosyası — kendi alanı */}
+              <input id="akis-audio-input" type="file" accept="audio/*" hidden multiple onChange={e => { addFiles(Array.from(e.target.files ?? [])); (e.currentTarget as HTMLInputElement).value = ''; }} />
+              <button type="button" onClick={() => document.getElementById('akis-audio-input')?.click()} disabled={(items.length + audioItems.length + cropQueue.length) >= 20} style={{ marginTop: 12, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, border: '1.5px dashed var(--color-border)', borderRadius: 12, padding: '11px 14px', background: 'var(--color-bg)', color: 'var(--color-text)', fontFamily: 'inherit', fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer' }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>
+                Ses dosyası ekle
+              </button>
+              {audioItems.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10 }}>
+                  {audioItems.map(a => (
+                    <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: 12 }}>
+                      <span style={{ flexShrink: 0, width: 32, height: 32, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg,#312e81,#4c1d95)', color: '#fff' }}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>
+                      </span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.file.name}</div>
+                        <audio src={a.url} controls style={{ width: '100%', height: 30, marginTop: 4 }} />
+                      </div>
+                      <button type="button" onClick={() => removeAudio(a.id)} aria-label="Kaldır" style={{ flexShrink: 0, width: 24, height: 24, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.1)', color: 'var(--color-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                      </button>
+                    </div>
+                  ))}
                 </div>
               )}
 
@@ -401,7 +438,7 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
                 <div style={{ textAlign: 'right', fontSize: '0.78rem', color: caption.length > 9900 ? '#ef4444' : 'var(--color-text-muted)', marginTop: 4 }}>{caption.length} / 10000</div>
               </div>
 
-              <button type="submit" disabled={uploading || items.length === 0} className="post-btn" style={{ marginTop: 16, width: '100%', opacity: items.length ? 1 : 0.6 }}>
+              <button type="submit" disabled={uploading || (items.length === 0 && audioItems.length === 0)} className="post-btn" style={{ marginTop: 16, width: '100%', opacity: (items.length || audioItems.length) ? 1 : 0.6 }}>
                 {uploading ? (uploadProgress ? `Yükleniyor ${uploadProgress.done}/${uploadProgress.total}` : 'Yükleniyor...') : 'Paylaş'}
               </button>
             </form>
