@@ -1,7 +1,7 @@
 'use client';
 
 import Img from '@/app/components/Img';
-import MediaCarousel, { MultiBadge } from '@/app/components/MediaCarousel';
+import MediaCarousel, { MultiBadge, AudioThumb } from '@/app/components/MediaCarousel';
 import { factMediaList } from '@/lib/types';
 
 import { useState, useEffect } from 'react';
@@ -79,7 +79,9 @@ export default function HashtagClient({ tag, posts }: Props) {
               style={{ aspectRatio: '1', overflow: 'hidden', background: 'var(--color-border)', border: 'none', padding: 0, cursor: 'pointer', position: 'relative', display: 'block' }}
               className="ht-cell"
             >
-              {post.media_type === 'image' ? (
+              {post.media_type === 'audio' ? (
+                <AudioThumb />
+              ) : post.media_type === 'image' ? (
                 <Img src={post.media_url} alt={post.caption} loading="lazy" decoding="async"
                   sizes="(max-width:700px) 33vw, 240px"
                   style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.2s' }} />

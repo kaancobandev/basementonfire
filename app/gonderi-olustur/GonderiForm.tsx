@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { uploadToStorage } from '@/lib/upload';
+import { AudioThumb } from '@/app/components/MediaCarousel';
 import dynamic from 'next/dynamic';
 
 const ImageCropper = dynamic(() => import('@/app/components/ImageCropper'), { ssr: false });
@@ -14,7 +15,7 @@ interface Props {
   error: string | null;
 }
 
-type Item = { id: number; file: File; url: string; type: 'image' | 'video' };
+type Item = { id: number; file: File; url: string; type: 'image' | 'video' | 'audio' };
 
 export default function GonderiForm({ error: initialError }: Props) {
   const router = useRouter();
@@ -45,7 +46,7 @@ export default function GonderiForm({ error: initialError }: Props) {
       if (f.type.startsWith('image/') && f.type !== 'image/gif') {
         toCrop.push(f);
       } else {
-        ready.push({ id: nextId.current++, file: f, url: URL.createObjectURL(f), type: f.type.startsWith('video/') ? 'video' : 'image' });
+        ready.push({ id: nextId.current++, file: f, url: URL.createObjectURL(f), type: f.type.startsWith('video/') ? 'video' : f.type.startsWith('audio/') ? 'audio' : 'image' });
       }
     }
     if (ready.length) setItems(prev => [...prev, ...ready]);
@@ -90,7 +91,7 @@ export default function GonderiForm({ error: initialError }: Props) {
     setSubmitting(true);
     setProgress({ done: 0, total: items.length });
     try {
-      const media: { path: string; mediaType: 'image' | 'video' }[] = [];
+      const media: { path: string; mediaType: 'image' | 'video' | 'audio' }[] = [];
       for (let i = 0; i < items.length; i++) {
         const { path, mediaType } = await uploadToStorage(items[i].file, 'media');
         media.push({ path, mediaType });
@@ -147,7 +148,7 @@ export default function GonderiForm({ error: initialError }: Props) {
           <input
             ref={fileRef}
             type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/ogg"
+            accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/ogg,audio/*"
             hidden
             multiple
             onChange={e => { addFiles(Array.from(e.target.files ?? [])); if (fileRef.current) fileRef.current.value = ''; }}
@@ -182,7 +183,7 @@ export default function GonderiForm({ error: initialError }: Props) {
                 </div>
                 <p style={{ fontSize: '1rem', fontWeight: 700, color: '#374151', margin: 0 }}>Fotoğraf veya video seç</p>
                 <p style={{ fontSize: '0.85rem', color: '#6b7280', margin: 0 }}>Tıkla veya sürükle bırak · en fazla {MAX_MEDIA}</p>
-                <p style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: 4, margin: 0 }}>JPG · PNG · WEBP · GIF · MP4 · WEBM · max 100 MB</p>
+                <p style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: 4, margin: 0 }}>JPG · PNG · WEBP · GIF · MP4 · WEBM · MP3 · WAV · max 100 MB</p>
               </div>
             </div>
           ) : (
@@ -201,7 +202,9 @@ export default function GonderiForm({ error: initialError }: Props) {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(92px, 1fr))', gap: 8 }}>
                 {items.map((it, i) => (
                   <div key={it.id} style={{ position: 'relative', aspectRatio: '1', borderRadius: 10, overflow: 'hidden', background: '#000', border: i === 0 ? '2px solid #6366f1' : '1px solid var(--color-border)' }}>
-                    {it.type === 'video'
+                    {it.type === 'audio'
+                      ? <AudioThumb />
+                      : it.type === 'video'
                       ? <video src={it.url} muted style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                       : <img src={it.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
                     {i === 0 && (

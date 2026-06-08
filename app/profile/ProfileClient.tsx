@@ -1,7 +1,7 @@
 'use client';
 
 import Img from '@/app/components/Img';
-import MediaCarousel, { MultiBadge } from '@/app/components/MediaCarousel';
+import MediaCarousel, { MultiBadge, AudioThumb } from '@/app/components/MediaCarousel';
 import { factMediaList } from '@/lib/types';
 
 import { useState } from 'react';
@@ -151,7 +151,7 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 3, padding: 3 }}>
             {posts.map(post => (
               <button key={post.id} onClick={() => { setLightbox(post); setConfirmingDelete(false); }} style={{ aspectRatio: '1', overflow: 'hidden', background: 'var(--color-border)', border: 'none', padding: 0, cursor: 'pointer', position: 'relative' }} className="hb-cell">
-                {post.media_type === 'image' ? <Img src={post.media_url} alt={post.caption} loading="lazy" sizes="(max-width:700px) 33vw, 240px" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.2s' }} /> : <video src={post.media_url} muted preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
+                {post.media_type === 'audio' ? <AudioThumb /> : post.media_type === 'image' ? <Img src={post.media_url} alt={post.caption} loading="lazy" sizes="(max-width:700px) 33vw, 240px" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.2s' }} /> : <video src={post.media_url} muted preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
                 {factMediaList(post).length > 1 && <MultiBadge />}
                 <div className="hb-cell-overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.32)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.15s' }}>
                   <span style={{ color: 'white', fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -176,7 +176,7 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 3, padding: 3 }}>
             {savedPosts.map(post => (
               <button key={post.id} onClick={() => setLightbox(post)} style={{ aspectRatio: '1', overflow: 'hidden', background: 'var(--color-border)', border: 'none', padding: 0, cursor: 'pointer', position: 'relative' }} className="hb-cell">
-                {post.media_type === 'image' ? <Img src={post.media_url} alt={post.caption} loading="lazy" sizes="(max-width:700px) 33vw, 240px" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} /> : <video src={post.media_url} muted preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
+                {post.media_type === 'audio' ? <AudioThumb /> : post.media_type === 'image' ? <Img src={post.media_url} alt={post.caption} loading="lazy" sizes="(max-width:700px) 33vw, 240px" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} /> : <video src={post.media_url} muted preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
                 {factMediaList(post).length > 1 && <MultiBadge />}
                 <div className="hb-cell-overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.32)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.15s' }}>
                   <span style={{ color: 'white', fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 4 }}>

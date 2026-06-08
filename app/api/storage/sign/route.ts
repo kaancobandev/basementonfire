@@ -23,12 +23,13 @@ export async function POST(req: Request) {
   const ct = body.contentType ?? '';
   const isImg = IMG.includes(ct);
   const isVid = VID.includes(ct);
-  if (!isImg && !isVid) return json({ error: 'Desteklenmeyen dosya türü.' }, 400);
+  const isAud = ct.startsWith('audio/');
+  if (!isImg && !isVid && !isAud) return json({ error: 'Desteklenmeyen dosya türü.' }, 400);
   if (typeof body.size === 'number' && body.size > LIMIT[kind]) {
     return json({ error: `Dosya çok büyük (max ${Math.round(LIMIT[kind] / 1024 / 1024)} MB).` }, 400);
   }
 
-  const ext = (body.ext ?? '').replace(/[^a-z0-9]/gi, '').slice(0, 8) || (isImg ? 'jpg' : 'mp4');
+  const ext = (body.ext ?? '').replace(/[^a-z0-9]/gi, '').slice(0, 8) || (isImg ? 'jpg' : isVid ? 'mp4' : 'mp3');
   const rand = Math.random().toString(36).slice(2, 8);
   const storagePath =
     kind === 'story'
@@ -38,5 +39,5 @@ export async function POST(req: Request) {
   const { data, error } = await db.storage.from('media').createSignedUploadUrl(storagePath);
   if (error || !data) return json({ error: 'İmzalı URL alınamadı.' }, 500);
 
-  return json({ path: data.path, token: data.token, mediaType: isImg ? 'image' : 'video' });
+  return json({ path: data.path, token: data.token, mediaType: isImg ? 'image' : isVid ? 'video' : 'audio' });
 }

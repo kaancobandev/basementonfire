@@ -11,13 +11,13 @@ export type Post = {
   avatar: string;
 };
 
-export type MediaItem = { url: string; type: 'image' | 'video' };
+export type MediaItem = { url: string; type: 'image' | 'video' | 'audio' };
 
 export type QuickFact = {
   id: number;
   caption: string;
   media_url: string;
-  media_type: 'image' | 'video';
+  media_type: 'image' | 'video' | 'audio';
   media?: MediaItem[];
   likes: number;
   created_at: string;
@@ -69,9 +69,10 @@ export function flattenFacts(rows: any[]): QuickFact[] {
  */
 export function factMediaList(f: { media_url?: string | null; media_type?: string | null; media?: unknown }): MediaItem[] {
   const arr = Array.isArray(f.media) ? f.media : [];
+  const norm = (t: unknown): 'image' | 'video' | 'audio' => (t === 'video' ? 'video' : t === 'audio' ? 'audio' : 'image');
   const cleaned: MediaItem[] = arr
     .filter((m: any) => m && typeof m.url === 'string' && m.url)
-    .map((m: any) => ({ url: m.url as string, type: (m.type === 'video' ? 'video' : 'image') as 'image' | 'video' }));
+    .map((m: any) => ({ url: m.url as string, type: norm(m.type) }));
   if (cleaned.length) return cleaned;
-  return f.media_url ? [{ url: f.media_url, type: f.media_type === 'video' ? 'video' : 'image' }] : [];
+  return f.media_url ? [{ url: f.media_url, type: norm(f.media_type) }] : [];
 }

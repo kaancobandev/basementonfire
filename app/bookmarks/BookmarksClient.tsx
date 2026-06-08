@@ -1,7 +1,7 @@
 'use client';
 
 import Img from '@/app/components/Img';
-import MediaCarousel, { MultiBadge } from '@/app/components/MediaCarousel';
+import MediaCarousel, { MultiBadge, AudioThumb } from '@/app/components/MediaCarousel';
 import { factMediaList } from '@/lib/types';
 
 import { useState, useEffect } from 'react';
@@ -113,7 +113,9 @@ export default function BookmarksClient({ initialPosts }: Props) {
               }}
               className="bk-cell"
             >
-              {post.media_type === 'image' ? (
+              {post.media_type === 'audio' ? (
+                <AudioThumb />
+              ) : post.media_type === 'image' ? (
                 <Img
                   src={post.media_url}
                   alt={post.caption}

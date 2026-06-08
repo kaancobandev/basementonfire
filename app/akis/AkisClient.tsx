@@ -6,7 +6,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import type { QuickFact } from '@/lib/types';
 import { factMediaList } from '@/lib/types';
-import MediaCarousel, { MultiBadge } from '@/app/components/MediaCarousel';
+import MediaCarousel, { MultiBadge, AudioThumb } from '@/app/components/MediaCarousel';
 import Link from 'next/link';
 import Caption from '@/app/components/Caption';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -46,7 +46,7 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
 
   // Upload modal
   const [uploadOpen, setUploadOpen] = useState(false);
-  const [items, setItems] = useState<{ id: number; file: File; url: string; type: 'image' | 'video' }[]>([]);
+  const [items, setItems] = useState<{ id: number; file: File; url: string; type: 'image' | 'video' | 'audio' }[]>([]);
   const [cropQueue, setCropQueue] = useState<File[]>([]);
   const [caption, setCaption] = useState('');
   const [uploading, setUploading] = useState(false);
@@ -103,11 +103,11 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
     if (room <= 0) { setUploadError('En fazla 20 medya ekleyebilirsin.'); return; }
     const accepted = files.slice(0, room);
     const toCrop: File[] = [];
-    const ready: { id: number; file: File; url: string; type: 'image' | 'video' }[] = [];
+    const ready: { id: number; file: File; url: string; type: 'image' | 'video' | 'audio' }[] = [];
     for (const f of accepted) {
-      // Statik görseller kırpma ekranına; GIF ve videolar doğrudan geçer.
+      // Statik görseller kırpma ekranına; GIF, video ve ses doğrudan geçer.
       if (f.type.startsWith('image/') && f.type !== 'image/gif') toCrop.push(f);
-      else ready.push({ id: nextMediaId.current++, file: f, url: URL.createObjectURL(f), type: f.type.startsWith('video/') ? 'video' : 'image' });
+      else ready.push({ id: nextMediaId.current++, file: f, url: URL.createObjectURL(f), type: f.type.startsWith('video/') ? 'video' : f.type.startsWith('audio/') ? 'audio' : 'image' });
     }
     if (ready.length) setItems(prev => [...prev, ...ready]);
     if (toCrop.length) setCropQueue(prev => [...prev, ...toCrop]);
@@ -128,7 +128,7 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
     setUploading(true);
     setUploadProgress({ done: 0, total: items.length });
     try {
-      const media: { path: string; mediaType: 'image' | 'video' }[] = [];
+      const media: { path: string; mediaType: 'image' | 'video' | 'audio' }[] = [];
       for (let i = 0; i < items.length; i++) {
         const up = await uploadToStorage(items[i].file, 'media');
         media.push({ path: up.path, mediaType: up.mediaType });
@@ -281,7 +281,9 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
                 style={{ aspectRatio: '1', position: 'relative', overflow: 'hidden', background: 'var(--color-border)', border: 'none', padding: 0, cursor: 'pointer', display: 'block' }}
                 className="hb-cell"
               >
-                {post.media_type === 'image'
+                {post.media_type === 'audio'
+                  ? <AudioThumb />
+                  : post.media_type === 'image'
                   ? <Img src={post.media_url} alt={post.caption} loading="lazy" sizes="(max-width:700px) 33vw, 240px" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.25s' }} />
                   : <video src={post.media_url} muted preload="none" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                 }
@@ -342,7 +344,7 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
             </div>
 
             <form onSubmit={handleUpload}>
-              <input id="akis-media-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" hidden multiple onChange={e => { addFiles(Array.from(e.target.files ?? [])); (e.currentTarget as HTMLInputElement).value = ''; }} />
+              <input id="akis-media-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,audio/*" hidden multiple onChange={e => { addFiles(Array.from(e.target.files ?? [])); (e.currentTarget as HTMLInputElement).value = ''; }} />
               {items.length === 0 ? (
                 <div
                   style={{ border: '2px dashed var(--color-border)', borderRadius: 16, height: 220, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'border-color 0.15s', textAlign: 'center', overflow: 'hidden', position: 'relative' }}
@@ -366,7 +368,9 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: 8 }}>
                     {items.map((it, i) => (
                       <div key={it.id} style={{ position: 'relative', aspectRatio: '1', borderRadius: 10, overflow: 'hidden', background: '#000', border: i === 0 ? '2px solid var(--color-primary)' : '1px solid var(--color-border)' }}>
-                        {it.type === 'video'
+                        {it.type === 'audio'
+                          ? <AudioThumb />
+                          : it.type === 'video'
                           ? <video src={it.url} muted style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                           : <img src={it.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
                         <button type="button" onClick={() => removeItem(it.id)} aria-label="Kaldır" style={{ position: 'absolute', top: 3, right: 3, width: 20, height: 20, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.6)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

@@ -35,7 +35,7 @@ export async function POST(req: Request) {
 
   const items = rawList.map(m => ({
     path: m.path ?? '',
-    type: (m.mediaType === 'video' ? 'video' : 'image') as 'image' | 'video',
+    type: (m.mediaType === 'video' ? 'video' : m.mediaType === 'audio' ? 'audio' : 'image') as 'image' | 'video' | 'audio',
   }));
 
   // Tüm yollar bu kullanıcıya ait olmalı (imza route'u "{me.id}/..." üretir)

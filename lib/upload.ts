@@ -12,7 +12,7 @@ import { getSupa } from '@/lib/supabase/client';
 export async function uploadToStorage(
   file: File,
   kind: 'media' | 'story',
-): Promise<{ path: string; mediaType: 'image' | 'video' }> {
+): Promise<{ path: string; mediaType: 'image' | 'video' | 'audio' }> {
   const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
 
   const signRes = await fetch('/api/storage/sign', {
@@ -28,5 +28,5 @@ export async function uploadToStorage(
     .uploadToSignedUrl(sign.path, sign.token, file, { contentType: file.type });
   if (error) throw new Error('Dosya yüklenemedi.');
 
-  return { path: sign.path as string, mediaType: sign.mediaType as 'image' | 'video' };
+  return { path: sign.path as string, mediaType: sign.mediaType as 'image' | 'video' | 'audio' };
 }

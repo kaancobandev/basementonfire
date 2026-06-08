@@ -14,14 +14,35 @@ const navBtn = (side: 'left' | 'right'): React.CSSProperties => ({
   display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 4, backdropFilter: 'blur(3px)',
 });
 
+function NoteIcon({ size = 44 }: { size?: number }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" />
+    </svg>
+  );
+}
+
+/** Karusel/detay içinde ses dosyası oynatıcısı. */
+function AudioCard({ url, variant }: { url: string; variant: 'lightbox' | 'feed' }) {
+  return (
+    <div style={{
+      width: '100%',
+      ...(variant === 'feed' ? { aspectRatio: '16 / 9' } : { height: '100%', minHeight: '40vh' }),
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 18,
+      background: 'linear-gradient(135deg, #312e81, #4c1d95)', color: '#fff', padding: 24, boxSizing: 'border-box',
+    }}>
+      <NoteIcon size={48} />
+      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+      <audio src={url} controls style={{ width: '100%', maxWidth: 440 }} />
+    </div>
+  );
+}
+
 /**
  * Gönderi medyasını gösterir. Tek öğede mevcut görünümü birebir korur (ekstra
  * sarmalayıcı yok → eski tekli gönderilerin yerleşimi değişmez). Çoklu öğede
  * kaydırmalı (scroll-snap) karusel: ok butonları, nokta göstergesi ve sayaç.
- *
- * variant:
- *  - 'lightbox' (varsayılan): contain, büyük (detay/lightbox için)
- *  - 'feed': cover, kare (ana sayfa besleme kartı için)
+ * Görseller resim, videolar <video>, ses dosyaları oynatıcı kartı olarak gelir.
  */
 export default function MediaCarousel({ media, sizes, background = '#000', variant = 'lightbox' }: {
   media: MediaItem[];
@@ -37,6 +58,7 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
   // Tek medya → mevcut görünüm (drop-in)
   if (media.length === 1) {
     const m = media[0];
+    if (m.type === 'audio') return <AudioCard url={m.url} variant={variant} />;
     const st = variant === 'feed' ? feedSingleStyle : containStyle;
     return m.type === 'video'
       ? <video src={m.url} controls playsInline style={st} />
@@ -72,7 +94,9 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
       >
         {media.map((m, i) => (
           <div key={i} style={{ flex: '0 0 100%', width: '100%', height: '100%', scrollSnapAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            {m.type === 'video'
+            {m.type === 'audio'
+              ? <AudioCard url={m.url} variant={variant} />
+              : m.type === 'video'
               ? <video src={m.url} controls playsInline style={mediaStyle} />
               : <Img src={m.url} alt="" sizes={sizes} style={mediaStyle} />}
           </div>
@@ -105,5 +129,15 @@ export function MultiBadge() {
         <path d="M4 16V6a2 2 0 0 1 2-2h10" />
       </svg>
     </span>
+  );
+}
+
+/** Ses dosyası için grid/önizleme placeholder'ı (kapak görseli yok). */
+export function AudioThumb() {
+  return (
+    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, background: 'linear-gradient(135deg, #312e81, #4c1d95)', color: '#fff' }}>
+      <NoteIcon size={30} />
+      <span style={{ fontSize: '0.62rem', fontWeight: 700, opacity: 0.85, letterSpacing: 0.3 }}>SES</span>
+    </div>
   );
 }
