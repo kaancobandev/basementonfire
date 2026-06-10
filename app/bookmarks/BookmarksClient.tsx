@@ -162,7 +162,7 @@ export default function BookmarksClient({ initialPosts }: Props) {
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) closeLightbox(); }}
         >
-          <div style={{ background: 'var(--color-surface)', borderRadius: 16, display: 'flex', maxWidth: 820, width: '100%', maxHeight: '90vh', overflow: 'hidden', position: 'relative' }}>
+          <div style={{ background: 'var(--color-surface)', borderRadius: 16, display: 'flex', maxWidth: 820, width: '100%', height: '90vh', overflow: 'hidden', position: 'relative' }}>
             {/* Kapat butonu */}
             <button
               onClick={closeLightbox}
@@ -174,12 +174,12 @@ export default function BookmarksClient({ initialPosts }: Props) {
             </button>
 
             {/* Medya */}
-            <div style={{ flex: 1, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 320, maxHeight: '90vh' }}>
+            <div style={{ flex: 1, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0 }}>
               <MediaCarousel media={factMediaList(selected)} sizes="(max-width:900px) 100vw, 860px" />
             </div>
 
             {/* Bilgi paneli */}
-            <div style={{ width: 260, flexShrink: 0, borderLeft: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', padding: 16, gap: 14 }}>
+            <div style={{ width: 260, flexShrink: 0, borderLeft: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', padding: 16, gap: 14, minHeight: 0 }}>
               {/* Kullanıcı satırı */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <Link
@@ -209,7 +209,7 @@ export default function BookmarksClient({ initialPosts }: Props) {
 
               {/* Açıklama */}
               {selected.caption && (
-                <p style={{ fontSize: '0.88rem', lineHeight: 1.6, margin: 0, flex: 1, color: 'var(--color-text)' }}>
+                <p style={{ fontSize: '0.88rem', lineHeight: 1.6, margin: 0, flex: 1, minHeight: 0, overflowY: 'auto', color: 'var(--color-text)' }}>
                   <Caption text={selected.caption} clamp />
                 </p>
               )}

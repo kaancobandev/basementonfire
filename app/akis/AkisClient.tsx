@@ -466,10 +466,10 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
             key="detail-box"
             initial={{ opacity: 0, scale: 0.94, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.94 }}
             transition={{ type: 'spring', duration: 0.35 }}
-            style={{ background: 'var(--color-surface)', borderRadius: 16, display: 'flex', width: '100%', maxWidth: 860, maxHeight: '90vh', overflow: 'hidden', position: 'relative' }}
+            style={{ background: 'var(--color-surface)', borderRadius: 16, display: 'flex', width: '100%', maxWidth: 860, height: '90vh', overflow: 'hidden', position: 'relative' }}
           >
             {/* Media — kapat butonu medya alanının sol üstünde */}
-            <div style={{ flex: 1, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 400, maxHeight: '90vh', position: 'relative' }}>
+            <div style={{ flex: 1, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0, position: 'relative' }}>
               <motion.button
                 onClick={closeDetail}
                 whileTap={{ scale: 0.88 }}
@@ -480,7 +480,7 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
               <MediaCarousel media={factMediaList(detail)} sizes="(max-width:900px) 100vw, 860px" />
             </div>
             {/* Info panel */}
-            <div style={{ width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', borderLeft: '1px solid var(--color-border)', maxHeight: '90vh' }}>
+            <div style={{ width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', borderLeft: '1px solid var(--color-border)', minHeight: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px', borderBottom: '1px solid var(--color-border)', flexShrink: 0 }}>
                 <Link href={`/u/${detail.username}`} style={{ width: 34, height: 34, borderRadius: '50%', background: avatarBg(detail.username), display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '0.85rem', flexShrink: 0, textDecoration: 'none' }}>
                   {detail.display_name[0].toUpperCase()}
@@ -492,7 +492,7 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
                 <div style={{ marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{timeAgo(detail.created_at)}</div>
               </div>
               {detail.caption && (
-                <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border)', flexShrink: 0 }}>
+                <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border)', flexShrink: 0, maxHeight: '40%', overflowY: 'auto' }}>
                   <p style={{ fontSize: '0.9rem', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' }}>
                     <Caption text={detail.caption} clamp />
                   </p>

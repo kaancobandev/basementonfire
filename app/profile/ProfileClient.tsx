@@ -328,14 +328,14 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
       {/* Lightbox */}
       {lightbox && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={e => { if (e.target === e.currentTarget) { setLightbox(null); setConfirmingDelete(false); } }}>
-          <div style={{ background: 'var(--color-surface)', borderRadius: 16, display: 'flex', maxWidth: 860, width: '100%', maxHeight: '90vh', overflow: 'hidden', position: 'relative' }}>
+          <div style={{ background: 'var(--color-surface)', borderRadius: 16, display: 'flex', maxWidth: 860, width: '100%', height: '90vh', overflow: 'hidden', position: 'relative' }}>
             <button onClick={() => { setLightbox(null); setConfirmingDelete(false); }} style={{ position: 'absolute', top: 10, right: 10, zIndex: 1, background: 'rgba(0,0,0,0.4)', border: 'none', color: 'white', width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
               <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
             </button>
-            <div style={{ flex: 1, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 360, maxHeight: '90vh' }}>
+            <div style={{ flex: 1, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0 }}>
               <MediaCarousel media={factMediaList(lightbox)} sizes="(max-width:900px) 100vw, 860px" />
             </div>
-            <div style={{ width: 280, flexShrink: 0, borderLeft: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', padding: 16, gap: 12 }}>
+            <div style={{ width: 280, flexShrink: 0, borderLeft: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', padding: 16, gap: 12, minHeight: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div style={{ width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '0.85rem', flexShrink: 0, background: bg }}>{user.display_name[0].toUpperCase()}</div>
                 <div>
@@ -347,7 +347,7 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
                   {lightbox.likes}
                 </div>
               </div>
-              <p style={{ fontSize: '0.9rem', lineHeight: 1.6, margin: 0 }}><Caption text={lightbox.caption} clamp /></p>
+              <p style={{ fontSize: '0.9rem', lineHeight: 1.6, margin: 0, flex: 1, minHeight: 0, overflowY: 'auto' }}><Caption text={lightbox.caption} clamp /></p>
               {posts.some(p => p.id === lightbox.id) && (
                 <div style={{ marginTop: 'auto', paddingTop: 12, borderTop: '1px solid var(--color-border)' }}>
                   {!confirmingDelete ? (

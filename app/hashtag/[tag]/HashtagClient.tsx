@@ -118,7 +118,7 @@ export default function HashtagClient({ tag, posts }: Props) {
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) closeLb(); }}
         >
-          <div style={{ background: 'var(--color-surface)', borderRadius: 16, display: 'flex', maxWidth: 820, width: '100%', maxHeight: '90vh', overflow: 'hidden', position: 'relative' }}>
+          <div style={{ background: 'var(--color-surface)', borderRadius: 16, display: 'flex', maxWidth: 820, width: '100%', height: '90vh', overflow: 'hidden', position: 'relative' }}>
             {/* Kapat */}
             <button
               onClick={closeLb}
@@ -130,12 +130,12 @@ export default function HashtagClient({ tag, posts }: Props) {
             </button>
 
             {/* Medya */}
-            <div style={{ flex: 1, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 300, maxHeight: '90vh' }}>
+            <div style={{ flex: 1, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0 }}>
               <MediaCarousel media={factMediaList(selected)} sizes="(max-width:900px) 100vw, 860px" />
             </div>
 
             {/* Bilgi paneli */}
-            <div style={{ width: 260, flexShrink: 0, borderLeft: '1px solid var(--color-border)', padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ width: 260, flexShrink: 0, borderLeft: '1px solid var(--color-border)', padding: 16, display: 'flex', flexDirection: 'column', gap: 12, minHeight: 0 }}>
               {/* Kullanıcı */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <Link
@@ -165,7 +165,7 @@ export default function HashtagClient({ tag, posts }: Props) {
 
               {/* Caption — hashtag ve mention linkleri */}
               {selected.caption && (
-                <p style={{ fontSize: '0.88rem', lineHeight: 1.6, margin: 0, wordBreak: 'break-word', color: 'var(--color-text)' }}>
+                <p style={{ fontSize: '0.88rem', lineHeight: 1.6, margin: 0, wordBreak: 'break-word', color: 'var(--color-text)', flex: 1, minHeight: 0, overflowY: 'auto' }}>
                   <Caption text={selected.caption} clamp />
                 </p>
               )}
