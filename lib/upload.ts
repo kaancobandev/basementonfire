@@ -25,7 +25,9 @@ export async function uploadToStorage(
 
   const { error } = await getSupa()
     .storage.from('media')
-    .uploadToSignedUrl(sign.path, sign.token, file, { contentType: file.type });
+    // Dosya adları benzersiz (üzerine yazılmaz) → 1 yıl önbellek güvenli;
+    // tekrar ziyaretlerde medya tarayıcı/CDN önbelleğinden anında gelir.
+    .uploadToSignedUrl(sign.path, sign.token, file, { contentType: file.type, cacheControl: '31536000' });
   if (error) throw new Error('Dosya yüklenemedi.');
 
   return { path: sign.path as string, mediaType: sign.mediaType as 'image' | 'video' | 'audio' };

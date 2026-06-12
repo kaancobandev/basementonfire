@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import './globals.css';
-import { getMe, db } from '@/lib/supabase/server';
+import { getMe, db, logIfError } from '@/lib/supabase/server';
 import AppShell from './components/AppShell';
 import SmoothScroll from './components/SmoothScroll';
 import CelebrateOnParam from './components/CelebrateOnParam';
@@ -55,13 +55,25 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   let convIds: number[] = [];
 
   if (me) {
-    const [notifRes, convRes] = await Promise.all([
+    // Tek turda üç sayaç: okunmamış mesaj sorgusu artık konuşma listesini
+    // BEKLEMEZ (conversations!inner birleşimi kullanıcının konuşmalarına
+    // filtreler) → her sayfa gezinmesinde bir veritabanı turu eksilir (TTFB).
+    const [notifRes, convRes, msgRes] = await Promise.all([
       db.from('notifications').select('*', { count: 'exact', head: true }).eq('user_id', me.id).eq('is_read', false),
       db.from('conversations').select('id').or(`user1_id.eq.${me.id},user2_id.eq.${me.id}`),
+      db.from('messages')
+        .select('id, conversations!inner(id)', { count: 'exact', head: true })
+        .or(`user1_id.eq.${me.id},user2_id.eq.${me.id}`, { foreignTable: 'conversations' })
+        .neq('sender_id', me.id)
+        .eq('is_read', false),
     ]);
     unreadCount = notifRes.count ?? 0;
     convIds = convRes.data?.map((c: any) => c.id) ?? [];
-    if (convIds.length) {
+    if (!msgRes.error) {
+      unreadMsgCount = msgRes.count ?? 0;
+    } else if (convIds.length) {
+      // Birleşim sorgusu başarısız olursa eski iki aşamalı yola düş
+      logIfError('layout unread messages join', msgRes.error);
       const { count } = await db
         .from('messages')
         .select('*', { count: 'exact', head: true })
@@ -77,6 +89,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="tr" suppressHydrationWarning>
       <head>
+        {/* Supabase'e erken bağlantı: video/avatar/hikâye medyası + realtime
+            ilk istekte DNS+TLS beklemez (crossorigin'li olan fetch/XHR için) */}
+        {process.env.NEXT_PUBLIC_SUPABASE_URL && (
+          <>
+            <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL} />
+            <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL} crossOrigin="anonymous" />
+          </>
+        )}
         <script
           dangerouslySetInnerHTML={{
             __html: `try{if(localStorage.getItem('theme')==='dark')document.documentElement.setAttribute('data-theme','dark')}catch{}`,
