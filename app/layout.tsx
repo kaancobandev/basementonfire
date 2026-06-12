@@ -5,6 +5,12 @@ import { getMe, db } from '@/lib/supabase/server';
 import AppShell from './components/AppShell';
 import SmoothScroll from './components/SmoothScroll';
 import CelebrateOnParam from './components/CelebrateOnParam';
+import { GoogleAnalytics } from '@next/third-parties/google';
+
+// Google Analytics (GA4) — yalnızca NEXT_PUBLIC_GA_ID tanımlıysa yüklenir.
+// Netlify'da ortam değişkeni olarak ekle; localhost'ta tanımsız → GA çalışmaz
+// (kendi ziyaretlerin istatistiği kirletmez).
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
 const SITE_URL = 'https://basementonfire.com';
 const SITE_DESC = 'Bilim, tarih ve kültürü interaktif makaleler ve toplulukla keşfet: Antik Yunan, Roma İmparatorluğu, Kara Delikler, Kartaca, Türkler ve daha fazlası.';
@@ -86,6 +92,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             {children}
           </AppShell>
         </SmoothScroll>
+        {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
       </body>
     </html>
   );
