@@ -4,7 +4,9 @@ import { useEffect, useId, useRef, useState } from 'react';
 import Img from '@/app/components/Img';
 import { splitMedia, type MediaItem } from '@/lib/types';
 
-const containStyle: React.CSSProperties = { maxWidth: '100%', maxHeight: '90vh', objectFit: 'contain' };
+// Lightbox medya sütunu artık her yüzeyde belirli yükseklikte → %100 ebeveyni doldurur
+// (masaüstünde 90vh'lik sütun = eski görünüm; mobil dikey istifte doğru ölçü).
+const containStyle: React.CSSProperties = { maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' };
 const feedSingleStyle: React.CSSProperties = { width: '100%', maxHeight: 600, objectFit: 'cover', display: 'block' };
 const navBtn = (side: 'left' | 'right'): React.CSSProperties => ({
   position: 'absolute', top: '50%', transform: 'translateY(-50%)',
@@ -106,7 +108,7 @@ function AudioCard({ url, variant }: { url: string; variant: 'lightbox' | 'feed'
   return (
     <div style={{
       width: '100%',
-      ...(variant === 'feed' ? { aspectRatio: '16 / 9' } : { height: '100%', minHeight: '40vh' }),
+      ...(variant === 'feed' ? { aspectRatio: '16 / 9' } : { height: '100%' }),
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 18,
       background: 'linear-gradient(135deg, #312e81, #4c1d95)', color: '#fff', padding: 24, boxSizing: 'border-box',
     }}>
@@ -167,7 +169,7 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
       );
     }
     return (
-      <div ref={containerRef} style={{ position: 'relative', width: '100%', height: '100%', minHeight: '40vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div ref={containerRef} style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {m.type === 'video'
           ? <video src={m.url} controls playsInline style={containStyle} />
           : <Img src={m.url} alt="" sizes={sizes} style={containStyle} />}
@@ -191,7 +193,7 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
 
   const containerStyle: React.CSSProperties = variant === 'feed'
     ? { position: 'relative', width: '100%', aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', background, overflow: 'hidden' }
-    : { position: 'relative', width: '100%', height: '100%', minHeight: '50vh', maxHeight: '90vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background };
+    : { position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background };
   const mediaStyle: React.CSSProperties = variant === 'feed'
     ? { width: '100%', height: '100%', objectFit: 'cover', display: 'block' }
     : { maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' };

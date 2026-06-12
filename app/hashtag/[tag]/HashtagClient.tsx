@@ -2,6 +2,7 @@
 
 import Img from '@/app/components/Img';
 import MediaCarousel, { MultiBadge, AudioThumb, MusicBadge } from '@/app/components/MediaCarousel';
+import { useIsMobile } from '@/lib/useIsMobile';
 import { factMediaList } from '@/lib/types';
 
 import { useState, useEffect } from 'react';
@@ -18,6 +19,7 @@ interface Post {
 interface Props { tag: string; posts: Post[]; }
 
 export default function HashtagClient({ tag, posts }: Props) {
+  const isMobile = useIsMobile();
   const [selected, setSelected] = useState<Post | null>(null);
 
   useEffect(() => {
@@ -118,7 +120,7 @@ export default function HashtagClient({ tag, posts }: Props) {
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) closeLb(); }}
         >
-          <div style={{ background: 'var(--color-surface)', borderRadius: 16, display: 'flex', maxWidth: 820, width: '100%', height: '90vh', overflow: 'hidden', position: 'relative' }}>
+          <div style={{ background: 'var(--color-surface)', borderRadius: 16, display: 'flex', flexDirection: isMobile ? 'column' : 'row', maxWidth: 820, width: '100%', height: '90vh', overflow: 'hidden', position: 'relative' }}>
             {/* Kapat */}
             <button
               onClick={closeLb}
@@ -130,12 +132,12 @@ export default function HashtagClient({ tag, posts }: Props) {
             </button>
 
             {/* Medya */}
-            <div style={{ flex: 1, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0 }}>
+            <div style={{ flex: 1, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0, minHeight: 0, overflow: 'hidden' }}>
               <MediaCarousel media={factMediaList(selected)} sizes="(max-width:900px) 100vw, 860px" />
             </div>
 
             {/* Bilgi paneli */}
-            <div style={{ width: 260, flexShrink: 0, borderLeft: '1px solid var(--color-border)', padding: 16, display: 'flex', flexDirection: 'column', gap: 12, minHeight: 0 }}>
+            <div style={{ width: isMobile ? '100%' : 260, maxHeight: isMobile ? '42%' : undefined, flexShrink: 0, borderLeft: isMobile ? 'none' : '1px solid var(--color-border)', borderTop: isMobile ? '1px solid var(--color-border)' : 'none', padding: 16, display: 'flex', flexDirection: 'column', gap: 12, minHeight: 0 }}>
               {/* Kullanıcı */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <Link

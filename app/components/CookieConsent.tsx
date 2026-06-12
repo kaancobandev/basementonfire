@@ -37,6 +37,7 @@ export default function CookieConsent({ gaId }: { gaId?: string }) {
         <div
           role="dialog"
           aria-label="Çerez onayı"
+          className="cc-banner"
           style={{
             position: 'fixed', left: 16, right: 16, bottom: 16, zIndex: 1000,
             maxWidth: 560, margin: '0 auto',
