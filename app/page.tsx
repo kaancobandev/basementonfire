@@ -1,8 +1,22 @@
+import type { Metadata } from 'next';
 import { db, getMe, logIfError } from '@/lib/supabase/server';
 import { flattenFacts, flattenPosts, type QuickFact, type Post } from '@/lib/types';
 import HomeFeed from './components/HomeFeed';
 
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = {
+  alternates: { canonical: '/' },
+};
+
+const websiteJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Basements',
+  url: 'https://basementonfire.com',
+  inLanguage: 'tr-TR',
+  description: 'Bilim, tarih ve kültürü interaktif makaleler ve toplulukla keşfet.',
+};
 
 export default async function HomePage() {
   const { me } = await getMe();
@@ -91,14 +105,17 @@ export default async function HomePage() {
   const otherStoryUsers = [...storyMap.values()];
 
   return (
-    <HomeFeed
-      feedItems={feedItems as any}
-      likedFactIds={likedFactIds}
-      likedPostIds={likedPostIds}
-      suggestedUsers={suggestedUsers}
-      currentUser={me ? { id: me.id, username: me.username, display_name: me.display_name } : null}
-      ownStoryUser={ownStoryUser}
-      otherStoryUsers={otherStoryUsers}
-    />
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
+      <HomeFeed
+        feedItems={feedItems as any}
+        likedFactIds={likedFactIds}
+        likedPostIds={likedPostIds}
+        suggestedUsers={suggestedUsers}
+        currentUser={me ? { id: me.id, username: me.username, display_name: me.display_name } : null}
+        ownStoryUser={ownStoryUser}
+        otherStoryUsers={otherStoryUsers}
+      />
+    </>
   );
 }
