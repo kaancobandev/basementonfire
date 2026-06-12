@@ -1,8 +1,42 @@
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { db, getMe } from '@/lib/supabase/server';
 import UserProfileClient from './UserProfileClient';
 
 export const dynamic = 'force-dynamic';
+
+export async function generateMetadata({ params }: { params: Promise<{ username: string }> }): Promise<Metadata> {
+  const { username } = await params;
+  const { data: u } = await db
+    .from('users')
+    .select('username, display_name, bio, is_private')
+    .eq('username', username)
+    .single();
+
+  if (!u) {
+    return { title: 'Kullanıcı bulunamadı', robots: { index: false, follow: false } };
+  }
+
+  const name = u.display_name || u.username;
+  const title = `${name} (@${u.username})`;
+  const description = (u.bio && u.bio.trim())
+    ? u.bio.trim().slice(0, 160)
+    : `${name} (@${u.username}) — Basements'teki profil ve paylaşımlar.`;
+  const path = `/u/${u.username}`;
+
+  // Gizli profiller arama motorlarına gösterilmez
+  if (u.is_private) {
+    return { title, description, alternates: { canonical: path }, robots: { index: false, follow: false } };
+  }
+
+  return {
+    title,
+    description,
+    alternates: { canonical: path },
+    openGraph: { type: 'profile', title: `${title} · Basements`, description, url: path, images: ['/opengraph-image'] },
+    twitter: { card: 'summary_large_image', title: `${title} · Basements`, description },
+  };
+}
 
 function avatarBg(u: string): string {
   const gs = ['linear-gradient(135deg,#6366f1,#8b5cf6)','linear-gradient(135deg,#ec4899,#8b5cf6)','linear-gradient(135deg,#f97316,#ef4444)','linear-gradient(135deg,#10b981,#3b82f6)','linear-gradient(135deg,#f59e0b,#f97316)','linear-gradient(135deg,#14b8a6,#06b6d4)','linear-gradient(135deg,#3b82f6,#6366f1)','linear-gradient(135deg,#ef4444,#f97316)'];

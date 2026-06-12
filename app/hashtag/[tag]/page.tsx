@@ -1,8 +1,24 @@
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { db, logIfError } from '@/lib/supabase/server';
 import HashtagClient from './HashtagClient';
 
 export const dynamic = 'force-dynamic';
+
+export async function generateMetadata({ params }: { params: Promise<{ tag: string }> }): Promise<Metadata> {
+  const { tag } = await params;
+  const t = tag.toLowerCase();
+  const title = `#${t}`;
+  const description = `#${t} etiketli gönderiler — Basements'te ${t} hakkındaki paylaşımları keşfet.`;
+  const path = `/hashtag/${t}`;
+  return {
+    title,
+    description,
+    alternates: { canonical: path },
+    openGraph: { type: 'website', title: `#${t} · Basements`, description, url: path, images: ['/opengraph-image'] },
+    twitter: { card: 'summary_large_image', title: `#${t} · Basements`, description },
+  };
+}
 
 function avatarBg(u: string): string {
   const gs = [
