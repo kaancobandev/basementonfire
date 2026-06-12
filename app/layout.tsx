@@ -9,6 +9,8 @@ import CelebrateOnParam from './components/CelebrateOnParam';
 export const metadata: Metadata = {
   title: 'Basements',
   description: 'Basements sosyal platform',
+  // Google Search Console site sahipliği doğrulaması (SEO)
+  verification: { google: 'TxJYB9Iwy1fdeqw2kUCJXWg1DjDxa3eTRS11P3we60Y' },
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
