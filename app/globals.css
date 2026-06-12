@@ -114,6 +114,15 @@ body {
   padding: 8px 0;
 }
 
+.sidebar-foot {
+  padding: 10px 16px 14px;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+.sidebar-foot:hover { color: var(--color-text); text-decoration: underline; }
+
 .nav-link {
   display: flex;
   align-items: center;
@@ -599,6 +608,7 @@ body {
 @media (max-width: 1200px) {
   .sidebar { width: var(--sidebar-width-sm); }
   .nav-link span, .post-btn span, .sidebar-logo span { display: none; }
+  .sidebar-foot { display: none; }
   .post-btn { padding: 14px; width: auto; }
   .right-panel { display: none; }
   .notif-float { right: 16px; }

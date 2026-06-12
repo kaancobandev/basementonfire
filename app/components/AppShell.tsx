@@ -154,6 +154,8 @@ export default function AppShell({ children, user, unreadCount: initialNotif, un
               <span>Giriş Yap</span>
             </Link>
           )}
+
+          <Link href="/gizlilik" className="sidebar-foot">Gizlilik ve Çerez Politikası</Link>
         </aside>
 
         {children}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 interface Props {
   user: { dm_privacy: string; comment_privacy: string; is_private: boolean; };
@@ -112,6 +113,17 @@ export default function SettingsClient({ user }: Props) {
                 Çıkış Yap
               </button>
             </form>
+          </div>
+        </section>
+
+        {/* Hakkında / Yasal */}
+        <section>
+          <h2 style={{ fontSize: '1rem', fontWeight: 700, margin: '0 0 16px', color: 'var(--color-text)' }}>Hakkında</h2>
+          <div style={{ background: 'var(--color-bg)', borderRadius: 16, border: '1px solid var(--color-border)', overflow: 'hidden' }}>
+            <Link href="/gizlilik" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', textDecoration: 'none', color: 'var(--color-text)', fontWeight: 600, fontSize: '0.95rem' }}>
+              Gizlilik ve Çerez Politikası
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            </Link>
           </div>
         </section>
       </div>
