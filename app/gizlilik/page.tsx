@@ -18,17 +18,13 @@ export default function GizlilikPage() {
         <Link href="/" style={{ color: 'var(--color-primary)', fontWeight: 700, fontSize: '0.85rem', textDecoration: 'none' }}>← Ana sayfa</Link>
 
         <h1 style={{ fontSize: '1.6rem', fontWeight: 800, margin: '14px 0 4px' }}>Gizlilik ve Çerez Politikası</h1>
-        <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', margin: 0 }}>Son güncelleme: [TARİH GİR]</p>
-
-        <div style={{ background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.4)', borderRadius: 10, padding: '10px 14px', fontSize: '0.82rem', margin: '16px 0' }}>
-          ⚠️ Bu bir <strong>taslaktır</strong>. <code>[...]</code> ile işaretli yerleri kendi bilgilerinle doldur ve
-          yayımlamadan önce bir KVKK/hukuk uzmanına danışman önerilir.
-        </div>
+        <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', margin: '0 0 16px' }}>Son güncelleme: 12/06/2026</p>
 
         <h2 style={h2}>1. Veri Sorumlusu</h2>
         <p style={p}>
-          Bu web sitesini ([İŞLETME / KİŞİ ADI], "Basements") işletmektedir. Gizlilikle ilgili her konuda bize{' '}
-          <strong>[İLETİŞİM E-POSTASI GİR]</strong> adresinden ulaşabilirsin.
+          Bu web sitesini basementonfire ("Basements") işletmektedir. Gizlilikle ilgili her konuda bize{' '}
+          <a href="mailto:info@basementonfire.com" style={{ color: 'var(--color-primary)', fontWeight: 700 }}>info@basementonfire.com</a>{' '}
+          adresinden ulaşabilirsin.
         </p>
 
         <h2 style={h2}>2. Hangi Verileri, Neden Topluyoruz?</h2>
@@ -72,8 +68,9 @@ export default function GizlilikPage() {
         <h2 style={h2}>6. KVKK Kapsamındaki Haklarınız (m. 11)</h2>
         <p style={p}>
           Kişisel verilerinle ilgili olarak; işlenip işlenmediğini öğrenme, bilgi talep etme, düzeltilmesini/silinmesini
-          isteme ve işlemeye itiraz etme haklarına sahipsin. Talebini <strong>[İLETİŞİM E-POSTASI GİR]</strong> adresine
-          iletebilirsin.
+          isteme ve işlemeye itiraz etme haklarına sahipsin. Talebini{' '}
+          <a href="mailto:info@basementonfire.com" style={{ color: 'var(--color-primary)', fontWeight: 700 }}>info@basementonfire.com</a>{' '}
+          adresine iletebilirsin.
         </p>
 
         <h2 style={h2}>7. Onayı Geri Çekme / Tercihi Değiştirme</h2>
