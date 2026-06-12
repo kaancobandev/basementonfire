@@ -5,11 +5,11 @@ import { getMe, db } from '@/lib/supabase/server';
 import AppShell from './components/AppShell';
 import SmoothScroll from './components/SmoothScroll';
 import CelebrateOnParam from './components/CelebrateOnParam';
-import { GoogleAnalytics } from '@next/third-parties/google';
+import CookieConsent from './components/CookieConsent';
 
-// Google Analytics (GA4) — yalnızca NEXT_PUBLIC_GA_ID tanımlıysa yüklenir.
-// Netlify'da ortam değişkeni olarak ekle; localhost'ta tanımsız → GA çalışmaz
-// (kendi ziyaretlerin istatistiği kirletmez).
+// Google Analytics (GA4) ID — CookieConsent'e geçilir. GA YALNIZCA hem
+// NEXT_PUBLIC_GA_ID tanımlıysa hem de ziyaretçi çerez onayı verdiyse yüklenir
+// (KVKK/GDPR). Netlify'da ortam değişkeni olarak ekle.
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
 const SITE_URL = 'https://basementonfire.com';
@@ -92,7 +92,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             {children}
           </AppShell>
         </SmoothScroll>
-        {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
+        <CookieConsent gaId={GA_ID} />
       </body>
     </html>
   );
