@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { db, getMe } from '@/lib/supabase/server';
 import Link from 'next/link';
+import Img from '@/app/components/Img';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,7 +50,7 @@ export default async function NotificationsPage() {
             return (
               <Link key={n.id} href={`/u/${actor.username}`} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 20px', borderBottom: '1px solid var(--color-border)', textDecoration: 'none', color: 'inherit', background: n.is_read ? 'transparent' : 'rgba(59,130,246,0.04)', transition: 'background 0.1s' }}>
                 <div style={{ width: 44, height: 44, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '1rem', background: bg, overflow: 'hidden' }}>
-                  {actor.avatar ? <img src={actor.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : actor.display_name[0].toUpperCase()}
+                  {actor.avatar ? <Img src={actor.avatar} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : actor.display_name[0].toUpperCase()}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <span style={{ fontWeight: 700 }}>{actor.display_name}</span>{' '}

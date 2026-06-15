@@ -278,7 +278,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
             >
               <div style={{ width: 60, height: 60, borderRadius: '50%', padding: '2.5px', background: 'linear-gradient(135deg,#f58529,#dd2a7b,#8134af,#515bd4)', transition: 'transform 0.15s' }}>
                 {u.avatar
-                  ? <img src={u.avatar} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', border: '2px solid white' }} />
+                  ? <Img src={u.avatar} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', border: '2px solid white' }} />
                   : <div style={{ width: '100%', height: '100%', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '1.25rem', color: '#fff', background: storyAvatarBg(u.username), border: '2px solid white' }}>{u.displayName[0].toUpperCase()}</div>
                 }
               </div>
@@ -478,7 +478,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div style={{ width: 34, height: 34, borderRadius: '50%', flexShrink: 0, background: '#555', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.9rem', color: '#fff', overflow: 'hidden' }}>
-                  {currentSvUser.avatar ? <img src={currentSvUser.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : currentSvUser.displayName[0].toUpperCase()}
+                  {currentSvUser.avatar ? <Img src={currentSvUser.avatar} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : currentSvUser.displayName[0].toUpperCase()}
                 </div>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#fff' }}>{currentSvUser.displayName}</div>
@@ -493,7 +493,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000', overflow: 'hidden' }}>
               {currentSvStory.mediaType === 'video'
                 ? <video key={currentSvStory.mediaUrl} src={currentSvStory.mediaUrl} autoPlay muted playsInline style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
-                : <img key={currentSvStory.mediaUrl} src={currentSvStory.mediaUrl} alt="" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                : <Img key={currentSvStory.mediaUrl} src={currentSvStory.mediaUrl} alt="" sizes="(max-width:520px) 100vw, 460px" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
               }
             </div>
             {/* Touch zones */}

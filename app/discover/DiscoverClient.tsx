@@ -53,7 +53,7 @@ export default function DiscoverClient({ users, media, articles, isLoggedIn }: P
       <div className="dc-user-row">
         <Link href={`/u/${u.username}`} className="dc-avatar" style={{ background: u.avatarBg }}>
           {u.avatar
-            ? <img src={u.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+            ? <Img src={u.avatar} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
             : u.display_name[0].toUpperCase()
           }
         </Link>

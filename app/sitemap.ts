@@ -3,8 +3,8 @@ import { db } from '@/lib/supabase/server';
 
 const SITE_URL = 'https://basementonfire.com';
 
-// Her zaman güncel harita (yeni herkese açık profiller/etiketler dahil).
-export const dynamic = 'force-dynamic';
+// Harita 1 saat önbelleklenir (ISR) — her arama motoru ziyaretinde DB'ye gitmez.
+export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();

@@ -11,8 +11,7 @@ function isProd() {
 
 function eligible(src: string): boolean {
   if (!src) return false;
-  if (src.startsWith('/.netlify')) return false;       // zaten CDN
-  if (src.startsWith('data:') || src.startsWith('blob:')) return false;
+  if (!/^https?:\/\//i.test(src)) return false;        // sadece mutlak http(s): yerel/relative/blob/data atlanır
   if (/\.gif($|\?)/i.test(src)) return false;          // animasyonlu GIF'i bozma
   return true;
 }

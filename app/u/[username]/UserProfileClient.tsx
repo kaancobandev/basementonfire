@@ -150,7 +150,7 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
           {/* Avatar */}
           <div style={{ width: 80, height: 80, borderRadius: '50%', border: '4px solid white', boxShadow: '0 2px 12px rgba(0,0,0,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '2rem', fontWeight: 800, overflow: 'hidden', background: profileUser.avatar ? 'transparent' : bg, flexShrink: 0 }}>
             {profileUser.avatar
-              ? <img src={profileUser.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+              ? <Img src={profileUser.avatar} alt="" fixedWidth={200} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
               : profileUser.display_name[0].toUpperCase()
             }
           </div>
@@ -299,7 +299,7 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
               {/* User row */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px', borderBottom: '1px solid var(--color-border)', flexShrink: 0 }}>
                 <div style={{ width: 36, height: 36, borderRadius: '50%', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '0.85rem', flexShrink: 0, overflow: 'hidden' }}>
-                  {profileUser.avatar ? <img src={profileUser.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : profileUser.display_name[0].toUpperCase()}
+                  {profileUser.avatar ? <Img src={profileUser.avatar} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : profileUser.display_name[0].toUpperCase()}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{profileUser.display_name}</div>

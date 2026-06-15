@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { getSupa } from '@/lib/supabase/client';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
+import Img from '@/app/components/Img';
 
 interface OtherUser { id: number; username: string; display_name: string; avatar: string | null; }
 interface Conversation { id: number; otherUser: OtherUser; lastMessage: any; unreadCount: number; avatarBg: string; lastTimeAgo: string; }
@@ -202,7 +203,7 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
       <div key={m.id} style={{ display: 'flex', alignItems: 'flex-end', gap: 6, maxWidth: '72%', alignSelf: mine ? 'flex-end' : 'flex-start', flexDirection: mine ? 'row-reverse' : 'row' }}>
         {!mine && (
           <div style={{ width: 24, height: 24, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 700, color: '#fff', background: activeOtherUser ? avatarBg(activeOtherUser.username) : '#555', overflow: 'hidden' }}>
-            {activeOtherUser?.avatar ? <img src={activeOtherUser.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (activeOtherUser?.display_name[0].toUpperCase() ?? '?')}
+            {activeOtherUser?.avatar ? <Img src={activeOtherUser.avatar} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (activeOtherUser?.display_name[0].toUpperCase() ?? '?')}
           </div>
         )}
         {isGif ? (
@@ -240,7 +241,7 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
             <button key={c.id} onClick={() => openConv(c.id, c.otherUser)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', width: '100%', background: activeConvId === c.id ? 'rgba(212,165,100,0.07)' : 'none', border: 'none', cursor: 'pointer', textAlign: 'left', transition: 'background 0.15s', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
               <div style={{ position: 'relative', flexShrink: 0 }}>
                 <div style={{ width: 46, height: 46, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '1.1rem', color: '#fff', background: c.avatarBg, overflow: 'hidden' }}>
-                  {c.otherUser.avatar ? <img src={c.otherUser.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : c.otherUser.display_name[0].toUpperCase()}
+                  {c.otherUser.avatar ? <Img src={c.otherUser.avatar} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : c.otherUser.display_name[0].toUpperCase()}
                 </div>
                 {c.unreadCount > 0 && <span style={{ position: 'absolute', top: 1, right: 1, width: 11, height: 11, borderRadius: '50%', background: '#d4a564', border: '2px solid #0f0e0d' }} />}
               </div>
@@ -273,7 +274,7 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m15 18-6-6 6-6"/></svg>
               </button>
               <div style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, background: activeOtherUser ? avatarBg(activeOtherUser.username) : '#333', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#fff', fontSize: '1rem', overflow: 'hidden' }}>
-                {activeOtherUser?.avatar ? <img src={activeOtherUser.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (activeOtherUser?.display_name[0].toUpperCase() ?? '?')}
+                {activeOtherUser?.avatar ? <Img src={activeOtherUser.avatar} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (activeOtherUser?.display_name[0].toUpperCase() ?? '?')}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <Link href={`/u/${activeOtherUser?.username}`} style={{ fontWeight: 700, fontSize: '0.95rem', color: '#e8e0d8', textDecoration: 'none' }}>{activeOtherUser?.display_name}</Link>
@@ -331,7 +332,7 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
               {searchResults.map((u: any) => (
                 <div key={u.id} onClick={() => startConv(u.username, { id: u.id, username: u.username, display_name: u.display_name ?? u.username, avatar: u.avatar ?? null })} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 4px', cursor: 'pointer', borderRadius: 12, transition: 'background 0.15s' }} onMouseOver={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')} onMouseOut={e => (e.currentTarget.style.background = 'transparent')}>
                   <div style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.9rem', color: '#fff', background: avatarBg(u.username), overflow: 'hidden' }}>
-                    {u.avatar ? <img src={u.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (u.display_name ?? u.username)[0].toUpperCase()}
+                    {u.avatar ? <Img src={u.avatar} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (u.display_name ?? u.username)[0].toUpperCase()}
                   </div>
                   <div>
                     <div style={{ fontWeight: 600, fontSize: '0.88rem', color: '#e8e0d8' }}>{u.display_name ?? u.username}</div>
