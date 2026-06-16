@@ -1,6 +1,7 @@
 import { db, getMe } from '@/lib/supabase/server';
 import { factMediaList } from '@/lib/types';
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
+import { submitToIndexNow, postUrl, profileUrl, isLiveRequest } from '@/lib/indexnow';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
 const PUBLIC_PREFIX = '/storage/v1/object/public/media/';
@@ -16,7 +17,7 @@ const PUBLIC_PREFIX = '/storage/v1/object/public/media/';
  *
  * Çoklu medyalı gönderilerde TÜM dosyalar arşivlenir/taşınır (sadece kapak değil).
  */
-export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const factId = Number(id);
   if (!factId) return json({ error: 'Geçersiz id' }, 400);
@@ -77,6 +78,13 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
           .eq('original_media_url', f.url);
       }
     }
+  }
+
+  // Silinen gönderi sayfasını IndexNow'a bildir → motorlar yeniden tarar, 404 görüp
+  // dizinden hızla düşürür. Profil ızgarası da değiştiği için onu da bildir.
+  // Yalnızca gerçek üretim isteğinde ve gizli olmayan hesapta (içerik dizine girer).
+  if (!me.is_private && isLiveRequest(req)) {
+    after(() => submitToIndexNow([postUrl(factId), profileUrl(me.username)]));
   }
 
   return json({ ok: true });

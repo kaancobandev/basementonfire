@@ -1,5 +1,6 @@
 import { db, getMe } from '@/lib/supabase/server';
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
+import { submitToIndexNow, postUrl, profileUrl, isLiveRequest } from '@/lib/indexnow';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
 const MAX_MEDIA = 20;
@@ -49,27 +50,36 @@ export async function POST(req: Request) {
   }));
 
   // `media` kolonu varsa onunla; yoksa (migration yapılmamışsa) sadece kapakla kaydet.
-  let { error } = await db.from('quick_facts').insert({
+  let { data: created, error } = await db.from('quick_facts').insert({
     user_id:    me.id,
     caption,
     media_url:  media[0].url,
     media_type: media[0].type,
     media,
-  });
+  }).select('id').single();
 
   if (error && (error.code === 'PGRST204' || /schema cache|'media'|column/i.test(error.message ?? ''))) {
-    ({ error } = await db.from('quick_facts').insert({
+    ({ data: created, error } = await db.from('quick_facts').insert({
       user_id:    me.id,
       caption,
       media_url:  media[0].url,
       media_type: media[0].type,
-    }));
+    }).select('id').single());
   }
 
-  if (error) {
+  if (error || !created) {
     await db.storage.from('media').remove(items.map(it => it.path));
     return json({ error: 'Veritabanına kaydedilemedi.' }, 500);
   }
 
-  return json({ ok: true });
+  // Yeni gönderi sayfası (+ değişen profil ızgarası) arama motorlarına anında bildirilir.
+  // Yanıt gönderildikten SONRA çalışır (after) → kullanıcıyı bekletmez, akışı bozmaz.
+  // Yalnızca gerçek üretim isteğinde (isLiveRequest) ve gizli olmayan hesapta
+  // (gizli gönderiler zaten noindex) ping atılır.
+  const newId = created.id;
+  if (!me.is_private && isLiveRequest(req)) {
+    after(() => submitToIndexNow([postUrl(newId), profileUrl(me.username)]));
+  }
+
+  return json({ ok: true, id: newId });
 }
