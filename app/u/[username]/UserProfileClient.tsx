@@ -291,7 +291,7 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
 
             {/* Media */}
             <div style={{ flex: 1, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0, minHeight: 0, overflow: 'hidden' }}>
-              <MediaCarousel media={factMediaList(lightbox)} sizes="(max-width:900px) 100vw, 860px" />
+              <MediaCarousel media={factMediaList(lightbox)} caption={lightbox.caption} sizes="(max-width:900px) 100vw, 860px" />
             </div>
 
             {/* Info panel */}

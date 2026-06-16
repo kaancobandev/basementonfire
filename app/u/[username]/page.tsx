@@ -98,7 +98,30 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
     media?: { url: string; type: 'image' | 'video' }[] | null;
   }>;
 
+  // Herkese açık profiller için ProfilePage + Person JSON-LD (LinkedIn deseni):
+  // takipçi sayısı interactionStatistic olarak Google'a "otorite" sinyali verir.
+  const profileJsonLd = !isHidden ? {
+    '@context': 'https://schema.org',
+    '@type': 'ProfilePage',
+    mainEntity: {
+      '@type': 'Person',
+      name: profileUser.display_name || profileUser.username,
+      alternateName: `@${profileUser.username}`,
+      identifier: profileUser.username,
+      url: `https://basementonfire.com/u/${profileUser.username}`,
+      ...(profileUser.bio ? { description: String(profileUser.bio).slice(0, 250) } : {}),
+      ...(profileUser.avatar && profileUser.avatar !== '/avatars/default.png' ? { image: profileUser.avatar } : {}),
+      interactionStatistic: {
+        '@type': 'InteractionCounter',
+        interactionType: 'https://schema.org/FollowAction',
+        userInteractionCount: followersRes.count ?? 0,
+      },
+    },
+  } : null;
+
   return (
+    <>
+      {profileJsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(profileJsonLd) }} />}
     <UserProfileClient
       profileUser={{
         id: profileUser.id,
@@ -122,5 +145,6 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
       mediaPosts={mediaPosts}
       me={me ? { id: me.id, username: me.username, display_name: me.display_name } : null}
     />
+    </>
   );
 }

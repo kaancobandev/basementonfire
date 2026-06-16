@@ -1,7 +1,20 @@
+import type { Metadata } from 'next';
 import { db, getMe, logIfError } from '@/lib/supabase/server';
 import MuzikClient from './MuzikClient';
 
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = {
+  title: 'Müzik',
+  description: 'Basements topluluğunun paylaştığı Spotify çalma listeleri ve YouTube müzikleri — keşfet ve dinle.',
+  alternates: { canonical: '/muzik' },
+  openGraph: {
+    title: 'Müzik · Basements',
+    description: 'Topluluğun paylaştığı Spotify ve YouTube müzikleri.',
+    url: '/muzik',
+    images: ['/opengraph-image'],
+  },
+};
 
 function avatarBg(u: string): string {
   const gs = [

@@ -1,7 +1,20 @@
+import type { Metadata } from 'next';
 import { db, getMe, logIfError } from '@/lib/supabase/server';
 import DiscoverClient from './DiscoverClient';
 
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = {
+  title: 'Keşfet',
+  description: 'Basements\'te kullanıcıları, gönderileri ve konuları keşfet; yeni insanlar ve içerikler bul.',
+  alternates: { canonical: '/discover' },
+  openGraph: {
+    title: 'Keşfet · Basements',
+    description: 'Kullanıcıları, gönderileri ve konuları keşfet.',
+    url: '/discover',
+    images: ['/opengraph-image'],
+  },
+};
 
 function avatarBg(u: string) {
   const gs = ['linear-gradient(135deg,#6366f1,#8b5cf6)','linear-gradient(135deg,#ec4899,#8b5cf6)','linear-gradient(135deg,#f97316,#ef4444)','linear-gradient(135deg,#10b981,#3b82f6)','linear-gradient(135deg,#f59e0b,#f97316)','linear-gradient(135deg,#14b8a6,#06b6d4)','linear-gradient(135deg,#3b82f6,#6366f1)','linear-gradient(135deg,#ef4444,#f97316)'];

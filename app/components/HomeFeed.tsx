@@ -317,7 +317,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                       </div>
                     </div>
                     <div style={{ width: '100%', background: '#000', lineHeight: 0 }}>
-                      <MediaCarousel media={factMediaList(item)} variant="feed" sizes="(max-width:620px) 100vw, 600px" />
+                      <MediaCarousel media={factMediaList(item)} variant="feed" caption={item.caption ?? ''} sizes="(max-width:620px) 100vw, 600px" />
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 10px 4px' }}>
                       <motion.button

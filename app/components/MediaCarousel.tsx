@@ -126,12 +126,16 @@ function AudioCard({ url, variant }: { url: string; variant: 'lightbox' | 'feed'
  *    sustur/aç butonu, otomatik sessiz oynatma — Instagram tarzı).
  *  - Yalnızca ses içeren gönderide oynatıcı kartı gösterilir.
  */
-export default function MediaCarousel({ media, sizes, background = '#000', variant = 'lightbox' }: {
+export default function MediaCarousel({ media, sizes, background = '#000', variant = 'lightbox', caption: captionRaw }: {
   media: MediaItem[];
   sizes?: string;
   background?: string;
   variant?: 'lightbox' | 'feed';
+  /** Gönderi açıklaması — görsel alt metni + video title/aria-label (erişilebilirlik + SEO). */
+  caption?: string;
 }) {
+  // Boş/undefined → alt='' kalır ama title/aria-label hiç eklenmez (geçersiz "undefined" önlenir).
+  const caption = captionRaw || undefined;
   const [idx, setIdx] = useState(0);
   const trackRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -151,8 +155,8 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
     if (!audio) {
       const st = variant === 'feed' ? feedSingleStyle : containStyle;
       return m.type === 'video'
-        ? <video src={m.url} controls playsInline style={st} />
-        : <Img src={m.url} alt="" sizes={sizes} style={st} />;
+        ? <video src={m.url} controls playsInline title={caption} aria-label={caption} style={st} />
+        : <Img src={m.url} alt={caption || ''} sizes={sizes} style={st} />;
     }
 
     // Tek görsel + müzik → sarmalayıcı + arka plan müziği (sağ alt sustur/aç)
@@ -162,8 +166,8 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
       return (
         <div ref={containerRef} style={{ position: 'relative', width: '100%', aspectRatio: '1', overflow: 'hidden', background }}>
           {m.type === 'video'
-            ? <video src={m.url} controls playsInline style={st} />
-            : <Img src={m.url} alt="" sizes={sizes} style={st} />}
+            ? <video src={m.url} controls playsInline title={caption} aria-label={caption} style={st} />
+            : <Img src={m.url} alt={caption || ''} sizes={sizes} style={st} />}
           <MusicLayer url={audio} targetRef={containerRef} />
         </div>
       );
@@ -171,8 +175,8 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
     return (
       <div ref={containerRef} style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {m.type === 'video'
-          ? <video src={m.url} controls playsInline style={containStyle} />
-          : <Img src={m.url} alt="" sizes={sizes} style={containStyle} />}
+          ? <video src={m.url} controls playsInline title={caption} aria-label={caption} style={containStyle} />
+          : <Img src={m.url} alt={caption || ''} sizes={sizes} style={containStyle} />}
         <MusicLayer url={audio} targetRef={containerRef} />
       </div>
     );
@@ -209,8 +213,8 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
         {visuals.map((m, i) => (
           <div key={i} style={{ flex: '0 0 100%', width: '100%', height: '100%', scrollSnapAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {m.type === 'video'
-              ? <video src={m.url} controls playsInline style={mediaStyle} />
-              : <Img src={m.url} alt="" sizes={sizes} style={mediaStyle} />}
+              ? <video src={m.url} controls playsInline title={caption} aria-label={caption} style={mediaStyle} />
+              : <Img src={m.url} alt={caption || ''} sizes={sizes} style={mediaStyle} />}
           </div>
         ))}
       </div>

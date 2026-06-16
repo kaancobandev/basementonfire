@@ -19,7 +19,10 @@ const jsonLd = {
   headline: title,
   description,
   inLanguage: 'tr-TR',
+  datePublished: '2026-06-03',
+  dateModified: '2026-06-15',
   url: `https://basementonfire.com${path}`,
+  image: 'https://basementonfire.com/opengraph-image',
   author: { '@type': 'Organization', name: 'Basements' },
   publisher: { '@type': 'Organization', name: 'Basements' },
 };

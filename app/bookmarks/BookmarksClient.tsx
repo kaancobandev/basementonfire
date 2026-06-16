@@ -177,7 +177,7 @@ export default function BookmarksClient({ initialPosts }: Props) {
 
             {/* Medya */}
             <div style={{ flex: 1, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0, minHeight: 0, overflow: 'hidden' }}>
-              <MediaCarousel media={factMediaList(selected)} sizes="(max-width:900px) 100vw, 860px" />
+              <MediaCarousel media={factMediaList(selected)} caption={selected.caption} sizes="(max-width:900px) 100vw, 860px" />
             </div>
 
             {/* Bilgi paneli */}
