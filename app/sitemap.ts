@@ -26,9 +26,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   let dynamicRoutes: MetadataRoute.Sitemap = [];
   try {
-    const [{ data: users }, { data: tags }] = await Promise.all([
+    const [{ data: users }, { data: tags }, { data: posts }] = await Promise.all([
       db.from('users').select('username, created_at').eq('is_private', false).limit(5000),
       db.from('hashtags').select('tag').limit(2000),
+      db.from('quick_facts')
+        .select('id, created_at, users!quick_facts_user_id_fkey!inner(is_private)')
+        .eq('users.is_private', false)
+        .order('created_at', { ascending: false })
+        .limit(5000),
     ]);
     const userRoutes: MetadataRoute.Sitemap = (users ?? [])
       .filter((u: any) => u.username)
@@ -46,7 +51,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         changeFrequency: 'weekly',
         priority: 0.4,
       }));
-    dynamicRoutes = [...userRoutes, ...tagRoutes];
+    const postRoutes: MetadataRoute.Sitemap = (posts ?? [])
+      .filter((p: any) => p.id)
+      .map((p: any) => ({
+        url: `${SITE_URL}/p/${p.id}`,
+        lastModified: p.created_at ? new Date(p.created_at) : now,
+        changeFrequency: 'weekly',
+        priority: 0.6,
+      }));
+    dynamicRoutes = [...userRoutes, ...tagRoutes, ...postRoutes];
   } catch {
     // DB erişilemezse statik + makale haritası yine de döner
   }

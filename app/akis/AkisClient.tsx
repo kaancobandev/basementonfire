@@ -491,7 +491,7 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
                   <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{detail.display_name}</div>
                   <div style={{ color: 'var(--color-text-muted)', fontSize: '0.78rem' }}>@{detail.username}</div>
                 </div>
-                <div style={{ marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{timeAgo(detail.created_at)}</div>
+                <Link href={`/p/${detail.id}`} style={{ marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--color-text-muted)', textDecoration: 'none' }} title="Gönderi sayfası">{timeAgo(detail.created_at)}</Link>
               </div>
               {detail.caption && (
                 <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border)', flexShrink: 0, maxHeight: '40%', overflowY: 'auto' }}>

@@ -1,0 +1,182 @@
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import Caption from '@/app/components/Caption';
+import MediaCarousel from '@/app/components/MediaCarousel';
+import Img from '@/app/components/Img';
+import { factMediaList } from '@/lib/types';
+
+interface PostProp {
+  id: number; caption: string; media_url: string; media_type: string; media: unknown;
+  likes: number; created_at: string; username: string; display_name: string; avatar: string | null;
+}
+interface CommentT {
+  id: number; parent_id: number | null; user_id: number; content: string; created_at: string;
+  username: string; display_name: string; avatar: string | null;
+}
+interface CurrentUser { id: number; username: string; display_name: string; }
+
+function avatarBg(u: string) {
+  const gs = ['linear-gradient(135deg,#6366f1,#8b5cf6)', 'linear-gradient(135deg,#ec4899,#8b5cf6)', 'linear-gradient(135deg,#f97316,#ef4444)', 'linear-gradient(135deg,#10b981,#3b82f6)', 'linear-gradient(135deg,#f59e0b,#f97316)', 'linear-gradient(135deg,#14b8a6,#06b6d4)', 'linear-gradient(135deg,#3b82f6,#6366f1)', 'linear-gradient(135deg,#ef4444,#f97316)'];
+  let h = 0; for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff; return gs[Math.abs(h) % gs.length];
+}
+function timeAgo(iso: string) {
+  const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (s < 60) return `${s}sn`; if (s < 3600) return `${Math.floor(s / 60)}dk`; if (s < 86400) return `${Math.floor(s / 3600)}sa`; return `${Math.floor(s / 86400)}g`;
+}
+
+const Avatar = ({ username, display_name, avatar, size }: { username: string; display_name: string; avatar: string | null; size: number }) => (
+  <span style={{ width: size, height: size, borderRadius: '50%', flexShrink: 0, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: size * 0.4, background: avatarBg(username || 'a') }}>
+    {avatar && avatar !== '/avatars/default.png'
+      ? <Img src={avatar} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      : (display_name[0] || '?').toUpperCase()}
+  </span>
+);
+
+export default function PostDetailClient({ post, initialComments, initialLiked, initialBookmarked, currentUser }: {
+  post: PostProp; initialComments: CommentT[]; initialLiked: boolean; initialBookmarked: boolean; currentUser: CurrentUser | null;
+}) {
+  const [liked, setLiked] = useState(initialLiked);
+  const [likes, setLikes] = useState(post.likes);
+  const [bookmarked, setBookmarked] = useState(initialBookmarked);
+  const [comments, setComments] = useState<CommentT[]>(initialComments);
+  const [commentText, setCommentText] = useState('');
+  const [replyToId, setReplyToId] = useState<number | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  async function toggleLike() {
+    if (!currentUser) { window.location.href = '/login'; return; }
+    const res = await fetch(`/api/quick-facts/${post.id}/like`, { method: 'POST' });
+    if (res.status === 401) { window.location.href = '/login'; return; }
+    const d = await res.json();
+    setLiked(d.liked); setLikes(d.likes);
+  }
+  async function toggleBookmark() {
+    if (!currentUser) { window.location.href = '/login'; return; }
+    const prev = bookmarked; setBookmarked(!prev);
+    const res = await fetch(`/api/quick-facts/${post.id}/bookmark`, { method: 'POST' });
+    const d = await res.json(); setBookmarked(d.bookmarked ?? !prev);
+  }
+  async function submitComment(e: React.FormEvent) {
+    e.preventDefault();
+    if (!commentText.trim()) return;
+    if (!currentUser) { window.location.href = '/login'; return; }
+    const body: { content: string; parent_id?: number } = { content: commentText.trim() };
+    if (replyToId) body.parent_id = replyToId;
+    setCommentText(''); setReplyToId(null);
+    const res = await fetch(`/api/quick-facts/${post.id}/comment`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const d = await res.json();
+    if (d.comment) setComments(prev => [...prev, d.comment]);
+  }
+  async function deleteComment(id: number) {
+    const res = await fetch(`/api/comments/${id}`, { method: 'DELETE' });
+    if (res.ok) setComments(prev => prev.filter(c => c.id !== id));
+  }
+  async function share() {
+    const url = `https://basementonfire.com/p/${post.id}`;
+    try { if (navigator.share) { await navigator.share({ url, title: 'Basements gönderisi' }); return; } } catch { return; }
+    try { await navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch {}
+  }
+
+  const topComments = comments.filter(c => !c.parent_id);
+  const repMap = new Map<number, CommentT[]>();
+  for (const c of comments) { if (c.parent_id) { if (!repMap.has(c.parent_id)) repMap.set(c.parent_id, []); repMap.get(c.parent_id)!.push(c); } }
+
+  return (
+    <main className="main-content" style={{ minHeight: '100vh', background: 'var(--color-bg)', display: 'flex', flexDirection: 'column' }}>
+      <div className="feed-header" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <Link href="/akis" className="back-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
+        </Link>
+        <span>Gönderi</span>
+      </div>
+
+      <div style={{ maxWidth: 600, margin: '0 auto', width: '100%' }}>
+        {/* Medya */}
+        <div style={{ width: '100%', height: '70vh', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+          <MediaCarousel media={factMediaList(post)} caption={post.caption} sizes="(max-width:620px) 100vw, 600px" />
+        </div>
+
+        {/* Yazar */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px' }}>
+          <Link href={`/u/${post.username}`} style={{ textDecoration: 'none' }}><Avatar username={post.username} display_name={post.display_name} avatar={post.avatar} size={40} /></Link>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <Link href={`/u/${post.username}`} style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--color-text)', textDecoration: 'none', display: 'block' }}>{post.display_name}</Link>
+            <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>@{post.username} · {timeAgo(post.created_at)}</span>
+          </div>
+          <button onClick={share} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: '1px solid var(--color-border)', borderRadius: 9999, padding: '6px 12px', cursor: 'pointer', color: 'var(--color-text)', fontFamily: 'inherit', fontSize: '0.82rem', fontWeight: 600 }}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" x2="12" y1="2" y2="15" /></svg>
+            {copied ? 'Kopyalandı' : 'Paylaş'}
+          </button>
+        </div>
+
+        {/* Aksiyonlar */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '2px 16px 8px' }}>
+          <button onClick={toggleLike} style={{ display: 'flex', alignItems: 'center', gap: 7, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.95rem', color: liked ? '#ef4444' : 'var(--color-text)' }}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /></svg>
+            {likes}
+          </button>
+          <button onClick={toggleBookmark} aria-label="Kaydet" style={{ display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', color: bookmarked ? '#d4a564' : 'var(--color-text)', marginLeft: 'auto' }}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill={bookmarked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg>
+          </button>
+        </div>
+
+        {/* Açıklama */}
+        {post.caption && (
+          <div style={{ padding: '4px 16px 14px', fontSize: '0.92rem', lineHeight: 1.6, color: 'var(--color-text)', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+            <Caption text={post.caption} prefix={<Link href={`/u/${post.username}`} style={{ fontWeight: 700, color: 'var(--color-text)', textDecoration: 'none' }}>{post.display_name}</Link>} />
+          </div>
+        )}
+
+        {/* Yorumlar */}
+        <div style={{ borderTop: '1px solid var(--color-border)', padding: '6px 0 12px' }}>
+          {topComments.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '24px 16px', fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>Henüz yorum yok</div>
+          ) : topComments.map(c => (
+            <div key={c.id}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '8px 16px' }}>
+                <Link href={`/u/${c.username}`} style={{ textDecoration: 'none' }}><Avatar username={c.username} display_name={c.display_name} avatar={c.avatar} size={28} /></Link>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <Link href={`/u/${c.username}`} style={{ fontWeight: 700, fontSize: '0.82rem', marginRight: 5, color: 'var(--color-text)', textDecoration: 'none' }}>{c.display_name}</Link>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--color-text)', lineHeight: 1.45, wordBreak: 'break-word' }}>{c.content}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 3 }}>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>{timeAgo(c.created_at)}</span>
+                    {currentUser && <button onClick={() => { setReplyToId(c.id); setCommentText(`@${c.username} `); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-muted)', padding: 0, fontFamily: 'inherit' }}>Yanıtla</button>}
+                  </div>
+                </div>
+                {currentUser?.id === c.user_id && <button onClick={() => deleteComment(c.id)} aria-label="Sil" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: '1rem', lineHeight: 1, padding: '0 4px' }}>×</button>}
+              </div>
+              {(repMap.get(c.id) ?? []).map(r => (
+                <div key={r.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '7px 16px 7px 40px' }}>
+                  <Link href={`/u/${r.username}`} style={{ textDecoration: 'none' }}><Avatar username={r.username} display_name={r.display_name} avatar={r.avatar} size={24} /></Link>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <Link href={`/u/${r.username}`} style={{ fontWeight: 700, fontSize: '0.8rem', marginRight: 5, color: 'var(--color-text)', textDecoration: 'none' }}>{r.display_name}</Link>
+                    <span style={{ fontSize: '0.83rem', color: 'var(--color-text)', lineHeight: 1.45, wordBreak: 'break-word' }}>{r.content}</span>
+                    <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--color-text-muted)', marginTop: 2 }}>{timeAgo(r.created_at)}</span>
+                  </div>
+                  {currentUser?.id === r.user_id && <button onClick={() => deleteComment(r.id)} aria-label="Sil" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: '1rem', lineHeight: 1, padding: '0 4px' }}>×</button>}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+
+        {/* Yorum yaz */}
+        {currentUser ? (
+          <form onSubmit={submitComment} style={{ position: 'sticky', bottom: 0, display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderTop: '1px solid var(--color-border)', background: 'var(--color-surface)' }}>
+            <input value={commentText} onChange={e => setCommentText(e.target.value)} placeholder={replyToId ? '↩ yanıtlanıyor…' : 'Yorum ekle…'} maxLength={300} autoComplete="off" style={{ flex: 1, border: '1px solid var(--color-border)', borderRadius: 9999, padding: '9px 14px', fontSize: '0.88rem', fontFamily: 'inherit', outline: 'none', background: 'var(--color-bg)', color: 'var(--color-text)', minWidth: 0 }} />
+            {replyToId && <button type="button" onClick={() => { setReplyToId(null); setCommentText(''); }} aria-label="İptal" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', fontFamily: 'inherit' }}>×</button>}
+            <button type="submit" aria-label="Gönder" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', opacity: commentText.trim() ? 1 : 0.4, padding: 4 }}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" /></svg>
+            </button>
+          </form>
+        ) : (
+          <div style={{ padding: '14px 16px', borderTop: '1px solid var(--color-border)', textAlign: 'center', fontSize: '0.85rem' }}>
+            <Link href="/login" style={{ color: 'var(--color-primary)', fontWeight: 700, textDecoration: 'none' }}>Yorum yapmak için giriş yap</Link>
+          </div>
+        )}
+      </div>
+    </main>
+  );
+}
