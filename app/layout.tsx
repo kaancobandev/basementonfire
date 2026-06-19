@@ -47,7 +47,7 @@ export const metadata: Metadata = {
   verification: { google: 'TxJYB9Iwy1fdeqw2kUCJXWg1DjDxa3eTRS11P3we60Y' },
 };
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children, modal }: { children: React.ReactNode; modal: React.ReactNode }) {
   const { me } = await getMe();
 
   let unreadCount = 0;
@@ -112,6 +112,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             {children}
           </AppShell>
         </SmoothScroll>
+        {/* Intercepting-route modal slotu (gönderi /p/[id] modalı) — SmoothScroll
+            dışında ki position:fixed transform'lu kapsayıcıdan etkilenmesin */}
+        {modal}
         <CookieConsent gaId={GA_ID} />
       </body>
     </html>

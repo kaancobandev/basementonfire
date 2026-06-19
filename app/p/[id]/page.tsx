@@ -1,22 +1,14 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { db, getMe } from '@/lib/supabase/server';
+import { getMe } from '@/lib/supabase/server';
 import { factMediaList } from '@/lib/types';
 import { breadcrumbJsonLd, jsonLdScript } from '@/lib/seo';
+import { getPost, getPostDetail } from './postData';
 import PostDetailClient from './PostDetailClient';
 
 export const dynamic = 'force-dynamic';
 
 const SITE = 'https://basementonfire.com';
-
-async function getPost(id: number) {
-  const { data } = await db
-    .from('quick_facts')
-    .select('*, users!quick_facts_user_id_fkey(username, display_name, avatar, is_private)')
-    .eq('id', id)
-    .single();
-  return data as any;
-}
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -52,35 +44,11 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
   const postId = Number(id);
   if (!postId) notFound();
 
-  const post = await getPost(postId);
-  if (!post) notFound();
-
   const { me } = await getMe();
+  const detail = await getPostDetail(postId, me?.id ?? null);
+  if (!detail) notFound();
 
-  // Yorumlar sunucuda çekilir → ilk HTML'de görünür (krawler + SEO için UGC)
-  const { data: rawComments } = await db
-    .from('comments')
-    .select('id, content, created_at, parent_id, user_id, users(username, display_name, avatar)')
-    .eq('post_id', postId)
-    .order('created_at', { ascending: true });
-  const comments = (rawComments ?? []).map((c: any) => ({
-    id: c.id, content: c.content, created_at: c.created_at, parent_id: c.parent_id, user_id: c.user_id,
-    username: c.users?.username ?? '', display_name: c.users?.display_name ?? '', avatar: c.users?.avatar ?? null,
-  }));
-
-  // Beğeni/kaydetme durumu sunucuda (yüklemede yanıp sönmeyi önler)
-  let initialLiked = false;
-  let initialBookmarked = false;
-  if (me) {
-    const [lk, bm] = await Promise.all([
-      db.from('fact_likes').select('fact_id').eq('user_id', me.id).eq('fact_id', postId).maybeSingle(),
-      db.from('bookmarks').select('id').eq('user_id', me.id).eq('post_id', postId).maybeSingle(),
-    ]);
-    initialLiked = !!lk.data;
-    initialBookmarked = !!bm.data;
-  }
-
-  const u = post.users || {};
+  const { post, u, comments, initialLiked, initialBookmarked, postProp } = detail;
   const cap = String(post.caption || '').replace(/\s+/g, ' ').trim();
   const cover = factMediaList(post).find((m) => m.type === 'image')?.url;
   const jsonLd = !u.is_private ? {
@@ -109,19 +77,6 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
     { name: u.display_name || `@${u.username}`, path: `/u/${u.username}` },
     { name: 'Gönderi' },
   ]) : null;
-
-  const postProp = {
-    id: post.id,
-    caption: post.caption ?? '',
-    media_url: post.media_url,
-    media_type: post.media_type,
-    media: post.media ?? null,
-    likes: post.likes ?? 0,
-    created_at: post.created_at,
-    username: u.username ?? '',
-    display_name: u.display_name ?? '',
-    avatar: u.avatar ?? null,
-  };
 
   return (
     <>

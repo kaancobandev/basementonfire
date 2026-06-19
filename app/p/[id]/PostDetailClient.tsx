@@ -50,6 +50,7 @@ export default function PostDetailClient({ post, initialComments, initialLiked, 
     const res = await fetch(`/api/quick-facts/${post.id}/like`, { method: 'POST' });
     if (res.status === 401) { window.location.href = '/login'; return; }
     const d = await res.json();
+    if (!res.ok || typeof d.liked === 'undefined') return;
     setLiked(d.liked); setLikes(d.likes);
   }
   async function toggleBookmark() {
