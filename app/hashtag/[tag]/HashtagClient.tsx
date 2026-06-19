@@ -16,9 +16,9 @@ interface Post {
   media?: { url: string; type: 'image' | 'video' }[] | null;
 }
 
-interface Props { tag: string; posts: Post[]; }
+interface Props { tag: string; posts: Post[]; related?: { tag: string; count: number }[]; }
 
-export default function HashtagClient({ tag, posts }: Props) {
+export default function HashtagClient({ tag, posts, related = [] }: Props) {
   const isMobile = useIsMobile();
   const [selected, setSelected] = useState<Post | null>(null);
 
@@ -57,6 +57,27 @@ export default function HashtagClient({ tag, posts }: Props) {
           </p>
         </div>
       </div>
+
+      {/* İlgili etiketler — konu kümesi iç bağlantıları */}
+      {related.length > 0 && (
+        <nav aria-label="İlgili etiketler" style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border)' }}>
+          <h2 style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px' }}>
+            İlgili etiketler
+          </h2>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {related.map(r => (
+              <Link
+                key={r.tag}
+                href={`/hashtag/${r.tag}`}
+                className="ht-related-chip"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '5px 12px', borderRadius: 9999, border: '1px solid var(--color-border)', background: 'var(--color-bg)', color: 'var(--color-text)', fontSize: '0.82rem', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}
+              >
+                <span style={{ color: '#d4a564' }}>#</span>{r.tag}
+              </Link>
+            ))}
+          </div>
+        </nav>
+      )}
 
       {/* Boş durum */}
       {posts.length === 0 && (
@@ -179,6 +200,7 @@ export default function HashtagClient({ tag, posts }: Props) {
       <style>{`
         .ht-cell:hover img, .ht-cell:hover video { transform: scale(1.05); }
         .ht-cell:hover .ht-cell-overlay { opacity: 1 !important; }
+        .ht-related-chip:hover { border-color: var(--color-primary); color: var(--color-primary); }
         @media (max-width: 640px) {
           div[style*="max-width: 820px"] {
             flex-direction: column !important;

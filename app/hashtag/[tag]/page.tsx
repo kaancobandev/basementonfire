@@ -6,6 +6,8 @@ import HashtagClient from './HashtagClient';
 
 export const dynamic = 'force-dynamic';
 
+const SITE = 'https://basementonfire.com';
+
 export async function generateMetadata({ params }: { params: Promise<{ tag: string }> }): Promise<Metadata> {
   const { tag } = await params;
   const t = tag.toLowerCase();
@@ -50,6 +52,7 @@ export default async function HashtagPage({ params }: { params: Promise<{ tag: s
     id: number; media_url: string; media_type: string;
     caption: string; likes: number; created_at: string;
     display_name: string; username: string; avatarBg: string;
+    is_private: boolean;
     media?: { url: string; type: 'image' | 'video' }[] | null;
   };
 
@@ -61,7 +64,7 @@ export default async function HashtagPage({ params }: { params: Promise<{ tag: s
       .select(`
         post:post_id(
           *,
-          users!quick_facts_user_id_fkey(display_name, username)
+          users!quick_facts_user_id_fkey(display_name, username, is_private)
         )
       `)
       .eq('hashtag_id', hashtagRow.id)
@@ -84,9 +87,33 @@ export default async function HashtagPage({ params }: { params: Promise<{ tag: s
           display_name: (p.users?.display_name ?? '') as string,
           username:     (p.users?.username ?? '')     as string,
           avatarBg:     avatarBg(p.users?.username ?? 'a'),
+          is_private:   Boolean(p.users?.is_private),
         };
       })
       .filter(Boolean) as Post[];
+  }
+
+  // İlgili etiketler: aynı gönderilerde bu etiketle birlikte geçen diğer hashtag'ler.
+  // İç bağlantı kümesi oluşturur → konu otoritesi (topical authority) sinyali + keşif.
+  let related: { tag: string; count: number }[] = [];
+  if (hashtagRow && posts.length) {
+    const postIds = posts.map((p) => p.id);
+    const { data: co } = await db
+      .from('post_hashtags')
+      .select('hashtag_id')
+      .in('post_id', postIds)
+      .neq('hashtag_id', hashtagRow.id);
+    const counts = new Map<number, number>();
+    for (const r of (co ?? []) as { hashtag_id: number }[]) {
+      counts.set(r.hashtag_id, (counts.get(r.hashtag_id) ?? 0) + 1);
+    }
+    const topIds = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12).map(([id]) => id);
+    if (topIds.length) {
+      const { data: tagRows } = await db.from('hashtags').select('id, tag').in('id', topIds);
+      related = (tagRows ?? [])
+        .map((t: any) => ({ tag: t.tag as string, count: counts.get(t.id) ?? 0 }))
+        .sort((a, b) => b.count - a.count);
+    }
   }
 
   const breadcrumbLd = breadcrumbJsonLd([
@@ -94,10 +121,38 @@ export default async function HashtagPage({ params }: { params: Promise<{ tag: s
     { name: `#${normalizedTag}` },
   ]);
 
+  // Hashtag sayfasını bir koleksiyon (gönderi listesi) olarak işaretle.
+  // ItemList YALNIZCA herkese açık gönderileri içerir: gizli hesap gönderileri
+  // /p/[id]'de noindex olduğundan yapılandırılmış veriye girmemeli (sitemap +
+  // indexnow filtreleriyle tutarlı). Izgara mevcut /akis davranışıyla aynı kalır.
+  const publicPosts = posts.filter((p) => !p.is_private);
+  const collectionLd = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: `#${normalizedTag}`,
+    url: `${SITE}/hashtag/${normalizedTag}`,
+    inLanguage: 'tr-TR',
+    isPartOf: { '@type': 'WebSite', name: 'Basements', url: SITE },
+    ...(publicPosts.length
+      ? {
+          mainEntity: {
+            '@type': 'ItemList',
+            numberOfItems: publicPosts.length,
+            itemListElement: publicPosts.slice(0, 30).map((p, i) => ({
+              '@type': 'ListItem',
+              position: i + 1,
+              url: `${SITE}/p/${p.id}`,
+            })),
+          },
+        }
+      : {}),
+  };
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbLd) }} />
-      <HashtagClient tag={normalizedTag} posts={posts} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(collectionLd) }} />
+      <HashtagClient tag={normalizedTag} posts={posts} related={related} />
     </>
   );
 }

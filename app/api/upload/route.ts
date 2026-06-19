@@ -1,6 +1,7 @@
 import { db, getMe } from '@/lib/supabase/server';
 import { NextResponse, after } from 'next/server';
 import { submitToIndexNow, postUrl, profileUrl, isLiveRequest } from '@/lib/indexnow';
+import { parseHashtags } from '@/lib/caption';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
 const MAX_MEDIA = 20;
@@ -72,11 +73,28 @@ export async function POST(req: Request) {
     return json({ error: 'Veritabanına kaydedilemedi.' }, 500);
   }
 
+  const newId = created.id;
+
+  // Caption'daki #etiketleri çıkar → hashtags + post_hashtags tablolarına işle.
+  // Best-effort: hata gönderi oluşturmayı geçersiz kılmaz. hashtags.tag üzerinde
+  // unique kısıt (hashtags_tag_key) olduğundan upsert yarış-güvenlidir.
+  try {
+    const tags = parseHashtags(caption).slice(0, 30);
+    if (tags.length) {
+      await db.from('hashtags').upsert(tags.map((tag) => ({ tag })), { onConflict: 'tag', ignoreDuplicates: true });
+      const { data: tagRows } = await db.from('hashtags').select('id, tag').in('tag', tags);
+      if (tagRows?.length) {
+        await db.from('post_hashtags').insert(tagRows.map((h: any) => ({ post_id: newId, hashtag_id: h.id })));
+      }
+    }
+  } catch (e) {
+    console.error('[upload] hashtag çıkarma başarısız:', (e as Error)?.message ?? e);
+  }
+
   // Yeni gönderi sayfası (+ değişen profil ızgarası) arama motorlarına anında bildirilir.
   // Yanıt gönderildikten SONRA çalışır (after) → kullanıcıyı bekletmez, akışı bozmaz.
   // Yalnızca gerçek üretim isteğinde (isLiveRequest) ve gizli olmayan hesapta
   // (gizli gönderiler zaten noindex) ping atılır.
-  const newId = created.id;
   if (!me.is_private && isLiveRequest(req)) {
     after(() => submitToIndexNow([postUrl(newId), profileUrl(me.username)]));
   }
