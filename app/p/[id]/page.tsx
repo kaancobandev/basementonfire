@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { db, getMe } from '@/lib/supabase/server';
 import { factMediaList } from '@/lib/types';
+import { breadcrumbJsonLd, jsonLdScript } from '@/lib/seo';
 import PostDetailClient from './PostDetailClient';
 
 export const dynamic = 'force-dynamic';
@@ -102,6 +103,13 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
     ],
   } : null;
 
+  // Kırıntı navigasyonu: Ana Sayfa → @kullanıcı → Gönderi (gizli hesapta noindex olduğundan atlanır)
+  const breadcrumbLd = !u.is_private ? breadcrumbJsonLd([
+    { name: 'Ana Sayfa', path: '/' },
+    { name: u.display_name || `@${u.username}`, path: `/u/${u.username}` },
+    { name: 'Gönderi' },
+  ]) : null;
+
   const postProp = {
     id: post.id,
     caption: post.caption ?? '',
@@ -117,7 +125,8 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
 
   return (
     <>
-      {jsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />}
+      {jsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />}
+      {breadcrumbLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbLd) }} />}
       <PostDetailClient
         post={postProp}
         initialComments={comments}

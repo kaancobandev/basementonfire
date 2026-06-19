@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { breadcrumbJsonLd, jsonLdScript } from '@/lib/seo';
 import CarthageClient from './CarthageClient';
 
 const title = 'Kartaca';
@@ -27,10 +28,17 @@ const jsonLd = {
   publisher: { '@type': 'Organization', name: 'Basements' },
 };
 
+const breadcrumbLd = breadcrumbJsonLd([
+  { name: 'Ana Sayfa', path: '/' },
+  { name: 'Keşfet', path: '/discover' },
+  { name: title },
+]);
+
 export default function Page() {
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbLd) }} />
       <CarthageClient />
     </>
   );

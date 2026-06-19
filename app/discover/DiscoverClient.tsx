@@ -3,7 +3,7 @@
 import Img from '@/app/components/Img';
 import { AudioThumb } from '@/app/components/MediaCarousel';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
 interface User { id: number; username: string; display_name: string; bio: string | null; avatar: string | null; avatarBg: string; }
@@ -15,6 +15,7 @@ interface Props {
   media: MediaPost[];
   articles: Article[];
   isLoggedIn: boolean;
+  initialQuery?: string;
 }
 
 function avatarBg(u: string) {
@@ -22,11 +23,17 @@ function avatarBg(u: string) {
   let h = 0; for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff; return gs[Math.abs(h) % gs.length];
 }
 
-export default function DiscoverClient({ users, media, articles, isLoggedIn }: Props) {
-  const [query, setQuery] = useState('');
+export default function DiscoverClient({ users, media, articles, isLoggedIn, initialQuery = '' }: Props) {
+  const [query, setQuery] = useState(initialQuery);
   const [searchResults, setSearchResults] = useState<{ users: User[]; posts: MediaPost[] } | null>(null);
   const [searching, setSearching] = useState(false);
   const [followed, setFollowed] = useState<Set<string>>(new Set());
+
+  // URL'de ?q=... ile gelindiğinde (örn. Google sitelinks arama kutusu) otomatik ara.
+  useEffect(() => {
+    if (initialQuery.trim()) doSearch(initialQuery);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialQuery]);
 
   async function doSearch(q: string) {
     if (!q.trim()) { setSearchResults(null); return; }

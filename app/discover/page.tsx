@@ -21,8 +21,10 @@ function avatarBg(u: string) {
   let h = 0; for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff; return gs[Math.abs(h) % gs.length];
 }
 
-export default async function DiscoverPage() {
+export default async function DiscoverPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const { me } = await getMe();
+  const sp = await searchParams;
+  const initialQuery = typeof sp.q === 'string' ? sp.q : '';
 
   // Recent users
   const { data: users, error: usersErr } = await db.from('users').select('id, username, display_name, bio, avatar').order('created_at', { ascending: false }).limit(20);
@@ -48,6 +50,7 @@ export default async function DiscoverPage() {
       media={media}
       articles={articles}
       isLoggedIn={!!me}
+      initialQuery={initialQuery}
     />
   );
 }

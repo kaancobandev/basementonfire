@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { db, getMe } from '@/lib/supabase/server';
+import { breadcrumbJsonLd, jsonLdScript } from '@/lib/seo';
 import UserProfileClient from './UserProfileClient';
 
 export const dynamic = 'force-dynamic';
@@ -119,9 +120,16 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
     },
   } : null;
 
+  // Kırıntı navigasyonu: Ana Sayfa → @kullanıcı (gizli profilde gösterilmez)
+  const breadcrumbLd = !isHidden ? breadcrumbJsonLd([
+    { name: 'Ana Sayfa', path: '/' },
+    { name: profileUser.display_name || `@${profileUser.username}` },
+  ]) : null;
+
   return (
     <>
-      {profileJsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(profileJsonLd) }} />}
+      {profileJsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(profileJsonLd) }} />}
+      {breadcrumbLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbLd) }} />}
     <UserProfileClient
       profileUser={{
         id: profileUser.id,

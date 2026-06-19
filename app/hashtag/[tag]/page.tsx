@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { db, logIfError } from '@/lib/supabase/server';
+import { breadcrumbJsonLd, jsonLdScript } from '@/lib/seo';
 import HashtagClient from './HashtagClient';
 
 export const dynamic = 'force-dynamic';
@@ -88,5 +89,15 @@ export default async function HashtagPage({ params }: { params: Promise<{ tag: s
       .filter(Boolean) as Post[];
   }
 
-  return <HashtagClient tag={normalizedTag} posts={posts} />;
+  const breadcrumbLd = breadcrumbJsonLd([
+    { name: 'Ana Sayfa', path: '/' },
+    { name: `#${normalizedTag}` },
+  ]);
+
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbLd) }} />
+      <HashtagClient tag={normalizedTag} posts={posts} />
+    </>
+  );
 }

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { db, getMe, logIfError } from '@/lib/supabase/server';
 import { flattenFacts, flattenPosts, type QuickFact, type Post } from '@/lib/types';
 import HomeFeed from './components/HomeFeed';
+import { jsonLdScript } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,6 +17,15 @@ const websiteJsonLd = {
   url: 'https://basementonfire.com',
   inLanguage: 'tr-TR',
   description: 'Bilim, tarih ve kültürü interaktif makaleler ve toplulukla keşfet.',
+  // Sitelinks arama kutusu: Google sonuçlarında doğrudan site içi arama sunabilir.
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: {
+      '@type': 'EntryPoint',
+      urlTemplate: 'https://basementonfire.com/discover?q={search_term_string}',
+    },
+    'query-input': 'required name=search_term_string',
+  },
 };
 
 export default async function HomePage() {
@@ -106,7 +116,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(websiteJsonLd) }} />
       <HomeFeed
         feedItems={feedItems as any}
         likedFactIds={likedFactIds}
