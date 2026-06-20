@@ -1,6 +1,3 @@
-'use client';
-
-import { useState } from 'react';
 import Link from 'next/link';
 
 const gods = [
@@ -41,17 +38,7 @@ const compareBars = [
   { label: 'Ticaret',        athens: 85, sparta: 30 },
 ];
 
-const TABS = [
-  { id: 'kurulus',  label: 'Kuruluş' },
-  { id: 'tanrilar', label: 'Tanrılar' },
-  { id: 'iskender', label: 'İskender' },
-  { id: 'olimpiyat',label: 'Olimpiyat' },
-];
-
 export default function GreecePage() {
-  const [activeSection, setActiveSection] = useState('kurulus');
-  const [selectedGod, setSelectedGod] = useState<typeof gods[0] | null>(null);
-
   return (
     <main className="main-content gr-page">
 
@@ -61,17 +48,6 @@ export default function GreecePage() {
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6"/></svg>
         </Link>
         <span className="gr-topbar-title">Antik Yunan</span>
-        <nav className="gr-tab-nav">
-          {TABS.map(t => (
-            <button
-              key={t.id}
-              className={`gr-tab-btn${activeSection === t.id ? ' active' : ''}`}
-              onClick={() => setActiveSection(t.id)}
-            >
-              {t.label}
-            </button>
-          ))}
-        </nav>
       </div>
 
       {/* ── Hero ── */}
@@ -87,8 +63,7 @@ export default function GreecePage() {
       </header>
 
       {/* ── Kuruluş: Atina vs Sparta ── */}
-      {activeSection === 'kurulus' && (
-        <section className="gr-section">
+      <section className="gr-section">
           <h2 className="gr-section-title">Atina vs Sparta — İki Şehir, İki Dünya</h2>
           <div className="gr-card">
             <div className="gr-city-row">
@@ -123,39 +98,27 @@ export default function GreecePage() {
             </div>
           </div>
         </section>
-      )}
 
       {/* ── Tanrılar ── */}
-      {activeSection === 'tanrilar' && (
-        <section className="gr-section">
-          <h2 className="gr-section-title">Olimpos Tanrıları</h2>
-          <p className="gr-section-sub">Karta tıklayarak daha fazla bilgi edinin</p>
-          <div className="gr-gods-grid">
-            {gods.map(g => (
-              <div
-                key={g.name}
-                className={`gr-god-card${selectedGod?.name === g.name ? ' selected' : ''}`}
-                style={{ borderColor: `${g.color}40`, boxShadow: selectedGod?.name === g.name ? `0 0 20px ${g.color}40` : 'none' }}
-                onClick={() => setSelectedGod(selectedGod?.name === g.name ? null : g)}
-              >
-                <div className="gr-god-emoji">{g.emoji}</div>
-                <h3 className="gr-god-name" style={{ color: g.color }}>{g.name}</h3>
-                <div className="gr-god-domain">{g.domain}</div>
-                {selectedGod?.name === g.name && (
-                  <div className="gr-god-detail" style={{ borderTopColor: `${g.color}40` }}>
-                    <p className="gr-god-desc">{g.desc}</p>
-                    <div className="gr-god-symbol" style={{ color: g.color }}>🔱 {g.symbol}</div>
-                  </div>
-                )}
+      <section className="gr-section">
+        <h2 className="gr-section-title">Olimpos Tanrıları</h2>
+        <div className="gr-gods-grid">
+          {gods.map(g => (
+            <div key={g.name} className="gr-god-card" style={{ borderColor: `${g.color}40` }}>
+              <div className="gr-god-emoji">{g.emoji}</div>
+              <h3 className="gr-god-name" style={{ color: g.color }}>{g.name}</h3>
+              <div className="gr-god-domain">{g.domain}</div>
+              <div className="gr-god-detail" style={{ borderTopColor: `${g.color}40` }}>
+                <p className="gr-god-desc">{g.desc}</p>
+                <div className="gr-god-symbol" style={{ color: g.color }}>🔱 {g.symbol}</div>
               </div>
-            ))}
-          </div>
-        </section>
-      )}
+            </div>
+          ))}
+        </div>
+      </section>
 
       {/* ── İskender ── */}
-      {activeSection === 'iskender' && (
-        <section className="gr-section gr-section--narrow">
+      <section className="gr-section gr-section--narrow">
           <h2 className="gr-section-title">Büyük İskender'in Yolculuğu</h2>
           <div className="gr-timeline">
             {alexTimeline.map((t, i) => (
@@ -169,24 +132,21 @@ export default function GreecePage() {
             ))}
           </div>
         </section>
-      )}
 
       {/* ── Olimpiyat ── */}
-      {activeSection === 'olimpiyat' && (
-        <section className="gr-section">
-          <h2 className="gr-section-title">Antik Olimpiyat Oyunları</h2>
-          <p className="gr-section-sub">MÖ 776'dan MS 393'e kadar Zeus onuruna düzenlenmiştir</p>
-          <div className="gr-sports-grid">
-            {sports.map(s => (
-              <div key={s.sport} className="gr-sport-card">
-                <div className="gr-sport-icon">{s.icon}</div>
-                <h3 className="gr-sport-name">{s.sport}</h3>
-                <p className="gr-sport-desc">{s.desc}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+      <section className="gr-section">
+        <h2 className="gr-section-title">Antik Olimpiyat Oyunları</h2>
+        <p className="gr-section-sub">MÖ 776'dan MS 393'e kadar Zeus onuruna düzenlenmiştir</p>
+        <div className="gr-sports-grid">
+          {sports.map(s => (
+            <div key={s.sport} className="gr-sport-card">
+              <div className="gr-sport-icon">{s.icon}</div>
+              <h3 className="gr-sport-name">{s.sport}</h3>
+              <p className="gr-sport-desc">{s.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
 
       <style>{`
         /* ── Temel ── */
@@ -226,35 +186,6 @@ export default function GreecePage() {
           font-size: 0.95rem;
           color: #7ec8e3;
           flex-shrink: 0;
-        }
-        .gr-tab-nav {
-          display: flex;
-          gap: 6px;
-          margin-left: auto;
-          overflow-x: auto;
-          scrollbar-width: none;
-          padding-bottom: 2px;
-        }
-        .gr-tab-nav::-webkit-scrollbar { display: none; }
-        .gr-tab-btn {
-          background: rgba(126,200,227,0.08);
-          color: #7ec8e3;
-          border: 1px solid rgba(126,200,227,0.25);
-          border-radius: 8px;
-          padding: 5px 12px;
-          font-size: 0.78rem;
-          font-weight: 600;
-          cursor: pointer;
-          font-family: inherit;
-          white-space: nowrap;
-          transition: all 0.15s;
-          flex-shrink: 0;
-        }
-        .gr-tab-btn:hover { border-color: rgba(126,200,227,0.5); }
-        .gr-tab-btn.active {
-          background: #7ec8e3;
-          color: #0a1628;
-          border-color: #7ec8e3;
         }
 
         /* ── Hero ── */
@@ -387,11 +318,7 @@ export default function GreecePage() {
           border: 1px solid rgba(255,255,255,0.1);
           border-radius: 14px;
           padding: 16px;
-          cursor: pointer;
-          transition: transform 0.2s, box-shadow 0.2s;
         }
-        .gr-god-card:hover { transform: translateY(-2px); }
-        .gr-god-card.selected { transform: scale(1.02); }
         .gr-god-emoji  { font-size: 2.2rem; margin-bottom: 8px; }
         .gr-god-name   { font-size: 0.95rem; font-weight: 800; margin: 0 0 4px; }
         .gr-god-domain { font-size: 0.74rem; color: #8090a8; margin-bottom: 8px; }
@@ -474,7 +401,6 @@ export default function GreecePage() {
 
         /* ── Responsive ── */
         @media (max-width: 600px) {
-          .gr-topbar-title { display: none; }
           .gr-section { padding: 24px 12px 60px; }
           .gr-card { padding: 16px; }
           .gr-city-row { grid-template-columns: 1fr 1fr; gap: 8px; }
