@@ -15,6 +15,15 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: '*.supabase.co' },
     ],
   },
+  // Eski statik içerik sayfaları React route'lara taşındı → kalıcı yönlendirme.
+  async redirects() {
+    return [
+      { source: '/icerik/ekonomi.html', destination: '/articles/ekonomi', permanent: true },
+      { source: '/icerik/einstein-rosen-koprusu.html', destination: '/articles/einstein-rosen', permanent: true },
+      { source: '/icerik/arcade-oyunlar.html', destination: '/articles/arcade', permanent: true },
+      { source: '/icerik/tibbi-gercek.html', destination: '/articles/tibbi', permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;
