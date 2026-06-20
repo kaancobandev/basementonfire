@@ -42,6 +42,10 @@ export default async function DiscoverPage({ searchParams }: { searchParams: Pro
     { slug: 'rome', title: 'Roma İmparatorluğu', emoji: '🏛️', desc: 'Bin yıllık medeniyet' },
     { slug: 'greece', title: 'Antik Yunan', emoji: '⚡', desc: 'Demokrasinin beşiği' },
     { slug: 'carthage', title: 'Kartaca', emoji: '⚓', desc: 'Akdeniz\'in efendileri' },
+    { slug: 'ekonomi', title: 'Ekonominin Dili', emoji: '📈', desc: 'Faiz, parite, borsa — interaktif sözlük', href: '/icerik/ekonomi.html' },
+    { slug: 'einstein-rosen', title: 'Einstein–Rosen Köprüsü', emoji: '🌀', desc: 'İnteraktif solucan deliği rehberi', href: '/icerik/einstein-rosen-koprusu.html' },
+    { slug: 'arcade', title: 'Arcade', emoji: '🕹️', desc: 'Oyun salonu tarihi + oynanabilir klasikler', href: '/icerik/arcade-oyunlar.html' },
+    { slug: 'tibbi-gercek', title: '15 Tuhaf Tıbbi Olgu', emoji: '🧬', desc: 'Doğrulanmış akıl almaz tıp gerçekleri', href: '/icerik/tibbi-gercek.html' },
   ];
 
   return (

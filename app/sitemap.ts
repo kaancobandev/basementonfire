@@ -24,6 +24,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.9,
   }));
 
+  // Statik interaktif içerik sayfaları (public/icerik/*.html)
+  const icerikPages = ['ekonomi', 'einstein-rosen-koprusu', 'arcade-oyunlar', 'tibbi-gercek'];
+  const icerikRoutes: MetadataRoute.Sitemap = icerikPages.map(p => ({
+    url: `${SITE_URL}/icerik/${p}.html`,
+    lastModified: now,
+    changeFrequency: 'monthly',
+    priority: 0.8,
+  }));
+
   let dynamicRoutes: MetadataRoute.Sitemap = [];
   try {
     const [{ data: users }, { data: tags }, { data: posts }] = await Promise.all([
@@ -64,5 +73,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // DB erişilemezse statik + makale haritası yine de döner
   }
 
-  return [...staticRoutes, ...articleRoutes, ...dynamicRoutes];
+  return [...staticRoutes, ...articleRoutes, ...icerikRoutes, ...dynamicRoutes];
 }

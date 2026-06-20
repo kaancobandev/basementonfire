@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ekonominin Dili — Faizden Pariteye Temel Kavramlar · Basements</title>
+<meta name="description" content="Faiz, bileşik faiz, emtia, likidite, resesyon, stagflasyon, SWIFT/EFT/FAST, borsa, temettü, parite ve daha fazlası — interaktif araçlarla anlatılan ekonomi sözlüğü.">
+<script>
+  document.documentElement.classList.add('js');
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('reduced');
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0d12; --bg2:#10151d; --panel:#131922; --panel2:#172030;
+    --ink:#eef2f8; --dim:#9fb0c6; --faint:#6b7c92; --line:rgba(255,255,255,0.09); --line2:rgba(255,255,255,0.05);
+    --green:#2fd6a0; --gold:#f5b942; --blue:#4d9bff; --purple:#a78bfa; --teal:#34d3d3; --red:#ff6b6b;
+    --acc:var(--green);
+    --maxw:1080px; --readw:720px;
+    --disp:"Space Grotesk","Segoe UI",system-ui,sans-serif;
+    --ui:"Inter","Segoe UI",system-ui,sans-serif;
+    --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%; scroll-behavior:smooth;}
+  html.reduced{scroll-behavior:auto;}
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:var(--ui); font-size:17px; line-height:1.65; -webkit-font-smoothing:antialiased; overflow-x:hidden;
+    background-image:radial-gradient(900px 480px at 78% -8%, rgba(47,214,160,0.10), transparent 60%), radial-gradient(700px 440px at 8% 12%, rgba(77,155,255,0.07), transparent 60%); }
+  a{ color:var(--acc); text-decoration:none; }
+  .shell{ max-width:var(--maxw); margin:0 auto; padding:0 24px; }
+  .read{ max-width:var(--readw); margin-left:auto; margin-right:auto; }
+  .mono{ font-family:var(--mono); }
+
+  .progress{ position:fixed; top:0; left:0; right:0; height:3px; z-index:120; background:linear-gradient(90deg,var(--green),var(--gold),var(--blue),var(--purple)); transform:scaleX(0); transform-origin:0 50%; }
+  html.reduced .progress{ display:none; }
+
+  /* brandbar */
+  .brandbar{ position:relative; z-index:30; display:flex; align-items:center; gap:14px; max-width:var(--maxw); margin:0 auto; padding:22px 24px 0; }
+  .brandbar .mark{ font-family:var(--disp); font-weight:700; font-size:0.82rem; letter-spacing:0.16em; }
+  .brandbar .mark b{ color:var(--green); }
+  .brandbar .rule{ flex:1; height:1px; background:var(--line); }
+  .brandbar .tag{ font-family:var(--mono); font-size:0.66rem; letter-spacing:0.12em; color:var(--dim); }
+
+  /* ticker */
+  .ticker{ position:relative; z-index:20; margin-top:18px; border-top:1px solid var(--line); border-bottom:1px solid var(--line); background:rgba(255,255,255,0.015); overflow:hidden; white-space:nowrap; }
+  .ticker .track{ display:inline-block; padding:9px 0; font-family:var(--mono); font-size:0.74rem; letter-spacing:0.04em; color:var(--dim); }
+  html.js:not(.reduced) .ticker .track{ animation:scroll 42s linear infinite; }
+  .ticker .track span{ margin:0 18px; }
+  .ticker .up{ color:var(--green); } .ticker .dn{ color:var(--red); }
+  @keyframes scroll{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
+
+  /* hero */
+  .hero{ position:relative; padding:3.6rem 24px 2.4rem; text-align:center; }
+  .hero .ey{ font-family:var(--mono); font-size:0.74rem; letter-spacing:0.18em; color:var(--green); text-transform:uppercase; }
+  .hero h1{ font-family:var(--disp); font-weight:700; font-size:clamp(2.2rem,6.5vw,4rem); line-height:1.04; letter-spacing:-0.02em; margin:1rem 0 0; }
+  .hero h1 .g{ background:linear-gradient(120deg,var(--green),var(--gold)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .hero p{ max-width:54ch; margin:1.4rem auto 0; color:var(--dim); font-size:clamp(1rem,2vw,1.18rem); }
+
+  .disclaim{ max-width:640px; margin:2rem auto 0; display:flex; gap:12px; align-items:flex-start; padding:14px 16px; border:1px solid var(--line); background:var(--panel); border-radius:10px; font-size:0.86rem; color:var(--dim); text-align:left; }
+  .disclaim b{ color:var(--ink); }
+  .disclaim .i{ flex:none; width:22px; height:22px; border-radius:50%; background:rgba(245,185,66,0.16); color:var(--gold); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.8rem; }
+
+  /* toc */
+  .toc{ display:flex; flex-wrap:wrap; gap:9px; justify-content:center; margin-top:2.4rem; }
+  .toc a{ font-family:var(--ui); font-weight:600; font-size:0.84rem; color:var(--ink); border:1px solid var(--line); background:var(--panel); border-radius:999px; padding:0.55em 1em; transition:border-color .2s, transform .2s; }
+  .toc a:hover{ border-color:var(--c); transform:translateY(-2px); }
+  .toc a .num{ font-family:var(--mono); color:var(--c); margin-right:6px; }
+
+  /* section */
+  section.block{ padding:4rem 0; position:relative; scroll-margin-top:20px; }
+  .seclead{ max-width:var(--readw); margin:0 auto; }
+  .secno{ font-family:var(--mono); font-size:0.78rem; letter-spacing:0.1em; color:var(--acc); }
+  h2.title{ font-family:var(--disp); font-weight:700; font-size:clamp(1.7rem,4vw,2.4rem); line-height:1.12; letter-spacing:-0.015em; margin:0.5rem 0 1rem; }
+  .lead{ color:var(--dim); font-size:1.06rem; }
+  .lead b{ color:var(--ink); }
+  .divider{ height:1px; background:var(--line); max-width:var(--maxw); margin:0 auto; }
+
+  /* term grid */
+  .terms{ max-width:var(--maxw); margin:2.2rem auto 0; display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+  .term{ position:relative; background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--acc); border-radius:12px; padding:18px 20px; }
+  .term h4{ font-family:var(--disp); font-weight:600; font-size:1.1rem; margin:0 0 0.5rem; display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
+  .term h4 .en{ font-family:var(--mono); font-weight:400; font-size:0.72rem; color:var(--faint); letter-spacing:0.02em; }
+  .term p{ margin:0; color:#cdd8e8; font-size:0.96rem; line-height:1.6; }
+  .term p + p{ margin-top:0.6rem; color:var(--dim); font-size:0.9rem; }
+  .term .ek{ font-family:var(--mono); font-size:0.58rem; letter-spacing:0.08em; color:var(--acc); border:1px solid color-mix(in srgb, var(--acc) 45%, transparent); border-radius:5px; padding:1px 5px; text-transform:uppercase; align-self:center; }
+  mark{ background:none; color:var(--acc); font-weight:600; }
+
+  /* generic card / tool */
+  .tool{ max-width:var(--maxw); margin:2.4rem auto 0; background:linear-gradient(180deg,var(--panel2),var(--panel)); border:1px solid var(--line); border-radius:16px; padding:22px; }
+  .tool .th{ display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+  .tool .th .dot{ width:9px; height:9px; border-radius:50%; background:var(--acc); box-shadow:0 0 10px var(--acc); }
+  .tool .th h3{ font-family:var(--disp); font-weight:600; font-size:1.15rem; margin:0; }
+  .tool .ts{ color:var(--dim); font-size:0.9rem; margin:0 0 18px; }
+
+  /* compound calc */
+  .calc-grid{ display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:start; }
+  .ctrl{ margin-bottom:16px; }
+  .ctrl label{ display:flex; justify-content:space-between; align-items:baseline; font-size:0.88rem; color:var(--dim); margin-bottom:7px; }
+  .ctrl label .v{ font-family:var(--mono); color:var(--ink); font-size:0.96rem; }
+  input[type=range]{ -webkit-appearance:none; appearance:none; width:100%; height:5px; border-radius:5px; background:rgba(255,255,255,0.1); outline:none; }
+  input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; width:18px; height:18px; border-radius:50%; background:var(--acc); cursor:pointer; border:3px solid var(--bg); box-shadow:0 0 0 1px var(--acc); }
+  input[type=range]::-moz-range-thumb{ width:16px; height:16px; border-radius:50%; background:var(--acc); cursor:pointer; border:3px solid var(--bg); }
+  .seg{ display:inline-flex; gap:4px; background:rgba(255,255,255,0.05); padding:4px; border-radius:9px; flex-wrap:wrap; }
+  .seg button{ font-family:var(--ui); font-weight:600; font-size:0.78rem; color:var(--dim); background:none; border:none; padding:0.45em 0.7em; border-radius:6px; cursor:pointer; transition:all .15s; }
+  .seg button.on{ background:var(--acc); color:#0a0d12; }
+  .calc-out{ background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:18px; }
+  .bigval{ font-family:var(--mono); font-weight:700; font-size:clamp(1.5rem,4vw,2rem); color:var(--green); line-height:1.1; }
+  .bigval .cur{ font-size:0.6em; color:var(--dim); }
+  .outrow{ display:flex; justify-content:space-between; padding:9px 0; border-top:1px solid var(--line2); font-size:0.9rem; }
+  .outrow:first-of-type{ border-top:none; }
+  .outrow span:first-child{ color:var(--dim); }
+  .outrow span:last-child{ font-family:var(--mono); color:var(--ink); }
+  .outrow.hi span:last-child{ color:var(--gold); }
+  canvas.chart{ display:block; width:100%; height:auto; margin-top:14px; border-radius:8px; }
+  .chart-legend{ display:flex; gap:16px; margin-top:8px; font-size:0.8rem; color:var(--dim); }
+  .chart-legend i{ display:inline-block; width:18px; height:3px; border-radius:2px; vertical-align:middle; margin-right:6px; }
+
+  /* 2x2 matrix */
+  .matrix-wrap{ max-width:560px; margin:0 auto; }
+  .axis-top{ text-align:center; font-family:var(--mono); font-size:0.72rem; color:var(--faint); margin-bottom:8px; letter-spacing:0.06em; }
+  .mrow{ display:flex; align-items:stretch; }
+  .axis-left{ writing-mode:vertical-rl; transform:rotate(180deg); display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:0.72rem; color:var(--faint); letter-spacing:0.06em; padding-right:8px; }
+  .quads{ display:grid; grid-template-columns:1fr 1fr; gap:8px; flex:1; }
+  .quad{ border:1px solid var(--line); border-radius:12px; padding:16px; cursor:pointer; transition:transform .18s, border-color .18s, background .18s; min-height:118px; }
+  .quad:hover, .quad.active{ transform:translateY(-3px); }
+  .quad.q-stag{ background:rgba(255,107,107,0.06); } .quad.q-stag:hover,.quad.q-stag.active{ border-color:var(--red); background:rgba(255,107,107,0.12); }
+  .quad.q-hot{ background:rgba(245,185,66,0.06); } .quad.q-hot:hover,.quad.q-hot.active{ border-color:var(--gold); background:rgba(245,185,66,0.12); }
+  .quad.q-good{ background:rgba(47,214,160,0.06); } .quad.q-good:hover,.quad.q-good.active{ border-color:var(--green); background:rgba(47,214,160,0.12); }
+  .quad.q-rec{ background:rgba(77,155,255,0.06); } .quad.q-rec:hover,.quad.q-rec.active{ border-color:var(--blue); background:rgba(77,155,255,0.12); }
+  .quad h5{ font-family:var(--disp); font-weight:600; font-size:1.02rem; margin:0 0 6px; }
+  .quad p{ margin:0; font-size:0.82rem; color:var(--dim); line-height:1.45; }
+  .axis-bot{ display:flex; justify-content:space-between; font-family:var(--mono); font-size:0.68rem; color:var(--faint); margin:8px 0 0 24px; }
+
+  /* comparison table */
+  .table-wrap{ max-width:var(--maxw); margin:2.4rem auto 0; overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid var(--line); border-radius:14px; }
+  table.cmp{ width:100%; border-collapse:collapse; min-width:560px; }
+  table.cmp th, table.cmp td{ padding:14px 16px; text-align:left; border-bottom:1px solid var(--line2); font-size:0.92rem; vertical-align:top; }
+  table.cmp thead th{ font-family:var(--disp); font-weight:600; font-size:0.82rem; color:var(--gold); letter-spacing:0.04em; background:rgba(255,255,255,0.02); position:sticky; top:0; }
+  table.cmp tbody tr:last-child td{ border-bottom:none; }
+  table.cmp td:first-child{ font-family:var(--disp); font-weight:600; color:var(--ink); }
+  table.cmp .pill{ font-family:var(--mono); font-size:0.7rem; padding:2px 7px; border-radius:5px; }
+  .pill.g{ background:rgba(47,214,160,0.14); color:var(--green); } .pill.b{ background:rgba(77,155,255,0.14); color:var(--blue); } .pill.y{ background:rgba(245,185,66,0.14); color:var(--gold); }
+
+  /* portfolio donut */
+  .pf-grid{ display:grid; grid-template-columns:280px 1fr; gap:28px; align-items:center; }
+  .pf-canvas{ position:relative; }
+  .pf-center{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:none; }
+  .pf-center .t{ font-family:var(--mono); font-size:0.66rem; color:var(--faint); letter-spacing:0.08em; }
+  .pf-center .b{ font-family:var(--disp); font-weight:700; font-size:1.4rem; }
+  .pf-legend{ display:flex; flex-direction:column; gap:12px; }
+  .pf-item label{ display:flex; align-items:center; gap:8px; font-size:0.9rem; margin-bottom:5px; }
+  .pf-item label .sw{ width:11px; height:11px; border-radius:3px; }
+  .pf-item label .pct{ margin-left:auto; font-family:var(--mono); color:var(--ink); }
+
+  /* quiz */
+  .quiz{ max-width:var(--readw); margin:2.4rem auto 0; }
+  .q{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:20px; margin-bottom:14px; }
+  .q .qn{ font-family:var(--mono); font-size:0.7rem; color:var(--acc); letter-spacing:0.08em; }
+  .q h4{ font-family:var(--disp); font-weight:600; font-size:1.08rem; margin:0.4rem 0 1rem; }
+  .opt{ display:block; width:100%; text-align:left; font-family:var(--ui); font-size:0.94rem; color:var(--ink); background:var(--panel2); border:1px solid var(--line); border-radius:9px; padding:0.75em 1em; margin-bottom:8px; cursor:pointer; transition:all .15s; }
+  .opt:hover{ border-color:var(--acc); }
+  .opt.correct{ border-color:var(--green); background:rgba(47,214,160,0.12); color:var(--green); }
+  .opt.wrong{ border-color:var(--red); background:rgba(255,107,107,0.1); color:var(--red); }
+  .opt.lock{ cursor:default; opacity:0.65; }
+  .opt.lock.correct,.opt.lock.wrong{ opacity:1; }
+  .expl{ display:none; margin-top:10px; padding:12px 14px; border-left:3px solid var(--acc); background:rgba(255,255,255,0.02); border-radius:0 8px 8px 0; font-size:0.88rem; color:var(--dim); }
+  .expl.show{ display:block; }
+  .quiz-score{ text-align:center; font-family:var(--mono); color:var(--dim); margin-top:8px; }
+  .quiz-score b{ color:var(--green); }
+
+  /* sources */
+  .sources{ max-width:var(--readw); margin:0 auto; border:1px solid var(--line); border-radius:14px; background:var(--panel); overflow:hidden; }
+  summary{ list-style:none; cursor:pointer; padding:1.2rem 1.4rem; display:flex; align-items:center; gap:0.7rem; font-family:var(--disp); font-weight:600; font-size:0.96rem; }
+  summary::-webkit-details-marker{display:none;}
+  summary .chev{ color:var(--green); transition:transform .3s; }
+  details[open] summary .chev{ transform:rotate(90deg); }
+  summary .hint{ margin-left:auto; font-family:var(--mono); font-size:0.66rem; color:var(--faint); }
+  .sbody{ padding:0 1.4rem 1.4rem; }
+  .sbody p{ font-size:0.88rem; color:var(--dim); margin:0 0 0.9rem; }
+  .sbody ol{ margin:0; padding-left:1.2rem; }
+  .sbody li{ font-size:0.86rem; color:var(--dim); margin-bottom:0.5rem; line-height:1.5; }
+
+  footer{ text-align:center; padding:3rem 24px 3.4rem; border-top:1px solid var(--line); margin-top:2rem; }
+  footer .fmark{ font-family:var(--disp); font-weight:700; letter-spacing:0.14em; }
+  footer .fmark b{ color:var(--green); }
+  footer p{ color:var(--faint); font-size:0.84rem; margin:0.8rem 0 0; }
+
+  html.js:not(.reduced) .reveal{ opacity:0; transform:translateY(20px); }
+  html.js:not(.reduced) .reveal.in{ opacity:1; transform:none; transition:opacity .6s ease, transform .6s ease; }
+
+  @media (max-width:760px){
+    body{ font-size:16px; }
+    .terms{ grid-template-columns:1fr; }
+    .calc-grid{ grid-template-columns:1fr; gap:18px; }
+    .pf-grid{ grid-template-columns:1fr; gap:20px; justify-items:center; }
+    .pf-legend{ width:100%; max-width:340px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" aria-hidden="true"></div>
+
+<div class="brandbar">
+  <a href="/" class="mark" style="text-decoration:none;color:inherit"><b>BASEMENTS</b></a>
+  <span class="rule"></span>
+  <span class="tag">EKONOMI</span>
+</div>
+
+<div class="ticker" aria-hidden="true">
+  <div class="track" id="ticker"></div>
+</div>
+
+<header class="hero">
+  <div class="ey">Ekonomi Sözlüğü</div>
+  <h1>Paranın ve piyasanın <span class="g">dilini</span> öğren</h1>
+  <p>Faizden bileşik faize, resesyondan stagflasyona, SWIFT'ten pariteye — ekonominin temel kavramlarını sade tanımlar ve dokunabileceğin araçlarla anlatıyoruz.</p>
+  <div class="disclaim">
+    <span class="i">i</span>
+    <span>Bu sayfa <b>yalnızca eğitim amaçlıdır</b>; yatırım, finans veya hukuk tavsiyesi değildir. Kararlar için lisanslı bir uzmana danış. Aşağıdaki hesaplayıcı yaklaşık değerler üretir.</span>
+  </div>
+  <nav class="toc">
+    <a href="#s1" style="--c:var(--green)"><span class="num">01</span>Paranın Maliyeti</a>
+    <a href="#s2" style="--c:var(--gold)"><span class="num">02</span>Piyasa &amp; Ticaret</a>
+    <a href="#s3" style="--c:var(--blue)"><span class="num">03</span>Bankacılık</a>
+    <a href="#s4" style="--c:var(--purple)"><span class="num">04</span>Yatırım</a>
+    <a href="#s5" style="--c:var(--teal)"><span class="num">05</span>Döviz &amp; Parite</a>
+  </nav>
+</header>
+
+<main>
+
+  <!-- SECTION 1 -->
+  <section class="block" id="s1" style="--acc:var(--green)">
+    <div class="shell seclead reveal">
+      <div class="secno">BÖLÜM 01</div>
+      <h2 class="title">Paranın Maliyeti ve Getirisi</h2>
+      <p class="lead">Para "bedava" değildir: kullanmanın bir bedeli, beklemenin bir getirisi vardır. Bu bedelin adı <b>faiz</b> — ve onun en güçlü hâli, zamanla katlanan <b>bileşik faiz</b>dir.</p>
+    </div>
+    <div class="shell terms reveal">
+      <div class="term"><h4>Faiz <span class="en">interest</span></h4><p>Borç alınan paranın kullanımı karşılığında ödenen ya da parayı bir yere yatırarak elde edilen getiri bedelidir — kısaca <mark>paranın kirası</mark>.</p><p>İki yüzü vardır: borçlu için bir <em>maliyet</em>, yatırımcı için bir <em>gelir</em>. Merkez bankasının belirlediği "politika faizi" ise ekonomideki tüm faizlerin çapasıdır.</p></div>
+      <div class="term"><h4>Bileşik Faiz <span class="en">compound interest</span></h4><p>Kazanılan faizin anaparaya eklenmesi ve sonraki dönemde bu toplam üzerinden yeniden faiz işletilmesidir; yani <mark>"faizin faizi"</mark>.</p><p>Etkisi zamanla üsteldir. Küçük bir oranın bile uzun vadede devasa farklar yaratmasının sebebi budur — aşağıdaki hesaplayıcıda kendin gör.</p></div>
+      <div class="term"><h4>Negatif Faiz <span class="en">negative interest</span></h4><p>Paranın bankada durdukça değer kaybetmesidir. Genelde enflasyonun faiz oranından yüksek olması durumunda, birikim <mark>reel olarak</mark> erir.</p><p>İki anlamı vardır: <em>nominal</em> negatif faiz (bankanın parayı tutman için senden ücret alması) ve daha sık görülen <em>reel</em> negatif faiz (enflasyon &gt; faiz).</p></div>
+      <div class="term"><h4>Nominal &amp; Reel Faiz <span class="en">nominal / real</span> <span class="ek">+ ek</span></h4><p>Nominal faiz, ilan edilen ham orandır. Reel faiz ise kabaca <mark>nominal faiz − enflasyon</mark>'dur.</p><p>Asıl önemli olan reel faizdir: satın alma gücünü gerçekten artıran ya da eriten odur.</p></div>
+      <div class="term"><h4>Anapara &amp; Vade <span class="en">principal / maturity</span> <span class="ek">+ ek</span></h4><p>Anapara, başta yatırılan veya borç alınan asıl tutardır. Vade, paranın bağlı kalacağı süredir.</p><p>Vade uzadıkça bileşik etki güçlenir; zaman, bileşik faizin en iyi arkadaşıdır.</p></div>
+    </div>
+
+    <!-- compound interest calculator -->
+    <div class="shell"><div class="tool reveal">
+      <div class="th"><span class="dot"></span><h3>Bileşik Faiz Hesaplayıcı</h3></div>
+      <p class="ts">Anapara, faiz ve vadeyi değiştir; bileşik faizin basit faizi nasıl geride bıraktığını izle.</p>
+      <div class="calc-grid">
+        <div>
+          <div class="ctrl"><label>Anapara <span class="v" id="ci-pv">10.000 ₺</span></label><input type="range" id="ci-p" min="1000" max="1000000" step="1000" value="10000"></div>
+          <div class="ctrl"><label>Yıllık faiz oranı <span class="v" id="ci-rv">%20</span></label><input type="range" id="ci-r" min="0" max="60" step="0.5" value="20"></div>
+          <div class="ctrl"><label>Vade <span class="v" id="ci-tv">10 yıl</span></label><input type="range" id="ci-t" min="1" max="40" step="1" value="10"></div>
+          <div class="ctrl"><label style="margin-bottom:9px">Faiz işletme sıklığı</label>
+            <div class="seg" id="ci-freq">
+              <button data-n="1" class="on">Yıllık</button>
+              <button data-n="4">3 Aylık</button>
+              <button data-n="12">Aylık</button>
+              <button data-n="365">Günlük</button>
+            </div>
+          </div>
+        </div>
+        <div class="calc-out">
+          <div style="font-size:0.8rem;color:var(--dim);margin-bottom:4px">Vade sonu (bileşik)</div>
+          <div class="bigval" id="ci-final">— <span class="cur">₺</span></div>
+          <div style="margin-top:14px">
+            <div class="outrow"><span>Toplam yatırılan (anapara)</span><span id="ci-prin">—</span></div>
+            <div class="outrow"><span>Basit faiz ile olsaydı</span><span id="ci-simple">—</span></div>
+            <div class="outrow hi"><span>Bileşiğin getirdiği fazladan</span><span id="ci-extra">—</span></div>
+          </div>
+          <canvas class="chart" id="ci-chart" width="520" height="240"></canvas>
+          <div class="chart-legend"><span><i style="background:var(--green)"></i>Bileşik faiz</span><span><i style="background:var(--gold)"></i>Basit faiz</span></div>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- SECTION 2 -->
+  <section class="block" id="s2" style="--acc:var(--gold)">
+    <div class="shell seclead reveal">
+      <div class="secno">BÖLÜM 02</div>
+      <h2 class="title">Piyasa ve Ticaret Terimleri</h2>
+      <p class="lead">Ekonominin nabzı piyasada atar. Mallardan krizlere, bu bölüm piyasanın temel kelime dağarcığını topluyor — ve en kafa karıştıran ikiliyi, <b>resesyon</b> ile <b>stagflasyon</b>u, tek bakışta ayırıyor.</p>
+    </div>
+    <div class="shell terms reveal">
+      <div class="term"><h4>Emtia <span class="en">commodity</span></h4><p>Ticarete konu olan altın, gümüş, petrol, doğalgaz, buğday, kahve gibi tüm <mark>fiziksel mal ve hammaddelerin</mark> genel adıdır.</p><p>İkiye ayrılır: sert emtialar (madenler, enerji) ve yumuşak emtialar (tarım ürünleri). Standart oldukları için borsada vadeli işlemlerle alınıp satılırlar.</p></div>
+      <div class="term"><h4>Likidite <span class="en">liquidity</span></h4><p>Bir varlığın, değerinden çok kaybetmeden ne kadar hızlı ve kolay <mark>nakde çevrilebildiğini</mark> ifade eder. Nakit en likit varlıktır.</p><p>Gayrimenkul düşük likittir (satışı zaman alır); çok işlem gören hisseler yüksek likittir. Likidite azalınca alış-satış farkı (spread) açılır.</p></div>
+      <div class="term"><h4>Resesyon <span class="en">recession</span></h4><p>Bir ülke ekonomisinin <mark>üst üste iki çeyrek (≈6 ay)</mark> boyunca küçülmesi ya da büyümenin durmasıdır.</p><p>Bu "iki çeyrek" kuralı pratik bir kabuldür; resmî tanımlar (örn. ABD'de NBER) istihdam, gelir ve üretim gibi birçok göstergeye birlikte bakar.</p></div>
+      <div class="term"><h4>Stagflasyon <span class="en">stagflation</span></h4><p>Ekonomide aynı anda hem <mark>durgunluk (işsizlik artışı)</mark> hem de <mark>yüksek enflasyon</mark> yaşanmasıdır.</p><p>Klasik beklentiye aykırıdır ve merkez bankaları için en zor senaryodur: işsizliği ve enflasyonu aynı araçla çözmek mümkün olmaz. 1970'lerin petrol krizinde görüldü.</p></div>
+      <div class="term"><h4>Enflasyon &amp; Deflasyon <span class="en">inflation / deflation</span> <span class="ek">+ ek</span></h4><p>Enflasyon, genel fiyat düzeyinin sürekli artması (paranın değer kaybetmesi). Deflasyon, tersine fiyatların düşmesidir.</p><p>Deflasyon kulağa iyi gelse de tehlikelidir: insanlar "daha ucuzlar" diye harcamayı erteler, ekonomi yavaşlar.</p></div>
+      <div class="term"><h4>Volatilite <span class="en">volatility</span> <span class="ek">+ ek</span></h4><p>Bir varlığın fiyatının ne kadar sert ve sık <mark>dalgalandığıdır</mark>. Yüksek volatilite, yüksek risk (ve potansiyel fırsat) demektir.</p></div>
+      <div class="term"><h4>Boğa &amp; Ayı Piyasası <span class="en">bull / bear</span> <span class="ek">+ ek</span></h4><p>Boğa piyasası fiyatların yükseldiği iyimser dönemdir; ayı piyasası düşüşün hâkim olduğu kötümser dönem.</p><p>Akılda kalsın: boğa boynuzuyla yukarı, ayı pençesiyle aşağı vurur.</p></div>
+    </div>
+
+    <!-- 2x2 matrix -->
+    <div class="shell"><div class="tool reveal">
+      <div class="th"><span class="dot"></span><h3>Resesyon ↔ Stagflasyon Haritası</h3></div>
+      <p class="ts">Ekonominin durumu iki eksene bağlıdır: büyüme ve enflasyon. Bir kareye dokun.</p>
+      <div class="matrix-wrap">
+        <div class="axis-top">▲ YÜKSEK ENFLASYON</div>
+        <div class="mrow">
+          <div class="axis-left">ENFLASYON</div>
+          <div class="quads">
+            <div class="quad q-stag"><h5>Stagflasyon</h5><p>Yüksek enflasyon + küçülen ekonomi. En zorlu kombinasyon; fiyatlar artarken işsizlik de yükselir.</p></div>
+            <div class="quad q-hot"><h5>Aşırı Isınma</h5><p>Yüksek enflasyon + hızlı büyüme. Ekonomi gücünü aşıyor; merkez bankası genelde faizle frenler.</p></div>
+            <div class="quad q-rec"><h5>Resesyon / Durgunluk</h5><p>Düşük enflasyon + küçülen ekonomi. Talep zayıf; aşırı durumda deflasyon riski belirir.</p></div>
+            <div class="quad q-good"><h5>Sağlıklı Büyüme</h5><p>Düşük enflasyon + istikrarlı büyüme. Herkesin istediği "tatlı nokta".</p></div>
+          </div>
+        </div>
+        <div class="axis-bot"><span>◀ KÜÇÜLME</span><span>BÜYÜME ▶</span></div>
+      </div>
+    </div></div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- SECTION 3 -->
+  <section class="block" id="s3" style="--acc:var(--blue)">
+    <div class="shell seclead reveal">
+      <div class="secno">BÖLÜM 03</div>
+      <h2 class="title">Bankacılık ve Transferler</h2>
+      <p class="lead">Para bir hesaptan diğerine nasıl gider? Aynı banka, farklı banka, yurt içi, yurt dışı — her birinin kendi yolu var. Aşağıdaki tablo dördünü yan yana koyuyor.</p>
+    </div>
+    <div class="shell terms reveal">
+      <div class="term"><h4>SWIFT <span class="en">global network</span></h4><p>Dünyadaki bankalar arasında güvenli, standart ve hızlı şekilde <mark>uluslararası para transferi (döviz)</mark> yapılmasını sağlayan küresel iletişim ağıdır.</p><p>Önemli ayrıntı: SWIFT parayı kendisi taşımaz; bankalara "şu parayı şuraya gönder" mesajını standart formatta iletir. Her bankanın bir SWIFT/BIC kodu vardır.</p></div>
+      <div class="term"><h4>EFT <span class="en">elektronik fon transferi</span></h4><p>Türkiye'de <mark>iki farklı banka</mark> arasında yapılan Türk Lirası transfer işlemidir.</p></div>
+      <div class="term"><h4>Havale <span class="en">internal transfer</span></h4><p><mark>Aynı bankanın</mark> iki farklı hesabı arasında yapılan para transferidir. Genelde anında ve ücretsizdir.</p></div>
+      <div class="term"><h4>FAST <span class="en">anlık transfer</span></h4><p>Türkiye'de 7/24 anında yapılabilen, genellikle daha küçük limitli fon transfer sistemidir.</p><p>TCMB'nin işlettiği "Fonların Anlık ve Sürekli Transferi" sistemidir; bankalar arası TL transferini saat fark etmeksizin saniyeler içinde yapar. Üst limit TCMB tarafından belirlenir ve zaman zaman güncellenir.</p></div>
+      <div class="term"><h4>IBAN <span class="en">int'l bank account no.</span> <span class="ek">+ ek</span></h4><p>Uluslararası standart hesap numarasıdır. Ülke kodu, kontrol hanesi ve banka/hesap bilgisini tek bir kimlikte birleştirir; yanlış hesaba gönderim riskini azaltır.</p></div>
+      <div class="term"><h4>BIC / SWIFT Kodu <span class="en">bank identifier</span> <span class="ek">+ ek</span></h4><p>Bir bankayı uluslararası işlemlerde benzersiz tanımlayan koddur. IBAN "hangi hesap" sorusunu, BIC "hangi banka" sorusunu yanıtlar.</p></div>
+    </div>
+
+    <!-- comparison table -->
+    <div class="shell">
+      <div class="table-wrap reveal">
+        <table class="cmp">
+          <thead><tr><th>Yöntem</th><th>Kapsam</th><th>Para Birimi</th><th>Hız</th><th>Çalışma Saati</th></tr></thead>
+          <tbody>
+            <tr><td>Havale</td><td>Aynı banka, hesaplar arası</td><td><span class="pill g">TL</span></td><td>Anında</td><td>7/24</td></tr>
+            <tr><td>EFT</td><td>Farklı bankalar (yurt içi)</td><td><span class="pill g">TL</span></td><td>Dakikalar</td><td>Belirli saatlerde (FAST ile çoğu işlem 7/24'e taşındı)</td></tr>
+            <tr><td>FAST</td><td>Farklı bankalar (yurt içi)</td><td><span class="pill g">TL</span></td><td>Saniyeler</td><td>7/24 · üst limit var</td></tr>
+            <tr><td>SWIFT</td><td>Uluslararası, bankalar arası</td><td><span class="pill b">Döviz</span></td><td>Genelde 1–3 iş günü</td><td>Banka/ülke saatlerine bağlı</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="ts" style="max-width:var(--readw);margin:12px auto 0;text-align:center;color:var(--faint);font-size:0.82rem">Süre ve limitler banka ile düzenlemelere göre değişebilir; güncel bilgi için bankanı esas al.</p>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- SECTION 4 -->
+  <section class="block" id="s4" style="--acc:var(--purple)">
+    <div class="shell seclead reveal">
+      <div class="secno">BÖLÜM 04</div>
+      <h2 class="title">Yatırım ve Hisse Senedi Dünyası</h2>
+      <p class="lead">Birikimi büyütmenin yolları burada başlar. Borsadan temettüye, portföyden arbitraja — ve "yumurtaları tek sepete koyma" fikrini canlı bir dağılım aracıyla.</p>
+    </div>
+    <div class="shell terms reveal">
+      <div class="term"><h4>Borsa <span class="en">stock exchange</span></h4><p>Şirketlerin hisse senetlerinin, emtiaların veya diğer finansal araçların <mark>yasal bir platformda</mark> alınıp satıldığı pazardır.</p><p>Türkiye'de Borsa İstanbul (BIST). Birincil piyasa (halka arz) ve ikincil piyasa (yatırımcılar arası alım-satım) diye ikiye ayrılır.</p></div>
+      <div class="term"><h4>Portföy <span class="en">portfolio</span></h4><p>Bir yatırımcının elinde bulundurduğu nakit, hisse, altın, döviz gibi tüm finansal varlıkların toplamıdır — kısaca <mark>yatırım sepeti</mark>.</p><p>"Yumurtaları tek sepete koyma": çeşitlendirme (diversifikasyon) riski dağıtır.</p></div>
+      <div class="term"><h4>Temettü <span class="en">dividend</span></h4><p>Bir şirketin yıllık kârının bir kısmını ortaklarına (hisse sahiplerine) <mark>nakit veya hisse olarak</mark> dağıtmasıdır.</p><p>Her şirket dağıtmaz; büyüyen şirketler kârı yeniden yatırmayı seçebilir. "Temettü verimi" = yıllık temettü ÷ hisse fiyatı.</p></div>
+      <div class="term"><h4>Arbitraj <span class="en">arbitrage</span></h4><p>Bir varlığın farklı piyasalardaki fiyat farkından yararlanıp ucuzdan alıp pahalıya satarak <mark>risksiz kâr</mark> elde etmektir.</p><p>Teoride risksizdir ama fırsatlar saniyeler içinde kapanır; bugün çoğunlukla algoritmalar yapar ve piyasada fiyatları dengeler.</p></div>
+      <div class="term"><h4>Endeks <span class="en">index</span> <span class="ek">+ ek</span></h4><p>Piyasanın genel gidişatını ölçen göstergedir (örn. BIST 100, S&amp;P 500). Tek tek hisse yerine "piyasanın geneline" yatırım yapmanın yoludur.</p></div>
+      <div class="term"><h4>Halka Arz <span class="en">IPO</span> <span class="ek">+ ek</span></h4><p>Bir şirketin hisselerini ilk kez halka açıp borsada işlem görmeye başlamasıdır. Şirket sermaye toplar, yatırımcı ortak olur.</p></div>
+      <div class="term"><h4>F/K Oranı <span class="en">P/E ratio</span> <span class="ek">+ ek</span></h4><p>Hisse fiyatının, şirketin hisse başına kârına oranıdır. "Bu hisse pahalı mı, ucuz mu?" sorusuna kaba ama hızlı bir cevaptır.</p></div>
+      <div class="term"><h4>Long &amp; Short / Spread <span class="en">positions</span> <span class="ek">+ ek</span></h4><p>Long, fiyat yükselsin diye almaktır; short, fiyat düşsün diye ödünç alıp satarak pozisyon almaktır. Spread ise en iyi alış ile en iyi satış fiyatı arasındaki farktır.</p></div>
+    </div>
+
+    <!-- portfolio donut -->
+    <div class="shell"><div class="tool reveal">
+      <div class="th"><span class="dot"></span><h3>Portföy Dağılımı</h3></div>
+      <p class="ts">Varlık ağırlıklarını ayarla; sepetinin nasıl dağıldığını gör. (Örnek amaçlıdır, öneri değildir.)</p>
+      <div class="pf-grid">
+        <div class="pf-canvas">
+          <canvas id="pf-chart" width="240" height="240" style="width:240px;height:240px"></canvas>
+          <div class="pf-center"><span class="t">SEPET</span><span class="b" id="pf-total">100%</span></div>
+        </div>
+        <div class="pf-legend" id="pf-legend"></div>
+      </div>
+    </div></div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- SECTION 5 -->
+  <section class="block" id="s5" style="--acc:var(--teal)">
+    <div class="shell seclead reveal">
+      <div class="secno">BÖLÜM 05</div>
+      <h2 class="title">Döviz ve Parite</h2>
+      <p class="lead">Para birimleri de birbirine karşı bir "fiyat" taşır. Bu son bölüm, kurların dilini ve bir devletin parasının değerini nasıl ayarladığını anlatıyor.</p>
+    </div>
+    <div class="shell terms reveal">
+      <div class="term"><h4>Parite <span class="en">parity / pair</span></h4><p>İki farklı ülkenin para birimlerinin birbirine olan <mark>oranıdır</mark> (örneğin EUR/USD paritesi).</p><p>İlk yazılan "baz", ikinci "karşı" para birimidir: EUR/USD = 1,08 demek, 1 euro = 1,08 dolar demektir.</p></div>
+      <div class="term"><h4>Devalüasyon <span class="en">devaluation</span></h4><p>Bir devletin, kendi yerel para biriminin değerini diğer yabancı paralar karşısında <mark>resmî olarak düşürmesidir</mark>.</p><p>Genelde sabit kur rejiminde olur; ihracatı ucuzlatıp teşvik eder ama ithalatı ve dış borcu pahalılaştırır.</p></div>
+      <div class="term"><h4>Revalüasyon <span class="en">revaluation</span> <span class="ek">+ ek</span></h4><p>Devalüasyonun tersidir: para biriminin değerinin resmî olarak <mark>yükseltilmesi</mark>.</p></div>
+      <div class="term"><h4>Sabit vs. Dalgalı Kur <span class="en">fixed / floating</span> <span class="ek">+ ek</span></h4><p>Sabit kurda devlet/merkez bankası kuru belirli bir seviyede tutar. Dalgalı (serbest) kurda değeri <mark>arz ve talep</mark> belirler.</p></div>
+      <div class="term"><h4>Depresiasyon &amp; Apresiasyon <span class="en">depreciation / appreciation</span> <span class="ek">+ ek</span></h4><p>Serbest piyasada paranın değer kaybetmesine depresiasyon, değer kazanmasına apresiasyon denir. (Devalüasyon ise resmî/iradi karardır.)</p></div>
+      <div class="term"><h4>Çapraz Kur <span class="en">cross rate</span> <span class="ek">+ ek</span></h4><p>İki para birimi arasındaki kurun, ortak bir üçüncü para (genelde dolar) üzerinden hesaplanmasıdır. EUR/TRY çoğu zaman EUR/USD ve USD/TRY üzerinden bulunur.</p></div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- QUIZ -->
+  <section class="block" style="--acc:var(--green)">
+    <div class="shell seclead reveal">
+      <div class="secno">MİNİ TEST</div>
+      <h2 class="title">Ne kadar oturdu?</h2>
+      <p class="lead">Dört soruluk hızlı bir kontrol. Bir seçeneğe dokun, doğru cevabı ve nedenini gör.</p>
+    </div>
+    <div class="shell"><div class="quiz reveal" id="quiz"></div>
+      <div class="quiz-score" id="quiz-score"></div>
+    </div>
+  </section>
+
+  <!-- SOURCES / NOTES -->
+  <section class="block" style="padding-top:1rem">
+    <div class="shell reveal">
+      <div class="sources">
+        <details>
+          <summary><span class="chev">▸</span><span>NOTLAR &amp; KAYNAKLAR</span><span class="hint">AÇ</span></summary>
+          <div class="sbody">
+            <p>Bu sayfadaki tanımlar genel kabul görmüş ekonomi kavramlarına dayanır ve sadeleştirilmiştir. Birkaç önemli not:</p>
+            <ol>
+              <li><b>Resesyon:</b> "Üst üste iki çeyrek küçülme" yaygın bir pratik kuraldır; resmî kararlar (örn. ABD'de NBER) istihdam, gelir, üretim gibi çok sayıda göstergeye birlikte bakar.</li>
+              <li><b>FAST / EFT limit ve saatleri:</b> Türkiye'deki transfer sistemlerinin limitleri ve çalışma saatleri TCMB ve bankalarca zaman zaman güncellenir; kesin ve güncel bilgi için bankanın resmî kaynaklarını esas al.</li>
+              <li><b>Hesaplayıcı:</b> Bileşik faiz aracı, A = P·(1 + r/n)^(n·t) formülüyle yaklaşık değer üretir; vergi, masraf ve değişken faiz dikkate alınmaz.</li>
+              <li><b>Yatırım tavsiyesi değildir:</b> Buradaki hiçbir içerik alım-satım önerisi sayılmaz. Finansal kararlar için lisanslı bir danışmana başvur.</li>
+            </ol>
+          </div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="fmark"><b>BASEMENTS</b> · EKONOMI</div>
+  <p>Bilim, tarih ve kültür · basementonfire.com</p>
+</footer>
+
+<script>
+(function(){
+  var root=document.documentElement, reduced=root.classList.contains('reduced');
+  function el(id){ return document.getElementById(id); }
+  function on(e,ev,fn,o){ e&&e.addEventListener(ev,fn,o||false); }
+  function fmt(n){ return Math.round(n).toLocaleString('tr-TR'); }
+
+  /* ticker */
+  (function(){
+    var items=[['FAİZ',''],['BİLEŞİK FAİZ','up'],['EMTİA','up'],['LİKİDİTE',''],['RESESYON','dn'],['STAGFLASYON','dn'],['SWIFT',''],['EFT',''],['FAST','up'],['BORSA','up'],['PORTFÖY',''],['TEMETTÜ','up'],['ARBİTRAJ',''],['PARİTE',''],['DEVALÜASYON','dn'],['ENFLASYON','up'],['VOLATİLİTE','dn'],['ENDEKS','up'],['F/K',''],['SPREAD','']];
+    var html='';
+    function arr(t){ return t==='up'?' ▲':t==='dn'?' ▼':''; }
+    function cls(t){ return t==='up'?'up':t==='dn'?'dn':''; }
+    var one=items.map(function(it){ return '<span class="'+cls(it[1])+'">'+it[0]+arr(it[1])+'</span>'; }).join('·&nbsp;');
+    el('ticker').innerHTML=one+'·&nbsp;'+one;
+  })();
+
+  /* reveal + progress */
+  (function(){
+    var revs=document.querySelectorAll('.reveal');
+    if(reduced || !('IntersectionObserver' in window)){ revs.forEach(function(e){e.classList.add('in');}); }
+    else { var io=new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} }); },{threshold:0.08, rootMargin:'0px 0px -6% 0px'}); revs.forEach(function(e){ io.observe(e); }); }
+    var bar=document.querySelector('.progress');
+    if(bar && !reduced){ on(window,'scroll',function(){ var h=document.documentElement; bar.style.transform='scaleX('+(h.scrollTop/((h.scrollHeight-h.clientHeight)||1))+')'; },{passive:true}); }
+  })();
+
+  /* ---------- compound interest calculator ---------- */
+  (function(){
+    var P=el('ci-p'), R=el('ci-r'), T=el('ci-t'), freq=el('ci-freq'), n=1;
+    var cv=el('ci-chart'), ctx=cv.getContext('2d');
+    function compute(){
+      var p=+P.value, r=+R.value/100, t=+T.value;
+      el('ci-pv').textContent=fmt(p)+' ₺';
+      el('ci-rv').textContent='%'+(+R.value);
+      el('ci-tv').textContent=t+' yıl';
+      var compound=p*Math.pow(1+r/n, n*t);
+      var simple=p*(1+r*t);
+      el('ci-final').innerHTML=fmt(compound)+' <span class="cur">₺</span>';
+      el('ci-prin').textContent=fmt(p)+' ₺';
+      el('ci-simple').textContent=fmt(simple)+' ₺';
+      el('ci-extra').textContent='+'+fmt(compound-simple)+' ₺';
+      drawChart(p,r,t);
+    }
+    function drawChart(p,r,t){
+      var DPR=Math.min(window.devicePixelRatio||1,2);
+      var w=cv.clientWidth||520, h=240;
+      cv.width=w*DPR; cv.height=h*DPR; cv.style.height=h+'px'; ctx.setTransform(DPR,0,0,DPR,0,0);
+      ctx.clearRect(0,0,w,h);
+      var padL=8, padR=8, padT=12, padB=18, gw=w-padL-padR, gh=h-padT-padB;
+      var maxV=p*Math.pow(1+r/n, n*t); if(maxV<=p) maxV=p*1.05;
+      function cx(i){ return padL + (i/t)*gw; }
+      function cy(v){ return padT + gh - (v/maxV)*gh; }
+      // gridlines
+      ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=1;
+      for(var g=0;g<=4;g++){ var yy=padT+gh*g/4; ctx.beginPath(); ctx.moveTo(padL,yy); ctx.lineTo(w-padR,yy); ctx.stroke(); }
+      // simple line
+      ctx.strokeStyle='#f5b942'; ctx.lineWidth=2; ctx.beginPath();
+      for(var i=0;i<=t;i++){ var v=p*(1+r*i); (i===0?ctx.moveTo:ctx.lineTo).call(ctx, cx(i), cy(v)); }
+      ctx.stroke();
+      // compound area
+      var grad=ctx.createLinearGradient(0,padT,0,padT+gh); grad.addColorStop(0,'rgba(47,214,160,0.32)'); grad.addColorStop(1,'rgba(47,214,160,0.02)');
+      ctx.beginPath(); ctx.moveTo(cx(0), cy(p));
+      for(var j=0;j<=t;j++){ ctx.lineTo(cx(j), cy(p*Math.pow(1+r/n, n*j))); }
+      ctx.lineTo(cx(t), padT+gh); ctx.lineTo(cx(0), padT+gh); ctx.closePath(); ctx.fillStyle=grad; ctx.fill();
+      // compound line
+      ctx.strokeStyle='#2fd6a0'; ctx.lineWidth=2.4; ctx.beginPath();
+      for(var k=0;k<=t;k++){ var vc=p*Math.pow(1+r/n, n*k); (k===0?ctx.moveTo:ctx.lineTo).call(ctx, cx(k), cy(vc)); }
+      ctx.stroke();
+      // endpoint dot
+      ctx.fillStyle='#2fd6a0'; ctx.beginPath(); ctx.arc(cx(t), cy(maxV), 4, 0, 7); ctx.fill();
+    }
+    [P,R,T].forEach(function(s){ on(s,'input',compute); });
+    Array.prototype.forEach.call(freq.querySelectorAll('button'), function(b){
+      on(b,'click',function(){ freq.querySelectorAll('button').forEach(function(x){x.classList.remove('on');}); b.classList.add('on'); n=+b.getAttribute('data-n'); compute(); });
+    });
+    on(window,'resize',function(){ var p=+P.value, r=+R.value/100, t=+T.value; drawChart(p,r,t); });
+    compute();
+  })();
+
+  /* ---------- 2x2 matrix: tap to toggle active (for touch) ---------- */
+  (function(){
+    var quads=document.querySelectorAll('.quad');
+    quads.forEach(function(q){ on(q,'click',function(){ var was=q.classList.contains('active'); quads.forEach(function(x){x.classList.remove('active');}); if(!was) q.classList.add('active'); }); });
+  })();
+
+  /* ---------- portfolio donut ---------- */
+  (function(){
+    var assets=[
+      {name:'Hisse Senedi', color:'#a78bfa', val:40},
+      {name:'Tahvil / Bono', color:'#4d9bff', val:25},
+      {name:'Altın', color:'#f5b942', val:15},
+      {name:'Döviz', color:'#34d3d3', val:12},
+      {name:'Nakit', color:'#2fd6a0', val:8}
+    ];
+    var cv=el('pf-chart'), ctx=cv.getContext('2d'), legend=el('pf-legend');
+    var DPR=Math.min(window.devicePixelRatio||1,2), S=240;
+    cv.width=S*DPR; cv.height=S*DPR; ctx.setTransform(DPR,0,0,DPR,0,0);
+    function build(){
+      legend.innerHTML='';
+      assets.forEach(function(a,idx){
+        var wrap=document.createElement('div'); wrap.className='pf-item';
+        wrap.innerHTML='<label><span class="sw" style="background:'+a.color+'"></span>'+a.name+'<span class="pct" id="pf-pct-'+idx+'">0%</span></label>';
+        var inp=document.createElement('input'); inp.type='range'; inp.min=0; inp.max=100; inp.step=1; inp.value=a.val;
+        on(inp,'input',function(){ a.val=+inp.value; draw(); });
+        wrap.appendChild(inp); legend.appendChild(wrap);
+      });
+    }
+    function draw(){
+      var total=0; assets.forEach(function(a){ total+=a.val; }); if(total<=0) total=1;
+      ctx.clearRect(0,0,S,S);
+      var cxp=S/2, cyp=S/2, rad=92, lw=34, start=-Math.PI/2;
+      assets.forEach(function(a,idx){
+        var frac=a.val/total, ang=frac*Math.PI*2;
+        ctx.beginPath(); ctx.strokeStyle=a.color; ctx.lineWidth=lw; ctx.lineCap='butt';
+        ctx.arc(cxp,cyp,rad,start,start+ang); ctx.stroke();
+        start+=ang;
+        var pe=el('pf-pct-'+idx); if(pe) pe.textContent=Math.round(frac*100)+'%';
+      });
+      el('pf-total').textContent='100%';
+    }
+    build(); draw();
+  })();
+
+  /* ---------- quiz ---------- */
+  (function(){
+    var qs=[
+      { q:'Bileşik faizi basit faizden ayıran temel şey nedir?',
+        o:['Anaparanın büyüklüğü','Kazanılan faizin de faiz getirmesi','Faiz oranının sabit olması','Verginin düşük olması'],
+        a:1, e:'Bileşik faizde kazanılan faiz anaparaya eklenir ve sonraki dönemde o da faiz kazanır — yani "faizin faizi".' },
+      { q:'Aynı anda yüksek enflasyon ve yüksek işsizliğin görüldüğü duruma ne denir?',
+        o:['Resesyon','Deflasyon','Stagflasyon','Devalüasyon'],
+        a:2, e:'Stagflasyon, durgunluk (işsizlik) ile yüksek enflasyonun birlikte yaşandığı, merkez bankaları için en zorlu senaryodur.' },
+      { q:'SWIFT temelde ne yapar?',
+        o:['Parayı fiziksel olarak taşır','Bankalar arası uluslararası transfer mesajlarını ileten ağdır','Sadece yurt içi TL transferidir','Bir kripto para borsasıdır'],
+        a:1, e:'SWIFT parayı taşımaz; bankalara standart, güvenli ödeme mesajları ileten küresel bir iletişim ağıdır.' },
+      { q:'Devalüasyon nedir?',
+        o:['Para biriminin değerinin resmen düşürülmesi','Faizlerin artırılması','Borsanın çökmesi','Enflasyonun durması'],
+        a:0, e:'Devalüasyon, bir devletin kendi parasının değerini yabancı paralar karşısında resmî olarak düşürmesidir.' }
+    ];
+    var box=el('quiz'), scoreEl=el('quiz-score'), answered=0, correct=0;
+    qs.forEach(function(item, qi){
+      var card=document.createElement('div'); card.className='q';
+      var h='<div class="qn">SORU '+(qi+1)+' / '+qs.length+'</div><h4>'+item.q+'</h4>';
+      item.o.forEach(function(opt, oi){ h+='<button class="opt" data-q="'+qi+'" data-o="'+oi+'">'+opt+'</button>'; });
+      h+='<div class="expl" id="expl-'+qi+'">'+item.e+'</div>';
+      card.innerHTML=h; box.appendChild(card);
+    });
+    on(box,'click',function(ev){
+      var b=ev.target.closest('.opt'); if(!b) return;
+      var qi=+b.getAttribute('data-q'), oi=+b.getAttribute('data-o');
+      var card=b.closest('.q'); if(card.getAttribute('data-done')) return;
+      card.setAttribute('data-done','1'); answered++;
+      var opts=card.querySelectorAll('.opt');
+      opts.forEach(function(o){ o.classList.add('lock'); });
+      if(oi===qs[qi].a){ b.classList.add('correct'); correct++; }
+      else { b.classList.add('wrong'); opts[qs[qi].a].classList.add('correct'); }
+      el('expl-'+qi).classList.add('show');
+      scoreEl.innerHTML='Skor: <b>'+correct+'</b> / '+answered+(answered===qs.length?' — tamamlandı 🎉':'');
+    });
+  })();
+
+})();
+</script>
+
+</body>
+</html>

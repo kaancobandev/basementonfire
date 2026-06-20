@@ -8,7 +8,7 @@ import Link from 'next/link';
 
 interface User { id: number; username: string; display_name: string; bio: string | null; avatar: string | null; avatarBg: string; }
 interface MediaPost { id: number; media_url: string; media_type: string; caption: string; likes: number; username: string; display_name: string; }
-interface Article { slug: string; title: string; emoji: string; desc: string; }
+interface Article { slug: string; title: string; emoji: string; desc: string; href?: string; }
 
 interface Props {
   users: User[];
@@ -153,16 +153,22 @@ export default function DiscoverClient({ users, media, articles, isLoggedIn, ini
           <div className="dc-section">
             <h2 className="dc-section-title">Makaleler</h2>
             <div className="dc-articles">
-              {articles.map(a => (
-                <Link key={a.slug} href={`/articles/${a.slug}`} className="dc-article-link">
-                  <span className="dc-article-emoji">{a.emoji}</span>
-                  <div className="dc-article-text">
-                    <div className="dc-article-title">{a.title}</div>
-                    <div className="dc-article-desc">{a.desc}</div>
-                  </div>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="dc-article-arrow"><path d="m9 18 6-6-6-6"/></svg>
-                </Link>
-              ))}
+              {articles.map(a => {
+                const inner = (
+                  <>
+                    <span className="dc-article-emoji">{a.emoji}</span>
+                    <div className="dc-article-text">
+                      <div className="dc-article-title">{a.title}</div>
+                      <div className="dc-article-desc">{a.desc}</div>
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="dc-article-arrow"><path d="m9 18 6-6-6-6"/></svg>
+                  </>
+                );
+                // href verilenler statik /icerik/*.html sayfalarıdır → normal <a> ile tam sayfa açılır
+                return a.href
+                  ? <a key={a.slug} href={a.href} className="dc-article-link">{inner}</a>
+                  : <Link key={a.slug} href={`/articles/${a.slug}`} className="dc-article-link">{inner}</Link>;
+              })}
             </div>
           </div>
 
