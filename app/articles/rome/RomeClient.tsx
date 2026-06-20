@@ -84,6 +84,7 @@ const TIMELINE = [
 ];
 
 export default function RomePage() {
+  const [openTablet, setOpenTablet] = useState<string | null>(null);
   const [quizQ, setQuizQ] = useState(0);
   const [quizScore, setQuizScore] = useState(0);
   const [answered, setAnswered] = useState<Record<number, number>>({});
@@ -248,16 +249,19 @@ export default function RomePage() {
             <div className="ro-tablets">
               {tablets.map(t => (
                 <div key={t.num} className="ro-tablet">
-                  <div className="ro-tablet-hdr">
+                  <button className="ro-tablet-hdr" onClick={() => setOpenTablet(openTablet === t.num ? null : t.num)}>
                     <span className="ro-tablet-num">{t.num}</span>
                     <div style={{ flex: 1, textAlign: 'left' }}>
                       <div className="ro-tablet-title">{t.title}</div>
                       <div className="ro-tablet-summary">{t.summary}</div>
                     </div>
-                  </div>
-                  <ol className="ro-tablet-laws">
-                    {t.laws.map((law, i) => <li key={i}>{law}</li>)}
-                  </ol>
+                    <span style={{ color: '#c5a028', fontSize: '1.2rem', transform: openTablet === t.num ? 'rotate(180deg)' : '', transition: 'transform 0.2s' }}>›</span>
+                  </button>
+                  {openTablet === t.num && (
+                    <ol className="ro-tablet-laws">
+                      {t.laws.map((law, i) => <li key={i}>{law}</li>)}
+                    </ol>
+                  )}
                 </div>
               ))}
             </div>
@@ -553,9 +557,10 @@ export default function RomePage() {
         .ro-tablet { border: 1px solid var(--ro-border); border-radius: 10px; overflow: hidden; }
         .ro-tablet-hdr {
           width: 100%; display: flex; align-items: center; gap: 12px; padding: 14px 16px;
-          background: rgba(197,160,40,0.04); border: none; font-family: inherit; color: var(--ro-text);
-          border-bottom: 1px solid var(--ro-border);
+          background: rgba(197,160,40,0.04); border: none; cursor: pointer; font-family: inherit; color: var(--ro-text);
+          transition: background 0.15s;
         }
+        .ro-tablet-hdr:hover { background: rgba(197,160,40,0.08); }
         .ro-tablet-num { width: 28px; height: 28px; border-radius: 50%; background: var(--ro-gold); color: #0f0c08; font-weight: 900; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .ro-tablet-title { font-size: 0.88rem; font-weight: 700; color: var(--ro-gold); text-align: left; }
         .ro-tablet-summary { font-size: 0.74rem; color: var(--ro-muted); text-align: left; margin-top: 2px; }
