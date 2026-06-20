@@ -341,16 +341,18 @@ body {
 }
 .mobile-nav-inner {
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-around;   /* öğeleri eşit dağıt — taşmadan sığar */
   align-items: center;
+  width: 100%;                     /* .mobile-nav flex çocuğu olarak tam genişlik */
   height: 56px;
-  overflow-x: auto;
   scrollbar-width: none;
-  padding: 0 4px;
-  gap: 2px;
+  padding: 0 2px;
+  gap: 0;
 }
 .mobile-nav-inner::-webkit-scrollbar { display: none; }
 .mobile-nav-btn {
+  flex: 1 1 0;            /* her öğe eşit pay alır → dar ekranda küçülür, taşmaz */
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -360,11 +362,13 @@ body {
   cursor: pointer;
   color: var(--color-text);
   text-decoration: none;
-  padding: 8px 16px;
+  padding: 8px 0;         /* yatay padding kaldırıldı — sabit 56px yerine esner */
   border-radius: 12px;
   transition: background 0.1s;
 }
 .mobile-nav-btn:hover, .mobile-nav-btn.active { color: var(--color-primary); }
+/* Ekran daraldıkça alt-nav ikonları küçülür (ufak telefonlarda taşmayı önler) */
+.mobile-nav-btn svg { width: clamp(20px, 6.2vw, 24px); height: clamp(20px, 6.2vw, 24px); }
 
 .page-header {
   padding: 16px 20px;
@@ -607,7 +611,12 @@ body {
 /* Responsive */
 @media (max-width: 1200px) {
   .sidebar { width: var(--sidebar-width-sm); }
-  .nav-link span, .post-btn span, .sidebar-logo span { display: none; }
+  /* Yalnızca etiket metnini gizle — ikon sarmalayıcı (.nav-icon-wrap) de bir
+     <span> olduğundan eski `.nav-link span` kuralı ikonları da gizliyordu
+     (görünmez ama tıklanabilir). Doğrudan çocuk + :not ile ikonu koru. */
+  .nav-link > span:not(.nav-icon-wrap), .post-btn span, .sidebar-logo span { display: none; }
+  /* İkon-sidebar'da nav öğeleri ortalanır (etiket yokken sola yapışmasın) */
+  .nav-link, .post-btn { justify-content: center; gap: 0; }
   .sidebar-foot { display: none; }
   .post-btn { padding: 14px; width: auto; }
   .right-panel { display: none; }
