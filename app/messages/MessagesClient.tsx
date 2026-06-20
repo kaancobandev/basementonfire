@@ -221,7 +221,7 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
   }
 
   return (
-    <main style={{ display: 'flex', height: 'calc(100dvh)', overflow: 'hidden', flex: 1, background: '#0f0e0d' }}>
+    <main className="dm-main" style={{ display: 'flex', height: 'calc(100dvh)', overflow: 'hidden', flex: 1, background: '#0f0e0d' }}>
       {/* Sidebar */}
       <div style={{ width: 320, flexShrink: 0, borderRight: '1px solid rgba(255,255,255,0.07)', display: 'flex', flexDirection: 'column', overflow: 'hidden', ...(panelOpen ? { display: 'none' } : {}) }} className="dm-sidebar-col">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px 12px', borderBottom: '1px solid rgba(255,255,255,0.07)', flexShrink: 0 }}>
@@ -346,8 +346,15 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
       )}
 
       <style>{`
-        @media (max-width: 640px) {
-          .dm-sidebar-col { width: 100% !important; border-right: none !important; display: flex !important; }
+        /* Mobil (uygulamanın alt-nav eşiği 699px) — tek panel: liste VEYA sohbet.
+           Liste (.dm-sidebar-col) tam genişlik olur; bir konuşma açılınca inline
+           display:none ile gizlenir (artık !important display:flex onu ezmiyor),
+           sohbet paneli tüm ekranı kaplar. Geri butonu görünür olur. <main> alt
+           navigasyon (56px) payını bırakır ki giriş çubuğu nav'ın arkasında kalmasın. */
+        @media (max-width: 699px) {
+          .dm-main { height: calc(100dvh - 56px) !important; }
+          .dm-sidebar-col { width: 100% !important; border-right: none !important; }
+          .dm-back-btn { display: inline-flex !important; }
         }
       `}</style>
     </main>

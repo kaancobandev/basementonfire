@@ -108,13 +108,13 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
           </div>
         </div>
 
-        <h1 style={{ fontSize: '1.25rem', fontWeight: 800, margin: '0 0 2px' }}>{user.display_name}</h1>
-        <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', margin: '0 0 8px' }}>@{user.username}</p>
-        {user.bio ? <p style={{ fontSize: '0.9rem', lineHeight: 1.5, margin: '0 0 12px' }}>{user.bio}</p> : <p style={{ fontSize: '0.9rem', margin: '0 0 12px', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>Bio eklemek için profili düzenle</p>}
+        <h1 style={{ fontSize: '1.25rem', fontWeight: 800, margin: '0 0 2px', overflowWrap: 'anywhere' }}>{user.display_name}</h1>
+        <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', margin: '0 0 8px', overflowWrap: 'anywhere' }}>@{user.username}</p>
+        {user.bio ? <p style={{ fontSize: '0.9rem', lineHeight: 1.5, margin: '0 0 12px', overflowWrap: 'anywhere' }}>{user.bio}</p> : <p style={{ fontSize: '0.9rem', margin: '0 0 12px', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>Bio eklemek için profili düzenle</p>}
 
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, margin: '0 0 10px' }}>
           {user.location && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.82rem', color: 'var(--color-text-muted)' }}><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>{user.location}</span>}
-          {user.website && <a href={user.website} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.82rem', color: 'var(--color-primary)', textDecoration: 'none' }}><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>{user.website.replace(/^https?:\/\//, '')}</a>}
+          {user.website && <a href={user.website} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.82rem', color: 'var(--color-primary)', textDecoration: 'none', overflowWrap: 'anywhere', minWidth: 0 }}><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>{user.website.replace(/^https?:\/\//, '')}</a>}
           {age !== null && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>{age} yaş</span>}
           {user.gender && <span style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>{GENDER_LABEL[user.gender] ?? ''}</span>}
         </div>

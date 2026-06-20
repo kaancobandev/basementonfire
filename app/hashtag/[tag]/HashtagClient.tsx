@@ -50,8 +50,8 @@ export default function HashtagClient({ tag, posts, related = [] }: Props) {
             <line x1="10" x2="8" y1="3" y2="21"/><line x1="16" x2="14" y1="3" y2="21"/>
           </svg>
         </div>
-        <div>
-          <h1 style={{ fontSize: '1.25rem', fontWeight: 800, margin: '0 0 2px' }}>#{tag}</h1>
+        <div style={{ minWidth: 0 }}>
+          <h1 style={{ fontSize: '1.25rem', fontWeight: 800, margin: '0 0 2px', overflowWrap: 'anywhere' }}>#{tag}</h1>
           <p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', margin: 0 }}>
             {posts.length} gönderi
           </p>

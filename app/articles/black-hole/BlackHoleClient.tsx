@@ -285,9 +285,12 @@ export default function BlackHolePage() {
         @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(8px)} }
         .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
         .reveal.visible { opacity: 1; transform: translateY(0); }
+        /* React inline-style'ı iki nokta sonrası BOŞLUKSUZ üretir
+           (grid-template-columns:1fr 1fr) ve grid bazıları iç içe (section>div>div);
+           bu yüzden boşluksuz alt-dizge + descendant ( ) birleştirici kullanılır. */
         @media (max-width: 767px) {
-          section > div[style*="grid-template-columns: 1fr 1fr"] { grid-template-columns: 1fr !important; }
-          section > div[style*="grid-template-columns: repeat(3"] { grid-template-columns: 1fr !important; }
+          section div[style*="grid-template-columns:1fr 1fr"],
+          section div[style*="grid-template-columns:repeat(3"] { grid-template-columns: 1fr !important; }
         }
       `}</style>
     </main>
