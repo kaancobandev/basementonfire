@@ -19,6 +19,7 @@ interface Props {
   feedItems: any[];
   likedFactIds: number[];
   likedPostIds: number[];
+  repostedFactIds: number[];
   suggestedUsers: SuggestedUser[];
   currentUser: { id: number; username: string; display_name: string } | null;
   ownStoryUser: StoryUser | null;
@@ -54,7 +55,7 @@ const HeartEmpty = () => (
   </svg>
 );
 
-export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedPostIds, suggestedUsers, currentUser, ownStoryUser, otherStoryUsers }: Props) {
+export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedPostIds, repostedFactIds, suggestedUsers, currentUser, ownStoryUser, otherStoryUsers }: Props) {
   // Feed items + infinite scroll
   const [feedItems, setFeedItems] = useState<any[]>(initialItems);
   const [nextCursor, setNextCursor] = useState<string | null>(
@@ -66,6 +67,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
 
   const [likedFacts, setLikedFacts] = useState<Set<number>>(new Set(likedFactIds));
   const [factLikes, setFactLikes] = useState<Record<number, number>>({});
+  const [repostedFacts, setRepostedFacts] = useState<Set<number>>(new Set(repostedFactIds));
   const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set(likedPostIds));
   const [postLikes, setPostLikes] = useState<Record<number, number>>({});
   const [followedUsers, setFollowedUsers] = useState<Set<string>>(new Set());
@@ -185,6 +187,21 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
     }
   }
 
+  // Repost (yalnızca quick_facts) — optimistik, hata/401'de geri alır
+  async function toggleRepost(id: number) {
+    if (!currentUser) { window.location.href = '/login'; return; }
+    const was = repostedFacts.has(id);
+    setRepostedFacts(prev => { const n = new Set(prev); was ? n.delete(id) : n.add(id); return n; });
+    const revert = () => setRepostedFacts(prev => { const n = new Set(prev); was ? n.add(id) : n.delete(id); return n; });
+    try {
+      const res = await fetch(`/api/quick-facts/${id}/repost`, { method: 'POST' });
+      if (res.status === 401) { window.location.href = '/login'; return; }
+      const data = await res.json();
+      if (!res.ok || typeof data.reposted === 'undefined') { revert(); return; }
+      setRepostedFacts(prev => { const n = new Set(prev); data.reposted ? n.add(id) : n.delete(id); return n; });
+    } catch { revert(); }
+  }
+
   async function followUser(username: string) {
     const res = await fetch(`/api/users/${username}/follow`, { method: 'POST' });
     if (res.status === 401) { window.location.href = '/login'; return; }
@@ -299,6 +316,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
               if (item.kind === 'fact') {
                 const liked = likedFacts.has(item.id);
                 const likes = factLikes[item.id] ?? item.likes;
+                const reposted = repostedFacts.has(item.id);
                 return (
                   <motion.article
                     key={`fact-${item.id}`}
@@ -335,6 +353,15 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                       <Link href="/akis" style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '6px 8px', borderRadius: '9999px', color: 'var(--color-text)', textDecoration: 'none', transition: 'background 0.12s' }}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                       </Link>
+                      <motion.button
+                        onClick={() => toggleRepost(item.id)}
+                        whileTap={{ scale: 0.80 }}
+                        aria-label="Repost"
+                        title={reposted ? 'Repost geri al' : 'Repost'}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '6px 8px', borderRadius: '9999px', color: reposted ? '#22c55e' : 'var(--color-text)', transition: 'color 0.15s' }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m17 1 4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="m7 23-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                      </motion.button>
                     </div>
                     <div style={{ padding: '2px 14px 4px' }}>
                       <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-text)' }}>{likes} beğeni</span>

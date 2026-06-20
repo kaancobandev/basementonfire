@@ -49,13 +49,16 @@ export default async function HomePage() {
 
   let likedFactIds: number[] = [];
   let likedPostIds: number[] = [];
+  let repostedFactIds: number[] = [];
   if (me) {
-    const [fr, pr] = await Promise.all([
+    const [fr, pr, rr] = await Promise.all([
       facts.length ? db.from('fact_likes').select('fact_id').eq('user_id', me.id).in('fact_id', facts.map(f => f.id)) : { data: [] },
       posts.length ? db.from('post_likes').select('post_id').eq('user_id', me.id).in('post_id', posts.map(p => p.id)) : { data: [] },
+      facts.length ? db.from('fact_reposts').select('fact_id').eq('user_id', me.id).in('fact_id', facts.map(f => f.id)) : { data: [] },
     ]);
     likedFactIds = (fr.data ?? []).map((r: any) => r.fact_id);
     likedPostIds = (pr.data ?? []).map((r: any) => r.post_id);
+    repostedFactIds = (rr.data ?? []).map((r: any) => r.fact_id);
   }
 
   // Suggested users
@@ -121,6 +124,7 @@ export default async function HomePage() {
         feedItems={feedItems as any}
         likedFactIds={likedFactIds}
         likedPostIds={likedPostIds}
+        repostedFactIds={repostedFactIds}
         suggestedUsers={suggestedUsers}
         currentUser={me ? { id: me.id, username: me.username, display_name: me.display_name } : null}
         ownStoryUser={ownStoryUser}
