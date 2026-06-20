@@ -124,7 +124,7 @@ export default function BlackHolePage() {
   ][score];
 
   return (
-    <main style={{ maxWidth: '100%', background: '#050505', color: '#e0e0e0', minHeight: '100vh' }}>
+    <main style={{ flex: 1, minWidth: 0, maxWidth: '100%', overflowX: 'hidden', background: '#050505', color: '#e0e0e0', minHeight: '100vh' }}>
       <canvas ref={canvasRef} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0, background: 'radial-gradient(circle at center,#1a0b2e 0%,#000 100%)', pointerEvents: 'none' }} />
 
       <div style={{ position: 'sticky', top: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(255,69,0,0.3)', color: '#e0e0e0', zIndex: 50, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 12 }}>
