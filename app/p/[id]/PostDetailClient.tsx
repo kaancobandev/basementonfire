@@ -34,12 +34,13 @@ const Avatar = ({ username, display_name, avatar, size }: { username: string; di
   </span>
 );
 
-export default function PostDetailClient({ post, initialComments, initialLiked, initialBookmarked, currentUser }: {
-  post: PostProp; initialComments: CommentT[]; initialLiked: boolean; initialBookmarked: boolean; currentUser: CurrentUser | null;
+export default function PostDetailClient({ post, initialComments, initialLiked, initialBookmarked, initialReposted, currentUser }: {
+  post: PostProp; initialComments: CommentT[]; initialLiked: boolean; initialBookmarked: boolean; initialReposted: boolean; currentUser: CurrentUser | null;
 }) {
   const [liked, setLiked] = useState(initialLiked);
   const [likes, setLikes] = useState(post.likes);
   const [bookmarked, setBookmarked] = useState(initialBookmarked);
+  const [reposted, setReposted] = useState(initialReposted);
   const [comments, setComments] = useState<CommentT[]>(initialComments);
   const [commentText, setCommentText] = useState('');
   const [replyToId, setReplyToId] = useState<number | null>(null);
@@ -56,8 +57,24 @@ export default function PostDetailClient({ post, initialComments, initialLiked, 
   async function toggleBookmark() {
     if (!currentUser) { window.location.href = '/login'; return; }
     const prev = bookmarked; setBookmarked(!prev);
-    const res = await fetch(`/api/quick-facts/${post.id}/bookmark`, { method: 'POST' });
-    const d = await res.json(); setBookmarked(d.bookmarked ?? !prev);
+    try {
+      const res = await fetch(`/api/quick-facts/${post.id}/bookmark`, { method: 'POST' });
+      if (res.status === 401) { window.location.href = '/login'; return; }
+      const d = await res.json();
+      if (!res.ok || typeof d.bookmarked === 'undefined') { setBookmarked(prev); return; }
+      setBookmarked(d.bookmarked);
+    } catch { setBookmarked(prev); }
+  }
+  async function toggleRepost() {
+    if (!currentUser) { window.location.href = '/login'; return; }
+    const prev = reposted; setReposted(!prev);
+    try {
+      const res = await fetch(`/api/quick-facts/${post.id}/repost`, { method: 'POST' });
+      if (res.status === 401) { window.location.href = '/login'; return; }
+      const d = await res.json();
+      if (!res.ok || typeof d.reposted === 'undefined') { setReposted(prev); return; }
+      setReposted(d.reposted);
+    } catch { setReposted(prev); }
   }
   async function submitComment(e: React.FormEvent) {
     e.preventDefault();
@@ -117,6 +134,9 @@ export default function PostDetailClient({ post, initialComments, initialLiked, 
           <button onClick={toggleLike} style={{ display: 'flex', alignItems: 'center', gap: 7, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.95rem', color: liked ? '#ef4444' : 'var(--color-text)' }}>
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /></svg>
             {likes}
+          </button>
+          <button onClick={toggleRepost} aria-label="Repost" title={reposted ? 'Repost geri al' : 'Repost'} style={{ display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', color: reposted ? '#22c55e' : 'var(--color-text)' }}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m17 1 4 4-4 4" /><path d="M3 11V9a4 4 0 0 1 4-4h14" /><path d="m7 23-4-4 4-4" /><path d="M21 13v2a4 4 0 0 1-4 4H3" /></svg>
           </button>
           <button onClick={toggleBookmark} aria-label="Kaydet" style={{ display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', color: bookmarked ? '#d4a564' : 'var(--color-text)', marginLeft: 'auto' }}>
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill={bookmarked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg>

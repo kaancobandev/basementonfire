@@ -16,6 +16,7 @@ interface Props {
   initialComments: DetailComment[];
   initialLiked: boolean;
   initialBookmarked: boolean;
+  initialReposted: boolean;
   currentUser: CurrentUser | null;
 }
 
@@ -33,11 +34,12 @@ function timeAgo(iso: string) {
  * URL /p/[id] olur (paylaşılabilir); kapatma router.back() ile geri gider.
  * Yenileme/derin-bağlantıda intercepting devre dışı kalır → tam /p/[id] sayfası.
  */
-export default function PostModal({ post, initialComments, initialLiked, initialBookmarked, currentUser }: Props) {
+export default function PostModal({ post, initialComments, initialLiked, initialBookmarked, initialReposted, currentUser }: Props) {
   const router = useRouter();
   const isMobile = useIsMobile();
   const [liked, setLiked] = useState(initialLiked);
   const [bookmarked, setBookmarked] = useState(initialBookmarked);
+  const [reposted, setReposted] = useState(initialReposted);
   const [likes, setLikes] = useState(post.likes);
   const [comments, setComments] = useState<DetailComment[]>(initialComments);
   const [commentText, setCommentText] = useState('');
@@ -66,9 +68,26 @@ export default function PostModal({ post, initialComments, initialLiked, initial
     if (!currentUser) { window.location.href = '/login'; return; }
     const prev = bookmarked;
     setBookmarked(!prev);
-    const res = await fetch(`/api/quick-facts/${post.id}/bookmark`, { method: 'POST' });
-    const data = await res.json();
-    setBookmarked(data.bookmarked ?? !prev);
+    try {
+      const res = await fetch(`/api/quick-facts/${post.id}/bookmark`, { method: 'POST' });
+      if (res.status === 401) { window.location.href = '/login'; return; }
+      const data = await res.json();
+      if (!res.ok || typeof data.bookmarked === 'undefined') { setBookmarked(prev); return; }
+      setBookmarked(data.bookmarked);
+    } catch { setBookmarked(prev); }
+  }
+
+  async function toggleRepost() {
+    if (!currentUser) { window.location.href = '/login'; return; }
+    const prev = reposted;
+    setReposted(!prev);
+    try {
+      const res = await fetch(`/api/quick-facts/${post.id}/repost`, { method: 'POST' });
+      if (res.status === 401) { window.location.href = '/login'; return; }
+      const data = await res.json();
+      if (!res.ok || typeof data.reposted === 'undefined') { setReposted(prev); return; }
+      setReposted(data.reposted);
+    } catch { setReposted(prev); }
   }
 
   async function submitComment(e: React.FormEvent) {
@@ -191,6 +210,10 @@ export default function PostModal({ post, initialComments, initialLiked, initial
               style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, fontSize: '1rem', fontFamily: 'inherit', color: liked ? '#ef4444' : 'var(--color-text-muted)', transition: 'color 0.15s' }}>
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /></svg>
               <span>{likes}</span>
+            </motion.button>
+            <motion.button onClick={toggleRepost} whileTap={{ scale: 0.80 }} aria-label="Repost" title={reposted ? 'Repost geri al' : 'Repost'}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: reposted ? '#22c55e' : 'var(--color-text-muted)', transition: 'color 0.15s' }}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m17 1 4 4-4 4" /><path d="M3 11V9a4 4 0 0 1 4-4h14" /><path d="m7 23-4-4 4-4" /><path d="M21 13v2a4 4 0 0 1-4 4H3" /></svg>
             </motion.button>
             <motion.button onClick={toggleBookmark} whileTap={{ scale: 0.80 }} aria-label="Kaydet"
               style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: bookmarked ? '#d4a564' : 'var(--color-text-muted)', transition: 'color 0.15s' }}>

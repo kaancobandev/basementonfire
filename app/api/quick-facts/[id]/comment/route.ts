@@ -46,5 +46,5 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       await createNotification({ userId: parentCm.user_id, actorId: me.id, type: 'comment', postId, commentId: comment.id });
   }
 
-  return json({ comment: { ...comment, display_name: me.display_name, username: me.username } });
+  return json({ comment: { ...comment, display_name: me.display_name, username: me.username, avatar: me.avatar ?? null } });
 }

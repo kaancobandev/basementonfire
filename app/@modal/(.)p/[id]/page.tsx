@@ -22,6 +22,7 @@ export default async function InterceptedPostModal({ params }: { params: Promise
       initialComments={detail.comments}
       initialLiked={detail.initialLiked}
       initialBookmarked={detail.initialBookmarked}
+      initialReposted={detail.initialReposted}
       currentUser={me ? { id: me.id, username: me.username, display_name: me.display_name } : null}
     />
   );

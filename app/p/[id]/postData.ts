@@ -28,6 +28,7 @@ export type PostDetail = {
   comments: DetailComment[];
   initialLiked: boolean;
   initialBookmarked: boolean;
+  initialReposted: boolean;
   postProp: PostProp;
 };
 
@@ -48,13 +49,16 @@ export async function getPostDetail(postId: number, meId: number | null): Promis
 
   let initialLiked = false;
   let initialBookmarked = false;
+  let initialReposted = false;
   if (meId) {
-    const [lk, bm] = await Promise.all([
+    const [lk, bm, rp] = await Promise.all([
       db.from('fact_likes').select('fact_id').eq('user_id', meId).eq('fact_id', postId).maybeSingle(),
       db.from('bookmarks').select('id').eq('user_id', meId).eq('post_id', postId).maybeSingle(),
+      db.from('fact_reposts').select('fact_id').eq('user_id', meId).eq('fact_id', postId).maybeSingle(),
     ]);
     initialLiked = !!lk.data;
     initialBookmarked = !!bm.data;
+    initialReposted = !!rp.data;
   }
 
   const u = post.users || {};
@@ -71,5 +75,5 @@ export async function getPostDetail(postId: number, meId: number | null): Promis
     avatar: u.avatar ?? null,
   };
 
-  return { post, u, comments, initialLiked, initialBookmarked, postProp };
+  return { post, u, comments, initialLiked, initialBookmarked, initialReposted, postProp };
 }

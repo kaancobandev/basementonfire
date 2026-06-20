@@ -48,7 +48,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
   const detail = await getPostDetail(postId, me?.id ?? null);
   if (!detail) notFound();
 
-  const { post, u, comments, initialLiked, initialBookmarked, postProp } = detail;
+  const { post, u, comments, initialLiked, initialBookmarked, initialReposted, postProp } = detail;
   const cap = String(post.caption || '').replace(/\s+/g, ' ').trim();
   const cover = factMediaList(post).find((m) => m.type === 'image')?.url;
   const jsonLd = !u.is_private ? {
@@ -87,6 +87,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
         initialComments={comments}
         initialLiked={initialLiked}
         initialBookmarked={initialBookmarked}
+        initialReposted={initialReposted}
         currentUser={me ? { id: me.id, username: me.username, display_name: me.display_name } : null}
       />
     </>
