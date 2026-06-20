@@ -47,17 +47,29 @@ const caesarSteps = [
   { step: 'Augustus',    icon: '👑', desc: 'Sezar\'ın üvey oğlu Octavius Augustus, Brutus\'u devlet düşmanı ilan etti. 19 lejyonla savaşarak galip geldi ve imparatorluğun kapısını araladı.' },
 ];
 
+const emperors = [
+  { name: 'Augustus',        role: 'İlk İmparator',      era: 'MÖ 27 – MS 14', emoji: '👑', desc: 'Pax Romana\'yı başlattı. "Tuğladan bir Roma devraldım, mermerden bir Roma bıraktım" sözü ona atfedilir.' },
+  { name: 'Nero',            role: 'Tiran İmparator',    era: 'MS 54 – 68',    emoji: '🔥', desc: 'MS 64\'teki Büyük Roma Yangını onun döneminde yaşandı; suçu Hristiyanlara attı. Zorbalığıyla anılır.' },
+  { name: 'Vespasianus',     role: 'Flavius Hanedanı',   era: 'MS 69 – 79',    emoji: '🏟️', desc: 'Flavius hanedanını kurdu ve Colosseum\'un (Flavius Amfitiyatrosu) inşasını başlattı.' },
+  { name: 'Traianus',        role: 'En Geniş Sınırlar',  era: 'MS 98 – 117',   emoji: '🗺️', desc: 'İmparatorluğu tarihteki en geniş sınırlarına ulaştırdı. "Optimus Princeps" (En İyi İmparator) unvanını aldı.' },
+  { name: 'Hadrianus',       role: 'Surların İmparatoru',era: 'MS 117 – 138',  emoji: '🧱', desc: 'Britanya\'da kuzey kabilelere karşı Hadrian Surları\'nı yaptırdı; sınırları sağlamlaştırmaya öncelik verdi.' },
+  { name: 'Marcus Aurelius', role: 'Filozof İmparator',  era: 'MS 161 – 180',  emoji: '📜', desc: 'Stoacı filozof; "Düşünceler" (Meditationes) eserini yazdı. Ölümüyle Pax Romana sona erdi.' },
+  { name: 'Diocletianus',    role: 'Bölen İmparator',    era: 'MS 284 – 305',  emoji: '⚖️', desc: 'İmparatorluğu yönetilebilir kılmak için dörtlü yönetime (Tetrarşi) ayırdı; doğu-batı bölünmesinin temelini attı.' },
+  { name: 'Konstantin',      role: 'Hristiyan İmparator', era: 'MS 306 – 337', emoji: '✝️', desc: 'Hristiyanlığı serbest bıraktı (Milano Fermanı, MS 313) ve başkenti Byzantion\'a (Konstantinopolis) taşıdı.' },
+];
+
+const achievements = [
+  { icon: '🛣️', title: 'Yollar',        desc: '400.000 km\'yi aşan yol ağı. "Bütün yollar Roma\'ya çıkar" sözü buradan gelir; bazı ana yollar bugün hâlâ kullanılır.' },
+  { icon: '💧', title: 'Su Kemerleri',  desc: 'Akvedüktlerle şehirlere kilometrelerce uzaktan temiz su taşındı; çeşmeler, hamamlar ve tuvaletler bu sayede çalıştı.' },
+  { icon: '🏛️', title: 'Beton & Mimari', desc: 'Roma betonu (opus caementicium) ile devasa kubbe ve kemerler inşa edildi. Pantheon\'un kubbesi ~2000 yıldır ayakta.' },
+  { icon: '⚖️', title: 'Hukuk',         desc: '12 Levha\'dan Corpus Juris Civilis\'e uzanan Roma hukuku, modern Batı hukuk sistemlerinin temelini oluşturdu.' },
+];
+
 const QUIZ_Q = [
   { q: 'Roma\'nın efsanevi kurucusu hangi hayvan tarafından emzirildiği söylenir?', opts: ['Kartal','Dişi Kurt','Aslan','Boğa'], correct: 1 },
   { q: '12 Levha Kanunu hangi meydana asıldı?', opts: ['Colosseum','Pantheon','Forum Romanum','Capitoline Tepesi'], correct: 2 },
   { q: 'Julius Caesar\'ın Rubicon Nehrini geçmesi neyi sembolize ediyordu?', opts: ['Zafer kutlaması','Senatoya katılım','İç savaş başlatmak','Galya\'ya sefer'], correct: 2 },
   { q: 'Spartaküs hangi sınıfı temsil ediyordu?', opts: ['Patricii','Senato','Köleler ve Gladyatörler','Ordu generalleri'], correct: 2 },
-];
-
-const ERAS = [
-  { id: 'krallik',       label: 'Krallık' },
-  { id: 'cumhuriyet',    label: 'Cumhuriyet' },
-  { id: 'imparatorluk',  label: 'İmparatorluk' },
 ];
 
 const TIMELINE = [
@@ -72,8 +84,6 @@ const TIMELINE = [
 ];
 
 export default function RomePage() {
-  const [era, setEra] = useState('krallik');
-  const [openTablet, setOpenTablet] = useState<string | null>(null);
   const [quizQ, setQuizQ] = useState(0);
   const [quizScore, setQuizScore] = useState(0);
   const [answered, setAnswered] = useState<Record<number, number>>({});
@@ -131,11 +141,6 @@ export default function RomePage() {
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6"/></svg>
         </Link>
         <span className="ro-topbar-title">Roma İmparatorluğu</span>
-        <nav className="ro-era-nav">
-          {ERAS.map(e => (
-            <button key={e.id} onClick={() => setEra(e.id)} className={`ro-era-btn${era === e.id ? ' active' : ''}`}>{e.label}</button>
-          ))}
-        </nav>
       </div>
 
       {/* ── Hero ── */}
@@ -168,8 +173,7 @@ export default function RomePage() {
       <div className="ro-body">
 
         {/* ══ BÖLÜM 1: Roma KRALLIĞI ══ */}
-        {era === 'krallik' && (
-          <section className="ro-section">
+        <section className="ro-section">
             <div className="ro-section-badge">I</div>
             <h2 className="ro-h2">Roma Krallığı <span className="ro-chip">MÖ 753 – 509</span></h2>
 
@@ -244,28 +248,23 @@ export default function RomePage() {
             <div className="ro-tablets">
               {tablets.map(t => (
                 <div key={t.num} className="ro-tablet">
-                  <button className="ro-tablet-hdr" onClick={() => setOpenTablet(openTablet === t.num ? null : t.num)}>
+                  <div className="ro-tablet-hdr">
                     <span className="ro-tablet-num">{t.num}</span>
                     <div style={{ flex: 1, textAlign: 'left' }}>
                       <div className="ro-tablet-title">{t.title}</div>
                       <div className="ro-tablet-summary">{t.summary}</div>
                     </div>
-                    <span style={{ color: '#c5a028', fontSize: '1.2rem', transform: openTablet === t.num ? 'rotate(180deg)' : '', transition: 'transform 0.2s' }}>›</span>
-                  </button>
-                  {openTablet === t.num && (
-                    <ol className="ro-tablet-laws">
-                      {t.laws.map((law, i) => <li key={i}>{law}</li>)}
-                    </ol>
-                  )}
+                  </div>
+                  <ol className="ro-tablet-laws">
+                    {t.laws.map((law, i) => <li key={i}>{law}</li>)}
+                  </ol>
                 </div>
               ))}
             </div>
-          </section>
-        )}
+        </section>
 
         {/* ══ BÖLÜM 2: CUMHURİYET ══ */}
-        {era === 'cumhuriyet' && (
-          <section className="ro-section">
+        <section className="ro-section">
             <div className="ro-section-badge">II</div>
             <h2 className="ro-h2">Roma Cumhuriyeti <span className="ro-chip">MÖ 509 – 27</span></h2>
 
@@ -297,12 +296,10 @@ export default function RomePage() {
                 </div>
               ))}
             </div>
-          </section>
-        )}
+        </section>
 
         {/* ══ BÖLÜM 3: İMPARATORLUK ══ */}
-        {era === 'imparatorluk' && (
-          <section className="ro-section">
+        <section className="ro-section">
             <div className="ro-section-badge">III</div>
             <h2 className="ro-h2">Roma İmparatorluğu <span className="ro-chip">MÖ 27 – MS 476</span></h2>
 
@@ -318,6 +315,58 @@ export default function RomePage() {
                   <span>50,000 seyirci kapasitesi</span>
                   <span>80 kapı girişi</span>
                   <span>6 yılda inşa edildi</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Pax Romana */}
+            <h3 className="ro-h3">Pax Romana — Roma Barışı <span className="ro-chip">MÖ 27 – MS 180</span></h3>
+            <div className="ro-intro-card">
+              <p className="ro-p" style={{ margin: 0 }}>Augustus ile başlayan yaklaşık <strong className="ro-gold">200 yıllık</strong> bu dönem, Akdeniz dünyasının görece barış, istikrar ve refah yaşadığı çağdır. Akdeniz artık tümüyle Roma'nın iç denizi — <em className="ro-gold">Mare Nostrum</em> (Bizim Deniz) — olmuştu. Güvenli yollar ve ortak para birimi sayesinde ticaret patladı, şehirler büyüdü ve Roma'nın nüfusu bir milyonu aştı.</p>
+            </div>
+
+            {/* İmparatorlar galerisi */}
+            <h3 className="ro-h3" style={{ marginTop: 40 }}>İmparatorlar Galerisi</h3>
+            <div className="ro-figures">
+              {emperors.map(f => (
+                <div key={f.name} className="ro-figure">
+                  <div className="ro-figure-emoji">{f.emoji}</div>
+                  <div className="ro-figure-era">{f.era}</div>
+                  <h4 className="ro-figure-name">{f.name}</h4>
+                  <div className="ro-figure-role">{f.role}</div>
+                  <p className="ro-figure-desc">{f.desc}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Mühendislik mirası */}
+            <h3 className="ro-h3" style={{ marginTop: 48 }}>Roma'nın Mühendislik Mirası</h3>
+            <div className="ro-figures">
+              {achievements.map(a => (
+                <div key={a.title} className="ro-figure">
+                  <div className="ro-figure-emoji">{a.icon}</div>
+                  <h4 className="ro-figure-name">{a.title}</h4>
+                  <p className="ro-figure-desc">{a.desc}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Bölünme ve Çöküş */}
+            <h3 className="ro-h3" style={{ marginTop: 48 }}>Bölünme ve Çöküş <span className="ro-chip">MS 395 – 476</span></h3>
+            <div className="ro-two-col">
+              <div>
+                <p className="ro-p">MS 395'te İmparator I. Theodosius, imparatorluğu iki oğlu arasında kalıcı biçimde <strong className="ro-gold">Doğu</strong> ve <strong className="ro-gold">Batı Roma</strong> olarak böldü. Sınırlardaki baskı, ekonomik bunalım, salgınlar ve iç çekişmeler Batı'yı giderek zayıflattı.</p>
+                <p className="ro-p">Kavimler Göçü ile gelen Germen kabileleri sınırları zorladı; Roma MS 410'da Vizigotlar, MS 455'te Vandallar tarafından yağmalandı. Son Batı Roma imparatoru <strong className="ro-gold">Romulus Augustulus</strong>, MS 476'da Germen komutan Odoacer tarafından tahttan indirildi — bu tarih geleneksel olarak Batı Roma'nın sonu kabul edilir.</p>
+                <p className="ro-p">Ancak <strong className="ro-gold">Doğu Roma (Bizans)</strong> İmparatorluğu, başkenti Konstantinopolis'te bin yıl daha yaşadı ve nihayet MS <strong className="ro-gold">1453</strong>'te İstanbul'un fethiyle tarihe karıştı.</p>
+              </div>
+              <div className="ro-colosseum">
+                <div style={{ fontSize: '3.5rem', textAlign: 'center' }}>💀</div>
+                <p style={{ textAlign: 'center', fontSize: '0.85rem', color: '#c5a028', marginTop: 8 }}>Batı Roma'nın Çöküşü</p>
+                <div className="ro-col-facts">
+                  <span>MS 395 — Doğu-Batı bölünmesi</span>
+                  <span>MS 410 — Roma'nın yağmalanması</span>
+                  <span>MS 476 — Son imparator devrildi</span>
+                  <span>MS 1453 — Doğu Roma'nın sonu</span>
                 </div>
               </div>
             </div>
@@ -368,8 +417,7 @@ export default function RomePage() {
                 )}
               </div>
             </div>
-          </section>
-        )}
+        </section>
 
       </div>
 
@@ -410,17 +458,6 @@ export default function RomePage() {
         }
         .ro-back:hover { background: rgba(255,255,255,0.06); }
         .ro-topbar-title { font-weight: 700; font-size: 0.9rem; color: var(--ro-gold); flex-shrink: 0; }
-        .ro-era-nav { display: flex; gap: 6px; margin-left: auto; overflow-x: auto; scrollbar-width: none; }
-        .ro-era-nav::-webkit-scrollbar { display: none; }
-        .ro-era-btn {
-          background: rgba(197,160,40,0.08); color: var(--ro-gold);
-          border: 1px solid var(--ro-border); border-radius: 8px;
-          padding: 5px 12px; font-size: 0.78rem; font-weight: 600;
-          cursor: pointer; font-family: inherit; white-space: nowrap; flex-shrink: 0;
-          transition: all 0.15s;
-        }
-        .ro-era-btn.active { background: var(--ro-gold); color: #0f0c08; border-color: var(--ro-gold); }
-        .ro-era-btn:hover:not(.active) { border-color: var(--ro-gold); }
 
         /* Hero */
         .ro-hero {
@@ -516,10 +553,9 @@ export default function RomePage() {
         .ro-tablet { border: 1px solid var(--ro-border); border-radius: 10px; overflow: hidden; }
         .ro-tablet-hdr {
           width: 100%; display: flex; align-items: center; gap: 12px; padding: 14px 16px;
-          background: rgba(197,160,40,0.04); border: none; cursor: pointer; font-family: inherit; color: var(--ro-text);
-          transition: background 0.15s;
+          background: rgba(197,160,40,0.04); border: none; font-family: inherit; color: var(--ro-text);
+          border-bottom: 1px solid var(--ro-border);
         }
-        .ro-tablet-hdr:hover { background: rgba(197,160,40,0.08); }
         .ro-tablet-num { width: 28px; height: 28px; border-radius: 50%; background: var(--ro-gold); color: #0f0c08; font-weight: 900; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .ro-tablet-title { font-size: 0.88rem; font-weight: 700; color: var(--ro-gold); text-align: left; }
         .ro-tablet-summary { font-size: 0.74rem; color: var(--ro-muted); text-align: left; margin-top: 2px; }
@@ -571,7 +607,6 @@ export default function RomePage() {
 
         /* Responsive */
         @media (max-width: 640px) {
-          .ro-topbar-title { display: none; }
           .ro-two-col { grid-template-columns: 1fr; }
           .ro-vs-row { grid-template-columns: 1fr; }
           .ro-vs-label { display: none; }
