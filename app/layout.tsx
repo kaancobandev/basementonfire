@@ -99,7 +99,9 @@ export default async function RootLayout({ children, modal }: { children: React.
         )}
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{if(localStorage.getItem('theme')==='dark')document.documentElement.setAttribute('data-theme','dark')}catch{}`,
+            // 'js'/'reduced' sınıfları ilk boyamadan ÖNCE eklenir → makale .reveal
+            // bölümleri gizli başlar (FOUC/titreme önlenir); tema da erken uygulanır.
+            __html: `document.documentElement.classList.add('js');try{if(localStorage.getItem('theme')==='dark')document.documentElement.setAttribute('data-theme','dark')}catch{}try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('reduced')}catch{}`,
           }}
         />
       </head>

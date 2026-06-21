@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { jsonLdScript } from '@/lib/seo';
+import { breadcrumbJsonLd, jsonLdScript } from '@/lib/seo';
 import ArticleRuntime from '@/app/components/ArticleRuntime';
 import { CSS, HTML, JS } from './content';
 
@@ -31,15 +31,22 @@ const jsonLd = {
   publisher: { '@type': 'Organization', name: 'Basements' },
 };
 
+const breadcrumbLd = breadcrumbJsonLd([
+  { name: 'Ana Sayfa', path: '/' },
+  { name: 'Keşfet', path: '/discover' },
+  { name: title },
+]);
+
 export default function Page() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbLd) }} />
       <style dangerouslySetInnerHTML={{ __html: FONTS }} />
-      <main className="main-content erk-root">
+      <div className="main-content erk-root">
         <style dangerouslySetInnerHTML={{ __html: CSS }} />
         <div dangerouslySetInnerHTML={{ __html: HTML }} />
-      </main>
+      </div>
       <ArticleRuntime js={JS} cdns={CDNS} />
     </>
   );

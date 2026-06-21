@@ -7,19 +7,16 @@ import { useEffect } from 'react';
  * JS'ini SPA içinde güvenle çalıştırır:
  *  - Gerekli CDN'leri (Three.js, GSAP, Lottie) sırayla yükler, sonra inline JS'i enjekte eder.
  *  - SSR ile basılan içerik DOM'da hazır olduğundan getElementById/querySelector çalışır.
- *  - Unmount'ta (başka sayfaya geçince): bekleyen requestAnimationFrame'leri iptal eder,
- *    setInterval'leri temizler, init sırasında eklenen window/document dinleyicilerini
- *    kaldırır ve enjekte edilen script'leri siler — böylece arka planda döngü/leak kalmaz.
+ *  - Unmount'ta (başka sayfaya geçince): kütüphane döngülerini (GSAP/ScrollTrigger/Lottie)
+ *    ve AudioContext'i durdurur, JS'in body'ye eklediği düğümleri/global'leri temizler,
+ *    bekleyen rAF'leri iptal eder, setInterval'leri temizler, init dinleyicilerini kaldırır,
+ *    enjekte script'leri siler — böylece SPA gezinmesinde arka planda döngü/leak kalmaz.
+ *  - NOT: 'js'/'reduced' html sınıfları layout <head> script'inde (ilk boyamadan önce)
+ *    ayarlanır; reveal FOUC'unu önlemek için burada YÖNETİLMEZ.
  */
 export default function ArticleRuntime({ js, cdns = [] }: { js: string; cdns?: string[] }) {
   useEffect(() => {
     const w = window as any;
-    const root = document.documentElement;
-    root.classList.add('js');
-    let reduced = false;
-    try { reduced = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch {}
-    if (reduced) root.classList.add('reduced');
-
     const injected: HTMLScriptElement[] = [];
     let stopped = false;
 
@@ -82,6 +79,20 @@ export default function ArticleRuntime({ js, cdns = [] }: { js: string; cdns?: s
 
     return () => {
       stopped = true;
+      // Kütüphane/kaynak teardown'ı — SPA navigasyonunda CPU/WebGL/AudioContext leak'ini
+      // önler. Bu kütüphaneler (GSAP/ScrollTrigger/Lottie) yalnızca içerik makalelerinde
+      // kullanıldığından global olarak durdurmak güvenli.
+      try { if (typeof w.__articleCleanup === 'function') w.__articleCleanup(); } catch {}
+      try { delete w.__articleCleanup; } catch {}
+      try { w.ScrollTrigger && w.ScrollTrigger.getAll && w.ScrollTrigger.getAll().forEach((t: any) => t.kill()); } catch {}
+      try { w.gsap && w.gsap.globalTimeline && w.gsap.globalTimeline.clear(); } catch {}
+      try { w.lottie && w.lottie.destroy && w.lottie.destroy(); } catch {}
+      try { w.ARCADE && w.ARCADE.ac && w.ARCADE.ac.close && w.ARCADE.ac.close(); } catch {}
+      // JS'in body'ye eklediği düğümler (tıbbi özel imleci) ve script-üretimi global'ler
+      try { document.querySelectorAll('body > .cursor-ring, body > .cursor-dot').forEach((n) => n.remove()); } catch {}
+      try { delete w.PULSE; } catch {}
+      try { delete w._starGroup; } catch {}
+      try { delete w.ARCADE; } catch {}
       rafs.forEach((id) => origCaf(id)); rafs.clear();
       intervals.forEach((id) => clearInterval(id)); intervals.clear();
       captured.forEach(({ t, type, fn, opts }) => { try { t.removeEventListener(type, fn, opts); } catch {} });
@@ -89,8 +100,6 @@ export default function ArticleRuntime({ js, cdns = [] }: { js: string; cdns?: s
       w.requestAnimationFrame = origRaf;
       w.cancelAnimationFrame = origCaf;
       w.setInterval = origSetInterval;
-      root.classList.remove('js');
-      if (reduced) root.classList.remove('reduced');
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
