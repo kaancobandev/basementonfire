@@ -2,6 +2,14 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
+
+const refs: BibItem[] = [
+  { title: 'Zamanın Kısa Tarihi', authors: 'Stephen Hawking', year: '1988', source: 'Bantam Books' },
+  { title: 'Black Holes and Time Warps', authors: 'Kip S. Thorne', year: '1994', source: 'W. W. Norton' },
+  { title: 'Black Holes', source: 'NASA Science', url: 'https://science.nasa.gov/universe/black-holes/' },
+  { title: 'First Image of a Black Hole (M87*)', authors: 'Event Horizon Telescope', year: '2019', source: 'EHT Collaboration', url: 'https://eventhorizontelescope.org/' },
+];
 
 const CORRECT = [1, 2, 2];
 
@@ -278,6 +286,8 @@ export default function BlackHolePage() {
             <span style={{ color: '#ff4500', fontWeight: 700, marginLeft: 6 }}>Kaan Çoban</span>
           </div>
         </section>
+
+        <ArticleBibliography items={refs} accent="#ff4500" />
       </div>
 
       <style>{`

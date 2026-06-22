@@ -2,6 +2,14 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
+
+const refs: BibItem[] = [
+  { title: 'SPQR: A History of Ancient Rome', authors: 'Mary Beard', year: '2015', source: 'Profile Books' },
+  { title: 'Roma İmparatorluğunun Gerileyiş ve Çöküş Tarihi', authors: 'Edward Gibbon', year: '1776', source: 'Klasik eser' },
+  { title: 'Ab Urbe Condita (Roma Tarihi)', authors: 'Titus Livius', source: 'Antik kaynak' },
+  { title: 'Roman Empire', source: 'Encyclopædia Britannica', url: 'https://www.britannica.com/place/Roman-Empire' },
+];
 
 const tablets = [
   { num: 'I',    title: 'Mahkeme Usulü',      summary: 'Duruşmaya katılım, gün belirleme, davacı hakları.',
@@ -426,6 +434,8 @@ export default function RomePage() {
       </div>
 
       {/* ── Footer ── */}
+      <ArticleBibliography items={refs} accent="#c5a028" />
+
       <footer className="ro-footer">
         <div style={{ fontSize: '2rem' }}>🦅</div>
         <div className="ro-footer-spqr">SENATUS POPULUSQUE ROMANUS</div>

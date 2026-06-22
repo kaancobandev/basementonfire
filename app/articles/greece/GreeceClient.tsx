@@ -1,4 +1,12 @@
 import Link from 'next/link';
+import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
+
+const refs: BibItem[] = [
+  { title: 'Tarihler (Historíai)', authors: 'Herodotos', year: 'MÖ ~430', source: 'Antik kaynak' },
+  { title: 'Peloponnesos Savaşı Tarihi', authors: 'Thukydides', year: 'MÖ ~400', source: 'Antik kaynak' },
+  { title: 'Ancient Greek civilization', source: 'Encyclopædia Britannica', url: 'https://www.britannica.com/place/ancient-Greece' },
+  { title: 'Ancient Greece', source: 'Wikipedia', url: 'https://en.wikipedia.org/wiki/Ancient_Greece' },
+];
 
 const gods = [
   { name: 'Zeus',     domain: 'Gökyüzü & Şimşek', emoji: '⚡', color: '#f5c518', desc: 'Olimpos\'un baş tanrısı. Şimşek ve fırtınanın efendisi, tanrıların ve insanların babası.', symbol: 'Yıldırım, Kartal, Meşe' },
@@ -147,6 +155,8 @@ export default function GreecePage() {
           ))}
         </div>
       </section>
+
+      <ArticleBibliography items={refs} accent="#7ec8e3" />
 
       <style>{`
         /* ── Temel ── */

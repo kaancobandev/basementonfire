@@ -1,7 +1,15 @@
 import type { Metadata } from 'next';
 import { breadcrumbJsonLd, jsonLdScript } from '@/lib/seo';
 import ArticleRuntime from '@/app/components/ArticleRuntime';
+import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
 import { CSS, HTML, JS } from './content';
+
+const refs: BibItem[] = [
+  { title: 'Gray\'s Anatomy (41. baskı)', source: 'Elsevier' },
+  { title: 'MedlinePlus Tıbbi Ansiklopedi', source: 'ABD Ulusal Tıp Kütüphanesi (NIH)', url: 'https://medlineplus.gov/encyclopedia.html' },
+  { title: 'Human disease', source: 'Encyclopædia Britannica', url: 'https://www.britannica.com/science/human-disease' },
+  { title: 'Scientific American — Health', source: 'Scientific American', url: 'https://www.scientificamerican.com/health/' },
+];
 
 const title = 'Gerçek Olamayacak Kadar Tuhaf — 15 Tıbbi Olgu';
 const description = 'Doğrulanmış ama akıl almaz 15 tıbbi olgu: insan vücudunun ve tıbbın en tuhaf gerçekleri, animasyonlu ve interaktif bir anlatımla.';
@@ -50,6 +58,7 @@ export default function Page() {
       <main className="main-content tib-root">
         <style dangerouslySetInnerHTML={{ __html: CSS }} />
         <div dangerouslySetInnerHTML={{ __html: HTML }} />
+        <ArticleBibliography items={refs} accent="#ec5a13" />
       </main>
       <ArticleRuntime js={JS} cdns={CDNS} />
     </>

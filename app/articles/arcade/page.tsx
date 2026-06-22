@@ -1,7 +1,15 @@
 import type { Metadata } from 'next';
 import { breadcrumbJsonLd, jsonLdScript } from '@/lib/seo';
 import ArticleRuntime from '@/app/components/ArticleRuntime';
+import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
 import { CSS, HTML, JS } from './content';
+
+const refs: BibItem[] = [
+  { title: 'The Ultimate History of Video Games', authors: 'Steven L. Kent', year: '2001', source: 'Three Rivers Press' },
+  { title: 'Replay: The History of Video Games', authors: 'Tristan Donovan', year: '2010', source: 'Yellow Ant' },
+  { title: 'Video Game History', source: 'The Strong National Museum of Play', url: 'https://www.museumofplay.org/' },
+  { title: 'Arcade video game', source: 'Wikipedia', url: 'https://en.wikipedia.org/wiki/Arcade_video_game' },
+];
 
 const title = 'Arcade — Oyun Salonunun Tarihi';
 const description = 'Arcade oyunlarının tarihi, altın çağı ve efsane makineler; tarayıcıda oynanabilir Pong, Pac-Man ve platform klasikleriyle interaktif bir gezinti.';
@@ -45,6 +53,7 @@ export default function Page() {
       <div className="main-content arc-root">
         <style dangerouslySetInnerHTML={{ __html: CSS }} />
         <div dangerouslySetInnerHTML={{ __html: HTML }} />
+        <ArticleBibliography items={refs} accent="#ec4899" />
       </div>
       <ArticleRuntime js={JS} />
     </>

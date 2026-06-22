@@ -1,7 +1,15 @@
 import type { Metadata } from 'next';
 import { breadcrumbJsonLd, jsonLdScript } from '@/lib/seo';
 import ArticleRuntime from '@/app/components/ArticleRuntime';
+import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
 import { CSS, HTML, JS } from './content';
+
+const refs: BibItem[] = [
+  { title: 'The Particle Problem in the General Theory of Relativity', authors: 'A. Einstein & N. Rosen', year: '1935', source: 'Physical Review 48, 73' },
+  { title: 'Wormholes in spacetime and their use for interstellar travel', authors: 'M. Morris & K. Thorne', year: '1988', source: 'American Journal of Physics 56, 395' },
+  { title: 'Black Holes and Time Warps', authors: 'Kip S. Thorne', year: '1994', source: 'W. W. Norton' },
+  { title: 'Wormhole', source: 'Wikipedia', url: 'https://en.wikipedia.org/wiki/Wormhole' },
+];
 
 const title = 'Einstein–Rosen Köprüsü';
 const description = 'Solucan deliği nedir? Genel görelilik, uzay-zaman eğriliği ve Einstein–Rosen köprüsü; interaktif 3B model, uzay-zaman ızgarası ve quiz ile anlatıldı.';
@@ -46,6 +54,7 @@ export default function Page() {
       <div className="main-content erk-root">
         <style dangerouslySetInnerHTML={{ __html: CSS }} />
         <div dangerouslySetInnerHTML={{ __html: HTML }} />
+        <ArticleBibliography items={refs} accent="#22d3ee" />
       </div>
       <ArticleRuntime js={JS} cdns={CDNS} />
     </>

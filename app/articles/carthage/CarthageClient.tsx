@@ -2,6 +2,14 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
+
+const refs: BibItem[] = [
+  { title: 'Carthage Must Be Destroyed', authors: 'Richard Miles', year: '2010', source: 'Allen Lane' },
+  { title: 'Tarihler (Pön Savaşları)', authors: 'Polybios', year: 'MÖ ~150', source: 'Antik kaynak' },
+  { title: 'Carthage (ancient city)', source: 'Encyclopædia Britannica', url: 'https://www.britannica.com/place/Carthage-ancient-city-Tunisia' },
+  { title: 'Ancient Carthage', source: 'Wikipedia', url: 'https://en.wikipedia.org/wiki/Ancient_Carthage' },
+];
 
 const chapters = [
   {
@@ -170,6 +178,8 @@ export default function CarthagePage() {
       </div>
 
       {/* Footer */}
+      <ArticleBibliography items={refs} accent="#c5a059" />
+
       <footer className="ca-footer">
         <p>Hazırlayan: <strong>Kaan Çoban</strong></p>
         <p className="ca-footer-copy">&copy; 2025 Basement — Savaş ve Uygarlıklar</p>

@@ -2,6 +2,15 @@
 
 import { useEffect, useState, type ReactNode, type CSSProperties } from 'react';
 import Link from 'next/link';
+import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
+
+const refs: BibItem[] = [
+  { title: 'Computer Networks (5. baskı)', authors: 'Andrew S. Tanenbaum & David J. Wetherall', year: '2010', source: 'Pearson' },
+  { title: 'How does the Internet work?', source: 'Cloudflare Learning Center', url: 'https://www.cloudflare.com/learning/network-layer/how-does-the-internet-work/' },
+  { title: 'HTTP — Hypertext Transfer Protocol', source: 'MDN Web Docs', url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP' },
+  { title: 'RFC 791 (IP) & RFC 793 (TCP)', authors: 'Jon Postel (ed.)', year: '1981', source: 'IETF' },
+  { title: 'What is DNS?', source: 'Cloudflare Learning Center', url: 'https://www.cloudflare.com/learning/dns/what-is-dns/' },
+];
 
 /* ════════════════════════ VERİ ════════════════════════ */
 
@@ -821,6 +830,8 @@ export default function InternetClient() {
       </section>
 
       {/* ── Footer ── */}
+      <ArticleBibliography items={refs} accent="#38bdf8" />
+
       <footer className="net-footer">
         <div className="net-footer-mark">BASEMENTS</div>
         <p>İnternet, ortak protokoller üzerinde anlaşmış milyarlarca cihazın oluşturduğu, kendi kendini yönlendiren devasa bir orkestradır. 🌐</p>

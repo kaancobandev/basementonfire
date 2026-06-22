@@ -2,6 +2,14 @@
 
 import { useEffect, useState, type ReactNode, type CSSProperties } from 'react';
 import Link from 'next/link';
+import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
+
+const refs: BibItem[] = [
+  { title: 'Paralel Yaşamlar — Pyrrhus', authors: 'Plutarkhos', year: 'MS ~100', source: 'Antik biyografi' },
+  { title: 'Pyrrhus, king of Epirus', source: 'Encyclopædia Britannica', url: 'https://www.britannica.com/biography/Pyrrhus-king-of-Epirus' },
+  { title: 'Pyrrhic victory', source: 'Encyclopædia Britannica', url: 'https://www.britannica.com/topic/Pyrrhic-victory' },
+  { title: 'Pyrrhus of Epirus', source: 'Wikipedia', url: 'https://en.wikipedia.org/wiki/Pyrrhus_of_Epirus' },
+];
 
 /* ════════════════════════ VERİ ════════════════════════ */
 
@@ -502,6 +510,8 @@ export default function PyrrhusClient() {
       </section>
 
       {/* ── Footer ── */}
+      <ArticleBibliography items={refs} accent="#e0b34a" />
+
       <footer className="pyr-footer">
         <div className="pyr-footer-mark">BASEMENTS</div>
         <p>Kral Pirus: her savaşı kazanıp savaşı kaybeden adam. Hırsın ve cesaretin, zaferin ve yıkımın aynı madalyonun iki yüzü olduğunu bize hatırlatan kartal. 🦅</p>

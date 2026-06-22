@@ -1,7 +1,15 @@
 import type { Metadata } from 'next';
 import { breadcrumbJsonLd, jsonLdScript } from '@/lib/seo';
 import ArticleRuntime from '@/app/components/ArticleRuntime';
+import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
 import { CSS, HTML, JS } from './content';
+
+const refs: BibItem[] = [
+  { title: 'Ekonominin Temelleri (Principles of Economics)', authors: 'N. Gregory Mankiw', source: 'Cengage' },
+  { title: 'Investopedia — Finansal Terimler Sözlüğü', source: 'Investopedia', url: 'https://www.investopedia.com/financial-term-dictionary-4769738' },
+  { title: 'Terimler Sözlüğü', source: 'TCMB — Türkiye Cumhuriyet Merkez Bankası', url: 'https://www.tcmb.gov.tr/' },
+  { title: 'Economics', authors: 'Paul Samuelson & William Nordhaus', source: 'McGraw-Hill' },
+];
 
 const title = 'Ekonominin Dili';
 const description = 'Faiz, bileşik faiz, emtia, likidite, resesyon, stagflasyon, SWIFT/EFT/FAST, borsa, temettü, parite ve daha fazlası — interaktif araçlarla anlatılan ekonomi sözlüğü.';
@@ -45,6 +53,7 @@ export default function Page() {
       <div className="main-content eko-root">
         <style dangerouslySetInnerHTML={{ __html: CSS }} />
         <div dangerouslySetInnerHTML={{ __html: HTML }} />
+        <ArticleBibliography items={refs} accent="#38bdf8" />
       </div>
       <ArticleRuntime js={JS} />
     </>

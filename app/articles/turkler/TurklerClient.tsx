@@ -2,6 +2,14 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
+
+const refs: BibItem[] = [
+  { title: 'Orhun Yazıtları', year: '8. yüzyıl', source: 'Göktürk anıtları' },
+  { title: 'Türklerin Tarihi', authors: 'Jean-Paul Roux', source: 'Kabalcı Yayınevi' },
+  { title: 'Seyahatname (Risâle)', authors: 'İbn Fadlan', year: '921–922', source: 'Tarihî kaynak' },
+  { title: 'Turkic peoples', source: 'Encyclopædia Britannica', url: 'https://www.britannica.com/topic/Turkic-peoples' },
+];
 
 const eras = [
   { id: 'hun',      year: 'MÖ 209', title: 'Hun İmparatorluğu',      period: 'MÖ 209 – MS 216', color: '#c0392b', leader: 'Mete Han',           km2: '9.000.000', summary: 'Bilinen ilk büyük Türk devleti. Mete Han ondalık ordu sistemi icat etti; Çin\'i yıllık vergi ödemeye zorladı.',      facts: ['Dünyada ilk ondalık ordu sistemi (10–100–1000–10.000)', 'Çin İmparatoru\'nun kız kardeşini vergi olarak aldı', 'Çin Seddi büyük ölçüde Hunlara karşı inşa edildi', '400.000 atlı süvariden oluşan ordu'],       quote: 'Yayını geren her erkeğin atı olsun, okçu süvari olarak hizmet etsin.',                                                   quoteBy: 'Mete Han' },
@@ -294,6 +302,8 @@ export default function TurklerPage() {
           <cite>— Mustafa Kemal Atatürk</cite>
         </blockquote>
       </section>
+
+      <ArticleBibliography items={refs} accent="#c0392b" />
 
       <style>{`
         /* ── Temel ── */
