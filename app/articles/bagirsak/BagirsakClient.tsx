@@ -43,6 +43,9 @@ const quizQs = [
   { text: '"İçime doğdu" türü içgüdüsel kararlarda beynin hangi yeteneği rol oynar?', opts: ['Görme keskinliği', 'İnterosepsiyon (iç beden sinyallerini algılama)', 'Denge', 'Kas hafızası'], a: 1 },
   { text: 'Mikrobiyom–ruh hali ilişkisini gösteren çarpıcı deney hangisidir?', opts: ['Aya canlı göndermek', 'Stresli farelerin bağırsak mikrobunu sağlıklı farelere nakletmek (FMT)', 'Beyin ameliyatı', 'Açlık deneyi'], a: 1 },
   { text: 'Bağırsak sağlığı için en temel besin grubu hangisidir?', opts: ['Şeker', 'Lif (sebze/meyve/tahıl)', 'Kızartma', 'Beyaz un'], a: 1 },
+  { text: 'Vagus sinirini doğal yolla uyarıp sakinleşmenin bir yolu nedir?', opts: ['Hızlı ve sığ nefes', 'Yavaş, derin nefes (uzun nefes verme)', 'Nefesi uzun süre tutmak', 'Kalkıp koşmak'], a: 1 },
+  { text: 'Açlık hissini tetikleyen, boş midede salgılanan hormon hangisidir?', opts: ['Leptin', 'Ghrelin', 'İnsülin', 'Serotonin'], a: 1 },
+  { text: 'Heyecanlanınca midemizde “kelebek” hissinin sebebi nedir?', opts: ['Midede gerçek kelebek olması', 'Fight-or-flight ile kanın sindirimden kaslara yönelmesi', 'Aşırı açlık', 'Vitamin eksikliği'], a: 1 },
 ];
 
 const refs: BibItem[] = [
@@ -55,6 +58,10 @@ const refs: BibItem[] = [
   { title: 'Gut microbiota', source: 'Wikipedia', url: 'https://en.wikipedia.org/wiki/Gut_microbiota' },
   { title: 'The Gut-Brain Connection', source: 'Healthline', url: 'https://www.healthline.com/nutrition/gut-brain-connection' },
   { title: 'Trust Your Gut: How the Brain-Gut Connection Helps Us Decide Intuitively', source: 'BrainFacts.org', url: 'https://www.brainfacts.org/brain-anatomy-and-function/body-systems/2021/trust-your-gut-how-the-brain-gut-connection-helps-us-decide-intuitively-100121' },
+  { title: 'A Comprehensive Review of Vagus Nerve Stimulation for Depression', year: '2022', source: 'PMC / Neuromodulation', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC8898319/' },
+  { title: 'The effects of gut microbiota on appetite regulation and the underlying mechanisms', year: '2024', source: 'Gut Microbes / PMC', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC11542600/' },
+  { title: 'Why do I get butterflies in my stomach?', source: 'The Conversation', url: 'https://theconversation.com/why-do-i-get-butterflies-in-my-stomach-269489' },
+  { title: 'Infant Feeding Alters the Longitudinal Impact of Birth Mode on the Gut Microbiota', year: '2021', source: 'Frontiers in Microbiology', url: 'https://www.frontiersin.org/journals/microbiology/articles/10.3389/fmicb.2021.642197/full' },
 ];
 
 /* ════════════════════════ STEPPER ════════════════════════ */
@@ -183,9 +190,41 @@ export default function BagirsakClient() {
         </Stepper>
       </section>
 
-      {/* III. MUTLULUK FABRİKASI */}
+      {/* III. VAGUS SİNİRİ */}
       <section className="gut-section reveal">
         <div className="gut-num">III</div>
+        <h2 className="gut-h2">Vagus Siniri: Bedenin Ana Kablosu</h2>
+        <p className="gut-p">
+          Bağırsakla beyni birleştiren o “otoyolun” adı <strong>vagus siniri</strong>. İsmi Latince “gezgin”
+          demek — çünkü kafatasından çıkıp boyundan geçer, kalbe, akciğerlere ve bağırsaklara kadar uzanır;
+          en uzun kafa sinirimizdir. Bağırsak-beyin ekseninin ana kablosudur.
+        </p>
+        <p className="gut-p">
+          En çarpıcı yanı yönü: Vagus liflerinin yaklaşık <strong>%80–90'ı sinyalleri yukarı</strong>, yani
+          bağırsaktan beyne taşır. Beyin bu hatta çoğunlukla <em>dinleyen</em> taraftır. Bağırsağın söyleyecek
+          çok şeyi vardır; beyin kulak kabartır.
+        </p>
+        <div className="gut-note">
+          <span>🩺</span>
+          <p>Tıp bunu kullanıyor: <strong>Vagus siniri uyarımı (VNS)</strong> adlı küçük bir cihaz, 2005'te
+          tedaviye dirençli depresyon için onaylandı. Hastaların yaklaşık <strong>%30–40'ı</strong> bir yıl
+          sonunda belirgin düzelme bildiriyor — bağırsak hattını uyarmanın ruh halini değiştirebildiğinin kanıtı.</p>
+        </div>
+        <p className="gut-p">İyi haber: Vagusunu sakinleştirmek için ameliyat gerekmez. Onu evde “elle” uyarabilirsin:</p>
+        <div className="gut-cards">
+          {[
+            ['🫁', 'Yavaş, derin nefes', `Özellikle uzun bir nefes verme vagusu uyarır ve kalbi yavaşlatır. “Birkaç derin nefes al” tavsiyesinin altında gerçek bir fizyoloji yatar.`],
+            ['❄️', 'Soğuk', `Yüze çarpan soğuk su ya da soğuk bir duş, vagus tepkisini tetikleyip bedeni sakinleşme moduna geçirir.`],
+            ['🎵', 'Mırıldanmak & şarkı', `Mırıldanmak, şarkı söylemek, hatta gargara yapmak ses tellerini titreştirir; bunlar vagusla bağlantılıdır ve gevşemeye yardım eder.`],
+          ].map(([e, t, d], i) => (
+            <div key={i} className="gut-card"><div className="gut-card-e">{e}</div><div><strong>{t}</strong><span>{d}</span></div></div>
+          ))}
+        </div>
+      </section>
+
+      {/* IV. MUTLULUK FABRİKASI */}
+      <section className="gut-section reveal">
+        <div className="gut-num">IV</div>
         <h2 className="gut-h2">Karnımızdaki Mutluluk Fabrikası</h2>
         <p className="gut-p">
           Beynimizin ruh halini ayarladığı kimyasalların büyük kısmı, aslında bağırsakta üretilir. İşte
@@ -209,9 +248,9 @@ export default function BagirsakClient() {
         </div>
       </section>
 
-      {/* IV. MİKROBİYOM */}
+      {/* V. MİKROBİYOM */}
       <section className="gut-section reveal">
-        <div className="gut-num">IV</div>
+        <div className="gut-num">V</div>
         <h2 className="gut-h2">Mikrobiyom: Unutulan Organ</h2>
         <p className="gut-p">
           Bağırsaklarımızda <strong>yaklaşık 38 trilyon bakteri</strong> yaşar — neredeyse kendi vücut
@@ -227,9 +266,30 @@ export default function BagirsakClient() {
         <p className="gut-p">Bu mikroplar sadece sindirime yardım etmez; vitamin üretir, bağışıklığı eğitir ve — en ilginci — <strong>ruh halimize karışır.</strong></p>
       </section>
 
-      {/* V. MİKROPLAR VE RUH HALİ */}
+      {/* VI. HAYATIN İLK GÜNLERİ */}
       <section className="gut-section reveal">
-        <div className="gut-num">V</div>
+        <div className="gut-num">VI</div>
+        <h2 className="gut-h2">Hayatın İlk Günleri</h2>
+        <p className="gut-p">
+          Mikrobiyom bizimle doğmaz; biz onu hayatın ilk günlerinde <strong>toplarız</strong>. Anne karnında
+          neredeyse sterildik; doğumdan itibaren mikroplar bağırsağı şenlendirmeye başlar. Bu ilk yerleşme,
+          ömür boyu sürecek bir ekosistemin temelini atar.
+        </p>
+        <div className="gut-cards">
+          {[
+            ['👶', 'Doğum anı', `Normal doğumda bebek annenin mikroplarıyla tanışır; sezaryende ise daha çok çevre ve cilt mikropları yerleşir. İlk karışım buradan şekillenir.`],
+            ['🍼', 'Anne sütü', `Erken dönemin en güçlü belirleyicisi beslenmedir. Anne sütü hem dost bakteri taşır hem de yalnızca o bakterileri besleyen özel şekerler (HMO) içerir; böylece faydalı Bifidobacterium çoğalır.`],
+            ['📅', 'İlk ~1000 gün', `Doğumdan ~2-3 yaşa kadar mikrobiyom ve bağırsak-beyin ekseni birlikte olgunlaşır. Bu pencere bağışıklığı, metabolizmayı ve muhtemelen stres eğilimini biçimlendirir.`],
+          ].map(([e, t, d], i) => (
+            <div key={i} className="gut-card"><div className="gut-card-e">{e}</div><div><strong>{t}</strong><span>{d}</span></div></div>
+          ))}
+        </div>
+        <div className="gut-note"><span>☺</span><p>Telaşa gerek yok: Farklılıklar kader değil. Örneğin emzirme, sezaryenle doğan bebeklerdeki farkın bir kısmını zamanla telafi edebiliyor. Mikrobiyom hayat boyu değişmeye açıktır.</p></div>
+      </section>
+
+      {/* VII. MİKROPLAR VE RUH HALİ */}
+      <section className="gut-section reveal">
+        <div className="gut-num">VII</div>
         <h2 className="gut-h2">Mikroplar Ruh Halini Nasıl Yönetir?</h2>
         <p className="gut-p">
           Son yılların en çarpıcı keşfi: bağırsaktaki mikroplar duygularımızı etkileyebilir. Kanıtlar oldukça güçlü:
@@ -246,9 +306,9 @@ export default function BagirsakClient() {
         </div>
       </section>
 
-      {/* VI. İÇGÜDÜSEL KARARLAR */}
+      {/* VIII. İÇGÜDÜSEL KARARLAR */}
       <section className="gut-section reveal">
-        <div className="gut-num">VI</div>
+        <div className="gut-num">VIII</div>
         <h2 className="gut-h2">“İçime Doğdu”: Kararların Bilimi</h2>
         <p className="gut-p">
           Bazen mantıklı bir gerekçe bulamadan “bu doğru değil” deriz. Bu <strong>içgüdüsel karar</strong>, sihir
@@ -264,13 +324,55 @@ export default function BagirsakClient() {
         <blockquote className="gut-quote">Mantık bize seçenekleri verir; bağırsak hangisinin “doğru hissettirdiğini” fısıldar.</blockquote>
         <div className="gut-note">
           <span>📈</span>
-          <p>Bir araştırmada, beden sinyallerini daha iyi “okuyan” borsacılar, baskı altındaki hızlı kararlarda daha başarılı çıktı. Yani doğru koşullarda, sezgine güvenmenin gerçek bir bedeli/değeri var.</p>
+          <p>Bir araştırmada, beden sinyallerini daha iyi “okuyan” borsacılar, baskı altındaki hızlı kararlarda daha başarılı çıktı. Yani doğru koşullarda, sezgine güvenmenin gerçek bir değeri var.</p>
         </div>
       </section>
 
-      {/* VII. STRES DÖNGÜSÜ */}
+      {/* IX. İŞTAH VE YEME KARARLARI */}
       <section className="gut-section reveal">
-        <div className="gut-num">VII</div>
+        <div className="gut-num">IX</div>
+        <h2 className="gut-h2">İştah: En Sık Verdiğimiz Karar</h2>
+        <p className="gut-p">
+          Her karar soyut değildir. Gün içinde en sık verdiğimiz karar belki de şudur: <strong>ne zaman ve ne
+          yiyeceğim?</strong> Ve bu kararın dümeninde büyük ölçüde bağırsak vardır — hormonlar aracılığıyla.
+        </p>
+        <div className="gut-cards">
+          {[
+            ['🔔', 'Ghrelin — “acıktım”', `Boş midede salgılanan açlık hormonu. Yemekten önce yükselir ve beyne “yiyecek ara” sinyali yollar. Açlık hissinin sesi odur.`],
+            ['🛑', 'CCK · GLP-1 · PYY — “yeter”', `Yemek gelince bağırsak bu tokluk hormonlarını salar ve beyne “doydum” der. Yeni nesil kilo ilaçları (GLP-1) tam da bu sinyali taklit eder.`],
+            ['⚖️', 'Leptin — uzun vade', `Yağ dokusundan gelen leptin, iştahın uzun vadeli ayarını yapar; enerji dengesini beyne raporlar.`],
+            ['🦠', 'Mikroplar — gizli seçmen', `Mikroplar lifi mayalayıp tokluk hormonlarını (GLP-1/PYY) artırır, hatta canının ne çektiğini bile etkileyebilir. Bazen yemeği sipariş eden, kendi mikroplarındır.`],
+          ].map(([e, t, d], i) => (
+            <div key={i} className="gut-card"><div className="gut-card-e">{e}</div><div><strong>{t}</strong><span>{d}</span></div></div>
+          ))}
+        </div>
+        <blockquote className="gut-quote">Bir dahaki sefere atıştırmaya “karar verdiğinde” şunu sor: bu oyu gerçekten kim kullanıyor?</blockquote>
+      </section>
+
+      {/* X. KELEBEKLER */}
+      <section className="gut-section reveal">
+        <div className="gut-num">X</div>
+        <h2 className="gut-h2">Midemizdeki Kelebekler</h2>
+        <p className="gut-p">
+          Heyecanlanınca neden duyguyu tam da <strong>karnımızda</strong> hissederiz? “Kelebekler uçuştu”,
+          “midem düğümlendi”, “ödüm koptu”... Bunlar şiir değil, fizyoloji.
+        </p>
+        <p className="gut-p">
+          Beyin bir tehdit ya da heyecan sezdiğinde <strong>“savaş ya da kaç”</strong> tepkisi devreye girer:
+          adrenalin ve kortizol salınır, kalp hızlanır ve kan, sindirimden alınıp <strong>kaslara yönlendirilir</strong>.
+          Bağırsağın damarları kasılır, olağan ritmi bozulur — işte o <em>kelebek</em> kanat çırpışı tam olarak budur.
+        </p>
+        <p className="gut-p">
+          Bağırsağın yüz milyonlarca nöronu (omurilikten bile fazla) bu değişimi anında hisseder. Yani bir düşünce
+          — sevdiğin kişi içeri girer — saniyeler içinde bedensel bir duyguya dönüşür. Bu, bağırsak-beyin ekseninin
+          canlı yayınıdır.
+        </p>
+        <blockquote className="gut-quote">“Kafanda değil” derler; oysa o his, kelimenin tam anlamıyla bağırsağında.</blockquote>
+      </section>
+
+      {/* XI. STRES DÖNGÜSÜ */}
+      <section className="gut-section reveal">
+        <div className="gut-num">XI</div>
         <h2 className="gut-h2">Stresin Kısır Döngüsü</h2>
         <p className="gut-p">
           Hat çift yönlü olduğundan, stres de iki yönlü çalışır. Beyin gerginken bağırsağa “alarm” yollar:
@@ -284,9 +386,9 @@ export default function BagirsakClient() {
         </p>
       </section>
 
-      {/* VIII. BESLEMEK */}
+      {/* XII. BESLEMEK */}
       <section className="gut-section reveal">
-        <div className="gut-num">VIII</div>
+        <div className="gut-num">XII</div>
         <h2 className="gut-h2">İkinci Beynini Beslemek</h2>
         <p className="gut-p">Ruh haline iyi gelmek için bazen yapılacak en iyi şey, karnındaki ortağına iyi bakmaktır:</p>
         <div className="gut-feed">
@@ -297,9 +399,9 @@ export default function BagirsakClient() {
         <p className="gut-disc">Not: Bu yazı genel bilgilendirme amaçlıdır, tıbbi tavsiye değildir. Kalıcı sindirim ya da ruh hali sorunlarında bir uzmana danışmak en doğrusudur.</p>
       </section>
 
-      {/* IX. RAKAMLAR */}
+      {/* XIII. RAKAMLAR */}
       <section className="gut-section reveal">
-        <div className="gut-num">IX</div>
+        <div className="gut-num">XIII</div>
         <h2 className="gut-h2">Rakamlarla Bağırsak</h2>
         <div className="gut-numbers">
           {numbers.map((n, i) => (
@@ -308,9 +410,9 @@ export default function BagirsakClient() {
         </div>
       </section>
 
-      {/* X. QUIZ */}
+      {/* XIV. QUIZ */}
       <section className="gut-section reveal">
-        <div className="gut-num">X</div>
+        <div className="gut-num">XIV</div>
         <h2 className="gut-h2">Mini Quiz</h2>
         <div className="gut-quiz">
           {!done ? (
@@ -327,9 +429,9 @@ export default function BagirsakClient() {
             </>
           ) : (
             <div className="gut-quiz-result">
-              <div className="gut-quiz-emoji">{score >= 5 ? '🏆' : score >= 3 ? '🧠' : '📖'}</div>
+              <div className="gut-quiz-emoji">{score >= 8 ? '🏆' : score >= 5 ? '🧠' : '📖'}</div>
               <h3 className="gut-quiz-rtitle">{score} / {quizQs.length} doğru</h3>
-              <p className="gut-quiz-rdesc">{score >= 5 ? 'İkinci beynine kulak veriyorsun!' : score >= 3 ? 'Güzel — sezgilerin sağlam.' : 'Yukarı kaydırıp bir kez daha sindir.'}</p>
+              <p className="gut-quiz-rdesc">{score >= 8 ? 'İkinci beynine kulak veriyorsun!' : score >= 5 ? 'Güzel — sezgilerin sağlam.' : 'Yukarı kaydırıp bir kez daha sindir.'}</p>
               <button className="gut-ctrl-btn gut-ctrl-primary" onClick={restartQuiz}>↺ Tekrar dene</button>
             </div>
           )}
