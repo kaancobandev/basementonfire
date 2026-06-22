@@ -47,6 +47,7 @@ export default async function DiscoverPage({ searchParams }: { searchParams: Pro
     { slug: 'arcade', title: 'Arcade', emoji: '🕹️', desc: 'Oyun salonu tarihi + oynanabilir klasikler' },
     { slug: 'tibbi', title: '15 Tuhaf Tıbbi Olgu', emoji: '🧬', desc: 'Doğrulanmış akıl almaz tıp gerçekleri' },
     { slug: 'internet', title: 'İnternet Nasıl Çalışır?', emoji: '🌐', desc: 'OSI, TCP/IP, DNS, paketler — diyagramlarla' },
+    { slug: 'pirus', title: 'Kral Pirus', emoji: '🐘', desc: 'Filler, Pirus zaferi ve destansı savaşlar' },
   ];
 
   return (
