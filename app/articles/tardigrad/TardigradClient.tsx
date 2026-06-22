@@ -328,7 +328,11 @@ export default function TardigradClient() {
       {/* HERO */}
       <header className="trd-hero">
         <div className="trd-hero-blob" aria-hidden="true" />
-        <div className="trd-hero-bear" aria-hidden="true">🐻</div>
+        <div className="trd-bubbles" aria-hidden="true">
+          {Array.from({ length: 11 }).map((_, i) => (
+            <span key={i} className="trd-bubble" style={{ left: `${(i * 8.5 + 4) % 100}%`, width: `${6 + (i % 4) * 4}px`, height: `${6 + (i % 4) * 4}px`, animationDuration: `${5 + (i % 5)}s`, animationDelay: `${(i % 6) * 0.7}s` } as CSSProperties} />
+          ))}
+        </div>
         <div className="trd-hero-eyebrow">SU AYISI · MOSS PIGLET · YAVAŞ YÜRÜYEN</div>
         <h1 className="trd-hero-title"><span className="trd-grad">TARDİGRADLAR</span></h1>
         <p className="trd-hero-sub">
@@ -427,9 +431,9 @@ export default function TardigradClient() {
         <div className="trd-kicker">04 — Uzay Kâşifleri</div>
         <h2 className="trd-h2">Uzay Boşluğunda Yaşayan İlk Hayvan</h2>
         <p className="trd-p">
-          2007\'de Avrupa Uzay Ajansı, bir grup tardigradı yörüngede roketin dışına, doğrudan <strong>uzay
-          boşluğuna</strong> çıkardı. Ne hava vardı, ne basınç, ne de Güneş\'in zararlı ışınlarına karşı koruma.
-          <strong> 10 gün</strong> sonra Dünya\'ya döndüklerinde birçoğu canlandı ve hatta yumurtladı.
+          2007'de Avrupa Uzay Ajansı, bir grup tardigradı yörüngede roketin dışına, doğrudan <strong>uzay
+          boşluğuna</strong> çıkardı. Ne hava vardı, ne basınç, ne de Güneş'in zararlı ışınlarına karşı koruma.
+          <strong> 10 gün</strong> sonra Dünya'ya döndüklerinde birçoğu canlandı ve hatta yumurtladı.
         </p>
         <div className="trd-callout">
           <span className="trd-callout-icon">🛰️</span>
@@ -441,14 +445,14 @@ export default function TardigradClient() {
       {/* 5. AY */}
       <section className="trd-section reveal">
         <div className="trd-kicker">05 — Ay Macerası</div>
-        <h2 className="trd-h2">Ay\'a Düşen Su Ayıları</h2>
+        <h2 className="trd-h2">Ay'a Düşen Su Ayıları</h2>
         <p className="trd-p">
-          2019\'da İsrail\'in <strong>Beresheet</strong> uzay aracı, bir “ay kütüphanesi” zaman kapsülünün içinde
-          <strong> binlerce kurutulmuş tardigradla</strong> Ay\'a iniş yapmaya çalıştı — ama son anda kontrolü
-          kaybedip yüzeye çakıldı. Yıllarca “Ay\'da yaşayan tardigradlar var mı?” sorusu konuşuldu.
+          2019'da İsrail'in <strong>Beresheet</strong> uzay aracı, bir “ay kütüphanesi” zaman kapsülünün içinde
+          <strong> binlerce kurutulmuş tardigradla</strong> Ay'a iniş yapmaya çalıştı — ama son anda kontrolü
+          kaybedip yüzeye çakıldı. Yıllarca “Ay'da yaşayan tardigradlar var mı?” sorusu konuşuldu.
         </p>
         <p className="trd-p">
-          2021\'de yapılan çarpışma testleri hayal kırıklığı yarattı: tardigradların dayanma sınırı saniyede ~900
+          2021'de yapılan çarpışma testleri hayal kırıklığı yarattı: tardigradların dayanma sınırı saniyede ~900
           metre çıktı; Beresheet ise bundan daha hızlı çarpmıştı. Yani kapsüldekiler <strong>büyük olasılıkla
           o çarpmada öldü</strong>. Süper güçleri bile bir roket kazasına yetmedi.
         </p>
@@ -544,10 +548,12 @@ export default function TardigradClient() {
 
         .trd-hero { position: relative; text-align: center; padding: 54px 20px 42px; overflow: hidden; background: radial-gradient(ellipse at 50% 0%, rgba(74,222,128,0.16), transparent 60%); }
         .trd-hero-blob { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 30% 20%, rgba(34,211,238,0.10), transparent 40%), radial-gradient(circle at 75% 30%, rgba(74,222,128,0.10), transparent 40%); }
-        .trd-hero-bear { position: relative; font-size: 3.4rem; line-height: 1; margin-bottom: 6px; animation: trd-bob 2.4s ease-in-out infinite; }
-        @keyframes trd-bob { 0%,100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-8px) rotate(3deg); } }
+        .trd-bubbles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+        .trd-bubble { position: absolute; bottom: -24px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.6), rgba(34,211,238,0.22)); box-shadow: 0 0 8px rgba(34,211,238,0.35); opacity: 0; animation-name: trd-rise; animation-timing-function: ease-in; animation-iteration-count: infinite; }
+        @keyframes trd-rise { 0% { transform: translateY(0) scale(.5); opacity: 0; } 12% { opacity: .85; } 80% { opacity: .55; } 100% { transform: translateY(-340px) scale(1.15); opacity: 0; } }
         .trd-hero-eyebrow { position: relative; font-size: .64rem; font-weight: 800; letter-spacing: .26em; color: var(--water); margin-bottom: 12px; }
-        .trd-hero-title { position: relative; font-size: clamp(2.1rem, 8vw, 4.4rem); font-weight: 900; margin: 0 0 16px; letter-spacing: .02em; line-height: 1; }
+        .trd-hero-title { position: relative; font-size: clamp(2.1rem, 8vw, 4.4rem); font-weight: 900; margin: 0 0 16px; letter-spacing: .02em; line-height: 1; animation: trd-titleglow 3.6s ease-in-out infinite; }
+        @keyframes trd-titleglow { 0%,100% { filter: drop-shadow(0 0 12px rgba(74,222,128,0.22)); } 50% { filter: drop-shadow(0 0 26px rgba(34,211,238,0.5)); } }
         .trd-grad { background: linear-gradient(100deg, var(--moss), var(--water), var(--amber)); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .trd-hero-sub { position: relative; max-width: 600px; margin: 0 auto 22px; color: #c2d3ca; font-size: clamp(.92rem, 2vw, 1.04rem); }
         .trd-hero-sub strong { color: var(--ink); }
@@ -583,7 +589,8 @@ export default function TardigradClient() {
 
         /* secrets */
         .trd-secrets { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
-        .trd-secret { display: flex; gap: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+        .trd-secret { display: flex; gap: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; transition: border-color .2s, transform .2s; }
+        .trd-secret:hover { border-color: rgba(74,222,128,0.4); transform: translateY(-3px); }
         .trd-secret-e { font-size: 1.7rem; }
         .trd-secret strong { display: block; font-size: .95rem; color: var(--moss); margin-bottom: 3px; }
         .trd-secret span { font-size: .84rem; color: #cad9d1; }
@@ -657,6 +664,10 @@ export default function TardigradClient() {
         .trd-footer-link { color: var(--moss); text-decoration: none; font-weight: 700; font-size: .9rem; }
         .trd-footer-link:hover { text-decoration: underline; }
 
+        @media (prefers-reduced-motion: reduce) {
+          .trd-bubble, .trd-hero-title { animation: none !important; }
+          .trd-hero-title { filter: none; }
+        }
         @media (max-width: 680px) {
           .trd-section { padding: 32px 14px; }
           .trd-stepper { grid-template-columns: 1fr; }
