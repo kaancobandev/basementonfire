@@ -49,6 +49,7 @@ export default async function DiscoverPage({ searchParams }: { searchParams: Pro
     { slug: 'internet', title: 'İnternet Nasıl Çalışır?', emoji: '🌐', desc: 'OSI, TCP/IP, DNS, paketler — diyagramlarla' },
     { slug: 'pirus', title: 'Kral Pirus', emoji: '🐘', desc: 'Filler, Pirus zaferi ve destansı savaşlar' },
     { slug: 'takyon', title: 'Takyonlar', emoji: '⚡', desc: 'Işıktan hızlı parçacıklar — benzetmelerle' },
+    { slug: 'tardigrad', title: 'Tardigradlar (Su Ayıları)', emoji: '🐻', desc: 'Yok edilemez minik canavar + mini 2B oyun' },
   ];
 
   return (

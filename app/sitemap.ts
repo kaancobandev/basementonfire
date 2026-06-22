@@ -16,7 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/muzik`, lastModified: now, changeFrequency: 'weekly', priority: 0.5 },
   ];
 
-  const articles = ['greece', 'carthage', 'rome', 'black-hole', 'turkler', 'ekonomi', 'einstein-rosen', 'arcade', 'tibbi', 'internet', 'pirus', 'takyon'];
+  const articles = ['greece', 'carthage', 'rome', 'black-hole', 'turkler', 'ekonomi', 'einstein-rosen', 'arcade', 'tibbi', 'internet', 'pirus', 'takyon', 'tardigrad'];
   const articleRoutes: MetadataRoute.Sitemap = articles.map(a => ({
     url: `${SITE_URL}/articles/${a}`,
     lastModified: now,
