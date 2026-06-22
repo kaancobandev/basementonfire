@@ -15,9 +15,9 @@ const axisFlow = [
 ];
 
 const molecules = [
-  { n: 'Serotonin', tag: 'mutluluk · sakinlik', pct: 90, c: '#e89a8d', d: `Vücuttaki serotoninin tahminen %90'ı bağırsakta üretilir. Bu serotonin doğrudan beyne geçmez; ama vagus siniri üzerinden ruh halini, iştahı ve sindirimi etkiler.` },
-  { n: 'Dopamin', tag: 'motivasyon · ödül', pct: 50, c: '#d8b27c', d: `Motivasyon ve ödül molekülü dopaminin önemli bir bölümü de bağırsakta üretilir; mikroplar bu üretimi etkileyebilir.` },
-  { n: 'GABA', tag: 'sakinleştirici', pct: 30, c: '#6fd6c0', d: `Beyni yatıştıran GABA'yı, bağırsaktaki bazı dost bakteriler (Lactobacillus, Bifidobacterium) doğrudan üretebilir. Mikroplar adeta minik bir eczanedir.` },
+  { n: 'Serotonin', tag: 'mutluluk · sakinlik', pct: 90, c: '#4338ca', d: `Vücuttaki serotoninin tahminen %90'ı bağırsakta üretilir. Bu serotonin doğrudan beyne geçmez; ama vagus siniri üzerinden ruh halini, iştahı ve sindirimi etkiler.` },
+  { n: 'Dopamin', tag: 'motivasyon · ödül', pct: 50, c: '#ea580c', d: `Motivasyon ve ödül molekülü dopaminin önemli bir bölümü de bağırsakta üretilir; mikroplar bu üretimi etkileyebilir.` },
+  { n: 'GABA', tag: 'sakinleştirici', pct: 30, c: '#0d9488', d: `Beyni yatıştıran GABA'yı, bağırsaktaki bazı dost bakteriler (Lactobacillus, Bifidobacterium) doğrudan üretebilir. Mikroplar adeta minik bir eczanedir.` },
 ];
 
 const feed = [
@@ -30,7 +30,7 @@ const feed = [
 const numbers = [
   { v: '~500 milyon', l: 'bağırsaktaki sinir hücresi', s: 'bir kedinin beynindekine yakın' },
   { v: '~%90', l: 'vagus trafiği bağırsaktan beyne', s: 'beyin çoğunlukla dinler' },
-  { v: '100+ trilyon', l: 'bağırsaktaki mikrop', s: 'kendi hücrelerimizle yarışır' },
+  { v: '~38 trilyon', l: 'bağırsaktaki bakteri', s: '2016 revizyonu; eskiden 100 trilyon/10:1 denirdi, artık ~1:1' },
   { v: '~7–8 m', l: 'toplam bağırsak uzunluğu', s: 'boyunun yaklaşık 4–5 katı' },
   { v: '~30–40 m²', l: 'iç yüzey alanı', s: 'eskiden "tenis kortu" denirdi; güncel ölçüm yarım badminton kortu kadar' },
   { v: '~1000+', l: 'farklı mikrop türü', s: 'her insanda kendine özgü bir karışım' },
@@ -119,10 +119,10 @@ export default function BagirsakClient() {
         <div className="gut-hero-glow" aria-hidden="true" />
         <div className="gut-hero-art" aria-hidden="true">
           <svg viewBox="0 0 120 220" width="92">
-            <defs><linearGradient id="gutAx" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#e89a8d" /><stop offset="1" stopColor="#d8b27c" /></linearGradient></defs>
+            <defs><linearGradient id="gutAx" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#2563eb" /><stop offset="1" stopColor="#0d9488" /></linearGradient></defs>
             {/* beyin */}
             <path d="M60 18 C40 18 30 34 34 48 C24 50 24 66 36 70 C36 82 52 86 60 78 C68 86 84 82 84 70 C96 66 96 50 86 48 C90 34 80 18 60 18 Z" fill="none" stroke="url(#gutAx)" strokeWidth="2" />
-            <path d="M60 26 L60 78 M48 40 q12 8 0 18 M72 40 q-12 8 0 18" stroke="rgba(216,178,124,0.4)" strokeWidth="1.2" fill="none" />
+            <path d="M60 26 L60 78 M48 40 q12 8 0 18 M72 40 q-12 8 0 18" stroke="rgba(37,99,235,0.4)" strokeWidth="1.2" fill="none" />
             {/* vagus */}
             <path d="M60 86 C56 100 64 110 58 124" stroke="url(#gutAx)" strokeWidth="2" fill="none" strokeDasharray="3 4" />
             {/* bağırsak kıvrımları */}
@@ -168,14 +168,14 @@ export default function BagirsakClient() {
         <Stepper steps={axisFlow}>
           {(i) => (
             <svg viewBox="0 0 200 200" className="gut-svg">
-              <circle cx="100" cy="38" r="26" fill="none" stroke="#d8b27c" strokeWidth="2" opacity={i >= 3 ? 1 : 0.4} />
+              <circle cx="100" cy="38" r="26" fill="none" stroke="#2563eb" strokeWidth="2" opacity={i >= 3 ? 1 : 0.4} />
               <text x="100" y="44" textAnchor="middle" fontSize="20">🧠</text>
-              <circle cx="100" cy="162" r="30" fill="none" stroke="#e89a8d" strokeWidth="2" opacity={i <= 2 ? 1 : 0.5} />
+              <circle cx="100" cy="162" r="30" fill="none" stroke="#0d9488" strokeWidth="2" opacity={i <= 2 ? 1 : 0.5} />
               <text x="100" y="170" textAnchor="middle" fontSize="22">🌀</text>
-              <path d="M100 132 C92 110 108 92 100 66" stroke={i >= 2 ? '#d8b27c' : 'rgba(216,178,124,0.3)'} strokeWidth={i === 2 ? 4 : 2} fill="none" strokeDasharray="4 5">
+              <path d="M100 132 C92 110 108 92 100 66" stroke={i >= 2 ? '#2563eb' : 'rgba(37,99,235,0.3)'} strokeWidth={i === 2 ? 4 : 2} fill="none" strokeDasharray="4 5">
                 {i === 2 && <animate attributeName="stroke-dashoffset" values="18;0" dur="0.9s" repeatCount="indefinite" />}
               </path>
-              <text x="118" y="104" fontSize="9" fill="#a89a8c">vagus</text>
+              <text x="118" y="104" fontSize="9" fill="#64748b">vagus</text>
               {i >= 1 && i <= 2 && <text x="100" y="120" textAnchor="middle" fontSize="13">↑✉️</text>}
               {i === 4 && <text x="78" y="108" textAnchor="middle" fontSize="13">↓</text>}
             </svg>
@@ -214,15 +214,16 @@ export default function BagirsakClient() {
         <div className="gut-num">IV</div>
         <h2 className="gut-h2">Mikrobiyom: Unutulan Organ</h2>
         <p className="gut-p">
-          Bağırsaklarımızda <strong>100 trilyondan fazla mikrop</strong> yaşar — kendi hücrelerimizle yarışacak
-          sayıda. Bin türden fazla bu canlı topluluğa <strong>mikrobiyom</strong> denir. O kadar önemlidir ki
-          bilim insanları onu çoğu zaman <strong>“unutulan organ”</strong> olarak anar.
+          Bağırsaklarımızda <strong>yaklaşık 38 trilyon bakteri</strong> yaşar — neredeyse kendi vücut
+          hücrelerimiz kadar. Bin türden fazla bu canlı topluluğa <strong>mikrobiyom</strong> denir. O kadar
+          önemlidir ki bilim insanları onu çoğu zaman <strong>“unutulan organ”</strong> olarak anar.
         </p>
         <div className="gut-stat-row">
-          <div className="gut-stat"><span className="gut-stat-v">100+ trilyon</span><span className="gut-stat-l">mikrop</span></div>
+          <div className="gut-stat"><span className="gut-stat-v">~38 trilyon</span><span className="gut-stat-l">bakteri</span></div>
           <div className="gut-stat"><span className="gut-stat-v">1000+</span><span className="gut-stat-l">farklı tür</span></div>
           <div className="gut-stat"><span className="gut-stat-v">%70+</span><span className="gut-stat-l">kalın bağırsakta</span></div>
         </div>
+        <div className="gut-note"><span>✓</span><p>Bir düzeltme: Yıllarca “bakteriler vücut hücrelerimizin 10 katı, ~100 trilyon” denirdi. 2016'da yapılan daha titiz bir hesap (Sender, Fuchs &amp; Milo) bu rakamı <strong>~38 trilyona</strong> ve oranı yaklaşık <strong>1:1</strong>'e indirdi — yani bakteriler bizimle neredeyse eşit sayıda.</p></div>
         <p className="gut-p">Bu mikroplar sadece sindirime yardım etmez; vitamin üretir, bağışıklığı eğitir ve — en ilginci — <strong>ruh halimize karışır.</strong></p>
       </section>
 
@@ -335,7 +336,7 @@ export default function BagirsakClient() {
         </div>
       </section>
 
-      <ArticleBibliography items={refs} accent="#d8b27c" />
+      <ArticleBibliography items={refs} accent="#2563eb" />
 
       <footer className="gut-footer">
         <div className="gut-footer-mark">BASEMENTS</div>
@@ -345,138 +346,135 @@ export default function BagirsakClient() {
 
       <style>{`
         .gut-page {
-          --gold:#d8b27c; --gold-bright:#ecc98f; --rose:#e89a8d; --teal:#6fd6c0;
-          --bg:#120e16; --panel:rgba(255,255,255,0.025); --line:rgba(216,178,124,0.15);
-          --ink:#f0e9e0; --muted:#a89a8c;
-          background: var(--bg); color: var(--ink); min-height: 100vh;
+          --accent:#2563eb; --accent-dk:#1d4ed8; --rose:#db2777; --teal:#0d9488;
+          --bg:#ffffff; --bg2:#f8fafc; --line:#e2e8f0;
+          --ink:#0f172a; --body:#334155; --muted:#64748b;
+          background: var(--bg); color: var(--body); min-height: 100vh;
           font-family: system-ui, -apple-system, "Segoe UI", sans-serif; line-height: 1.7; overflow-x: clip;
         }
-        .gut-serif { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; }
 
-        .gut-topbar { position: sticky; top: 0; z-index: 40; background: rgba(18,14,22,0.9); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); padding: 11px 16px; display: flex; align-items: center; gap: 10px; }
+        .gut-topbar { position: sticky; top: 0; z-index: 40; background: rgba(255,255,255,0.88); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); padding: 11px 16px; display: flex; align-items: center; gap: 10px; }
         .gut-back { color: var(--ink); display: flex; padding: 6px; border-radius: 50%; transition: background .15s; }
-        .gut-back:hover { background: rgba(216,178,124,0.12); }
-        .gut-topbar-title { font-weight: 600; font-size: .92rem; color: var(--gold); letter-spacing: .06em; font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif; }
+        .gut-back:hover { background: #eef2f7; }
+        .gut-topbar-title { font-weight: 600; font-size: .92rem; color: var(--accent); letter-spacing: .04em; font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif; }
 
         /* HERO */
-        .gut-hero { position: relative; text-align: center; padding: 64px 22px 50px; overflow: hidden; }
-        .gut-hero-glow { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(232,154,141,0.16), transparent 70%), radial-gradient(ellipse 50% 40% at 50% 30%, rgba(216,178,124,0.10), transparent 70%); }
-        .gut-hero-art { position: relative; display: flex; justify-content: center; margin-bottom: 14px; filter: drop-shadow(0 6px 30px rgba(232,154,141,0.25)); }
-        .gut-hero-eyebrow { position: relative; font-size: .64rem; font-weight: 700; letter-spacing: .32em; color: var(--gold); margin-bottom: 16px; }
-        .gut-hero-title { position: relative; font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-weight: 600; font-size: clamp(2.6rem, 9vw, 5rem); margin: 0 0 18px; letter-spacing: .01em; line-height: 1;
-          background: linear-gradient(100deg, var(--gold-bright), var(--rose) 60%, var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent; background-size: 200% auto; animation: gut-shimmer 7s ease-in-out infinite; }
-        @keyframes gut-shimmer { 0%,100% { background-position: 0% center; } 50% { background-position: 100% center; } }
-        .gut-hero-sub { position: relative; max-width: 600px; margin: 0 auto 24px; color: #d6cdc0; font-size: clamp(.96rem, 2.1vw, 1.12rem); }
+        .gut-hero { position: relative; text-align: center; padding: 60px 22px 46px; overflow: hidden; border-bottom: 1px solid var(--line); }
+        .gut-hero-glow { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 60% 45% at 50% 0%, rgba(37,99,235,0.06), transparent 70%); }
+        .gut-hero-art { position: relative; display: flex; justify-content: center; margin-bottom: 16px; }
+        .gut-hero-eyebrow { position: relative; font-size: .64rem; font-weight: 700; letter-spacing: .3em; color: var(--accent); margin-bottom: 16px; }
+        .gut-hero-title { position: relative; font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-weight: 600; font-size: clamp(2.6rem, 9vw, 5rem); margin: 0 0 18px; letter-spacing: -.01em; line-height: 1; color: var(--ink); }
+        .gut-hero-sub { position: relative; max-width: 600px; margin: 0 auto 24px; color: var(--body); font-size: clamp(.96rem, 2.1vw, 1.12rem); }
         .gut-hero-sub em { color: var(--rose); font-style: italic; font-family: "Iowan Old Style", Georgia, serif; }
         .gut-hero-sub strong { color: var(--ink); }
         .gut-hero-tags { position: relative; display: flex; flex-wrap: wrap; gap: 9px; justify-content: center; }
-        .gut-tag { padding: 7px 15px; font-size: .76rem; font-weight: 500; color: var(--gold); background: rgba(216,178,124,0.07); border: 1px solid rgba(216,178,124,0.22); border-radius: 9999px; letter-spacing: .02em; }
+        .gut-tag { padding: 7px 15px; font-size: .76rem; font-weight: 600; color: var(--accent); background: #eff4ff; border: 1px solid #dbe6fb; border-radius: 9999px; letter-spacing: .01em; }
 
         /* SECTION */
-        .gut-section { max-width: 760px; margin: 0 auto; padding: 46px 18px; position: relative; }
-        .gut-section::before { content: ''; display: block; width: 44px; height: 1px; background: linear-gradient(90deg, var(--gold), transparent); margin-bottom: 26px; }
-        .gut-num { font-family: "Iowan Old Style", Georgia, serif; font-size: .8rem; font-weight: 600; letter-spacing: .3em; color: var(--gold); opacity: .8; margin-bottom: 10px; }
-        .gut-h2 { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-weight: 600; font-size: clamp(1.7rem, 4.6vw, 2.5rem); margin: 0 0 18px; letter-spacing: -.01em; color: var(--ink); line-height: 1.15; }
-        .gut-lead { font-size: 1.18rem; line-height: 1.6; color: #e3dacb; margin: 0 0 18px; font-family: "Iowan Old Style", Georgia, serif; }
-        .gut-p { color: #d2c8ba; font-size: 1.04rem; margin: 0 0 18px; }
+        .gut-section { max-width: 740px; margin: 0 auto; padding: 48px 18px; position: relative; }
+        .gut-section::before { content: ''; display: block; width: 44px; height: 2px; background: var(--accent); border-radius: 2px; margin-bottom: 24px; }
+        .gut-num { font-size: .72rem; font-weight: 700; letter-spacing: .28em; color: var(--accent); margin-bottom: 10px; }
+        .gut-h2 { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-weight: 600; font-size: clamp(1.7rem, 4.6vw, 2.4rem); margin: 0 0 18px; letter-spacing: -.01em; color: var(--ink); line-height: 1.18; }
+        .gut-lead { font-size: 1.18rem; line-height: 1.6; color: #1e293b; margin: 0 0 18px; font-family: "Iowan Old Style", Georgia, serif; }
+        .gut-p { color: var(--body); font-size: 1.04rem; margin: 0 0 18px; }
         .gut-p strong, .gut-lead strong, .gut-note strong, .gut-card strong { color: var(--ink); font-weight: 700; }
-        .gut-p em, .gut-note em { color: var(--gold-bright); font-style: italic; }
+        .gut-p em, .gut-note em { color: var(--accent-dk); font-style: italic; }
 
-        .reveal { opacity: 0; transform: translateY(30px); transition: opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1); }
+        .reveal { opacity: 0; transform: translateY(24px); transition: opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1); }
         .reveal.visible { opacity: 1; transform: none; }
 
         /* Quote */
-        .gut-quote { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-style: italic; font-size: clamp(1.2rem, 3vw, 1.55rem); line-height: 1.45; color: var(--gold-bright); margin: 28px 0; padding: 6px 0 6px 24px; border-left: 2px solid var(--gold); position: relative; }
-        .gut-quote::before { content: '“'; position: absolute; left: 10px; top: -10px; font-size: 2.4rem; color: rgba(216,178,124,0.3); }
+        .gut-quote { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-style: italic; font-size: clamp(1.18rem, 3vw, 1.5rem); line-height: 1.45; color: var(--ink); margin: 28px 0; padding: 8px 0 8px 24px; border-left: 3px solid var(--accent); position: relative; }
+        .gut-quote::before { content: '“'; position: absolute; left: 8px; top: -6px; font-size: 2.2rem; color: rgba(37,99,235,0.25); }
 
         /* Note */
-        .gut-note { display: flex; gap: 14px; background: linear-gradient(100deg, rgba(216,178,124,0.06), transparent); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; margin: 22px 0; }
-        .gut-note > span { font-size: 1.2rem; color: var(--gold); flex-shrink: 0; }
-        .gut-note p { margin: 0; font-size: .94rem; color: #d2c8ba; }
+        .gut-note { display: flex; gap: 14px; background: var(--bg2); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 12px; padding: 16px 18px; margin: 22px 0; }
+        .gut-note > span { font-size: 1.15rem; color: var(--accent); flex-shrink: 0; font-weight: 700; }
+        .gut-note p { margin: 0; font-size: .94rem; color: var(--body); }
 
-        /* Stepper */
-        .gut-stepper { display: grid; grid-template-columns: 1fr 1.1fr; gap: 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px; margin: 18px 0; }
-        .gut-stepper-viz { display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse at center, rgba(232,154,141,0.06), transparent 70%); border-radius: 12px; padding: 10px; min-height: 200px; }
+        /* Şekil / Stepper */
+        .gut-stepper { display: grid; grid-template-columns: 1fr 1.1fr; gap: 16px; background: var(--bg2); border: 1px solid var(--line); border-radius: 14px; padding: 18px; margin: 18px 0; box-shadow: 0 1px 2px rgba(15,23,42,0.04); }
+        .gut-stepper-viz { display: flex; align-items: center; justify-content: center; background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 10px; min-height: 200px; }
         .gut-svg { width: 100%; height: auto; max-height: 210px; }
         .gut-stepper-panel { display: flex; flex-direction: column; }
         .gut-dots { display: flex; gap: 8px; margin-bottom: 14px; }
-        .gut-dot { width: 9px; height: 9px; border-radius: 50%; border: 1px solid var(--muted); background: transparent; cursor: pointer; padding: 0; transition: all .25s; }
-        .gut-dot.on { background: var(--gold); border-color: var(--gold); transform: scale(1.3); }
-        .gut-step-meta { font-size: .68rem; font-weight: 700; letter-spacing: .16em; color: var(--gold); margin-bottom: 8px; }
+        .gut-dot { width: 9px; height: 9px; border-radius: 50%; border: 1px solid #cbd5e1; background: #fff; cursor: pointer; padding: 0; transition: all .25s; }
+        .gut-dot.on { background: var(--accent); border-color: var(--accent); transform: scale(1.3); }
+        .gut-step-meta { font-size: .68rem; font-weight: 700; letter-spacing: .16em; color: var(--accent); margin-bottom: 8px; }
         .gut-step-title { font-family: "Iowan Old Style", Georgia, serif; font-size: 1.2rem; font-weight: 600; margin: 0 0 8px; color: var(--ink); }
-        .gut-step-desc { font-size: .94rem; color: #d2c8ba; margin: 0 0 18px; flex: 1; }
+        .gut-step-desc { font-size: .94rem; color: var(--body); margin: 0 0 18px; flex: 1; }
         .gut-stepper-ctrl { display: flex; gap: 8px; }
-        .gut-ctrl-btn { flex: 1; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line); background: rgba(255,255,255,0.03); color: var(--ink); font-weight: 600; font-size: .86rem; cursor: pointer; transition: all .2s; }
-        .gut-ctrl-btn:disabled { opacity: .35; cursor: not-allowed; }
-        .gut-ctrl-btn:not(:disabled):hover { border-color: var(--gold); }
-        .gut-ctrl-primary { background: linear-gradient(100deg, var(--gold), var(--rose)); border: none; color: #1a1208; }
+        .gut-ctrl-btn { flex: 1; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line); background: #fff; color: var(--ink); font-weight: 600; font-size: .86rem; cursor: pointer; transition: all .2s; }
+        .gut-ctrl-btn:disabled { opacity: .4; cursor: not-allowed; }
+        .gut-ctrl-btn:not(:disabled):hover { border-color: var(--accent); color: var(--accent); }
+        .gut-ctrl-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .gut-ctrl-primary:not(:disabled):hover { background: var(--accent-dk); color: #fff; }
 
         /* Molecules */
         .gut-mols { display: flex; flex-direction: column; gap: 12px; margin: 18px 0; }
-        .gut-mol { background: var(--panel); border: 1px solid; border-radius: 14px; padding: 16px 18px; }
+        .gut-mol { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; box-shadow: 0 1px 2px rgba(15,23,42,0.04); }
         .gut-mol-top { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 4px; }
-        .gut-mol-name { font-family: "Iowan Old Style", Georgia, serif; font-size: 1.25rem; font-weight: 600; }
+        .gut-mol-name { font-family: "Iowan Old Style", Georgia, serif; font-size: 1.25rem; font-weight: 700; }
         .gut-mol-tag { font-size: .76rem; color: var(--muted); letter-spacing: .04em; }
-        .gut-mol-bar { height: 8px; background: rgba(255,255,255,0.06); border-radius: 5px; overflow: hidden; margin-bottom: 11px; }
+        .gut-mol-bar { height: 8px; background: #eef2f7; border-radius: 5px; overflow: hidden; margin-bottom: 11px; }
         .gut-mol-fill { height: 100%; border-radius: 5px; transition: width 1s cubic-bezier(.2,.7,.2,1); }
-        .gut-mol-d { margin: 0; font-size: .9rem; color: #d2c8ba; }
+        .gut-mol-d { margin: 0; font-size: .9rem; color: var(--body); }
 
         /* Stats */
         .gut-stat-row { display: flex; gap: 12px; margin: 20px 0; }
-        .gut-stat { flex: 1; text-align: center; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px 10px; }
-        .gut-stat-v { display: block; font-family: "Iowan Old Style", Georgia, serif; font-size: clamp(1.1rem, 3.4vw, 1.6rem); font-weight: 600; color: var(--gold-bright); }
+        .gut-stat { flex: 1; text-align: center; background: var(--bg2); border: 1px solid var(--line); border-radius: 14px; padding: 18px 10px; }
+        .gut-stat-v { display: block; font-family: "Iowan Old Style", Georgia, serif; font-size: clamp(1.1rem, 3.4vw, 1.6rem); font-weight: 600; color: var(--accent-dk); }
         .gut-stat-l { display: block; font-size: .78rem; color: var(--muted); margin-top: 4px; }
 
         /* Cards */
         .gut-cards { display: flex; flex-direction: column; gap: 12px; margin: 18px 0; }
-        .gut-card { display: flex; gap: 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; transition: border-color .25s, transform .25s; }
-        .gut-card:hover { border-color: rgba(216,178,124,0.4); transform: translateY(-2px); }
+        .gut-card { display: flex; gap: 16px; background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 18px; box-shadow: 0 1px 2px rgba(15,23,42,0.04); transition: border-color .25s, box-shadow .25s, transform .25s; }
+        .gut-card:hover { border-color: #bcd0f5; box-shadow: 0 6px 18px rgba(37,99,235,0.1); transform: translateY(-2px); }
         .gut-card-e { font-size: 1.8rem; flex-shrink: 0; }
-        .gut-card strong { display: block; font-family: "Iowan Old Style", Georgia, serif; font-size: 1.08rem; color: var(--gold-bright); margin-bottom: 5px; }
-        .gut-card span { font-size: .92rem; color: #d2c8ba; }
+        .gut-card strong { display: block; font-family: "Iowan Old Style", Georgia, serif; font-size: 1.08rem; color: var(--accent-dk); margin-bottom: 5px; }
+        .gut-card span { font-size: .92rem; color: var(--body); }
 
         /* Feed */
         .gut-feed { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 18px 0; }
-        .gut-feed-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; transition: border-color .25s, transform .25s; }
-        .gut-feed-card:hover { border-color: rgba(111,214,192,0.4); transform: translateY(-3px); }
+        .gut-feed-card { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 18px; box-shadow: 0 1px 2px rgba(15,23,42,0.04); transition: border-color .25s, box-shadow .25s, transform .25s; }
+        .gut-feed-card:hover { border-color: #a7e0d6; box-shadow: 0 6px 18px rgba(13,148,136,0.12); transform: translateY(-3px); }
         .gut-feed-ico { font-size: 1.8rem; margin-bottom: 8px; }
         .gut-feed-card h4 { font-family: "Iowan Old Style", Georgia, serif; margin: 0 0 6px; font-size: 1.05rem; color: var(--teal); }
-        .gut-feed-card p { margin: 0; font-size: .88rem; color: #d2c8ba; }
+        .gut-feed-card p { margin: 0; font-size: .88rem; color: var(--body); }
         .gut-disc { font-size: .82rem; color: var(--muted); font-style: italic; margin-top: 16px; }
 
         /* Numbers */
         .gut-numbers { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 18px 0; }
-        .gut-number { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+        .gut-number { background: var(--bg2); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
         .gut-number-v { display: block; font-family: "Iowan Old Style", Georgia, serif; font-size: 1.5rem; font-weight: 600; color: var(--rose); }
         .gut-number-l { display: block; font-size: .92rem; color: var(--ink); margin: 4px 0 6px; font-weight: 600; }
         .gut-number-s { display: block; font-size: .8rem; color: var(--muted); }
 
         /* Quiz */
-        .gut-quiz { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 22px; }
+        .gut-quiz { background: var(--bg2); border: 1px solid var(--line); border-radius: 18px; padding: 22px; }
         .gut-quiz-top { display: flex; justify-content: space-between; font-size: .8rem; font-weight: 600; color: var(--muted); margin-bottom: 14px; }
-        .gut-quiz-score { color: var(--gold); }
+        .gut-quiz-score { color: var(--accent); }
         .gut-quiz-q { font-family: "Iowan Old Style", Georgia, serif; font-size: 1.18rem; font-weight: 600; margin: 0 0 16px; color: var(--ink); }
         .gut-quiz-opts { display: flex; flex-direction: column; gap: 9px; }
-        .gut-opt { display: flex; align-items: center; gap: 13px; text-align: left; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line); background: rgba(255,255,255,0.02); color: var(--ink); font-size: .94rem; cursor: pointer; transition: all .2s; }
-        .gut-opt:not(:disabled):hover { border-color: var(--gold); background: rgba(216,178,124,0.06); }
-        .gut-opt-letter { width: 25px; height: 25px; border-radius: 7px; display: grid; place-items: center; font-weight: 700; font-size: .78rem; background: rgba(216,178,124,0.12); color: var(--muted); flex-shrink: 0; }
-        .gut-opt.correct { border-color: var(--teal); background: rgba(111,214,192,0.12); }
-        .gut-opt.correct .gut-opt-letter { background: var(--teal); color: #0c1512; }
-        .gut-opt.wrong { border-color: var(--rose); background: rgba(232,154,141,0.12); }
-        .gut-opt.wrong .gut-opt-letter { background: var(--rose); color: #1a1208; }
+        .gut-opt { display: flex; align-items: center; gap: 13px; text-align: left; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line); background: #fff; color: var(--ink); font-size: .94rem; cursor: pointer; transition: all .2s; }
+        .gut-opt:not(:disabled):hover { border-color: var(--accent); background: #eff4ff; }
+        .gut-opt-letter { width: 25px; height: 25px; border-radius: 7px; display: grid; place-items: center; font-weight: 700; font-size: .78rem; background: #eef2f7; color: var(--muted); flex-shrink: 0; }
+        .gut-opt.correct { border-color: var(--teal) !important; background: #ecfdf6 !important; }
+        .gut-opt.correct .gut-opt-letter { background: var(--teal) !important; color: #fff; }
+        .gut-opt.wrong { border-color: var(--rose) !important; background: #fdf2f8 !important; }
+        .gut-opt.wrong .gut-opt-letter { background: var(--rose) !important; color: #fff; }
         .gut-opt.dim { opacity: .5; }
         .gut-opt:disabled { cursor: default; }
         .gut-quiz-result { text-align: center; padding: 14px; }
         .gut-quiz-emoji { font-size: 3rem; margin-bottom: 8px; }
-        .gut-quiz-rtitle { font-family: "Iowan Old Style", Georgia, serif; font-size: 1.5rem; font-weight: 600; margin: 0 0 6px; color: var(--gold-bright); }
+        .gut-quiz-rtitle { font-family: "Iowan Old Style", Georgia, serif; font-size: 1.5rem; font-weight: 600; margin: 0 0 6px; color: var(--accent-dk); }
         .gut-quiz-rdesc { color: var(--muted); font-size: .94rem; margin: 0 0 18px; }
 
         /* Footer */
-        .gut-footer { max-width: 640px; margin: 0 auto; text-align: center; padding: 44px 22px 66px; }
-        .gut-footer::before { content: ''; display: block; width: 60px; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); margin: 0 auto 24px; }
-        .gut-footer-mark { font-weight: 700; letter-spacing: .3em; color: var(--gold); font-size: .82rem; margin-bottom: 14px; }
-        .gut-footer p { color: #c9bfb0; font-size: 1rem; max-width: 480px; margin: 0 auto 18px; font-family: "Iowan Old Style", Georgia, serif; font-style: italic; }
-        .gut-footer-link { color: var(--gold); text-decoration: none; font-weight: 600; font-size: .9rem; }
+        .gut-footer { max-width: 640px; margin: 0 auto; text-align: center; padding: 44px 22px 66px; border-top: 1px solid var(--line); }
+        .gut-footer-mark { font-weight: 700; letter-spacing: .3em; color: var(--accent); font-size: .82rem; margin-bottom: 14px; }
+        .gut-footer p { color: var(--body); font-size: 1rem; max-width: 480px; margin: 0 auto 18px; font-family: "Iowan Old Style", Georgia, serif; font-style: italic; }
+        .gut-footer-link { color: var(--accent); text-decoration: none; font-weight: 600; font-size: .9rem; }
         .gut-footer-link:hover { text-decoration: underline; }
 
         @media (max-width: 680px) {
@@ -487,7 +485,6 @@ export default function BagirsakClient() {
           .gut-stat-row { flex-direction: column; }
         }
         @media (prefers-reduced-motion: reduce) {
-          .gut-hero-title { animation: none; }
           .reveal { transition: opacity .3s; transform: none; }
         }
       `}</style>
