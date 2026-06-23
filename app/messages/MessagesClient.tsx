@@ -51,6 +51,17 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
   const realtimeChRef = useRef<ReturnType<typeof getSupa>['channel'] extends (...args: any[]) => infer R ? R : never | null>(null as any);
   const activeOtherUserRef = useRef<OtherUser | null>(null);
 
+  // Mesaj kutusu ref'i — STABİL olmak ZORUNDA. msgAnimateRef (auto-animate) zaten
+  // stabil; bu birleşik callback'i useCallback ile sabitliyoruz. Aksi halde inline
+  // arrow her render'da yeni kimlik alır → React her commit'te ref'i söküp takar →
+  // auto-animate her seferinde setController(yeni nesne) çağırır → sonsuz re-render
+  // (React #185 "Maximum update depth exceeded", konuşma açılınca çöker). Stabil ref
+  // ile callback yalnızca mount/unmount'ta çalışır.
+  const setMsgBoxRef = useCallback((el: HTMLDivElement | null) => {
+    msgBoxRef.current = el;
+    msgAnimateRef(el);
+  }, [msgAnimateRef]);
+
   // Aktif konuşma değişince realtime kanalı yenile
   useEffect(() => {
     if (!activeConvId) return;
@@ -283,7 +294,7 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
             </div>
 
             {/* Messages */}
-            <div ref={(el) => { msgBoxRef.current = el; msgAnimateRef(el); }} style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 6, scrollbarWidth: 'thin' }}>
+            <div ref={setMsgBoxRef} style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 6, scrollbarWidth: 'thin' }}>
               {msgLoading ? <div style={{ textAlign: 'center', color: '#666', fontSize: '0.85rem', padding: '2rem 0' }}>Mesajlar yükleniyor…</div> : messages.length === 0 ? <div style={{ textAlign: 'center', color: '#666', fontSize: '0.85rem', padding: '2rem 0' }}>Henüz mesaj yok — ilk mesajı sen gönder!</div> : msgElements}
             </div>
 
