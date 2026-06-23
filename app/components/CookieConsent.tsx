@@ -14,14 +14,27 @@ const STORAGE_KEY = 'cookie-consent'; // 'accepted' | 'rejected'
 export default function CookieConsent({ gaId }: { gaId?: string }) {
   const [choice, setChoice] = useState<'accepted' | 'rejected' | null>(null);
   const [ready, setReady] = useState(false);
+  // Kendi cihazlarını (bilgisayar/tablet/telefon) ziyaretçi istatistiklerinden
+  // hariç tutmak için: o cihazda BİR KEZ siteyi ?notrack=1 ile aç → kalıcı kapanır.
+  // Geri açmak için ?notrack=0 ile aç. Seçim localStorage'da o cihaza özel saklanır.
+  const [trackDisabled, setTrackDisabled] = useState(false);
 
   useEffect(() => {
     try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('notrack') === '1') localStorage.setItem('ga-disabled', 'true');
+      if (params.get('notrack') === '0') localStorage.removeItem('ga-disabled');
+
+      const disabled = localStorage.getItem('ga-disabled') === 'true';
+      // gtag'in resmî kapatma bayrağı — GA bu cihazda hiç yüklenmese de güvence için
+      if (disabled && gaId) (window as unknown as Record<string, boolean>)[`ga-disable-${gaId}`] = true;
+      setTrackDisabled(disabled);
+
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved === 'accepted' || saved === 'rejected') setChoice(saved);
     } catch {}
     setReady(true);
-  }, []);
+  }, [gaId]);
 
   function decide(value: 'accepted' | 'rejected') {
     try { localStorage.setItem(STORAGE_KEY, value); } catch {}
@@ -30,8 +43,8 @@ export default function CookieConsent({ gaId }: { gaId?: string }) {
 
   return (
     <>
-      {/* GA yalnızca onay verildiyse yüklenir */}
-      {gaId && choice === 'accepted' && <GoogleAnalytics gaId={gaId} />}
+      {/* GA yalnızca onay verildiyse VE cihaz ?notrack ile hariç tutulmadıysa yüklenir */}
+      {gaId && choice === 'accepted' && !trackDisabled && <GoogleAnalytics gaId={gaId} />}
 
       {ready && choice === null && (
         <div
