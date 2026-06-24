@@ -54,6 +54,7 @@ export default async function DiscoverPage({ searchParams }: { searchParams: Pro
     { slug: 'bakteriyofaj', title: 'Bakteriyofajlar', emoji: '🦠', desc: 'Bakteri yiyen virüsler: faj terapisi, CRISPR ve antibiyotik krizine umut' },
     { slug: 'endosimbiyoz', title: 'Endosimbiyoz', emoji: '🧬', desc: 'İki hücrenin birleşip karmaşık yaşamı yarattığı an: mitokondri, Margulis, nitroplast' },
     { slug: 'kaligrafi', title: 'Kaligrafi', emoji: '✒️', desc: 'Güzel yazının sanatı: hat, Doğu Asya ve Batı gelenekleri, araçlar ve başlangıç rehberi' },
+    { slug: 'doppler', title: 'Doppler Etkisi', emoji: '📡', desc: 'Hareketin sesi ve ışığı nasıl değiştirdiği: kırmızıya kayma, radar, evrenin genişlemesi — interaktif' },
   ];
 
   return (
