@@ -1,8 +1,26 @@
 import type { Metadata } from 'next';
+import { unstable_cache } from 'next/cache';
 import { db, getMe, logIfError } from '@/lib/supabase/server';
 import DiscoverClient from './DiscoverClient';
 
 export const dynamic = 'force-dynamic';
+
+// PAYLAŞILAN içerik (son kullanıcılar + son medya) — herkes için aynı, kişiye özel
+// değil → güvenle önbelleğe alınır. 60sn boyunca tekrar DB'ye gidilmez (revalidate).
+// getMe/isLoggedIn gibi kişiye özel veri bunun DIŞINDA, canlı kalır.
+const getDiscoverContent = unstable_cache(
+  async () => {
+    const [{ data: users, error: usersErr }, { data: mediaRaw, error: mediaErr }] = await Promise.all([
+      db.from('users').select('id, username, display_name, bio, avatar').order('created_at', { ascending: false }).limit(20),
+      db.from('quick_facts').select('id, media_url, media_type, caption, likes, users!quick_facts_user_id_fkey(username, display_name)').order('created_at', { ascending: false }).limit(12),
+    ]);
+    logIfError('discover users', usersErr);
+    logIfError('discover quick_facts', mediaErr);
+    return { users: users ?? [], mediaRaw: mediaRaw ?? [] };
+  },
+  ['discover-content-v1'],
+  { revalidate: 60, tags: ['feed'] },
+);
 
 export const metadata: Metadata = {
   title: 'Keşfet',
@@ -26,14 +44,8 @@ export default async function DiscoverPage({ searchParams }: { searchParams: Pro
   const sp = await searchParams;
   const initialQuery = typeof sp.q === 'string' ? sp.q : '';
 
-  // Recent users
-  const { data: users, error: usersErr } = await db.from('users').select('id, username, display_name, bio, avatar').order('created_at', { ascending: false }).limit(20);
-  logIfError('discover users', usersErr);
-
-  // Recent media posts
-  const { data: mediaRaw, error: mediaErr } = await db.from('quick_facts').select('id, media_url, media_type, caption, likes, users!quick_facts_user_id_fkey(username, display_name)').order('created_at', { ascending: false }).limit(12);
-  logIfError('discover quick_facts', mediaErr);
-
+  // Paylaşılan içerik önbellekten gelir (60sn); kişiye özel değildir.
+  const { users, mediaRaw } = await getDiscoverContent();
   const media = (mediaRaw ?? []).map((m: any) => ({ ...m, username: m.users?.username ?? '', display_name: m.users?.display_name ?? '' }));
 
   const articles = [

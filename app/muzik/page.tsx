@@ -1,8 +1,25 @@
 import type { Metadata } from 'next';
+import { unstable_cache } from 'next/cache';
 import { db, getMe, logIfError } from '@/lib/supabase/server';
 import MuzikClient from './MuzikClient';
 
 export const dynamic = 'force-dynamic';
+
+// Müzik listeleri PAYLAŞILAN (topluluğun paylaştığı son müzikler) — kişiye özel
+// değil, sık değişmez → 120sn önbellek.
+const getMusic = unstable_cache(
+  async () => {
+    const [spResult, ytResult] = await Promise.all([
+      db.from('spotify_playlists').select('id, playlist_id, title, created_at, user_id, users(username, display_name)').order('created_at', { ascending: false }).limit(30),
+      db.from('youtube_items').select('id, item_type, item_id, title, created_at, user_id, users(username, display_name)').order('created_at', { ascending: false }).limit(30),
+    ]);
+    logIfError('muzik spotify_playlists', spResult.error);
+    logIfError('muzik youtube_items', ytResult.error);
+    return { sp: spResult.data ?? [], yt: ytResult.data ?? [] };
+  },
+  ['muzik-content-v1'],
+  { revalidate: 120, tags: ['muzik'] },
+);
 
 export const metadata: Metadata = {
   title: 'Müzik',
@@ -33,22 +50,8 @@ function avatarBg(u: string): string {
 export default async function MuzikPage() {
   const { me } = await getMe();
 
-  // Tablolar henüz oluşturulmamış olabilir — hata olsa bile boş array döner
-  const [spResult, ytResult] = await Promise.all([
-    db.from('spotify_playlists')
-      .select('id, playlist_id, title, created_at, user_id, users(username, display_name)')
-      .order('created_at', { ascending: false })
-      .limit(30),
-    db.from('youtube_items')
-      .select('id, item_type, item_id, title, created_at, user_id, users(username, display_name)')
-      .order('created_at', { ascending: false })
-      .limit(30),
-  ]);
-
-  const spRaw = spResult.data;
-  const ytRaw = ytResult.data;
-  logIfError('muzik spotify_playlists', spResult.error);
-  logIfError('muzik youtube_items', ytResult.error);
+  // Paylaşılan müzik içeriği önbellekten gelir (120sn).
+  const { sp: spRaw, yt: ytRaw } = await getMusic();
 
   const spotifyItems = (spRaw ?? []).map((r: any) => ({
     id:           r.id           as number,

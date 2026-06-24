@@ -1,10 +1,35 @@
 import type { Metadata } from 'next';
+import { unstable_cache } from 'next/cache';
 import { db, getMe, logIfError } from '@/lib/supabase/server';
 import { flattenFacts, flattenPosts, type QuickFact, type Post } from '@/lib/types';
 import HomeFeed from './components/HomeFeed';
 import { jsonLdScript } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
+
+// Ana feed'in PAYLAŞILAN kısmı (en yeni quick_facts + posts + aktif stories) —
+// herkes için aynı, kişiye özel değil → 30sn önbellek. Kişiye özel veriler
+// (beğeni/repost durumu, önerilen kullanıcılar, kendi story'n) bunun DIŞINDA,
+// canlı kalır. Kendi yeni gönderin akış istemcisinde optimistik görünür.
+const getHomeContent = unstable_cache(
+  async () => {
+    const [{ data: rawFacts, error: factsErr }, { data: rawPosts, error: postsErr }] = await Promise.all([
+      db.from('quick_facts').select('*, users!quick_facts_user_id_fkey(display_name, username, avatar)').order('created_at', { ascending: false }).limit(30),
+      db.from('posts').select('*, users!posts_user_id_fkey(display_name, username, avatar)').order('created_at', { ascending: false }).limit(30),
+    ]);
+    logIfError('home quick_facts', factsErr);
+    logIfError('home posts', postsErr);
+    const { data: storiesRaw, error: storiesErr } = await db
+      .from('stories')
+      .select('id, media_url, media_type, created_at, user_id, users(id, username, display_name, avatar)')
+      .gt('expires_at', new Date().toISOString())
+      .order('created_at', { ascending: false });
+    logIfError('home stories', storiesErr);
+    return { rawFacts: rawFacts ?? [], rawPosts: rawPosts ?? [], storiesRaw: storiesRaw ?? [] };
+  },
+  ['home-content-v1'],
+  { revalidate: 30, tags: ['feed'] },
+);
 
 export const metadata: Metadata = {
   alternates: { canonical: '/' },
@@ -31,12 +56,8 @@ const websiteJsonLd = {
 export default async function HomePage() {
   const { me } = await getMe();
 
-  const [{ data: rawFacts, error: factsErr }, { data: rawPosts, error: postsErr }] = await Promise.all([
-    db.from('quick_facts').select('*, users!quick_facts_user_id_fkey(display_name, username, avatar)').order('created_at', { ascending: false }).limit(30),
-    db.from('posts').select('*, users!posts_user_id_fkey(display_name, username, avatar)').order('created_at', { ascending: false }).limit(30),
-  ]);
-  logIfError('home quick_facts', factsErr);
-  logIfError('home posts', postsErr);
+  // Paylaşılan feed içeriği önbellekten (30sn); kişiye özel değil.
+  const { rawFacts, rawPosts, storiesRaw } = await getHomeContent();
 
   const facts: QuickFact[] = flattenFacts(rawFacts ?? []);
   const posts: Post[] = flattenPosts(rawPosts ?? []);
@@ -98,13 +119,7 @@ export default async function HomePage() {
   interface StoryItem { id: number; mediaUrl: string; mediaType: string; createdAt: string; }
   interface StoryUser { userId: number; username: string; displayName: string; avatar: string | null; stories: StoryItem[]; }
 
-  const { data: storiesRaw, error: storiesErr } = await db
-    .from('stories')
-    .select('id, media_url, media_type, created_at, user_id, users(id, username, display_name, avatar)')
-    .gt('expires_at', new Date().toISOString())
-    .order('created_at', { ascending: false });
-  logIfError('home stories', storiesErr);
-
+  // storiesRaw yukarıda getHomeContent()'ten (önbellekli) geldi.
   const storyMap = new Map<number, StoryUser>();
   for (const s of (storiesRaw ?? []) as any[]) {
     const u = s.users;
