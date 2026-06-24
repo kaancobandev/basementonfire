@@ -44,6 +44,29 @@ export type DbUser = {
   interests: string[];
 };
 
+// "Bunu biliyor muydun?" bilgi kartlari (did_you_know tablosu). Feed'e
+// kind:'dyk' olarak serpistirilir; mevcut fact/post ayrimina ucuncu tur eklenir.
+export type DidYouKnow = {
+  id: number;
+  title: string;
+  body: string;
+  source_url: string | null;
+  source_label: string | null;
+  article_slug: string | null;
+  image_url: string | null;
+  created_at: string;
+};
+
+// Gunun sorusu / XP / seri ilerlemesi (user_progress tablosu)
+export type UserProgress = {
+  xp: number;
+  current_streak: number;
+  longest_streak: number;
+  total_correct: number;
+  total_answered: number;
+  last_answer_date: string | null;
+};
+
 export function flattenPosts(rows: any[]): Post[] {
   return (rows ?? []).map(r => ({
     ...r,

@@ -49,6 +49,10 @@ export default function MobileCreateSheet({ open, onClose }: { open: boolean; on
                 <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
                 Hikaye
               </motion.button>
+              <motion.button whileTap={{ scale: 0.97 }} className="mc-option" type="button" onClick={() => { onClose(); router.push('/bilgi-karti'); }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+                Bilgi Kartı
+              </motion.button>
             </div>
             <button className="mc-cancel" type="button" onClick={onClose}>İptal</button>
           </motion.div>

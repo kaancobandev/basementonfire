@@ -8,6 +8,8 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Caption from './Caption';
 import Logo from './Logo';
+import DailyQuestion from './DailyQuestion';
+import DidYouKnowCard from './DidYouKnowCard';
 import { uploadToStorage } from '@/lib/upload';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -304,6 +306,9 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
           ))}
         </div>
 
+        {/* Günün Sorusu — eğlence + bilgi füzyonunun etkileşim motoru (herkese görünür) */}
+        <DailyQuestion />
+
         {/* Feed */}
         {feedItems.length === 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', padding: '64px 0', color: 'var(--color-text-muted)' }}>
@@ -313,6 +318,18 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
         ) : (
           <div style={{ maxWidth: 470, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24, paddingBottom: 40, paddingTop: 16 }}>
             {feedItems.map((item: any, index: number) => {
+              if (item.kind === 'dyk') {
+                return (
+                  <motion.div
+                    key={`dyk-${item.id}`}
+                    initial={{ opacity: 0, y: 28 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: Math.min(index * 0.07, 0.5), ease: 'easeOut' }}
+                  >
+                    <DidYouKnowCard item={item} />
+                  </motion.div>
+                );
+              }
               if (item.kind === 'fact') {
                 const liked = likedFacts.has(item.id);
                 const likes = factLikes[item.id] ?? item.likes;
@@ -484,6 +501,11 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
               <span style={{ fontSize: '1.5rem' }}>🏛️</span><span style={{ fontWeight: 600, fontSize: '0.9rem' }}>Kartaca</span>
             </Link>
           </div>
+          {currentUser && (
+            <Link href="/bilgi-karti" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 10, padding: '9px 10px', borderRadius: 12, textDecoration: 'none', color: 'var(--color-primary)', fontWeight: 700, fontSize: '0.84rem', border: '1px dashed var(--color-border)' }}>
+              💡 Bilgi kartı paylaş
+            </Link>
+          )}
         </div>
       </aside>
 

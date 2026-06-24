@@ -9,7 +9,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Caption from '@/app/components/Caption';
 import AnimatedNumber from '@/app/components/AnimatedNumber';
-import type { DbUser } from '@/lib/types';
+import type { DbUser, UserProgress } from '@/lib/types';
+import { BADGE_MAP, levelFromXp } from '@/lib/badges';
 import { toast } from 'sonner';
 
 interface MediaPost { id: number; media_url: string; media_type: string; caption: string; likes: number; created_at: string; media?: { url: string; type: 'image' | 'video' }[] | null; }
@@ -24,12 +25,14 @@ interface Props {
   mediaPosts: MediaPost[];
   savedPosts: MediaPost[];
   repostedPosts: MediaPost[];
+  progress: UserProgress | null;
+  badgeKeys: string[];
   error: string | null;
 }
 
 const GENDER_LABEL: Record<string, string> = { erkek: 'Erkek', kadin: 'Kadın', diger: 'Diğer' };
 
-export default function ProfileClient({ user, bg, hasPhoto, age, followersCount, followingCount, mediaPosts, savedPosts, repostedPosts, error }: Props) {
+export default function ProfileClient({ user, bg, hasPhoto, age, followersCount, followingCount, mediaPosts, savedPosts, repostedPosts, progress, badgeKeys, error }: Props) {
   const isMobile = useIsMobile();
   const [tab, setTab] = useState<'posts' | 'saved' | 'reposts'>('posts');
   const [editOpen, setEditOpen] = useState(false);
@@ -120,6 +123,39 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
           <span><strong style={{ color: 'var(--color-text)' }}><AnimatedNumber value={followersCount} /></strong> Takipçi</span>
           <span><strong style={{ color: 'var(--color-text)' }}><AnimatedNumber value={followingCount} /></strong> Takip</span>
         </div>
+
+        {/* Bilgi & Seri — Günün Sorusu ilerlemesi (XP / seviye / rozet). progress
+            yoksa (henüz çözmemiş ya da SQL çalışmamış) bölüm gizlenir. */}
+        {progress && (() => {
+          const { level, intoLevel, perLevel } = levelFromXp(progress.xp);
+          const earned = badgeKeys.map(k => BADGE_MAP[k]).filter(Boolean);
+          return (
+            <div style={{ marginTop: 14, padding: 14, borderRadius: 14, border: '1px solid var(--color-border)', background: 'linear-gradient(90deg, rgba(16,185,129,0.07), rgba(59,130,246,0.05))' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: '0.92rem', fontWeight: 800, color: 'var(--color-text)' }}>⭐ Lv {level}</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: '0.86rem', fontWeight: 700, color: progress.current_streak > 0 ? '#f97316' : 'var(--color-text-muted)' }}>🔥 {progress.current_streak} gün seri</span>
+                <span style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>{progress.total_correct} doğru · {progress.xp} XP</span>
+              </div>
+              <div style={{ marginTop: 10 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--color-text-muted)', marginBottom: 4 }}>
+                  <span>Seviye {level}</span><span>{intoLevel} / {perLevel} XP</span>
+                </div>
+                <div style={{ height: 7, borderRadius: 9999, background: 'var(--color-border)', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${Math.round((intoLevel / perLevel) * 100)}%`, background: 'linear-gradient(90deg,#10b981,#3b82f6)', borderRadius: 9999 }} />
+                </div>
+              </div>
+              {earned.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
+                  {earned.map(b => (
+                    <span key={b.key} title={b.desc} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 9999, background: 'var(--color-surface)', border: '1px solid var(--color-border)', fontSize: '0.78rem', fontWeight: 700, color: 'var(--color-text)' }}>
+                      <span>{b.emoji}</span>{b.name}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })()}
       </div>
 
       {/* Tabs */}

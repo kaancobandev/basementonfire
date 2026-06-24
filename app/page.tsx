@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { unstable_cache } from 'next/cache';
 import { db, getMe, logIfError } from '@/lib/supabase/server';
-import { flattenFacts, flattenPosts, type QuickFact, type Post } from '@/lib/types';
+import { flattenFacts, flattenPosts, type QuickFact, type Post, type DidYouKnow } from '@/lib/types';
 import HomeFeed from './components/HomeFeed';
 import { jsonLdScript } from '@/lib/seo';
 
@@ -31,6 +31,27 @@ const getHomeContent = unstable_cache(
   { revalidate: 30, tags: ['feed'] },
 );
 
+// "Bunu biliyor muydun?" bilgi kartlari — paylasilan, kisiye ozel degil.
+// Tablo henuz yoksa (SQL calismadiysa) sessizce bos doner -> sayfa kirilmaz.
+const getDidYouKnow = unstable_cache(
+  async (): Promise<DidYouKnow[]> => {
+    try {
+      const { data, error } = await db
+        .from('did_you_know')
+        .select('id, title, body, source_url, source_label, article_slug, image_url, created_at')
+        .eq('active', true)
+        .order('created_at', { ascending: false })
+        .limit(8);
+      if (error) return [];
+      return (data ?? []) as DidYouKnow[];
+    } catch {
+      return [];
+    }
+  },
+  ['did-you-know-v1'],
+  { revalidate: 60, tags: ['feed'] },
+);
+
 export const metadata: Metadata = {
   alternates: { canonical: '/' },
 };
@@ -57,16 +78,30 @@ export default async function HomePage() {
   const { me } = await getMe();
 
   // Paylaşılan feed içeriği önbellekten (30sn); kişiye özel değil.
-  const { rawFacts, rawPosts, storiesRaw } = await getHomeContent();
+  const [{ rawFacts, rawPosts, storiesRaw }, dyks] = await Promise.all([
+    getHomeContent(),
+    getDidYouKnow(),
+  ]);
 
   const facts: QuickFact[] = flattenFacts(rawFacts ?? []);
   const posts: Post[] = flattenPosts(rawPosts ?? []);
 
-  type FeedItem = (QuickFact & { kind: 'fact' }) | (Post & { kind: 'post' });
-  const feedItems: FeedItem[] = [
+  type FeedItem = (QuickFact & { kind: 'fact' }) | (Post & { kind: 'post' }) | (DidYouKnow & { kind: 'dyk' });
+  const baseItems: FeedItem[] = [
     ...facts.map(f => ({ ...f, kind: 'fact' as const })),
     ...posts.map(p => ({ ...p, kind: 'post' as const })),
   ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 50);
+
+  // Bilgi kartlarini her 4 gönderide bir serpiştir. SON öğeyi DEĞİŞTİRME:
+  // sonsuz kaydırma imleci son fact/post'un created_at'ine bağlı (dyk imleç bozar).
+  const feedItems: FeedItem[] = [];
+  let dykIdx = 0;
+  for (let i = 0; i < baseItems.length; i++) {
+    feedItems.push(baseItems[i]);
+    if ((i + 1) % 4 === 0 && i < baseItems.length - 1 && dykIdx < dyks.length) {
+      feedItems.push({ ...dyks[dykIdx++], kind: 'dyk' as const });
+    }
+  }
 
   let likedFactIds: number[] = [];
   let likedPostIds: number[] = [];
