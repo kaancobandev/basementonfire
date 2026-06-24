@@ -1,5 +1,6 @@
 import { db, getMe } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
 
@@ -49,5 +50,6 @@ export async function POST(req: Request) {
     return json({ error: error.message }, 500);
   }
 
+  revalidateTag('feed'); // yeni hikaye → home stories önbelleğini hemen tazele
   return json({ story }, 201);
 }

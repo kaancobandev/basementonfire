@@ -1,5 +1,6 @@
 import { db, getMe } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
 
@@ -52,6 +53,7 @@ export async function POST(req: Request) {
     if (error.code === '23505') return json({ error: 'Bu içerik zaten ekli' }, 409);
     return json({ error: error.message }, 500);
   }
+  revalidateTag('muzik');
   return json(data, 201);
 }
 
@@ -70,5 +72,6 @@ export async function DELETE(req: Request) {
     .eq('user_id', me.id);
 
   if (error) return json({ error: error.message }, 500);
+  revalidateTag('muzik');
   return json({ success: true });
 }

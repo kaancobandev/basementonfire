@@ -1,6 +1,7 @@
 import { db, getMe } from '@/lib/supabase/server';
 import { factMediaList } from '@/lib/types';
 import { NextResponse, after } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { submitToIndexNow, postUrl, profileUrl, isLiveRequest } from '@/lib/indexnow';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
@@ -63,6 +64,9 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     await db.from('deleted_media').delete().eq('original_id', factId);
     return json({ error: 'Silinemedi' }, 500);
   }
+
+  // Silinen gönderi → paylaşılan feed önbelleğinden hemen kalksın.
+  revalidateTag('feed');
 
   // 3) Dosyaları private 'archive' bucket'ına taşı (en son; içerik zaten kalktı)
   for (const f of files) {

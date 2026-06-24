@@ -1,5 +1,6 @@
 import { db, getMe } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 
 export async function POST(req: Request) {
   const { me } = await getMe();
@@ -19,6 +20,7 @@ export async function POST(req: Request) {
     .single();
 
   if (newPost) {
+    revalidateTag('feed'); // yeni post → home feed önbelleğini hemen tazele
     const opts = [1, 2, 3, 4]
       .map(n => (form.get(`poll_opt_${n}`) as string)?.trim() ?? '')
       .filter(o => o.length > 0);
