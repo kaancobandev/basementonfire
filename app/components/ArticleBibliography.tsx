@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import ArticleSocial from './ArticleSocial';
 
 export type BibItem = {
   title: string;
@@ -17,6 +18,7 @@ export type BibItem = {
  */
 export default function ArticleBibliography({ items, accent = '#888888' }: { items: BibItem[]; accent?: string }) {
   return (
+    <>
     <section className="art-bib" style={{ ['--bib-accent']: accent } as CSSProperties} aria-label="Kaynakça">
       <h2 className="art-bib-h">📚 Kaynakça</h2>
       <ol className="art-bib-list">
@@ -49,5 +51,9 @@ export default function ArticleBibliography({ items, accent = '#888888' }: { ite
         .art-bib-meta { font-size: .82rem; opacity: .6; margin-top: 2px; }
       `}</style>
     </section>
+    {/* Ortak makale sosyal ayağı: İlgili Konular + Rastgele + Kaydet + Tartışma.
+        Her makale Kaynakça kullandığından, buradan tek seferde tüm makalelere eklenir. */}
+    <ArticleSocial />
+    </>
   );
 }

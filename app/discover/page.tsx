@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { unstable_cache } from 'next/cache';
 import { db, getMe, logIfError } from '@/lib/supabase/server';
+import { ARTICLES } from '@/lib/articles';
 import DiscoverClient from './DiscoverClient';
 
 export const dynamic = 'force-dynamic';
@@ -48,32 +49,12 @@ export default async function DiscoverPage({ searchParams }: { searchParams: Pro
   const { users, mediaRaw } = await getDiscoverContent();
   const media = (mediaRaw ?? []).map((m: any) => ({ ...m, username: m.users?.username ?? '', display_name: m.users?.display_name ?? '' }));
 
-  const articles = [
-    { slug: 'black-hole', title: 'Kara Delikler', emoji: '🕳️', desc: 'Evrenin en gizemli yapıları' },
-    { slug: 'turkler', title: 'Türklerin Tarihi', emoji: '🏹', desc: 'Orta Asya\'dan Anadolu\'ya' },
-    { slug: 'rome', title: 'Roma İmparatorluğu', emoji: '🏛️', desc: 'Bin yıllık medeniyet' },
-    { slug: 'greece', title: 'Antik Yunan', emoji: '⚡', desc: 'Demokrasinin beşiği' },
-    { slug: 'carthage', title: 'Kartaca', emoji: '⚓', desc: 'Akdeniz\'in efendileri' },
-    { slug: 'ekonomi', title: 'Ekonominin Dili', emoji: '📈', desc: 'Faiz, parite, borsa — interaktif sözlük' },
-    { slug: 'einstein-rosen', title: 'Einstein–Rosen Köprüsü', emoji: '🌀', desc: 'İnteraktif solucan deliği rehberi' },
-    { slug: 'arcade', title: 'Arcade', emoji: '🕹️', desc: 'Oyun salonu tarihi + oynanabilir klasikler' },
-    { slug: 'tibbi', title: '15 Tuhaf Tıbbi Olgu', emoji: '🧬', desc: 'Doğrulanmış akıl almaz tıp gerçekleri' },
-    { slug: 'internet', title: 'İnternet Nasıl Çalışır?', emoji: '🌐', desc: 'OSI, TCP/IP, DNS, paketler — diyagramlarla' },
-    { slug: 'pirus', title: 'Kral Pirus', emoji: '🐘', desc: 'Filler, Pirus zaferi ve destansı savaşlar' },
-    { slug: 'takyon', title: 'Takyonlar', emoji: '⚡', desc: 'Işıktan hızlı parçacıklar — benzetmelerle' },
-    { slug: 'tardigrad', title: 'Tardigradlar (Su Ayıları)', emoji: '🐻', desc: 'Yok edilemez minik canavar + mini 2B oyun' },
-    { slug: 'bagirsak', title: 'Bağırsaklar — İkinci Beyin', emoji: '🧠', desc: 'Kararlarımızı ve ruh halimizi yöneten ikinci beyin' },
-    { slug: 'bakteriyofaj', title: 'Bakteriyofajlar', emoji: '🦠', desc: 'Bakteri yiyen virüsler: faj terapisi, CRISPR ve antibiyotik krizine umut' },
-    { slug: 'endosimbiyoz', title: 'Endosimbiyoz', emoji: '🧬', desc: 'İki hücrenin birleşip karmaşık yaşamı yarattığı an: mitokondri, Margulis, nitroplast' },
-    { slug: 'kaligrafi', title: 'Kaligrafi', emoji: '✒️', desc: 'Güzel yazının sanatı: hat, Doğu Asya ve Batı gelenekleri, araçlar ve başlangıç rehberi' },
-    { slug: 'doppler', title: 'Doppler Etkisi', emoji: '📡', desc: 'Hareketin sesi ve ışığı nasıl değiştirdiği: kırmızıya kayma, radar, evrenin genişlemesi — interaktif' },
-  ];
-
+  // Makale listesi artik tek kaynaktan (lib/articles.ts). Sira ayni -> görünüm degismez.
   return (
     <DiscoverClient
       users={(users ?? []).map((u: any) => ({ ...u, avatarBg: avatarBg(u.username) }))}
       media={media}
-      articles={articles}
+      articles={ARTICLES}
       isLoggedIn={!!me}
       initialQuery={initialQuery}
     />
