@@ -151,7 +151,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
       isFollowing={isFollowing}
       isHidden={isHidden}
       mediaPosts={mediaPosts}
-      me={me ? { id: me.id, username: me.username, display_name: me.display_name } : null}
+      me={me ? { id: me.id, username: me.username, display_name: me.display_name, avatar: me.avatar ?? null } : null}
     />
     </>
   );

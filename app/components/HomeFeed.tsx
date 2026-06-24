@@ -15,7 +15,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 interface StoryItem { id: number; mediaUrl: string; mediaType: string; createdAt: string; }
 interface StoryUser { userId: number; username: string; displayName: string; avatar: string | null; stories: StoryItem[]; }
-interface SuggestedUser { id: number; username: string; display_name: string; bio: string | null; mutual_count: number; }
+interface SuggestedUser { id: number; username: string; display_name: string; bio: string | null; avatar: string | null; mutual_count: number; }
 
 interface Props {
   feedItems: any[];
@@ -23,7 +23,7 @@ interface Props {
   likedPostIds: number[];
   repostedFactIds: number[];
   suggestedUsers: SuggestedUser[];
-  currentUser: { id: number; username: string; display_name: string } | null;
+  currentUser: { id: number; username: string; display_name: string; avatar: string | null } | null;
   ownStoryUser: StoryUser | null;
   otherStoryUsers: StoryUser[];
 }
@@ -276,9 +276,11 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
               }}
             >
               <div style={{ width: 60, height: 60, borderRadius: '50%', padding: '2.5px', background: ownStoryUser ? 'linear-gradient(135deg,#f58529,#dd2a7b,#8134af,#515bd4)' : 'rgba(0,0,0,0.08)', border: ownStoryUser ? 'none' : '2px dashed #ccc', position: 'relative', transition: 'transform 0.15s' }}>
-                <div style={{ width: '100%', height: '100%', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '1.25rem', color: '#fff', background: storyAvatarBg(currentUser.username), border: '2px solid white' }}>
+                {currentUser.avatar
+                  ? <Img src={currentUser.avatar} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', border: '2px solid white' }} />
+                  : <div style={{ width: '100%', height: '100%', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '1.25rem', color: '#fff', background: storyAvatarBg(currentUser.username), border: '2px solid white' }}>
                   {currentUser.display_name[0].toUpperCase()}
-                </div>
+                </div>}
                 {!ownStoryUser && (
                   <span style={{ position: 'absolute', bottom: -1, right: -1, width: 20, height: 20, borderRadius: '50%', background: '#3b82f6', color: '#fff', fontSize: '1rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid white', lineHeight: 1 }}>+</span>
                 )}
@@ -343,8 +345,8 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                     transition={{ duration: 0.4, delay: Math.min(index * 0.07, 0.5), ease: 'easeOut' }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px' }}>
-                      <Link href={`/u/${item.username}`} style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '0.95rem', textDecoration: 'none', background: avatarBg(item.username) }}>
-                        {(item.display_name[0] ?? '?').toUpperCase()}
+                      <Link href={`/u/${item.username}`} style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '0.95rem', textDecoration: 'none', background: avatarBg(item.username), overflow: 'hidden' }}>
+                        {(item.avatar && item.avatar !== '/avatars/default.png') ? <Img src={item.avatar} alt="" fixedWidth={76} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (item.display_name[0] ?? '?').toUpperCase()}
                       </Link>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <Link href={`/u/${item.username}`} style={{ display: 'block', fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-text)', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.display_name}</Link>
@@ -409,8 +411,8 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                   transition={{ duration: 0.4, delay: Math.min(index * 0.07, 0.5), ease: 'easeOut' }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px 0' }}>
-                    <Link href={`/u/${item.username}`} style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '0.95rem', textDecoration: 'none', background: avatarBg(item.username) }}>
-                      {(item.display_name[0] ?? '?').toUpperCase()}
+                    <Link href={`/u/${item.username}`} style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '0.95rem', textDecoration: 'none', background: avatarBg(item.username), overflow: 'hidden' }}>
+                      {(item.avatar && item.avatar !== '/avatars/default.png') ? <Img src={item.avatar} alt="" fixedWidth={76} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (item.display_name[0] ?? '?').toUpperCase()}
                     </Link>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <Link href={`/u/${item.username}`} style={{ display: 'block', fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-text)', textDecoration: 'none' }}>{item.display_name}</Link>
@@ -471,8 +473,8 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               {suggestedUsers.map(u => (
                 <div key={u.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 4px', borderRadius: 12 }}>
-                  <Link href={`/u/${u.username}`} style={{ width: 40, height: 40, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '1rem', textDecoration: 'none', background: avatarBg(u.username) }}>
-                    {u.display_name[0].toUpperCase()}
+                  <Link href={`/u/${u.username}`} style={{ width: 40, height: 40, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '1rem', textDecoration: 'none', background: avatarBg(u.username), overflow: 'hidden' }}>
+                    {u.avatar ? <Img src={u.avatar} alt="" fixedWidth={80} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : u.display_name[0].toUpperCase()}
                   </Link>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <Link href={`/u/${u.username}`} style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-text)', textDecoration: 'none', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.display_name}</Link>

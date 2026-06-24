@@ -2,14 +2,15 @@
 
 import { useState, useRef } from 'react';
 import Link from 'next/link';
+import Img from '@/app/components/Img';
 
 interface SpotifyItem {
   id: number; playlist_id: string; title: string; created_at: string;
-  user_id: number; username: string; display_name: string; avatarBg: string;
+  user_id: number; username: string; display_name: string; avatar: string | null; avatarBg: string;
 }
 interface YouTubeItem {
   id: number; item_type: 'video' | 'playlist'; item_id: string; title: string; created_at: string;
-  user_id: number; username: string; display_name: string; avatarBg: string;
+  user_id: number; username: string; display_name: string; avatar: string | null; avatarBg: string;
 }
 
 interface Props {
@@ -101,7 +102,7 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
     if (res.status === 401) { window.location.href = '/login'; return; }
     if (!res.ok) { const d = await res.json().catch(() => ({})); setSpError(d.error ?? 'Hata oluştu.'); return; }
     const newItem = await res.json();
-    setSpItems(prev => [{ ...newItem, username: '', display_name: 'Sen', avatarBg: 'linear-gradient(135deg,#1db954,#1ed760)', user_id: currentUserId ?? 0 }, ...prev]);
+    setSpItems(prev => [{ ...newItem, username: '', display_name: 'Sen', avatar: null, avatarBg: 'linear-gradient(135deg,#1db954,#1ed760)', user_id: currentUserId ?? 0 }, ...prev]);
     setSpUrl('');
   }
 
@@ -125,7 +126,7 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
     if (res.status === 401) { window.location.href = '/login'; return; }
     if (!res.ok) { const d = await res.json().catch(() => ({})); setYtError(d.error ?? 'Hata oluştu.'); return; }
     const newItem = await res.json();
-    setYtItems(prev => [{ ...newItem, username: '', display_name: 'Sen', avatarBg: 'linear-gradient(135deg,#ff0000,#cc0000)', user_id: currentUserId ?? 0 }, ...prev]);
+    setYtItems(prev => [{ ...newItem, username: '', display_name: 'Sen', avatar: null, avatarBg: 'linear-gradient(135deg,#ff0000,#cc0000)', user_id: currentUserId ?? 0 }, ...prev]);
     setYtUrl('');
   }
 
@@ -267,8 +268,8 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
                   return (
                     <div key={item.id} style={cardStyle}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px' }}>
-                        <Link href={item.username ? `/u/${item.username}` : '#'} style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '0.9rem', textDecoration: 'none', background: item.avatarBg }}>
-                          {(item.display_name[0] ?? '?').toUpperCase()}
+                        <Link href={item.username ? `/u/${item.username}` : '#'} style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '0.9rem', textDecoration: 'none', background: item.avatarBg, overflow: 'hidden' }}>
+                          {item.avatar ? <Img src={item.avatar} alt="" fixedWidth={76} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (item.display_name[0] ?? '?').toUpperCase()}
                         </Link>
                         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
                           {item.username && <Link href={`/u/${item.username}`} style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-text)', textDecoration: 'none' }}>{item.display_name}</Link>}
@@ -378,8 +379,8 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
                   return (
                     <div key={item.id} style={cardStyle}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px' }}>
-                        <Link href={item.username ? `/u/${item.username}` : '#'} style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '0.9rem', textDecoration: 'none', background: item.avatarBg }}>
-                          {(item.display_name[0] ?? '?').toUpperCase()}
+                        <Link href={item.username ? `/u/${item.username}` : '#'} style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '0.9rem', textDecoration: 'none', background: item.avatarBg, overflow: 'hidden' }}>
+                          {item.avatar ? <Img src={item.avatar} alt="" fixedWidth={76} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (item.display_name[0] ?? '?').toUpperCase()}
                         </Link>
                         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
                           {item.username && <Link href={`/u/${item.username}`} style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-text)', textDecoration: 'none' }}>{item.display_name}</Link>}

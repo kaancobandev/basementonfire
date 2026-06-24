@@ -17,7 +17,7 @@ interface ProfileUser {
   birthdate: string | null; interests: string[];
 }
 interface MediaPost { id: number; media_url: string; media_type: string; caption: string; likes: number; created_at: string; media?: { url: string; type: 'image' | 'video' }[] | null; }
-interface Comment { id: number; parent_id: number | null; user_id: number; content: string; created_at: string; display_name: string; username: string; }
+interface Comment { id: number; parent_id: number | null; user_id: number; content: string; created_at: string; display_name: string; username: string; avatar: string | null; }
 
 interface Props {
   profileUser: ProfileUser;
@@ -28,7 +28,7 @@ interface Props {
   isFollowing: boolean;
   isHidden: boolean;
   mediaPosts: MediaPost[];
-  me: { id: number; username: string; display_name: string } | null;
+  me: { id: number; username: string; display_name: string; avatar: string | null } | null;
 }
 
 function avatarBg(u: string) {
@@ -328,8 +328,8 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
                   topComments.map(c => (
                     <div key={c.id}>
                       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '7px 16px' }}>
-                        <Link href={`/u/${c.username}`} style={{ width: 26, height: 26, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.7rem', fontWeight: 700, textDecoration: 'none', background: avatarBg(c.username) }}>
-                          {c.display_name[0].toUpperCase()}
+                        <Link href={`/u/${c.username}`} style={{ width: 26, height: 26, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.7rem', fontWeight: 700, textDecoration: 'none', background: avatarBg(c.username), overflow: 'hidden' }}>
+                          {c.avatar ? <Img src={c.avatar} alt="" fixedWidth={52} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : c.display_name[0].toUpperCase()}
                         </Link>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <span style={{ fontWeight: 700, fontSize: '0.8rem', marginRight: 4 }}>{c.display_name}</span>
@@ -343,8 +343,8 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
                       </div>
                       {(repMap.get(c.id) ?? []).map(r => (
                         <div key={r.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '7px 16px', marginLeft: 30, borderLeft: '2px solid var(--color-border)', paddingLeft: 10 }}>
-                          <Link href={`/u/${r.username}`} style={{ width: 26, height: 26, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.7rem', fontWeight: 700, textDecoration: 'none', background: avatarBg(r.username) }}>
-                            {r.display_name[0].toUpperCase()}
+                          <Link href={`/u/${r.username}`} style={{ width: 26, height: 26, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.7rem', fontWeight: 700, textDecoration: 'none', background: avatarBg(r.username), overflow: 'hidden' }}>
+                            {r.avatar ? <Img src={r.avatar} alt="" fixedWidth={52} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : r.display_name[0].toUpperCase()}
                           </Link>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <span style={{ fontWeight: 700, fontSize: '0.8rem', marginRight: 4 }}>{r.display_name}</span>
@@ -362,8 +362,8 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
               {/* Comment form / login prompt */}
               {me ? (
                 <form onSubmit={submitComment} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderTop: '1px solid var(--color-border)', flexShrink: 0 }}>
-                  <div style={{ width: 26, height: 26, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.7rem', fontWeight: 700, background: avatarBg(me.username) }}>
-                    {me.display_name[0].toUpperCase()}
+                  <div style={{ width: 26, height: 26, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.7rem', fontWeight: 700, background: avatarBg(me.username), overflow: 'hidden' }}>
+                    {me.avatar ? <Img src={me.avatar} alt="" fixedWidth={52} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : me.display_name[0].toUpperCase()}
                   </div>
                   <input
                     value={commentText}

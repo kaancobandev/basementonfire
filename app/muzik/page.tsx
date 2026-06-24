@@ -10,8 +10,8 @@ export const dynamic = 'force-dynamic';
 const getMusic = unstable_cache(
   async () => {
     const [spResult, ytResult] = await Promise.all([
-      db.from('spotify_playlists').select('id, playlist_id, title, created_at, user_id, users(username, display_name)').order('created_at', { ascending: false }).limit(30),
-      db.from('youtube_items').select('id, item_type, item_id, title, created_at, user_id, users(username, display_name)').order('created_at', { ascending: false }).limit(30),
+      db.from('spotify_playlists').select('id, playlist_id, title, created_at, user_id, users(username, display_name, avatar)').order('created_at', { ascending: false }).limit(30),
+      db.from('youtube_items').select('id, item_type, item_id, title, created_at, user_id, users(username, display_name, avatar)').order('created_at', { ascending: false }).limit(30),
     ]);
     logIfError('muzik spotify_playlists', spResult.error);
     logIfError('muzik youtube_items', ytResult.error);
@@ -61,6 +61,7 @@ export default async function MuzikPage() {
     user_id:      r.user_id      as number,
     username:     (r.users?.username     ?? '') as string,
     display_name: (r.users?.display_name ?? '') as string,
+    avatar:       (r.users?.avatar ?? null) as string | null,
     avatarBg:     avatarBg(r.users?.username ?? 'a'),
   }));
 
@@ -73,6 +74,7 @@ export default async function MuzikPage() {
     user_id:      r.user_id      as number,
     username:     (r.users?.username     ?? '') as string,
     display_name: (r.users?.display_name ?? '') as string,
+    avatar:       (r.users?.avatar ?? null) as string | null,
     avatarBg:     avatarBg(r.users?.username ?? 'a'),
   }));
 

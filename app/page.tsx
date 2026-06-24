@@ -118,7 +118,7 @@ export default async function HomePage() {
   }
 
   // Suggested users
-  let suggestedUsers: Array<{ id: number; username: string; display_name: string; bio: string | null; mutual_count: number }> = [];
+  let suggestedUsers: Array<{ id: number; username: string; display_name: string; bio: string | null; avatar: string | null; mutual_count: number }> = [];
   if (me) {
     const { data: myFollows } = await db.from('follows').select('following_id').eq('follower_id', me.id);
     const myFollowIds: number[] = (myFollows ?? []).map((f: any) => f.following_id);
@@ -131,14 +131,14 @@ export default async function HomePage() {
         const countMap = new Map<number, number>();
         for (const f of fofRaw as any[]) countMap.set(f.following_id, (countMap.get(f.following_id) ?? 0) + 1);
         const topIds = [...countMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([id]) => id);
-        const { data: users } = await db.from('users').select('id, username, display_name, bio').in('id', topIds);
+        const { data: users } = await db.from('users').select('id, username, display_name, bio, avatar').in('id', topIds);
         suggestedUsers = (users ?? []).map((u: any) => ({ ...u, mutual_count: countMap.get(u.id) ?? 0 }));
       }
     }
 
     if (suggestedUsers.length < 3) {
       const existingIds = new Set([...excludeIds, ...suggestedUsers.map(u => u.id)]);
-      const { data: recent } = await db.from('users').select('id, username, display_name, bio')
+      const { data: recent } = await db.from('users').select('id, username, display_name, bio, avatar')
         .not('id', 'in', `(${[...existingIds].join(',')})`)
         .order('created_at', { ascending: false }).limit(10);
       for (const u of (recent ?? []) as any[]) {
@@ -176,7 +176,7 @@ export default async function HomePage() {
         likedPostIds={likedPostIds}
         repostedFactIds={repostedFactIds}
         suggestedUsers={suggestedUsers}
-        currentUser={me ? { id: me.id, username: me.username, display_name: me.display_name } : null}
+        currentUser={me ? { id: me.id, username: me.username, display_name: me.display_name, avatar: me.avatar ?? null } : null}
         ownStoryUser={ownStoryUser}
         otherStoryUsers={otherStoryUsers}
       />

@@ -23,7 +23,7 @@ export default async function InterceptedPostModal({ params }: { params: Promise
       initialLiked={detail.initialLiked}
       initialBookmarked={detail.initialBookmarked}
       initialReposted={detail.initialReposted}
-      currentUser={me ? { id: me.id, username: me.username, display_name: me.display_name } : null}
+      currentUser={me ? { id: me.id, username: me.username, display_name: me.display_name, avatar: me.avatar ?? null } : null}
     />
   );
 }
