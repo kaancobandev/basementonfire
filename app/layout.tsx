@@ -3,7 +3,6 @@ import { Suspense } from 'react';
 import './globals.css';
 import { getMe, db, logIfError } from '@/lib/supabase/server';
 import AppShell from './components/AppShell';
-import SmoothScroll from './components/SmoothScroll';
 import CelebrateOnParam from './components/CelebrateOnParam';
 import CookieConsent from './components/CookieConsent';
 
@@ -112,13 +111,13 @@ export default async function RootLayout({ children, modal }: { children: React.
         <Suspense fallback={null}>
           <CelebrateOnParam />
         </Suspense>
-        <SmoothScroll>
-          <AppShell user={user} unreadCount={unreadCount} unreadMsgCount={unreadMsgCount} myId={me?.id ?? null} convIds={convIds}>
-            {children}
-          </AppShell>
-        </SmoothScroll>
-        {/* Intercepting-route modal slotu (gönderi /p/[id] modalı) — SmoothScroll
-            dışında ki position:fixed transform'lu kapsayıcıdan etkilenmesin */}
+        {/* Native scroll. Lenis smooth-scroll KALDIRILDI: tekerlek/touchpad olayını
+            yakalayıp (rAF/lenis-stopped durumunda) kaydırmayı engelleyebiliyordu;
+            native scroll her cihaz ve tarayıcıda güvenilir çalışır. */}
+        <AppShell user={user} unreadCount={unreadCount} unreadMsgCount={unreadMsgCount} myId={me?.id ?? null} convIds={convIds}>
+          {children}
+        </AppShell>
+        {/* Intercepting-route modal slotu (gönderi /p/[id] modalı) */}
         {modal}
         <CookieConsent gaId={GA_ID} />
       </body>

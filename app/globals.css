@@ -667,10 +667,4 @@ body {
 [data-theme="dark"] .mc-option:hover { background: rgba(255,255,255,0.06); }
 [data-theme="dark"] .mc-cancel:hover { background: rgba(255,255,255,0.06); }
 
-/* ── Lenis smooth scroll ── */
-html.lenis,
-html.lenis body { height: auto; }
-.lenis.lenis-smooth { scroll-behavior: auto !important; }
-.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
-.lenis.lenis-stopped { overflow: hidden; }
-.lenis.lenis-smooth iframe { pointer-events: none; }
+/* (Lenis smooth-scroll kaldırıldı — native scroll kullanılıyor.) */

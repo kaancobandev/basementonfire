@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
   experimental: {
     serverActions: { bodySizeLimit: '110mb' },
     // Ağır kütüphaneleri otomatik tree-shake et → ilk yüklemede daha küçük JS.
-    optimizePackageImports: ['framer-motion', 'sonner', '@react-spring/web', '@formkit/auto-animate', 'lenis'],
+    optimizePackageImports: ['framer-motion', 'sonner', '@react-spring/web', '@formkit/auto-animate'],
   },
   images: {
     remotePatterns: [
