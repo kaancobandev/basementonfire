@@ -3,7 +3,7 @@
 import Img from '@/app/components/Img';
 import { AudioThumb } from '@/app/components/MediaCarousel';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
 
 interface User { id: number; username: string; display_name: string; bio: string | null; avatar: string | null; avatarBg: string; }
@@ -22,6 +22,29 @@ function avatarBg(u: string) {
   const gs = ['linear-gradient(135deg,#6366f1,#8b5cf6)', 'linear-gradient(135deg,#ec4899,#8b5cf6)', 'linear-gradient(135deg,#f97316,#ef4444)', 'linear-gradient(135deg,#10b981,#3b82f6)', 'linear-gradient(135deg,#f59e0b,#f97316)', 'linear-gradient(135deg,#14b8a6,#06b6d4)', 'linear-gradient(135deg,#3b82f6,#6366f1)', 'linear-gradient(135deg,#ef4444,#f97316)'];
   let h = 0; for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff; return gs[Math.abs(h) % gs.length];
 }
+
+// Her makaleye içeriğiyle ilişkili bir hover gradyanı: kart üstüne gelince beliren temalı arka plan.
+const ARTICLE_GRADIENTS: Record<string, string> = {
+  'black-hole': 'linear-gradient(135deg,#1e1b4b,#4c1d95)',
+  'turkler': 'linear-gradient(135deg,#7f1d1d,#b45309)',
+  'rome': 'linear-gradient(135deg,#7f1d1d,#9a3412)',
+  'greece': 'linear-gradient(135deg,#1e3a8a,#0369a1)',
+  'carthage': 'linear-gradient(135deg,#0f766e,#6d28d9)',
+  'ekonomi': 'linear-gradient(135deg,#065f46,#15803d)',
+  'einstein-rosen': 'linear-gradient(135deg,#4c1d95,#0e7490)',
+  'arcade': 'linear-gradient(135deg,#be185d,#7c3aed)',
+  'tibbi': 'linear-gradient(135deg,#0e7490,#1d4ed8)',
+  'internet': 'linear-gradient(135deg,#1e40af,#0e7490)',
+  'pirus': 'linear-gradient(135deg,#78350f,#991b1b)',
+  'takyon': 'linear-gradient(135deg,#6d28d9,#2563eb)',
+  'tardigrad': 'linear-gradient(135deg,#0e7490,#15803d)',
+  'bagirsak': 'linear-gradient(135deg,#be123c,#0f766e)',
+  'bakteriyofaj': 'linear-gradient(135deg,#15803d,#0d9488)',
+  'endosimbiyoz': 'linear-gradient(135deg,#b45309,#6d28d9)',
+  'kaligrafi': 'linear-gradient(135deg,#92400e,#57534e)',
+  'doppler': 'linear-gradient(135deg,#2563eb,#b91c1c)',
+};
+const FALLBACK_GRADIENT = 'linear-gradient(135deg,#6366f1,#8b5cf6)';
 
 export default function DiscoverClient({ users, media, articles, isLoggedIn, initialQuery = '' }: Props) {
   const [query, setQuery] = useState(initialQuery);
@@ -154,20 +177,21 @@ export default function DiscoverClient({ users, media, articles, isLoggedIn, ini
             <h2 className="dc-section-title">Makaleler</h2>
             <div className="dc-articles">
               {articles.map(a => {
+                const gradStyle = { ['--art-grad']: ARTICLE_GRADIENTS[a.slug] ?? FALLBACK_GRADIENT } as CSSProperties;
                 const inner = (
                   <>
-                    <span className="dc-article-emoji">{a.emoji}</span>
-                    <div className="dc-article-text">
-                      <div className="dc-article-title">{a.title}</div>
-                      <div className="dc-article-desc">{a.desc}</div>
+                    <div className="dc-article-top">
+                      <span className="dc-article-emoji">{a.emoji}</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="dc-article-arrow"><path d="m9 18 6-6-6-6"/></svg>
                     </div>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="dc-article-arrow"><path d="m9 18 6-6-6-6"/></svg>
+                    <div className="dc-article-title">{a.title}</div>
+                    <div className="dc-article-desc">{a.desc}</div>
                   </>
                 );
                 // href verilenler statik /icerik/*.html sayfalarıdır → normal <a> ile tam sayfa açılır
                 return a.href
-                  ? <a key={a.slug} href={a.href} className="dc-article-link">{inner}</a>
-                  : <Link key={a.slug} href={`/articles/${a.slug}`} className="dc-article-link">{inner}</Link>;
+                  ? <a key={a.slug} href={a.href} className="dc-article-link" style={gradStyle}>{inner}</a>
+                  : <Link key={a.slug} href={`/articles/${a.slug}`} className="dc-article-link" style={gradStyle}>{inner}</Link>;
               })}
             </div>
           </div>
@@ -291,51 +315,81 @@ export default function DiscoverClient({ users, media, articles, isLoggedIn, ini
           color: var(--color-text);
         }
 
-        /* Makaleler */
+        /* Makaleler — 2 kolonlu eğlenceli kartlar */
         .dc-articles {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 12px;
           padding-bottom: 16px;
         }
         .dc-article-link {
+          position: relative;
           display: flex;
-          align-items: center;
-          gap: 14px;
-          padding: 12px 14px;
+          flex-direction: column;
+          gap: 7px;
+          padding: 15px 16px;
           background: var(--color-bg);
           border: 1px solid var(--color-border);
-          border-radius: 14px;
+          border-radius: 18px;
           text-decoration: none;
           color: inherit;
-          transition: background 0.15s, border-color 0.15s;
+          overflow: hidden;
+          transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
         }
+        /* İçeriğe özel hover gradyanı (--art-grad ile her karta ayrı) */
+        .dc-article-link::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: var(--art-grad);
+          opacity: 0;
+          transition: opacity 0.3s ease;
+          z-index: 0;
+        }
+        .dc-article-top, .dc-article-title, .dc-article-desc { position: relative; z-index: 1; }
         .dc-article-link:hover {
-          background: var(--color-surface);
-          border-color: var(--color-primary);
+          transform: translateY(-4px);
+          border-color: transparent;
+          box-shadow: 0 14px 30px rgba(0,0,0,0.22);
+        }
+        .dc-article-link:hover::before { opacity: 1; }
+        .dc-article-top {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
         }
         .dc-article-emoji {
-          font-size: 1.8rem;
-          flex-shrink: 0;
-          width: 40px;
-          text-align: center;
+          font-size: 2.1rem;
+          line-height: 1;
+          transition: transform 0.25s ease;
         }
-        .dc-article-text { flex: 1; min-width: 0; }
+        .dc-article-link:hover .dc-article-emoji { transform: scale(1.18) rotate(-7deg); }
         .dc-article-title {
-          font-weight: 700;
-          font-size: 0.92rem;
+          font-weight: 800;
+          font-size: 0.95rem;
           color: var(--color-text);
-          margin-bottom: 2px;
+          line-height: 1.25;
+          transition: color 0.25s ease;
         }
         .dc-article-desc {
-          font-size: 0.78rem;
+          font-size: 0.77rem;
           color: var(--color-text-muted);
-          line-height: 1.4;
+          line-height: 1.45;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          transition: color 0.25s ease;
         }
         .dc-article-arrow {
           color: var(--color-text-muted);
           flex-shrink: 0;
+          transition: transform 0.25s ease, color 0.25s ease;
         }
+        .dc-article-link:hover .dc-article-title,
+        .dc-article-link:hover .dc-article-desc,
+        .dc-article-link:hover .dc-article-arrow { color: #fff; }
+        .dc-article-link:hover .dc-article-arrow { transform: translateX(3px); }
 
         /* Media grid */
         .dc-grid {
@@ -446,14 +500,11 @@ export default function DiscoverClient({ users, media, articles, isLoggedIn, ini
           .dc-search-wrap { padding: 10px 12px; }
           .dc-section { padding: 14px 12px 0; }
           .dc-grid { grid-template-columns: repeat(2, 1fr); }
-          .dc-article-link { padding: 10px 12px; gap: 10px; }
-          .dc-article-emoji { font-size: 1.5rem; width: 32px; }
+          .dc-articles { gap: 10px; }
+          .dc-article-link { padding: 13px 14px; border-radius: 16px; }
+          .dc-article-emoji { font-size: 1.85rem; }
           .dc-follow-btn { padding: 5px 10px; font-size: 0.75rem; }
           .dc-avatar { width: 38px; height: 38px; }
-        }
-
-        [data-theme="dark"] .dc-article-link:hover {
-          background: rgba(255,255,255,0.04);
         }
       `}</style>
     </main>
