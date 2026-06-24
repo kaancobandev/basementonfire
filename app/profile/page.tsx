@@ -14,17 +14,20 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
   const { me } = await getMe();
   if (!me) redirect('/login');
 
-  const { data: userData } = await db.from('users').select('*').eq('id', me.id).single();
-  if (!userData) redirect('/login');
-  const user = userData as DbUser;
+  // me, getMe()'de zaten users tablosundan select('*') ile geldi → aynı satırı
+  // tekrar çekmeye gerek yok (bir DB turu eksilir).
+  const user = me as DbUser;
 
   const { error } = await searchParams;
 
+  // Alan seçimi (select('*') yerine yalnızca kullanılan kolonlar) → daha küçük
+  // satırlar, daha hızlı transfer. Limit yok: ızgara sayısı (.length) doğru kalsın
+  // (mevcut ölçekte gönderi sayısı küçük; ileride sayfalama gerekirse ayrı count+limit).
   const [followersRes, followingRes, mediaRes, bookmarksRes, repostsRes] = await Promise.all([
     db.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', user.id),
     db.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', user.id),
-    db.from('quick_facts').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
-    db.from('bookmarks').select('id, post:post_id(*)').eq('user_id', user.id).order('created_at', { ascending: false }),
+    db.from('quick_facts').select('id, media_url, media_type, caption, likes, created_at, media').eq('user_id', user.id).order('created_at', { ascending: false }),
+    db.from('bookmarks').select('id, post:post_id(id, media_url, media_type, caption, likes, created_at, media)').eq('user_id', user.id).order('created_at', { ascending: false }),
     db.from('fact_reposts').select('created_at, fact:fact_id(id, media_url, media_type, caption, likes, created_at, media)').eq('user_id', user.id).order('created_at', { ascending: false }),
   ]);
   logIfError('profile media', mediaRes.error);

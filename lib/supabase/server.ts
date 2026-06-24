@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
+import { cache } from 'react';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -24,14 +25,17 @@ export async function createAuthClient() {
   });
 }
 
-// Helper: get authenticated user's db row in one call
-export async function getMe() {
+// Helper: get authenticated user's db row in one call.
+// React cache() ile sarıldı → aynı istek (request) boyunca layout + sayfa +
+// metadata aynı getMe()'yi çağırsa bile auth.getUser() + users sorgusu YALNIZCA
+// BİR KEZ çalışır (2 ağ turu tekrarlanmaz). TTFB kazancı.
+export const getMe = cache(async () => {
   const client = await createAuthClient();
   const { data: { user } } = await client.auth.getUser();
   if (!user) return { authUser: null, me: null, client };
   const { data: me } = await db.from('users').select('*').eq('auth_id', user.id).single();
   return { authUser: user, me: me ?? null, client };
-}
+});
 
 // Surface Supabase query errors in the server console instead of silently
 // rendering empty pages. Call with the `error` from any `await db...` result.

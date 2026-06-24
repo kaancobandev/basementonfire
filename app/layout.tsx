@@ -97,6 +97,9 @@ export default async function RootLayout({ children, modal }: { children: React.
             <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL} crossOrigin="anonymous" />
           </>
         )}
+        {/* Feed'deki GIF'ler Giphy CDN'inden gelir — DNS+TLS'i önden aç */}
+        <link rel="dns-prefetch" href="https://media3.giphy.com" />
+        <link rel="preconnect" href="https://media3.giphy.com" crossOrigin="anonymous" />
         <script
           dangerouslySetInnerHTML={{
             // 'js'/'reduced' sınıfları ilk boyamadan ÖNCE eklenir → makale .reveal
