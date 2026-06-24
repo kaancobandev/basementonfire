@@ -147,7 +147,7 @@ export default function DiscoverClient({ users, media, articles, isLoggedIn, ini
               <h3 className="dc-section-label">Gönderiler</h3>
               <div className="dc-grid">
                 {searchResults.posts.map((p: any) => (
-                  <Link key={p.id} href="/akis" className="dc-cell">
+                  <Link key={p.id} href={`/p/${p.id}`} className="dc-cell">
                     {p.media_type === 'audio'
                       ? <AudioThumb />
                       : p.media_type === 'image'
@@ -202,7 +202,7 @@ export default function DiscoverClient({ users, media, articles, isLoggedIn, ini
               <h2 className="dc-section-title">Son Paylaşımlar</h2>
               <div className="dc-grid">
                 {media.map(m => (
-                  <Link key={m.id} href="/akis" className="dc-cell">
+                  <Link key={m.id} href={`/p/${m.id}`} className="dc-cell">
                     {m.media_type === 'audio'
                       ? <AudioThumb />
                       : m.media_type === 'image'
