@@ -978,3 +978,32 @@ body {
   .match-stage-wrap { padding: 16px 14px; }
 }
 
+/* Eşleştir — mobil/tablet feed girişi (sağ panel <1200px gizli olduğu için).
+   >1200px'te gizli: orada sağ paneldeki widget-card kullanılır → tek giriş. */
+.match-feed-card {
+  display: none;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 16px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #ec4899, #8b5cf6);
+  color: #fff;
+  text-decoration: none;
+  box-shadow: 0 6px 18px rgba(139,92,246,0.25);
+}
+@media (max-width: 1200px) { .match-feed-card { display: flex; } }
+.match-feed-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.match-feed-card-text { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.match-feed-card-text strong { font-size: 1rem; font-weight: 800; line-height: 1.2; }
+.match-feed-card-text span { font-size: 0.8rem; opacity: 0.92; }
+

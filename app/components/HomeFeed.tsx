@@ -308,6 +308,18 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
           ))}
         </div>
 
+        {/* Eşleştir — mobil/tablet girişi (masaüstünde sağ panel kartı var; sağ panel <1200px gizli) */}
+        <Link href="/eslesme" className="match-feed-card">
+          <span className="match-feed-card-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.9-10-9.3C.3 8.4 1.7 5 5 5c2 0 3.2 1.1 4 2.3C9.8 6.1 11 5 13 5c3.3 0 4.7 3.4 3 6.7C19.5 16.1 12 21 12 21z"/></svg>
+          </span>
+          <span className="match-feed-card-text">
+            <strong>Eşleştir</strong>
+            <span>İlgi alanlarına göre yeni insanlarla tanış</span>
+          </span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ flexShrink: 0, opacity: 0.85 }}><path d="m9 18 6-6-6-6"/></svg>
+        </Link>
+
         {/* Günün Sorusu — eğlence + bilgi füzyonunun etkileşim motoru (herkese görünür) */}
         <DailyQuestion />
 
@@ -467,6 +479,17 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
 
       {/* Right panel */}
       <aside className="right-panel">
+        {/* Eşleştir — ilgi alanı bazlı kart kaydırma girişi (navbar yerine burada) */}
+        <div className="widget-card">
+          <h3>Eşleştir</h3>
+          <p style={{ margin: '0 0 12px', fontSize: '0.85rem', color: 'var(--color-text-muted)', lineHeight: 1.45 }}>
+            İlgi alanlarına göre yeni insanlarla tanış. Kaydır, beğen, eşleş.
+          </p>
+          <Link href="/eslesme" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '11px 14px', borderRadius: 12, textDecoration: 'none', color: '#fff', fontWeight: 800, fontSize: '0.9rem', background: 'linear-gradient(135deg,#ec4899,#8b5cf6)' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.9-10-9.3C.3 8.4 1.7 5 5 5c2 0 3.2 1.1 4 2.3C9.8 6.1 11 5 13 5c3.3 0 4.7 3.4 3 6.7C19.5 16.1 12 21 12 21z"/></svg>
+            Eşleşmeye başla
+          </Link>
+        </div>
         {currentUser && suggestedUsers.length > 0 && (
           <div className="widget-card">
             <h3>Tanıyor olabilirsin</h3>
