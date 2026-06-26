@@ -3,6 +3,7 @@ import { breadcrumbJsonLd, jsonLdScript } from '@/lib/seo';
 import ArticleRuntime from '@/app/components/ArticleRuntime';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
 import { CSS, HTML, JS } from './content';
+import { GAME_CSS, GAME_JS } from './games';
 
 const refs: BibItem[] = [
   { title: 'The Ultimate History of Video Games', authors: 'Steven L. Kent', year: '2001', source: 'Three Rivers Press' },
@@ -52,10 +53,11 @@ export default function Page() {
       <style dangerouslySetInnerHTML={{ __html: FONTS }} />
       <div className="main-content arc-root">
         <style dangerouslySetInnerHTML={{ __html: CSS }} />
+        <style dangerouslySetInnerHTML={{ __html: GAME_CSS }} />
         <div dangerouslySetInnerHTML={{ __html: HTML }} />
         <ArticleBibliography items={refs} accent="#ec4899" />
       </div>
-      <ArticleRuntime js={JS} />
+      <ArticleRuntime js={`${JS}\n;\n${GAME_JS}`} />
     </>
   );
 }
