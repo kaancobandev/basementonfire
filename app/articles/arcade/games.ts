@@ -199,8 +199,99 @@ export const GAME_JS = `
     return { stop:function(){ loop.stop(); }, key:key, down:down, up:up };
   }
 
+  /* =====================================================
+     GALAXIAN (1979) — formasyon + dalis yapan uzaylilar
+  ===================================================== */
+  function startGalaxian(){
+    var W=canvas.width, H=canvas.height;
+    var COLS=8, ROWS=4, DX=54, DY=40, FY=64, FW=(COLS-1)*54, FX0=(W-FW)/2;
+    var PW=30, PH=16, PY=H-30, PSPD=5.2, PB_MAX=2, PB_SPD=9, FCD=12;
+    var ROWCOL=['#ff4d6d','#c084fc','#36ff9e','#7fb0ff'], ROWPTS=[60,50,40,30];
+    var player, pbul, ebul, aliens, stars, sway, swayDir, score, lives, wave, started, over, paused, fcd, diveTimer, resp, t;
+    var hi; try{ hi=parseInt(localStorage.getItem('arc_gx_hi')||'0',10)||0; }catch(e){ hi=0; }
+    var ctl={left:false,right:false,fire:false};
+
+    hintEl.innerHTML='<b>\\u2190 \\u2192</b> hareket \\u00b7 <b>bo\\u015fluk</b> ate\\u015f \\u00b7 <b>P</b> duraklat \\u00b7 <b>Esc</b> \\u00e7\\u0131k';
+    ctrlEl.innerHTML=''; mkBtn('left','\\u25C4','gx-dir'); mkBtn('right','\\u25BA','gx-dir'); mkBtn('fire','\\u25CF FIRE','gx-fire');
+
+    function makeStars(){ stars=[]; for(var i=0;i<64;i++) stars.push({x:Math.random()*W,y:Math.random()*H,s:0.4+Math.random()*1.5}); }
+    function buildFormation(){ aliens=[]; for(var r=0;r<ROWS;r++) for(var c=0;c<COLS;c++) aliens.push({c:c,r:r,alive:true,dive:false,x:FX0+c*DX,y:FY+r*DY,dt:0,vy:0}); }
+    function reset(){ player={x:W/2}; pbul=[]; ebul=[]; score=0; lives=3; wave=1; over=false; paused=false; fcd=0; diveTimer=80; resp=0; t=0; sway=0; swayDir=1; makeStars(); buildFormation(); }
+    function nextWave(){ wave++; buildFormation(); diveTimer=Math.max(34,70-wave*6); beep(660,0.12,'square',0.04); }
+    function ensureStart(){ if(!started) started=true; else if(over){ reset(); started=true; } }
+    function hX(a){ return FX0 + a.c*DX + sway; }
+    function hY(a){ return FY + a.r*DY; }
+    function ax(a){ return a.dive ? a.x : hX(a); }
+    function ay(a){ return a.dive ? a.y : hY(a); }
+    function aliveN(){ var n=0; for(var i=0;i<aliens.length;i++) if(aliens[i].alive) n++; return n; }
+    function spawnDive(){ var pool=[]; for(var i=0;i<aliens.length;i++){ var a=aliens[i]; if(a.alive && !a.dive) pool.push(a); } if(!pool.length) return;
+      var a=pool[(Math.random()*pool.length)|0]; a.dive=true; a.dt=0; a.x=hX(a); a.y=hY(a); a.vy=1.3; beep(440,0.06,'sawtooth',0.025); }
+    function loseLife(){ lives--; beep(120,0.3,'sawtooth',0.05); if(lives<=0){ over=true; if(score>hi){ hi=score; try{ localStorage.setItem('arc_gx_hi',String(hi)); }catch(e){} } } else { resp=110; player.x=W/2; } }
+
+    function update(s){
+      t+=s;
+      for(var i=0;i<stars.length;i++){ var st=stars[i]; st.y+=st.s*s; if(st.y>H){ st.y=0; st.x=Math.random()*W; } }
+      if(fcd>0) fcd-=s; if(resp>0) resp-=s;
+      if(!started||over||paused) return;
+      if(ctl.left) player.x-=PSPD*s; if(ctl.right) player.x+=PSPD*s;
+      player.x=Math.max(PW/2, Math.min(W-PW/2, player.x));
+      if(ctl.fire && fcd<=0 && pbul.length<PB_MAX){ pbul.push({x:player.x,y:PY-PH}); fcd=FCD; beep(900,0.04,'square',0.03); }
+      for(var b=pbul.length-1;b>=0;b--){ pbul[b].y-=PB_SPD*s; if(pbul[b].y<-6) pbul.splice(b,1); }
+      sway+=swayDir*0.4*s; if(sway>26){ sway=26; swayDir=-1; } else if(sway<-26){ sway=-26; swayDir=1; }
+      for(var i=0;i<aliens.length;i++){ var a=aliens[i]; if(!a.alive||!a.dive) continue;
+        a.dt+=s; a.vy=Math.min(a.vy+0.05*s,4.3); a.y+=a.vy*s;
+        a.x+=(Math.sin(a.dt*0.09)*2.1 + (player.x>a.x?0.7:-0.7))*s;
+        if(Math.random()<0.012*s && a.y<H-90) ebul.push({x:a.x,y:a.y+8});
+        if(a.y>H+24){ a.dive=false; a.vy=0; } }
+      diveTimer-=s; if(diveTimer<=0){ spawnDive(); diveTimer=Math.max(26,72-wave*7)+Math.random()*46; }
+      for(var e=ebul.length-1;e>=0;e--){ ebul[e].y+=4.3*s; if(ebul[e].y>H+6) ebul.splice(e,1); }
+      for(var b=pbul.length-1;b>=0;b--){ var bu=pbul[b]; for(var i=0;i<aliens.length;i++){ var a=aliens[i]; if(!a.alive) continue;
+        if(Math.abs(bu.x-ax(a))<14 && Math.abs(bu.y-ay(a))<12){ a.alive=false; score+=ROWPTS[a.r]*(a.dive?2:1); pbul.splice(b,1); beep(a.dive?760:520,0.07,'square',0.035); break; } } }
+      if(resp<=0){
+        for(var e=ebul.length-1;e>=0;e--){ if(Math.abs(ebul[e].x-player.x)<PW/2 && Math.abs(ebul[e].y-PY)<PH){ ebul.splice(e,1); loseLife(); break; } }
+        if(resp<=0) for(var i=0;i<aliens.length;i++){ var a=aliens[i]; if(a.alive&&a.dive && Math.abs(ax(a)-player.x)<PW/2+6 && Math.abs(ay(a)-PY)<PH+4){ a.alive=false; loseLife(); break; } }
+      }
+      if(aliveN()===0) nextWave();
+    }
+
+    function ctext(s2,y,size,col){ ctx.fillStyle=col; ctx.font=size+'px "Press Start 2P", monospace'; ctx.textAlign='center'; ctx.fillText(s2,W/2,y); }
+    function drawAlien(x,y,col){ ctx.save(); ctx.translate(x,y); ctx.fillStyle=col; ctx.shadowColor=col; ctx.shadowBlur=6;
+      ctx.fillRect(-3,-6,6,12); ctx.fillRect(-9,-2,18,4); ctx.fillRect(-11,0,4,3); ctx.fillRect(7,0,4,3);
+      ctx.fillRect(-6,5,3,4); ctx.fillRect(3,5,3,4); ctx.restore(); }
+    function drawPlayer(){ if(resp>0 && (Math.floor(t/4)%2)) return; ctx.save(); ctx.translate(player.x,PY); ctx.fillStyle='#cfe8ff'; ctx.shadowColor='#2ce6e6'; ctx.shadowBlur=8;
+      ctx.beginPath(); ctx.moveTo(0,-PH); ctx.lineTo(PW/2,PH-2); ctx.lineTo(-PW/2,PH-2); ctx.closePath(); ctx.fill(); ctx.fillRect(-2,-PH-4,4,5); ctx.restore(); }
+    function draw(){
+      ctx.fillStyle='#05030c'; ctx.fillRect(0,0,W,H);
+      for(var i=0;i<stars.length;i++){ var st=stars[i]; ctx.fillStyle='rgba(255,255,255,'+(0.25+st.s*0.4)+')'; ctx.fillRect(st.x,st.y,st.s,st.s); }
+      for(var i=0;i<aliens.length;i++){ var a=aliens[i]; if(a.alive) drawAlien(ax(a),ay(a),ROWCOL[a.r]); }
+      ctx.shadowBlur=0;
+      ctx.fillStyle='#9af6ff'; for(var b=0;b<pbul.length;b++) ctx.fillRect(pbul[b].x-1.5,pbul[b].y,3,10);
+      ctx.fillStyle='#ffd23f'; for(var e=0;e<ebul.length;e++) ctx.fillRect(ebul[e].x-1.5,ebul[e].y,3,9);
+      if(started && !over) drawPlayer();
+      ctx.fillStyle='#2ce6e6'; ctx.font='16px "Press Start 2P", monospace'; ctx.textAlign='left'; ctx.fillText(String(score),16,30);
+      ctx.fillStyle='#b09ad6'; ctx.font='9px "Press Start 2P", monospace'; ctx.fillText('HI '+hi,16,46); ctx.fillText('DALGA '+wave,16,60);
+      for(var li=0;li<lives;li++){ ctx.save(); ctx.translate(W-20-li*22,24); ctx.fillStyle='#36ff9e'; ctx.beginPath(); ctx.moveTo(0,-7); ctx.lineTo(8,7); ctx.lineTo(-8,7); ctx.closePath(); ctx.fill(); ctx.restore(); }
+      if(!started){ ctext('GALAXIAN',H/2-26,22,'#f4ecff'); ctext('PRESS START',H/2+8,13,'#2ce6e6'); ctext('ate\\u015f / dokun',H/2+30,9,'#6b5a91'); }
+      else if(over){ ctext('GAME OVER',H/2-10,20,'#ff5a6e'); ctext('tekrar i\\u00e7in ate\\u015f',H/2+18,10,'#9dffd0'); }
+      else if(paused){ ctext('DURAKLATILDI',H/2,15,'#ffd23f'); }
+    }
+
+    function key(e,d){ var k=e.key;
+      if(k==='ArrowLeft'||k==='a'||k==='A'){ ctl.left=d; e.preventDefault(); }
+      else if(k==='ArrowRight'||k==='d'||k==='D'){ ctl.right=d; e.preventDefault(); }
+      else if(k===' '){ if(d){ if(!started||over) ensureStart(); else ctl.fire=true; } else ctl.fire=false; e.preventDefault(); }
+      else if(d && (k==='p'||k==='P')){ if(started&&!over) paused=!paused; }
+      else if(d && k==='Enter'){ if(!started||over) ensureStart(); } }
+    function down(act){ ensureStart(); if(act==='fire') ctl.fire=true; else ctl[act]=true; }
+    function up(){ ctl.left=ctl.right=ctl.fire=false; }
+
+    reset();
+    var loop=makeLoop(function(s){ update(s); draw(); }); loop.start();
+    return { stop:function(){ loop.stop(); }, key:key, down:down, up:up };
+  }
+
   /* ---- oyun kaydı + fame kartlarını bağla ---- */
-  var GAMES = { 'Asteroids': { title:'ASTEROIDS \\u00b7 1979', start:startAsteroids } };
+  var GAMES = { 'Asteroids': { title:'ASTEROIDS \\u00b7 1979', start:startAsteroids }, 'Galaxian': { title:'GALAXIAN \\u00b7 1979', start:startGalaxian } };
   var cards = root.querySelectorAll('.fame .f');
   for(var i=0;i<cards.length;i++){ (function(card){
     var nEl=card.querySelector('.n'); if(!nEl) return; var g=GAMES[nEl.textContent.trim()]; if(!g) return;
