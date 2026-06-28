@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
+import { type NextRequest, type NextResponse } from 'next/server';
 import { cache } from 'react';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -20,6 +21,22 @@ export async function createAuthClient() {
         try {
           list.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
         } catch {}
+      },
+    },
+  });
+}
+
+// Auth client for ROUTE HANDLERS that REDIRECT. Supabase'in kurduğu (veya
+// signOut'ta sildiği) auth cookie'lerini DOĞRUDAN döndürülecek redirect
+// yanıtına yazar. Neden: Route Handler'da `next/headers` cookies() mutasyonları
+// elle döndürülen NextResponse.redirect()'e iliştirilmez → cookie kaybolur,
+// giriş başarılı görünür ama sonraki istekte oturum yoktur (/login'e geri atar).
+export function createAuthClientForResponse(req: NextRequest, res: NextResponse) {
+  return createServerClient(url, anon, {
+    cookies: {
+      getAll: () => req.cookies.getAll(),
+      setAll: (list) => {
+        list.forEach(({ name, value, options }) => res.cookies.set(name, value, options));
       },
     },
   });
