@@ -22,6 +22,7 @@ const AVATAR_MAX = 10 * 1024 * 1024; // 10 MB (GIF dahil)
 const GiphyPicker = dynamic(() => import('@/app/components/GiphyPicker'), { ssr: false });
 
 interface MediaPost { id: number; media_url: string; media_type: string; caption: string; likes: number; created_at: string; media?: { url: string; type: 'image' | 'video' }[] | null; }
+interface MyArticle { id: number; slug: string; title: string; status: string; cover_url: string | null; reject_reason: string | null; }
 
 interface Props {
   user: DbUser;
@@ -33,6 +34,7 @@ interface Props {
   mediaPosts: MediaPost[];
   savedPosts: MediaPost[];
   repostedPosts: MediaPost[];
+  myArticles: MyArticle[];
   progress: UserProgress | null;
   badgeKeys: string[];
   error: string | null;
@@ -40,9 +42,10 @@ interface Props {
 
 const GENDER_LABEL: Record<string, string> = { erkek: 'Erkek', kadin: 'Kadın', diger: 'Diğer' };
 
-export default function ProfileClient({ user, bg, hasPhoto, age, followersCount, followingCount, mediaPosts, savedPosts, repostedPosts, progress, badgeKeys, error }: Props) {
+export default function ProfileClient({ user, bg, hasPhoto, age, followersCount, followingCount, mediaPosts, savedPosts, repostedPosts, myArticles, progress, badgeKeys, error }: Props) {
   const isMobile = useIsMobile();
-  const [tab, setTab] = useState<'posts' | 'saved' | 'reposts'>('posts');
+  const [tab, setTab] = useState<'posts' | 'saved' | 'reposts' | 'articles'>('posts');
+  const [articles, setArticles] = useState<MyArticle[]>(myArticles);
   const [editOpen, setEditOpen] = useState(false);
   const [lightbox, setLightbox] = useState<MediaPost | null>(null);
   const [interests, setInterests] = useState<string[]>(user.interests ?? []);
@@ -220,7 +223,7 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
 
       {/* Tabs */}
       <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)' }}>
-        {[['posts','Gönderiler'],['saved','Kaydedilenler'],['reposts','Reposts']].map(([t, label]) => (
+        {[['posts','Gönderiler'],['articles','Makaleler'],['saved','Kaydedilenler'],['reposts','Reposts']].map(([t, label]) => (
           <button key={t} onClick={() => setTab(t as any)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '13px 8px', background: 'none', border: 'none', borderBottom: tab === t ? '2px solid var(--color-text)' : '2px solid transparent', fontSize: '0.85rem', fontWeight: 600, color: tab === t ? 'var(--color-text)' : 'var(--color-text-muted)', cursor: 'pointer', fontFamily: 'inherit', marginBottom: -1 }}>
             {label}
           </button>
@@ -304,6 +307,36 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
             ))}
           </div>
         )
+      )}
+
+      {tab === 'articles' && (
+        <div style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <Link href="/makale/yeni" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px', borderRadius: 12, background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontWeight: 800, textDecoration: 'none', fontSize: '0.92rem' }}>✍️ Yeni makale yaz</Link>
+          {articles.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '50px 20px', color: 'var(--color-text-muted)' }}>
+              <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>📝</div>
+              <p style={{ fontWeight: 700, marginBottom: 4 }}>Henüz makalen yok</p>
+              <p style={{ fontSize: '0.85rem' }}>Kendi makaleni yaz, fontlar/renkler ve interaktif kod ekle.</p>
+            </div>
+          ) : articles.map(a => {
+            const badge = a.status === 'approved' ? { t: 'Yayında', c: '#16a34a' } : a.status === 'pending' ? { t: 'İncelemede', c: '#ca8a04' } : { t: 'Reddedildi', c: '#ef4444' };
+            return (
+              <div key={a.id} style={{ display: 'flex', gap: 12, padding: 10, border: '1px solid var(--color-border)', borderRadius: 12, alignItems: 'center' }}>
+                <div style={{ width: 64, height: 48, borderRadius: 8, overflow: 'hidden', flexShrink: 0, background: 'var(--color-border)', display: 'grid', placeItems: 'center', fontSize: '1.3rem' }}>
+                  {a.cover_url ? <Img src={a.cover_url} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '✍️'}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.title}</div>
+                  <span style={{ fontSize: '0.72rem', fontWeight: 800, color: badge.c }}>● {badge.t}</span>
+                  {a.status === 'rejected' && a.reject_reason && <div style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)' }}>Neden: {a.reject_reason}</div>}
+                </div>
+                <Link href={`/makale/${a.slug}`} style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--color-text)', textDecoration: 'none', padding: '6px 10px', border: '1px solid var(--color-border)', borderRadius: 8 }}>Gör</Link>
+                <Link href={`/makale/yeni?id=${a.id}`} style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--color-primary)', textDecoration: 'none', padding: '6px 10px', border: '1px solid var(--color-border)', borderRadius: 8 }}>Düzenle</Link>
+                <button type="button" onClick={async () => { if (!window.confirm('Makale silinsin mi?')) return; const r = await fetch(`/api/user-articles/${a.id}`, { method: 'DELETE' }); if (r.ok) { setArticles(p => p.filter(x => x.id !== a.id)); toast('Silindi'); } else toast('Silinemedi'); }} style={{ fontSize: '0.78rem', fontWeight: 700, color: '#ef4444', background: 'none', border: '1px solid var(--color-border)', borderRadius: 8, padding: '6px 10px', cursor: 'pointer' }}>Sil</button>
+              </div>
+            );
+          })}
+        </div>
       )}
 
       {/* Edit Profile Modal */}

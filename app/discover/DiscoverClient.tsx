@@ -9,11 +9,13 @@ import Link from 'next/link';
 interface User { id: number; username: string; display_name: string; bio: string | null; avatar: string | null; avatarBg: string; }
 interface MediaPost { id: number; media_url: string; media_type: string; caption: string; likes: number; username: string; display_name: string; }
 interface Article { slug: string; title: string; emoji: string; desc: string; href?: string; }
+interface CommunityArticle { slug: string; title: string; summary: string; cover_url: string | null; category: string | null; author: string; username: string; }
 
 interface Props {
   users: User[];
   media: MediaPost[];
   articles: Article[];
+  communityArticles?: CommunityArticle[];
   isLoggedIn: boolean;
   initialQuery?: string;
 }
@@ -46,7 +48,7 @@ const ARTICLE_GRADIENTS: Record<string, string> = {
 };
 const FALLBACK_GRADIENT = 'linear-gradient(135deg,#6366f1,#8b5cf6)';
 
-export default function DiscoverClient({ users, media, articles, isLoggedIn, initialQuery = '' }: Props) {
+export default function DiscoverClient({ users, media, articles, communityArticles = [], isLoggedIn, initialQuery = '' }: Props) {
   const [query, setQuery] = useState(initialQuery);
   const [searchResults, setSearchResults] = useState<{ users: User[]; posts: MediaPost[] } | null>(null);
   const [searching, setSearching] = useState(false);
@@ -195,6 +197,28 @@ export default function DiscoverClient({ users, media, articles, isLoggedIn, ini
               })}
             </div>
           </div>
+
+          {/* Topluluk makaleleri — kullanıcıların yazıp yayınladığı makaleler */}
+          {communityArticles.length > 0 && (
+            <div className="dc-section">
+              <h2 className="dc-section-title">Topluluk Makaleleri</h2>
+              <div className="dc-comm">
+                {communityArticles.map(a => (
+                  <Link key={a.slug} href={`/makale/${a.slug}`} className="dc-comm-card">
+                    {a.cover_url
+                      ? <div className="dc-comm-cover"><Img src={a.cover_url} alt="" loading="lazy" sizes="(max-width:700px) 90px, 120px" /></div>
+                      : <div className="dc-comm-cover dc-comm-cover--ph">✍️</div>}
+                    <div className="dc-comm-body">
+                      {a.category && <span className="dc-comm-cat">{a.category}</span>}
+                      <div className="dc-comm-title">{a.title}</div>
+                      {a.summary && <div className="dc-comm-desc">{a.summary}</div>}
+                      <div className="dc-comm-author">@{a.username}</div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Son paylaşımlar */}
           {media.length > 0 && (
@@ -390,6 +414,24 @@ export default function DiscoverClient({ users, media, articles, isLoggedIn, ini
         .dc-article-link:hover .dc-article-desc,
         .dc-article-link:hover .dc-article-arrow { color: #fff; }
         .dc-article-link:hover .dc-article-arrow { transform: translateX(3px); }
+
+        /* Topluluk makaleleri */
+        .dc-comm { display: flex; flex-direction: column; gap: 10px; padding-bottom: 16px; }
+        .dc-comm-card {
+          display: flex; gap: 12px; padding: 10px;
+          border: 1px solid var(--color-border); border-radius: 14px;
+          text-decoration: none; color: inherit; background: var(--color-bg);
+          transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+        }
+        .dc-comm-card:hover { transform: translateY(-2px); border-color: var(--color-primary); box-shadow: 0 8px 22px rgba(0,0,0,0.12); }
+        .dc-comm-cover { width: 96px; height: 72px; flex-shrink: 0; border-radius: 10px; overflow: hidden; background: var(--color-border); }
+        .dc-comm-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .dc-comm-cover--ph { display: grid; place-items: center; font-size: 1.6rem; background: linear-gradient(135deg,#6366f1,#8b5cf6); }
+        .dc-comm-body { min-width: 0; display: flex; flex-direction: column; gap: 3px; justify-content: center; }
+        .dc-comm-cat { font-size: 0.64rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-primary); }
+        .dc-comm-title { font-weight: 800; font-size: 0.95rem; color: var(--color-text); line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .dc-comm-desc { font-size: 0.78rem; color: var(--color-text-muted); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .dc-comm-author { font-size: 0.74rem; color: var(--color-text-muted); margin-top: 1px; }
 
         /* Media grid */
         .dc-grid {

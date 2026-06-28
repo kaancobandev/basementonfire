@@ -11,15 +11,17 @@ export const dynamic = 'force-dynamic';
 // getMe/isLoggedIn gibi kişiye özel veri bunun DIŞINDA, canlı kalır.
 const getDiscoverContent = unstable_cache(
   async () => {
-    const [{ data: users, error: usersErr }, { data: mediaRaw, error: mediaErr }] = await Promise.all([
+    const [{ data: users, error: usersErr }, { data: mediaRaw, error: mediaErr }, { data: uaRaw, error: uaErr }] = await Promise.all([
       db.from('users').select('id, username, display_name, bio, avatar').order('created_at', { ascending: false }).limit(20),
       db.from('quick_facts').select('id, media_url, media_type, caption, likes, users!quick_facts_user_id_fkey(username, display_name)').order('created_at', { ascending: false }).limit(12),
+      db.from('user_articles').select('id, slug, title, summary, cover_url, category, users!user_articles_user_id_fkey(username, display_name)').eq('status', 'approved').order('published_at', { ascending: false }).limit(12),
     ]);
     logIfError('discover users', usersErr);
     logIfError('discover quick_facts', mediaErr);
-    return { users: users ?? [], mediaRaw: mediaRaw ?? [] };
+    logIfError('discover user_articles', uaErr);
+    return { users: users ?? [], mediaRaw: mediaRaw ?? [], uaRaw: uaRaw ?? [] };
   },
-  ['discover-content-v1'],
+  ['discover-content-v2'],
   { revalidate: 60, tags: ['feed'] },
 );
 
@@ -46,8 +48,12 @@ export default async function DiscoverPage({ searchParams }: { searchParams: Pro
   const initialQuery = typeof sp.q === 'string' ? sp.q : '';
 
   // Paylaşılan içerik önbellekten gelir (60sn); kişiye özel değildir.
-  const { users, mediaRaw } = await getDiscoverContent();
+  const { users, mediaRaw, uaRaw } = await getDiscoverContent();
   const media = (mediaRaw ?? []).map((m: any) => ({ ...m, username: m.users?.username ?? '', display_name: m.users?.display_name ?? '' }));
+  const communityArticles = (uaRaw ?? []).map((a: any) => ({
+    slug: a.slug, title: a.title, summary: a.summary ?? '', cover_url: a.cover_url ?? null,
+    category: a.category ?? null, author: a.users?.display_name || a.users?.username || 'Kullanıcı', username: a.users?.username ?? '',
+  }));
 
   // Makale listesi artik tek kaynaktan (lib/articles.ts). Sira ayni -> görünüm degismez.
   return (
@@ -55,6 +61,7 @@ export default async function DiscoverPage({ searchParams }: { searchParams: Pro
       users={(users ?? []).map((u: any) => ({ ...u, avatarBg: avatarBg(u.username) }))}
       media={media}
       articles={ARTICLES}
+      communityArticles={communityArticles}
       isLoggedIn={!!me}
       initialQuery={initialQuery}
     />

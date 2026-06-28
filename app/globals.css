@@ -670,6 +670,9 @@ body {
   transition: background 0.12s, border-color 0.12s;
 }
 .mc-option:hover { background: var(--color-hover); border-color: var(--color-primary); }
+.mc-option--new { border-color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 8%, transparent); }
+.mc-option--new svg { color: var(--color-primary); }
+.mc-badge { margin-left: auto; font-size: 0.66rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: #fff; background: var(--color-primary); padding: 3px 8px; border-radius: 9999px; }
 .mc-cancel {
   width: 100%;
   padding: 13px;

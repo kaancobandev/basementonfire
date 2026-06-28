@@ -122,6 +122,19 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
   const [storyError, setStoryError] = useState('');
   const [storySubmitting, setStorySubmitting] = useState(false);
 
+  // Paylaş menüsünden "Hikaye" ile gelince (/?story=1) hikaye oluşturucuyu aç.
+  useEffect(() => {
+    try {
+      const sp = new URLSearchParams(window.location.search);
+      if (sp.get('story') === '1') {
+        setCreateOpen(true);
+        sp.delete('story');
+        const qs = sp.toString();
+        window.history.replaceState(null, '', window.location.pathname + (qs ? `?${qs}` : ''));
+      }
+    } catch {}
+  }, []);
+
   const allStoryUsers: StoryUser[] = [
     ...(ownStoryUser ? [ownStoryUser] : []),
     ...otherStoryUsers,

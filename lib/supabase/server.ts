@@ -54,6 +54,16 @@ export const getMe = cache(async () => {
   return { authUser: user, me: me ?? null, client };
 });
 
+// Admin mi? Onay kuyrugu (kullanici makaleleri) gibi yetkili islemler icin.
+// Iki kaynak: users.is_admin = true VEYA ADMIN_USERNAMES ortam degiskeni
+// (virgulle ayrilmis kullanici adlari). Ikisi de sunucu tarafinda kontrol edilir.
+export function isAdmin(me: { username?: string; is_admin?: boolean } | null | undefined): boolean {
+  if (!me) return false;
+  if (me.is_admin === true) return true;
+  const env = (process.env.ADMIN_USERNAMES ?? '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+  return !!me.username && env.includes(me.username.toLowerCase());
+}
+
 // Surface Supabase query errors in the server console instead of silently
 // rendering empty pages. Call with the `error` from any `await db...` result.
 export function logIfError(label: string, error: unknown) {

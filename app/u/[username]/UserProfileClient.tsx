@@ -28,6 +28,7 @@ interface Props {
   isFollowing: boolean;
   isHidden: boolean;
   mediaPosts: MediaPost[];
+  articles?: { slug: string; title: string; summary: string; cover_url: string | null; category: string | null }[];
   me: { id: number; username: string; display_name: string; avatar: string | null } | null;
 }
 
@@ -42,7 +43,7 @@ function timeAgo(iso: string) {
 
 const GENDER_LABEL: Record<string, string> = { erkek: 'Erkek', kadin: 'Kadın', diger: 'Diğer' };
 
-export default function UserProfileClient({ profileUser, bg, age, followersCount, followingCount, isFollowing: initialFollowing, isHidden, mediaPosts, me }: Props) {
+export default function UserProfileClient({ profileUser, bg, age, followersCount, followingCount, isFollowing: initialFollowing, isHidden, mediaPosts, articles = [], me }: Props) {
   const router = useRouter();
   const isMobile = useIsMobile();
   const [following, setFollowing] = useState(initialFollowing);
@@ -239,6 +240,27 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
           <span><strong style={{ color: 'var(--color-text)' }}><AnimatedNumber value={followingCount} /></strong> Takip</span>
         </div>
       </div>
+
+      {/* Makaleler — yayındaki kullanıcı makaleleri */}
+      {!isHidden && articles.length > 0 && (
+        <div style={{ padding: '14px 12px 4px' }}>
+          <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--color-text)', margin: '0 4px 10px' }}>📝 Makaleler</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {articles.map(a => (
+              <Link key={a.slug} href={`/makale/${a.slug}`} style={{ display: 'flex', gap: 12, padding: 10, border: '1px solid var(--color-border)', borderRadius: 14, textDecoration: 'none', color: 'inherit', background: 'var(--color-bg)' }}>
+                <div style={{ width: 88, height: 64, flexShrink: 0, borderRadius: 10, overflow: 'hidden', background: 'var(--color-border)', display: 'grid', placeItems: 'center', fontSize: '1.5rem' }}>
+                  {a.cover_url ? <Img src={a.cover_url} alt="" loading="lazy" sizes="120px" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '✍️'}
+                </div>
+                <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 2 }}>
+                  {a.category && <span style={{ fontSize: '0.64rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-primary)' }}>{a.category}</span>}
+                  <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--color-text)', lineHeight: 1.25, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{a.title}</div>
+                  {a.summary && <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{a.summary}</div>}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Content */}
       {isHidden ? (

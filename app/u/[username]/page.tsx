@@ -83,7 +83,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
 
   const isHidden = profileUser.is_private && !isFollowing;
 
-  const [followersRes, followingRes, postsRes] = await Promise.all([
+  const [followersRes, followingRes, postsRes, articlesRes] = await Promise.all([
     db.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', profileUser.id),
     db.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', profileUser.id),
     isHidden
@@ -92,12 +92,21 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
           .select('*')
           .eq('user_id', profileUser.id)
           .order('created_at', { ascending: false }),
+    // Yayindaki (onayli) makaleleri — gizli profilde gosterilmez.
+    isHidden
+      ? Promise.resolve({ data: [] })
+      : db.from('user_articles')
+          .select('slug, title, summary, cover_url, category')
+          .eq('user_id', profileUser.id)
+          .eq('status', 'approved')
+          .order('published_at', { ascending: false }),
   ]);
 
   const mediaPosts = (postsRes.data ?? []) as Array<{
     id: number; media_url: string; media_type: string; caption: string; likes: number; created_at: string;
     media?: { url: string; type: 'image' | 'video' }[] | null;
   }>;
+  const articles = ((articlesRes as any).data ?? []) as Array<{ slug: string; title: string; summary: string; cover_url: string | null; category: string | null }>;
 
   // Herkese açık profiller için ProfilePage + Person JSON-LD (LinkedIn deseni):
   // takipçi sayısı interactionStatistic olarak Google'a "otorite" sinyali verir.
@@ -151,6 +160,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
       isFollowing={isFollowing}
       isHidden={isHidden}
       mediaPosts={mediaPosts}
+      articles={articles}
       me={me ? { id: me.id, username: me.username, display_name: me.display_name, avatar: me.avatar ?? null } : null}
     />
     </>
