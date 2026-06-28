@@ -309,7 +309,7 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
                   {gifLoading ? <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '2rem', color: '#555', fontSize: '0.82rem' }}>Yükleniyor…</div> : gifs.length === 0 ? <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '2rem', color: '#555', fontSize: '0.82rem' }}>GIF bulunamadı</div> : gifs.map((gif: any) => {
                     const url = gif.images?.fixed_width?.url ?? gif.images?.original?.url;
                     if (!url) return null;
-                    return <button key={gif.id} type="button" onClick={() => sendGif(url)} style={{ aspectRatio: '1', overflow: 'hidden', borderRadius: 6, cursor: 'pointer', background: 'rgba(255,255,255,0.05)', border: 'none', padding: 0, transition: 'opacity 0.15s' }}><img src={url} alt={gif.title} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} /></button>;
+                    return <button key={gif.id} type="button" onClick={() => sendGif(url)} style={{ position: 'relative', aspectRatio: '1', overflow: 'hidden', borderRadius: 6, cursor: 'pointer', background: 'rgba(255,255,255,0.05)', border: 'none', padding: 0, transition: 'opacity 0.15s' }}><img src={url} alt={gif.title} loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} /></button>;
                   })}
                 </div>
               </div>
