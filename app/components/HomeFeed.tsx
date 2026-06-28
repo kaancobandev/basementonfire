@@ -269,7 +269,9 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
             </div>
           </div>
         )}
-        <div className="feed-header">Ana Sayfa</div>
+        {/* Hero giriş-yapmamışta zaten markayı taşıyor → çift başlık olmasın.
+            Giriş yapmışta hero yok, standart sayfa başlığı görünür. */}
+        {currentUser && <div className="feed-header">Ana Sayfa</div>}
 
         {/* Story bar */}
         <div className="story-bar" style={{ display: 'flex', gap: '12px', overflowX: 'auto', padding: '12px 16px', borderBottom: '1px solid var(--color-border)', scrollbarWidth: 'none' }}>
@@ -486,6 +488,11 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
 
       {/* Right panel */}
       <aside className="right-panel">
+        {/* Arama — /discover?q=... (masaüstü sağ panelde; sidebar arama ikonuna ek giriş) */}
+        <form action="/discover" method="get" role="search" style={{ position: 'relative' }}>
+          <svg aria-hidden="true" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input name="q" type="search" placeholder="İçeriklerde ara" aria-label="İçeriklerde ara" style={{ width: '100%', padding: '11px 14px 11px 40px', borderRadius: 'var(--radius-pill)', border: '1px solid var(--color-border)', background: 'var(--color-bg)', color: 'var(--color-text)', fontSize: '0.9rem', outline: 'none', fontFamily: 'inherit' }} />
+        </form>
         {/* Eşleştir — ilgi alanı bazlı kart kaydırma girişi (navbar yerine burada) */}
         <div className="widget-card">
           <h3>Eşleştir</h3>
@@ -502,7 +509,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
             <h3>Tanıyor olabilirsin</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               {suggestedUsers.map(u => (
-                <div key={u.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 4px', borderRadius: 12 }}>
+                <div key={u.id} className="rp-link" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 4px', borderRadius: 12 }}>
                   <Link href={`/u/${u.username}`} style={{ width: 40, height: 40, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '1rem', textDecoration: 'none', background: avatarBg(u.username), overflow: 'hidden' }}>
                     {u.avatar ? <Img src={u.avatar} alt="" fixedWidth={80} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : u.display_name[0].toUpperCase()}
                   </Link>
@@ -526,10 +533,10 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
         <div className="widget-card">
           <h3>Keşfet</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <Link href="/articles/black-hole" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 8, borderRadius: 12, textDecoration: 'none', color: 'inherit' }}>
+            <Link href="/articles/black-hole" className="rp-link" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 8, borderRadius: 12, textDecoration: 'none', color: 'inherit' }}>
               <span style={{ fontSize: '1.5rem' }}>🕳️</span><span style={{ fontWeight: 600, fontSize: '0.9rem' }}>Kara Delikler</span>
             </Link>
-            <Link href="/articles/carthage" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 8, borderRadius: 12, textDecoration: 'none', color: 'inherit' }}>
+            <Link href="/articles/carthage" className="rp-link" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 8, borderRadius: 12, textDecoration: 'none', color: 'inherit' }}>
               <span style={{ fontSize: '1.5rem' }}>🏛️</span><span style={{ fontWeight: 600, fontSize: '0.9rem' }}>Kartaca</span>
             </Link>
           </div>
