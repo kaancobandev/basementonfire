@@ -45,6 +45,10 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
   const [gifSearch, setGifSearch] = useState('');
   const [gifs, setGifs] = useState<any[]>([]);
   const [gifLoading, setGifLoading] = useState(false);
+  const [gifLoadingMore, setGifLoadingMore] = useState(false);
+  const gifOffsetRef = useRef(0);
+  const gifHasMoreRef = useRef(true);
+  const gifBusyRef = useRef(false);
   const msgBoxRef = useRef<HTMLDivElement>(null);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const gifSearchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -147,12 +151,33 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
     }
   }
 
-  async function loadGifs(q: string) {
-    setGifLoading(true);
-    const res = await fetch(`/api/giphy?q=${encodeURIComponent(q)}`);
-    const data = await res.json();
-    setGifs(data.data ?? []);
-    setGifLoading(false);
+  async function loadGifs(q: string, append = false) {
+    if (gifBusyRef.current) return;
+    gifBusyRef.current = true;
+    if (append) setGifLoadingMore(true);
+    else { setGifLoading(true); gifOffsetRef.current = 0; gifHasMoreRef.current = true; }
+    try {
+      const offset = append ? gifOffsetRef.current : 0;
+      const res = await fetch(`/api/giphy?q=${encodeURIComponent(q)}&offset=${offset}`);
+      const data = await res.json();
+      const list = Array.isArray(data?.data) ? data.data : [];
+      const total = data?.pagination?.total_count ?? 0;
+      gifOffsetRef.current = offset + list.length;
+      gifHasMoreRef.current = list.length > 0 && gifOffsetRef.current < total;
+      setGifs(prev => (append ? [...prev, ...list] : list));
+    } catch {
+      if (!append) setGifs([]);
+    } finally {
+      gifBusyRef.current = false;
+      if (append) setGifLoadingMore(false); else setGifLoading(false);
+    }
+  }
+
+  function onGifScroll(e: React.UIEvent<HTMLDivElement>) {
+    const el = e.currentTarget;
+    if (gifHasMoreRef.current && !gifBusyRef.current && el.scrollHeight - el.scrollTop - el.clientHeight < 240) {
+      loadGifs(gifSearch, true);
+    }
   }
 
   function sendGif(url: string) {
@@ -305,12 +330,13 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
                   <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ position: 'absolute', left: 22, top: '50%', transform: 'translateY(-50%)', color: '#666', pointerEvents: 'none' }}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
                   <input value={gifSearch} onChange={e => setGifSearch(e.target.value)} placeholder="GIF ara…" autoComplete="off" style={{ width: '100%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '9999px', padding: '8px 14px 8px 34px', fontSize: '0.85rem', color: '#e8e0d8', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} />
                 </div>
-                <div style={{ flex: 1, overflowY: 'auto', padding: '0 8px 8px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 3, alignContent: 'start', scrollbarWidth: 'thin' }}>
+                <div onScroll={onGifScroll} style={{ flex: 1, overflowY: 'auto', padding: '0 8px 8px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 3, alignContent: 'start', scrollbarWidth: 'thin' }}>
                   {gifLoading ? <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '2rem', color: '#555', fontSize: '0.82rem' }}>Yükleniyor…</div> : gifs.length === 0 ? <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '2rem', color: '#555', fontSize: '0.82rem' }}>GIF bulunamadı</div> : gifs.map((gif: any) => {
                     const url = gif.images?.fixed_width?.url ?? gif.images?.original?.url;
                     if (!url) return null;
-                    return <button key={gif.id} type="button" onClick={() => sendGif(url)} style={{ position: 'relative', aspectRatio: '1', overflow: 'hidden', borderRadius: 6, cursor: 'pointer', background: 'rgba(255,255,255,0.05)', border: 'none', padding: 0, transition: 'opacity 0.15s' }}><img src={url} alt={gif.title} loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} /></button>;
+                    return <button key={gif.id} type="button" onClick={() => sendGif(url)} style={{ position: 'relative', boxSizing: 'content-box', width: '100%', height: 0, paddingBottom: '100%', overflow: 'hidden', borderRadius: 6, cursor: 'pointer', background: 'rgba(255,255,255,0.05)', border: 'none', transition: 'opacity 0.15s' }}><img src={url} alt={gif.title} loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} /></button>;
                   })}
+                  {gifLoadingMore && <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '0.7rem', color: '#555', fontSize: '0.78rem' }}>Daha fazla yükleniyor…</div>}
                 </div>
               </div>
             )}

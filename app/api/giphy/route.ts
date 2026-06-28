@@ -16,13 +16,13 @@ export async function GET(req: Request) {
     : `https://api.giphy.com/v1/gifs/trending?${params}`;
 
   try {
-    const res  = await fetch(base);
+    // Netlify edge cache'i bu rotayı sorgu dizesini DAHİL ETMEDEN önbelliyordu →
+    // tüm aramalar aynı (trending) yanıtı alıyordu. Bu yüzden yanıtı önbellemiyoruz;
+    // her arama Giphy'ye taze gider (q'ya saygı duyulur). Giphy fetch'i ayrıca
+    // no-store ile Next data cache'ine de takılmaz.
+    const res  = await fetch(base, { cache: 'no-store' });
     const data = await res.json();
-    // Trending/arama sonuçları sık değişmez → edge'de önbelle (aynı sorgu için
-    // tekrar Giphy'ye gidilmez). Yük altında ölçeklenebilirlik + hız kazancı.
-    return NextResponse.json(data, {
-      headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' },
-    });
+    return NextResponse.json(data);
   } catch {
     return NextResponse.json({ data: [], pagination: { total_count: 0, count: 0, offset: 0 } });
   }

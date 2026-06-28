@@ -121,11 +121,11 @@ export default function GiphyPicker({
                     type="button"
                     onClick={() => onSelect(full)}
                     title={g.title}
-                    style={{ position: 'relative', aspectRatio: '1', overflow: 'hidden', borderRadius: 'var(--radius-sm)', cursor: 'pointer', background: 'var(--color-hover)', border: 'none', padding: 0 }}
+                    style={{ position: 'relative', boxSizing: 'content-box', width: '100%', height: 0, paddingBottom: '100%', overflow: 'hidden', borderRadius: 'var(--radius-sm)', cursor: 'pointer', background: 'var(--color-hover)', border: 'none' }}
                   >
-                    {/* Görsel akıştan çıkarıldı (absolute) → kare kutuyu aspect-ratio
-                        belirler; img'in intrinsic boyutu satır yüksekliğini bozup
-                        kaydırırken öğeleri üst üste bindiremez. */}
+                    {/* Kare hücre = padding-bottom hack (yükseklik = genişlik). aspect-ratio
+                        + grid + align-content:start kombinasyonu satır yüksekliği rezerve
+                        etmeyip öğeleri üst üste bindiriyordu; padding gerçek kutu verir. */}
                     <img src={preview} alt={g.title ?? 'GIF'} loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                   </button>
                 );
