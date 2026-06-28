@@ -11,7 +11,7 @@ import { getSupa } from '@/lib/supabase/client';
  */
 export async function uploadToStorage(
   file: File,
-  kind: 'media' | 'story',
+  kind: 'media' | 'story' | 'avatar',
 ): Promise<{ path: string; mediaType: 'image' | 'video' | 'audio' }> {
   const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
 

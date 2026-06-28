@@ -12,6 +12,10 @@ import AnimatedNumber from '@/app/components/AnimatedNumber';
 import type { DbUser, UserProgress } from '@/lib/types';
 import { BADGE_MAP, levelFromXp } from '@/lib/badges';
 import { toast } from 'sonner';
+import { uploadToStorage } from '@/lib/upload';
+
+const AVATAR_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const AVATAR_MAX = 10 * 1024 * 1024; // 10 MB (GIF dahil)
 
 interface MediaPost { id: number; media_url: string; media_type: string; caption: string; likes: number; created_at: string; media?: { url: string; type: 'image' | 'video' }[] | null; }
 
@@ -41,6 +45,7 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
   const [tagInput, setTagInput] = useState('');
   const [bioLen, setBioLen] = useState((user.bio ?? '').length);
   const [avatarUrl, setAvatarUrl] = useState(user.avatar);
+  const [avatarUploading, setAvatarUploading] = useState(false);
   const [posts, setPosts] = useState(mediaPosts);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -71,11 +76,40 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
   }
 
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]; if (!file) return;
-    const fd = new FormData(); fd.append('file', file);
-    const res = await fetch('/api/profile/avatar', { method: 'POST', body: fd });
-    const data = await res.json();
-    if (data.avatar_url) setAvatarUrl(data.avatar_url);
+    const file = e.target.files?.[0];
+    e.target.value = ''; // aynı dosyayı tekrar seçebilmek için input'u sıfırla
+    if (!file) return;
+
+    // İstemci doğrulaması — hatayı sessizce yutma, kullanıcıya söyle (eski davranışta
+    // büyük/yanlış dosya sessizce başarısız oluyordu → "GIF desteklenmiyor" sanılıyordu).
+    if (!AVATAR_TYPES.includes(file.type)) {
+      toast.error('JPG, PNG, WEBP veya GIF seçebilirsin.');
+      return;
+    }
+    if (file.size > AVATAR_MAX) {
+      toast.error('Dosya en fazla 10 MB olabilir (daha küçük/optimize bir GIF dene).');
+      return;
+    }
+
+    setAvatarUploading(true);
+    try {
+      // Tarayıcıdan doğrudan Supabase'e yükle (animasyonlu GIF korunur; Netlify
+      // gövde limitine takılmaz), sonra yalnızca path'i commit et.
+      const { path } = await uploadToStorage(file, 'avatar');
+      const res = await fetch('/api/profile/avatar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.avatar_url) throw new Error(data.error ?? 'Avatar güncellenemedi.');
+      setAvatarUrl(data.avatar_url);
+      toast.success('Profil fotoğrafın güncellendi');
+    } catch (err: any) {
+      toast.error(err?.message ?? 'Yükleme başarısız oldu.');
+    } finally {
+      setAvatarUploading(false);
+    }
   }
 
   const presets = ['Müzik','Film','Spor','Seyahat','Yemek','Teknoloji','Sanat','Bilim','Tarih','Oyun','Kitap','Doğa','Fotoğraf','Dans','Moda'];
@@ -259,12 +293,25 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
 
             <form method="POST" action="/api/profile/edit" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {/* Avatar */}
-              <div role="button" tabIndex={0} aria-label="Profil fotoğrafını değiştir" style={{ width: 72, height: 72, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '1.8rem', fontWeight: 800, position: 'relative', overflow: 'hidden', cursor: 'pointer', background: avatarUrl && avatarUrl !== '/avatars/default.png' ? 'transparent' : bg }} onClick={() => document.getElementById('pf-avatar-input')?.click()} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); document.getElementById('pf-avatar-input')?.click(); } }}>
-                {avatarUrl && avatarUrl !== '/avatars/default.png' ? <Img src={avatarUrl} alt="" fixedWidth={200} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} /> : user.display_name[0].toUpperCase()}
-                <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', opacity: 0, transition: 'opacity 0.15s' }} onMouseOver={e => ((e.currentTarget as HTMLElement).style.opacity = '1')} onMouseOut={e => ((e.currentTarget as HTMLElement).style.opacity = '0')}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                <div role="button" tabIndex={0} aria-label="Profil fotoğrafını değiştir" aria-busy={avatarUploading} style={{ width: 72, height: 72, flexShrink: 0, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '1.8rem', fontWeight: 800, position: 'relative', overflow: 'hidden', cursor: avatarUploading ? 'default' : 'pointer', background: avatarUrl && avatarUrl !== '/avatars/default.png' ? 'transparent' : bg }} onClick={() => { if (!avatarUploading) document.getElementById('pf-avatar-input')?.click(); }} onKeyDown={e => { if ((e.key === 'Enter' || e.key === ' ') && !avatarUploading) { e.preventDefault(); document.getElementById('pf-avatar-input')?.click(); } }}>
+                  {avatarUrl && avatarUrl !== '/avatars/default.png' ? <Img src={avatarUrl} alt="" fixedWidth={200} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} /> : user.display_name[0].toUpperCase()}
+                  {avatarUploading ? (
+                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%' }}>
+                      <div style={{ width: 22, height: 22, border: '3px solid rgba(255,255,255,0.35)', borderTopColor: '#fff', borderRadius: '50%', animation: 'pf-spin 0.7s linear infinite' }} />
+                    </div>
+                  ) : (
+                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', opacity: 0, transition: 'opacity 0.15s' }} onMouseOver={e => ((e.currentTarget as HTMLElement).style.opacity = '1')} onMouseOut={e => ((e.currentTarget as HTMLElement).style.opacity = '0')}>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+                    </div>
+                  )}
+                  <input id="pf-avatar-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden onChange={handleAvatarChange} />
                 </div>
-                <input id="pf-avatar-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden onChange={handleAvatarChange} />
+                <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', lineHeight: 1.45 }}>
+                  <div style={{ fontWeight: 700, color: 'var(--color-text)', fontSize: '0.88rem' }}>Profil fotoğrafı</div>
+                  {avatarUploading ? 'Yükleniyor…' : 'Değiştirmek için tıkla · JPG, PNG veya animasyonlu GIF · en fazla 10 MB'}
+                </div>
+                <style>{`@keyframes pf-spin { to { transform: rotate(360deg); } }`}</style>
               </div>
 
               {/* Ad — günde 1 kez */}
