@@ -18,7 +18,11 @@ export async function GET(req: Request) {
   try {
     const res  = await fetch(base);
     const data = await res.json();
-    return NextResponse.json(data);
+    // Trending/arama sonuçları sık değişmez → edge'de önbelle (aynı sorgu için
+    // tekrar Giphy'ye gidilmez). Yük altında ölçeklenebilirlik + hız kazancı.
+    return NextResponse.json(data, {
+      headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' },
+    });
   } catch {
     return NextResponse.json({ data: [], pagination: { total_count: 0, count: 0, offset: 0 } });
   }

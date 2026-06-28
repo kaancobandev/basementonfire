@@ -6,6 +6,7 @@ import { useIsMobile } from '@/lib/useIsMobile';
 import { factMediaList } from '@/lib/types';
 
 import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import Caption from '@/app/components/Caption';
 import AnimatedNumber from '@/app/components/AnimatedNumber';
@@ -16,6 +17,9 @@ import { uploadToStorage } from '@/lib/upload';
 
 const AVATAR_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const AVATAR_MAX = 10 * 1024 * 1024; // 10 MB (GIF dahil)
+
+// GIF seçici ağır + nadiren açılır → tembel yükle (ana/profil bundle'ına girmez).
+const GiphyPicker = dynamic(() => import('@/app/components/GiphyPicker'), { ssr: false });
 
 interface MediaPost { id: number; media_url: string; media_type: string; caption: string; likes: number; created_at: string; media?: { url: string; type: 'image' | 'video' }[] | null; }
 
@@ -46,6 +50,7 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
   const [bioLen, setBioLen] = useState((user.bio ?? '').length);
   const [avatarUrl, setAvatarUrl] = useState(user.avatar);
   const [avatarUploading, setAvatarUploading] = useState(false);
+  const [gifPickerOpen, setGifPickerOpen] = useState(false);
   const [posts, setPosts] = useState(mediaPosts);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -107,6 +112,27 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
       toast.success('Profil fotoğrafın güncellendi');
     } catch (err: any) {
       toast.error(err?.message ?? 'Yükleme başarısız oldu.');
+    } finally {
+      setAvatarUploading(false);
+    }
+  }
+
+  // GIPHY'den seçilen GIF'i avatar yap (sunucu indirip kendi storage'a koyar).
+  async function selectGiphyAvatar(url: string) {
+    setGifPickerOpen(false);
+    setAvatarUploading(true);
+    try {
+      const res = await fetch('/api/profile/avatar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ giphyUrl: url }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.avatar_url) throw new Error(data.error ?? 'Avatar güncellenemedi.');
+      setAvatarUrl(data.avatar_url);
+      toast.success('Profil fotoğrafın güncellendi');
+    } catch (err: any) {
+      toast.error(err?.message ?? 'GIF ayarlanamadı.');
     } finally {
       setAvatarUploading(false);
     }
@@ -309,10 +335,18 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
                 </div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', lineHeight: 1.45 }}>
                   <div style={{ fontWeight: 700, color: 'var(--color-text)', fontSize: '0.88rem' }}>Profil fotoğrafı</div>
-                  {avatarUploading ? 'Yükleniyor…' : 'Değiştirmek için tıkla · JPG, PNG veya animasyonlu GIF · en fazla 10 MB'}
+                  <div>{avatarUploading ? 'Yükleniyor…' : 'Yükle (JPG/PNG/GIF · 10 MB) ya da GIPHY\'den seç'}</div>
+                  <button type="button" disabled={avatarUploading} onClick={() => setGifPickerOpen(true)} style={{ marginTop: 7, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 'var(--radius-pill)', border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text)', fontSize: '0.78rem', fontWeight: 700, cursor: avatarUploading ? 'default' : 'pointer', fontFamily: 'inherit' }}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 15V9h2.5M7 12h2M13 9v6M16 9h2.5M16 12h2"/></svg>
+                    GIF seç
+                  </button>
                 </div>
                 <style>{`@keyframes pf-spin { to { transform: rotate(360deg); } }`}</style>
               </div>
+
+              {gifPickerOpen && (
+                <GiphyPicker open onClose={() => setGifPickerOpen(false)} onSelect={selectGiphyAvatar} />
+              )}
 
               {/* Ad — günde 1 kez */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
