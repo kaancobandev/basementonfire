@@ -27,7 +27,7 @@ function ProgressChips({ p }: { p: Progress | null }) {
   if (!p) return null;
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto', flexShrink: 0 }}>
-      <span title="Seri" style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: '0.78rem', fontWeight: 800, color: p.current_streak > 0 ? '#f97316' : 'var(--color-text-muted)' }}>🔥 {p.current_streak}</span>
+      <span title="Seri" style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: '0.78rem', fontWeight: 800, color: p.current_streak > 0 ? 'var(--color-accent)' : 'var(--color-text-muted)' }}>🔥 {p.current_streak}</span>
       <span title="Seviye" style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: '0.78rem', fontWeight: 800, color: 'var(--color-primary)' }}>⭐ Lv{p.level}</span>
     </div>
   );
@@ -104,7 +104,7 @@ export default function DailyQuestion() {
     <div style={{ maxWidth: 470, margin: '16px auto 0', padding: '0 8px' }}>
       <article style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 14, overflow: 'hidden' }}>
         {/* Baslik */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 15px', background: 'linear-gradient(90deg, rgba(16,185,129,0.14), rgba(59,130,246,0.10))', borderBottom: '1px solid var(--color-border)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 15px', background: 'linear-gradient(90deg, rgba(16,185,129,0.14), rgba(79,70,229,0.10))', borderBottom: '1px solid var(--color-border)' }}>
           <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>🧠</span>
           <span style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--color-text)' }}>Günün Sorusu</span>
           <ProgressChips p={progress} />
@@ -120,8 +120,8 @@ export default function DailyQuestion() {
               let border = '1px solid var(--color-border)';
               let bg = 'transparent';
               let color = 'var(--color-text)';
-              if (isCorrect) { border = '1.5px solid #10b981'; bg = 'rgba(16,185,129,0.12)'; }
-              else if (isWrongPick) { border = '1.5px solid #ef4444'; bg = 'rgba(239,68,68,0.10)'; }
+              if (isCorrect) { border = '1.5px solid var(--color-success)'; bg = 'rgba(16,185,129,0.12)'; }
+              else if (isWrongPick) { border = '1.5px solid var(--color-danger)'; bg = 'rgba(239,68,68,0.10)'; }
               else if (answered) { color = 'var(--color-text-muted)'; }
               return (
                 <button
@@ -138,7 +138,7 @@ export default function DailyQuestion() {
                   <span style={{
                     display: 'grid', placeItems: 'center', width: 24, height: 24, flexShrink: 0, borderRadius: 7,
                     fontSize: '0.74rem', fontWeight: 800,
-                    background: isCorrect ? '#10b981' : isWrongPick ? '#ef4444' : 'rgba(59,130,246,0.15)',
+                    background: isCorrect ? 'var(--color-success)' : isWrongPick ? 'var(--color-danger)' : 'var(--color-primary-soft)',
                     color: (isCorrect || isWrongPick) ? '#fff' : 'var(--color-primary)',
                   }}>{String.fromCharCode(65 + i)}</span>
                   {opt}
@@ -175,7 +175,7 @@ export default function DailyQuestion() {
                     <span>{progress.intoLevel} / {progress.perLevel} XP</span>
                   </div>
                   <div style={{ height: 7, borderRadius: 9999, background: 'var(--color-border)', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${Math.round((progress.intoLevel / progress.perLevel) * 100)}%`, background: 'linear-gradient(90deg,#10b981,#3b82f6)', borderRadius: 9999 }} />
+                    <div style={{ height: '100%', width: `${Math.round((progress.intoLevel / progress.perLevel) * 100)}%`, background: 'linear-gradient(90deg,var(--color-success),var(--color-primary))', borderRadius: 9999 }} />
                   </div>
                 </div>
               )}

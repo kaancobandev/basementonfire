@@ -141,7 +141,7 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
                   <span>Seviye {level}</span><span>{intoLevel} / {perLevel} XP</span>
                 </div>
                 <div style={{ height: 7, borderRadius: 9999, background: 'var(--color-border)', overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${Math.round((intoLevel / perLevel) * 100)}%`, background: 'linear-gradient(90deg,#10b981,#3b82f6)', borderRadius: 9999 }} />
+                  <div style={{ height: '100%', width: `${Math.round((intoLevel / perLevel) * 100)}%`, background: 'linear-gradient(90deg,var(--color-success),var(--color-primary))', borderRadius: 9999 }} />
                 </div>
               </div>
               {earned.length > 0 && (
@@ -259,7 +259,7 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
 
             <form method="POST" action="/api/profile/edit" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {/* Avatar */}
-              <div style={{ width: 72, height: 72, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '1.8rem', fontWeight: 800, position: 'relative', overflow: 'hidden', cursor: 'pointer', background: avatarUrl && avatarUrl !== '/avatars/default.png' ? 'transparent' : bg }} onClick={() => document.getElementById('pf-avatar-input')?.click()}>
+              <div role="button" tabIndex={0} aria-label="Profil fotoğrafını değiştir" style={{ width: 72, height: 72, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '1.8rem', fontWeight: 800, position: 'relative', overflow: 'hidden', cursor: 'pointer', background: avatarUrl && avatarUrl !== '/avatars/default.png' ? 'transparent' : bg }} onClick={() => document.getElementById('pf-avatar-input')?.click()} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); document.getElementById('pf-avatar-input')?.click(); } }}>
                 {avatarUrl && avatarUrl !== '/avatars/default.png' ? <Img src={avatarUrl} alt="" fixedWidth={200} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} /> : user.display_name[0].toUpperCase()}
                 <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', opacity: 0, transition: 'opacity 0.15s' }} onMouseOver={e => ((e.currentTarget as HTMLElement).style.opacity = '1')} onMouseOut={e => ((e.currentTarget as HTMLElement).style.opacity = '0')}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
@@ -288,7 +288,7 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-muted)' }}>Bio</label>
                 <textarea name="bio" defaultValue={user.bio ?? ''} maxLength={160} onChange={e => setBioLen(e.target.value.length)} style={{ width: '100%', border: '1.5px solid var(--color-border)', borderRadius: 10, padding: '10px 14px', fontSize: '0.95rem', fontFamily: 'inherit', outline: 'none', background: 'var(--color-bg)', color: 'var(--color-text)', minHeight: 80, resize: 'vertical', boxSizing: 'border-box' }} />
-                <div style={{ fontSize: '0.75rem', color: bioLen > 145 ? '#ef4444' : 'var(--color-text-muted)', textAlign: 'right' }}>{bioLen} / 160</div>
+                <div style={{ fontSize: '0.75rem', color: bioLen > 145 ? 'var(--color-danger)' : 'var(--color-text-muted)', textAlign: 'right' }}>{bioLen} / 160</div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
@@ -319,7 +319,7 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-muted)' }}>İlgi Alanları <span style={{ fontWeight: 400 }}>(en fazla 10)</span></label>
                 <input type="hidden" name="interests" value={interests.join(',')} />
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center', minHeight: 44, border: '1.5px solid var(--color-border)', borderRadius: 10, padding: '6px 10px', cursor: 'text' }} onClick={() => document.getElementById('tag-input-field')?.focus()}>
+                <div role="button" tabIndex={0} aria-label="İlgi alanı ekle" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center', minHeight: 44, border: '1.5px solid var(--color-border)', borderRadius: 10, padding: '6px 10px', cursor: 'text' }} onClick={() => document.getElementById('tag-input-field')?.focus()} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); document.getElementById('tag-input-field')?.focus(); } }}>
                   {interests.map(tag => (
                     <span key={tag} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'rgba(212,165,100,0.15)', color: '#c4954e', borderRadius: '9999px', padding: '2px 10px', fontSize: '0.8rem', fontWeight: 600 }}>
                       {tag}
@@ -358,8 +358,8 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
                   <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{user.display_name}</div>
                   <div style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>@{user.username}</div>
                 </div>
-                <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, color: '#ef4444' }}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#ef4444"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, color: 'var(--color-danger)' }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="var(--color-danger)"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
                   {lightbox.likes}
                 </div>
               </div>
@@ -367,7 +367,7 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
               {posts.some(p => p.id === lightbox.id) && (
                 <div style={{ marginTop: 'auto', paddingTop: 12, borderTop: '1px solid var(--color-border)' }}>
                   {!confirmingDelete ? (
-                    <button onClick={() => setConfirmingDelete(true)} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', color: '#ef4444', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'inherit', padding: '6px 0' }}>
+                    <button onClick={() => setConfirmingDelete(true)} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', color: 'var(--color-danger)', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'inherit', padding: '6px 0' }}>
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                       Sil
                     </button>
@@ -376,7 +376,7 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
                       <p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', margin: '0 0 8px' }}>Bu içerik profilinden kaldırılacak. Emin misin?</p>
                       <div style={{ display: 'flex', gap: 8 }}>
                         <button onClick={() => setConfirmingDelete(false)} disabled={deleting} style={{ flex: 1, padding: 8, border: '1px solid var(--color-border)', borderRadius: 8, background: 'none', color: 'var(--color-text)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'inherit' }}>Vazgeç</button>
-                        <button onClick={handleDelete} disabled={deleting} style={{ flex: 1, padding: 8, border: 'none', borderRadius: 8, background: '#ef4444', color: '#fff', fontWeight: 700, fontSize: '0.85rem', cursor: deleting ? 'not-allowed' : 'pointer', opacity: deleting ? 0.7 : 1, fontFamily: 'inherit' }}>{deleting ? 'Siliniyor…' : 'Evet, sil'}</button>
+                        <button onClick={handleDelete} disabled={deleting} style={{ flex: 1, padding: 8, border: 'none', borderRadius: 8, background: 'var(--color-danger)', color: '#fff', fontWeight: 700, fontSize: '0.85rem', cursor: deleting ? 'not-allowed' : 'pointer', opacity: deleting ? 0.7 : 1, fontFamily: 'inherit' }}>{deleting ? 'Siliniyor…' : 'Evet, sil'}</button>
                       </div>
                     </div>
                   )}

@@ -1,28 +1,114 @@
 @import "tailwindcss";
 
 :root {
+  /* ── Yüzeyler & metin ── */
   --color-bg: #f0f2f5;
   --color-surface: #ffffff;
-  --color-primary: #3b82f6;
-  --color-primary-hover: #2563eb;
+  --color-hover: #eef0f3;          /* nötr hover zemini (eskiden #f0f2f5/#f9fafb dağınıktı) */
   --color-text: #0f1419;
   --color-text-muted: #536471;
   --color-border: #e2e8f0;
+
+  /* ── Marka: indigo/mor primary ── */
+  --color-primary: #4f46e5;        /* indigo-600 — beyaz metinle de, link metni olarak da WCAG AA */
+  --color-primary-hover: #4338ca;  /* indigo-700 */
+  --color-primary-soft: #eef2ff;   /* indigo-50 — yumuşak vurgu zemini / hover */
+  --color-on-primary: #ffffff;
+
+  /* ── Sıcak aksan: amber/altın ── */
+  --color-accent: #f59e0b;         /* amber-500 — dolgu/vurgu */
+  --color-accent-ink: #b45309;     /* amber-700 — açık zeminde aksan METNİ (AA) */
+  --color-accent-soft: #fef3c7;    /* amber-100 — yumuşak zemin */
+
+  /* ── Özellik-semantiği (rastgele değil, kasıtlı; token'a bağlı) ── */
+  --color-match: #ec4899;          /* pembe — eşleşme/romantik */
+  --color-match-2: #8b5cf6;        /* mor — eşleşme gradyan ucu */
+  --gradient-match: linear-gradient(135deg, var(--color-match), var(--color-match-2));
+  --gradient-story: linear-gradient(135deg, #f58529, #dd2a7b, #8134af, #515bd4); /* story halkası — Instagram-tarzı, kasıtlı */
+  --gradient-brand: linear-gradient(135deg, var(--color-primary), var(--color-match-2));
+  --gradient-hero: radial-gradient(120% 130% at 72% 25%, #312e81 0%, #1e1b4b 55%, #14121f 100%); /* marka indigo hero */
+
+  /* ── Durum renkleri ── */
+  --color-success: #22c55e;
+  --color-success-soft: #dcfce7;
+  --color-danger: #ef4444;
+  --color-danger-soft: #fee2e2;
+  --color-warning: #f59e0b;
+
+  /* ── Radius ölçeği ── */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  --radius-pill: 9999px;
+
+  /* ── Gölge ölçeği ── */
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.10);
+  --shadow-md: 0 6px 18px rgba(0,0,0,0.16);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,0.18);
+  --shadow-xl: 0 24px 60px rgba(0,0,0,0.40);
+
+  /* ── Boşluk ölçeği (4px tabanlı) ── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+
+  /* ── Tipografi ölçeği ── */
+  --text-xs: 0.72rem;
+  --text-sm: 0.85rem;
+  --text-base: 0.95rem;
+  --text-md: 1rem;
+  --text-lg: 1.1rem;
+  --text-xl: 1.2rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.9rem;
+
+  /* ── Odak halkası (klavye erişilebilirliği) ── */
+  --focus-ring-color: var(--color-primary);
+
   --sidebar-width: 275px;
   --sidebar-width-sm: 88px;
 }
 
 * { box-sizing: border-box; }
 
+/* ── Global klavye odak halkası ──
+   Önceden HİÇ focus stili yoktu; klavye kullanıcıları nerede olduklarını göremiyordu.
+   outline kullanılır (box-shadow gibi overflow:hidden ile kırpılmaz) ve modern
+   tarayıcılarda öğenin border-radius'unu takip eder. */
+:where(a, button, input, textarea, select, summary, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 2px solid var(--focus-ring-color);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+/* Zaten yuvarlak öğelerde outline radius'u öğeden miras alsın (kare köşe görünmesin) */
+.nav-link:focus-visible, .post-btn:focus-visible, .action-btn:focus-visible,
+.mobile-nav-btn:focus-visible, .back-btn:focus-visible, .match-action:focus-visible,
+.match-btn-refresh:focus-visible, .avatar:focus-visible { border-radius: inherit; }
+
+/* ── Hareketi azalt: kullanıcı isterse animasyon/geçişleri neredeyse kapat ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 .cap-tag {
-  color: #d4a564;
+  color: var(--color-accent-ink);
   font-weight: 600;
   text-decoration: none;
 }
 .cap-tag:hover { text-decoration: underline; }
 
 .cap-mention {
-  color: #3b82f6;
+  color: var(--color-primary);
   font-weight: 600;
   text-decoration: none;
 }
@@ -142,7 +228,7 @@ body {
   text-align: left;
   font-family: inherit;
 }
-.nav-link:hover { background: #f0f2f5; }
+.nav-link:hover { background: var(--color-hover); }
 .nav-link.active { font-weight: 700; color: var(--color-primary); }
 .nav-link svg { flex-shrink: 0; }
 
@@ -161,7 +247,7 @@ body {
   height: 16px;
   padding: 0 4px;
   border-radius: 8px;
-  background: #ef4444;
+  background: var(--color-danger);
   color: #fff;
   font-size: 0.65rem;
   font-weight: 700;
@@ -230,7 +316,7 @@ body {
   transition: background 0.1s;
   cursor: pointer;
 }
-.post-card:hover { background: #f9fafb; }
+.post-card:hover { background: var(--color-hover); }
 
 .post-header {
   display: flex;
@@ -243,7 +329,7 @@ body {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  background: var(--gradient-brand);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -307,7 +393,7 @@ body {
   transition: all 0.15s;
   font-family: inherit;
 }
-.action-btn:hover { color: var(--color-primary); background: #dbeafe; }
+.action-btn:hover { color: var(--color-primary); background: var(--color-primary-soft); }
 
 /* Widget card */
 .widget-card {
@@ -390,7 +476,7 @@ body {
   transition: background 0.15s;
   text-decoration: none;
 }
-.back-btn:hover { background: #f0f2f5; }
+.back-btn:hover { background: var(--color-hover); }
 
 /* Article page styles */
 .article-hero {
@@ -449,9 +535,9 @@ body {
   transition: all 0.15s;
   font-size: 0.95rem;
 }
-.quiz-option:hover { border-color: var(--color-primary); background: #dbeafe; }
-.quiz-option.correct { border-color: #22c55e; background: #dcfce7; }
-.quiz-option.wrong { border-color: #ef4444; background: #fee2e2; }
+.quiz-option:hover { border-color: var(--color-primary); background: var(--color-primary-soft); }
+.quiz-option.correct { border-color: var(--color-success); background: var(--color-success-soft); }
+.quiz-option.wrong { border-color: var(--color-danger); background: var(--color-danger-soft); }
 
 /* Toast bildirimleri için sonner kullanılıyor (eski özel toast stilleri kaldırıldı) */
 
@@ -504,7 +590,7 @@ body {
   height: 17px;
   padding: 0 4px;
   border-radius: 9px;
-  background: #ef4444;
+  background: var(--color-danger);
   color: #fff;
   font-size: 0.65rem;
   font-weight: 700;
@@ -592,7 +678,7 @@ body {
   text-align: left;
   transition: background 0.12s, border-color 0.12s;
 }
-.mc-option:hover { background: #f0f2f5; border-color: var(--color-primary); }
+.mc-option:hover { background: var(--color-hover); border-color: var(--color-primary); }
 .mc-cancel {
   width: 100%;
   padding: 13px;
@@ -606,7 +692,7 @@ body {
   border-radius: 10px;
   transition: background 0.12s;
 }
-.mc-cancel:hover { background: #f0f2f5; }
+.mc-cancel:hover { background: var(--color-hover); }
 
 /* Responsive */
 @media (max-width: 1200px) {
@@ -645,8 +731,15 @@ body {
 [data-theme="dark"] {
   --color-bg: #0f1419;
   --color-surface: #16202a;
-  --color-primary: #3b82f6;
-  --color-primary-hover: #60a5fa;
+  --color-hover: rgba(255,255,255,0.06);
+  --color-primary: #6366f1;        /* indigo-500 — koyu zeminde daha canlı */
+  --color-primary-hover: #818cf8;  /* indigo-400 */
+  --color-primary-soft: rgba(99,102,241,0.16);
+  --color-accent: #fbbf24;         /* amber-400 — koyuda dolgu */
+  --color-accent-ink: #fbbf24;     /* koyuda aksan metni de açık amber okunur */
+  --color-accent-soft: rgba(245,158,11,0.18);
+  --color-success-soft: rgba(34,197,94,0.18);
+  --color-danger-soft: rgba(239,68,68,0.18);
   --color-text: #e7e9ea;
   --color-text-muted: #8b98a5;
   --color-border: #2f3336;
@@ -657,7 +750,7 @@ body {
 [data-theme="dark"] .nav-link:hover           { background: rgba(255,255,255,0.06); }
 [data-theme="dark"] .back-btn:hover           { background: rgba(255,255,255,0.06); }
 [data-theme="dark"] .mobile-nav-btn:hover     { background: rgba(255,255,255,0.06); }
-[data-theme="dark"] .action-btn:hover         { background: rgba(59,130,246,0.14); }
+[data-theme="dark"] .action-btn:hover         { background: var(--color-primary-soft); }
 [data-theme="dark"] .trending-item:hover      { background: rgba(255,255,255,0.04); }
 [data-theme="dark"] .feed-header  { background: rgba(15,20,25,0.88); }
 [data-theme="dark"] .widget-card  { background: #1c2732; }
@@ -731,7 +824,7 @@ body {
   color: #fff;
   font-weight: 700;
   font-size: 1.2rem;
-  border: 2.5px solid #ec4899;
+  border: 2.5px solid var(--color-match);
 }
 .match-strip-name {
   font-size: 0.72rem;
@@ -875,7 +968,7 @@ body {
 }
 .match-action:active { transform: scale(0.9); }
 .match-action-pass { color: #ef4444; }
-.match-action-like { color: #ec4899; }
+.match-action-like { color: var(--color-match); }
 
 /* Boş / yükleniyor durumu */
 .match-empty {
@@ -931,7 +1024,7 @@ body {
 .match-modal-title {
   font-size: 1.9rem;
   font-weight: 900;
-  background: linear-gradient(135deg,#ec4899,#8b5cf6);
+  background: var(--gradient-match);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -955,9 +1048,9 @@ body {
   color: #fff;
   font-weight: 800;
   font-size: 2rem;
-  border: 3px solid #ec4899;
+  border: 3px solid var(--color-match);
 }
-.match-modal-heart { font-size: 1.8rem; color: #ec4899; }
+.match-modal-heart { font-size: 1.8rem; color: var(--color-match); }
 .match-modal-sub { margin: 0 0 20px; color: var(--color-text-muted); font-size: 0.95rem; line-height: 1.5; }
 .match-modal-actions { display: flex; flex-direction: column; gap: 10px; }
 .match-modal-btn {
@@ -987,7 +1080,7 @@ body {
   margin: 12px 16px;
   padding: 14px 16px;
   border-radius: 16px;
-  background: linear-gradient(135deg, #ec4899, #8b5cf6);
+  background: var(--gradient-match);
   color: #fff;
   text-decoration: none;
   box-shadow: 0 6px 18px rgba(139,92,246,0.25);

@@ -119,7 +119,7 @@ export default function ImageCropper({ file, onCancel, onCropped }: {
             return (
               <button key={a.label} type="button" onClick={() => setAspect(a.value)}
                 style={{ padding: '6px 14px', borderRadius: 9999, cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
-                  border: on ? '2px solid #6366f1' : '1px solid #444',
+                  border: on ? '2px solid var(--color-primary)' : '1px solid #444',
                   background: on ? 'rgba(99,102,241,0.25)' : 'transparent', color: '#fff', fontFamily: 'inherit' }}>
                 {a.label}
               </button>
@@ -129,7 +129,7 @@ export default function ImageCropper({ file, onCancel, onCropped }: {
         <input type="range" min={1} max={3} step={0.01} value={zoom} onChange={e => setZoom(Number(e.target.value))} aria-label="Yakınlaştır" style={{ width: '100%' }} />
         <div style={{ display: 'flex', gap: 10 }}>
           <button type="button" onClick={cancel} disabled={busy} style={{ flex: 1, padding: 12, borderRadius: 10, border: '1px solid #555', background: 'transparent', color: '#fff', fontWeight: 700, cursor: busy ? 'default' : 'pointer', fontFamily: 'inherit' }}>İptal</button>
-          <button type="button" onClick={apply} disabled={busy} style={{ flex: 1, padding: 12, borderRadius: 10, border: 'none', background: '#6366f1', color: '#fff', fontWeight: 700, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.7 : 1, fontFamily: 'inherit' }}>{busy ? 'İşleniyor…' : 'Uygula'}</button>
+          <button type="button" onClick={apply} disabled={busy} style={{ flex: 1, padding: 12, borderRadius: 10, border: 'none', background: 'var(--color-primary)', color: '#fff', fontWeight: 700, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.7 : 1, fontFamily: 'inherit' }}>{busy ? 'İşleniyor…' : 'Uygula'}</button>
         </div>
       </div>
     </div>

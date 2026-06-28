@@ -252,16 +252,23 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
   return (
     <>
       <main className="main-content">
-        {/* Hero banner */}
-        <div style={{ position: 'relative', height: 200, overflow: 'hidden', borderBottom: '1px solid var(--color-border)', background: 'radial-gradient(120% 130% at 72% 25%, #241f52 0%, #14121f 55%, #0b0a12 100%)' }}>
-          <div style={{ position: 'absolute', left: 24, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <Logo size={54} />
-              <div style={{ fontSize: '1.7rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em', textShadow: '0 2px 20px rgba(0,0,0,0.5)' }}>Basements</div>
+        {/* Hero banner — yalnızca giriş yapmamış ziyaretçiye (onboarding/tanıtım).
+            Giriş yapmış kullanıcı için gereksiz dikey alan işgali → gizli. */}
+        {!currentUser && (
+          <div style={{ position: 'relative', minHeight: 200, overflow: 'hidden', borderBottom: '1px solid var(--color-border)', background: 'var(--gradient-hero)' }}>
+            <div style={{ position: 'absolute', inset: 0, padding: '20px 24px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <Logo size={54} />
+                <div style={{ fontSize: '1.7rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em', textShadow: '0 2px 20px rgba(0,0,0,0.5)' }}>Basements</div>
+              </div>
+              <div style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.78)', marginTop: 8, maxWidth: 340 }}>Bilim, tarih ve kültürü interaktif makaleler ve toplulukla keşfet.</div>
+              <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
+                <Link href="/register" style={{ background: '#fff', color: '#1e1b4b', fontWeight: 700, fontSize: '0.85rem', padding: '9px 18px', borderRadius: 'var(--radius-pill)', textDecoration: 'none' }}>Hemen katıl</Link>
+                <Link href="/login" style={{ background: 'rgba(255,255,255,0.16)', color: '#fff', fontWeight: 700, fontSize: '0.85rem', padding: '9px 18px', borderRadius: 'var(--radius-pill)', textDecoration: 'none', border: '1px solid rgba(255,255,255,0.3)' }}>Giriş yap</Link>
+              </div>
             </div>
-            <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.72)', marginTop: 8, maxWidth: 260 }}>Bilim, tarih ve kültür — keşfetmeye başla</div>
           </div>
-        </div>
+        )}
         <div className="feed-header">Ana Sayfa</div>
 
         {/* Story bar */}
@@ -275,17 +282,17 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                 else setCreateOpen(true);
               }}
             >
-              <div style={{ width: 60, height: 60, borderRadius: '50%', padding: '2.5px', background: ownStoryUser ? 'linear-gradient(135deg,#f58529,#dd2a7b,#8134af,#515bd4)' : 'rgba(0,0,0,0.08)', border: ownStoryUser ? 'none' : '2px dashed #ccc', position: 'relative', transition: 'transform 0.15s' }}>
+              <div style={{ width: 60, height: 60, borderRadius: '50%', padding: '2.5px', background: ownStoryUser ? 'var(--gradient-story)' : 'rgba(0,0,0,0.08)', border: ownStoryUser ? 'none' : '2px dashed #ccc', position: 'relative', transition: 'transform 0.15s' }}>
                 {currentUser.avatar
                   ? <Img src={currentUser.avatar} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', border: '2px solid white' }} />
                   : <div style={{ width: '100%', height: '100%', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '1.25rem', color: '#fff', background: storyAvatarBg(currentUser.username), border: '2px solid white' }}>
                   {currentUser.display_name[0].toUpperCase()}
                 </div>}
                 {!ownStoryUser && (
-                  <span style={{ position: 'absolute', bottom: -1, right: -1, width: 20, height: 20, borderRadius: '50%', background: '#3b82f6', color: '#fff', fontSize: '1rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid white', lineHeight: 1 }}>+</span>
+                  <span style={{ position: 'absolute', bottom: -1, right: -1, width: 20, height: 20, borderRadius: '50%', background: 'var(--color-primary)', color: '#fff', fontSize: '1rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid white', lineHeight: 1 }}>+</span>
                 )}
               </div>
-              <span style={{ fontSize: '0.7rem', color: '#888', maxWidth: 64, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'center' }}>
+              <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', maxWidth: 64, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'center' }}>
                 {ownStoryUser ? 'Hikayem' : 'Ekle'}
               </span>
             </button>
@@ -297,13 +304,13 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
               style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px', background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0, padding: '2px' }}
               onClick={() => openViewer(ownStoryUser ? i + 1 : i)}
             >
-              <div style={{ width: 60, height: 60, borderRadius: '50%', padding: '2.5px', background: 'linear-gradient(135deg,#f58529,#dd2a7b,#8134af,#515bd4)', transition: 'transform 0.15s' }}>
+              <div style={{ width: 60, height: 60, borderRadius: '50%', padding: '2.5px', background: 'var(--gradient-story)', transition: 'transform 0.15s' }}>
                 {u.avatar
                   ? <Img src={u.avatar} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', border: '2px solid white' }} />
                   : <div style={{ width: '100%', height: '100%', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '1.25rem', color: '#fff', background: storyAvatarBg(u.username), border: '2px solid white' }}>{u.displayName[0].toUpperCase()}</div>
                 }
               </div>
-              <span style={{ fontSize: '0.7rem', color: '#888', maxWidth: 64, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'center' }}>{u.username}</span>
+              <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', maxWidth: 64, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'center' }}>{u.username}</span>
             </button>
           ))}
         </div>
@@ -372,7 +379,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                       <motion.button
                         onClick={() => likePost(item.id, 'fact')}
                         whileTap={{ scale: 0.80 }}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', borderRadius: '9999px', color: liked ? '#ef4444' : 'var(--color-text)', fontWeight: 600, fontFamily: 'inherit', transition: 'color 0.15s', fontSize: '0.9rem' }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', borderRadius: '9999px', color: liked ? 'var(--color-danger)' : 'var(--color-text)', fontWeight: 600, fontFamily: 'inherit', transition: 'color 0.15s', fontSize: '0.9rem' }}
                       >
                         <AnimatePresence mode="wait" initial={false}>
                           <motion.span key={liked ? 'f' : 'e'} initial={{ scale: 0.5, rotate: -15 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0.5 }} transition={{ type: 'spring', stiffness: 400, damping: 15 }} style={{ display: 'flex' }}>
@@ -389,7 +396,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                         whileTap={{ scale: 0.80 }}
                         aria-label="Repost"
                         title={reposted ? 'Repost geri al' : 'Repost'}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '6px 8px', borderRadius: '9999px', color: reposted ? '#22c55e' : 'var(--color-text)', transition: 'color 0.15s' }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '6px 8px', borderRadius: '9999px', color: reposted ? 'var(--color-success)' : 'var(--color-text)', transition: 'color 0.15s' }}
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m17 1 4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="m7 23-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
                       </motion.button>
@@ -441,7 +448,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                     <motion.button
                       onClick={() => likePost(item.id, 'post')}
                       whileTap={{ scale: 0.80 }}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', borderRadius: '9999px', color: liked ? '#ef4444' : 'var(--color-text)', fontWeight: 600, fontFamily: 'inherit', fontSize: '0.9rem', transition: 'color 0.15s' }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', borderRadius: '9999px', color: liked ? 'var(--color-danger)' : 'var(--color-text)', fontWeight: 600, fontFamily: 'inherit', fontSize: '0.9rem', transition: 'color 0.15s' }}
                     >
                       <AnimatePresence mode="wait" initial={false}>
                         <motion.span key={liked ? 'f' : 'e'} initial={{ scale: 0.5, rotate: -15 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0.5 }} transition={{ type: 'spring', stiffness: 400, damping: 15 }} style={{ display: 'flex' }}>
@@ -485,7 +492,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
           <p style={{ margin: '0 0 12px', fontSize: '0.85rem', color: 'var(--color-text-muted)', lineHeight: 1.45 }}>
             İlgi alanlarına göre yeni insanlarla tanış. Kaydır, beğen, eşleş.
           </p>
-          <Link href="/eslesme" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '11px 14px', borderRadius: 12, textDecoration: 'none', color: '#fff', fontWeight: 800, fontSize: '0.9rem', background: 'linear-gradient(135deg,#ec4899,#8b5cf6)' }}>
+          <Link href="/eslesme" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '11px 14px', borderRadius: 12, textDecoration: 'none', color: '#fff', fontWeight: 800, fontSize: '0.9rem', background: 'var(--gradient-match)' }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.9-10-9.3C.3 8.4 1.7 5 5 5c2 0 3.2 1.1 4 2.3C9.8 6.1 11 5 13 5c3.3 0 4.7 3.4 3 6.7C19.5 16.1 12 21 12 21z"/></svg>
             Eşleşmeye başla
           </Link>
@@ -570,9 +577,9 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                 : <Img key={currentSvStory.mediaUrl} src={currentSvStory.mediaUrl} alt="" sizes="(max-width:520px) 100vw, 460px" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
               }
             </div>
-            {/* Touch zones */}
-            <div style={{ position: 'absolute', top: 60, bottom: 0, left: 0, width: '40%', cursor: 'pointer', zIndex: 5 }} onClick={() => advanceStory(-1)} />
-            <div style={{ position: 'absolute', top: 60, bottom: 0, right: 0, width: '40%', cursor: 'pointer', zIndex: 5 }} onClick={() => advanceStory(1)} />
+            {/* Touch zones — klavye/ekran-okuyucu için <button> + aria-label */}
+            <button type="button" aria-label="Önceki hikaye" onClick={() => advanceStory(-1)} style={{ position: 'absolute', top: 60, bottom: 0, left: 0, width: '40%', cursor: 'pointer', zIndex: 5, background: 'none', border: 'none', padding: 0 }} />
+            <button type="button" aria-label="Sonraki hikaye" onClick={() => advanceStory(1)} style={{ position: 'absolute', top: 60, bottom: 0, right: 0, width: '40%', cursor: 'pointer', zIndex: 5, background: 'none', border: 'none', padding: 0 }} />
           </div>
           <style>{`@keyframes sv-progress { to { transform: scaleX(1); } }`}</style>
         </div>
@@ -589,8 +596,12 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
               </button>
             </div>
             <div
+              role="button"
+              tabIndex={0}
+              aria-label="Fotoğraf veya video seç"
               style={{ border: '2px dashed rgba(255,255,255,0.15)', borderRadius: 16, height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', textAlign: 'center', overflow: 'hidden', position: 'relative', color: '#ccc', transition: 'border-color 0.2s' }}
               onClick={() => document.getElementById('story-file-input')?.click()}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); document.getElementById('story-file-input')?.click(); } }}
             >
               {storyPreviewUrl ? (
                 storyFile?.type.startsWith('video/') ? <video src={storyPreviewUrl} style={{ width: '100%', height: '100%', objectFit: 'contain' }} controls /> : <img src={storyPreviewUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
@@ -603,7 +614,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
             </div>
             <input id="story-file-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" hidden onChange={e => { const f = e.target.files?.[0]; if (f) applyStoryFile(f); }} />
             {storyError && <p style={{ color: '#ef4444', fontSize: '0.85rem', margin: '8px 0 0' }}>{storyError}</p>}
-            <button disabled={!storyFile || storySubmitting} onClick={submitStory} style={{ width: '100%', marginTop: 14, padding: 12, border: 'none', borderRadius: '9999px', background: '#d4a564', color: '#0f0e0d', fontWeight: 700, fontSize: '0.95rem', cursor: storyFile ? 'pointer' : 'not-allowed', opacity: storyFile ? 1 : 0.4 }}>
+            <button disabled={!storyFile || storySubmitting} onClick={submitStory} style={{ width: '100%', marginTop: 14, padding: 12, border: 'none', borderRadius: '9999px', background: 'var(--color-accent)', color: '#0f0e0d', fontWeight: 700, fontSize: '0.95rem', cursor: storyFile ? 'pointer' : 'not-allowed', opacity: storyFile ? 1 : 0.4 }}>
               {storySubmitting ? 'Yükleniyor…' : 'Hikayeyi Paylaş'}
             </button>
           </div>

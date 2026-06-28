@@ -34,7 +34,7 @@ export default async function ForgotPasswordPage({
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-          <div style={{ fontSize: '2rem', fontWeight: 800, color: '#3b82f6', marginBottom: '4px' }}>
+          <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--color-primary)', marginBottom: '4px' }}>
             Basements
           </div>
           <div style={{ color: '#536471', fontSize: '0.9rem' }}>
@@ -76,7 +76,7 @@ export default async function ForgotPasswordPage({
         {!sent && <ForgotPasswordForm />}
 
         <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '0.88rem', color: '#536471' }}>
-          <a href="/login" style={{ color: '#3b82f6', fontWeight: 600, textDecoration: 'none' }}>
+          <a href="/login" style={{ color: 'var(--color-primary)', fontWeight: 600, textDecoration: 'none' }}>
             ← Giriş sayfasına dön
           </a>
         </p>

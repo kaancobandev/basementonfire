@@ -16,7 +16,7 @@ export type BibItem = {
  * `.reveal` KULLANMAZ — content.ts makalelerinde IntersectionObserver olmadığından
  * gizli kalmaması için her zaman görünürdür.
  */
-export default function ArticleBibliography({ items, accent = '#888888' }: { items: BibItem[]; accent?: string }) {
+export default function ArticleBibliography({ items, accent = 'var(--color-text-muted)' }: { items: BibItem[]; accent?: string }) {
   return (
     <>
     <section className="art-bib" style={{ ['--bib-accent']: accent } as CSSProperties} aria-label="Kaynakça">

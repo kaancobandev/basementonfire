@@ -184,7 +184,7 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
               const data = await res.json();
               setPosts(data.posts); setNextCursor(data.nextCursor); setHasMore(data.hasMore);
               window.scrollTo({ top: 0, behavior: 'smooth' });
-            }} style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#d4a564', color: '#0f0e0d', border: 'none', borderRadius: '9999px', padding: '8px 20px', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 16px rgba(212,165,100,0.35)', animation: 'bar-in 0.3s ease' }}>
+            }} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--color-accent)', color: '#0f0e0d', border: 'none', borderRadius: '9999px', padding: '8px 20px', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 16px rgba(212,165,100,0.35)', animation: 'bar-in 0.3s ease' }}>
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>
               {pendingNew === 1 ? 'Yeni gönderi var' : `${pendingNew} yeni gönderi var`}
             </button>
@@ -235,7 +235,7 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
         <div ref={sentinelRef} style={{ padding: '24px 0 48px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           {loading && (
             <div style={{ display: 'flex', justifyContent: 'center', padding: 16 }}>
-              <div style={{ width: 28, height: 28, border: '3px solid rgba(212,165,100,0.2)', borderTopColor: '#d4a564', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+              <div style={{ width: 28, height: 28, border: '3px solid rgba(212,165,100,0.2)', borderTopColor: 'var(--color-accent)', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
             </div>
           )}
           {!hasMore && posts.length > 0 && <p style={{ fontSize: '0.82rem', color: '#666', margin: 0, textAlign: 'center' }}>Tüm gönderiler yüklendi</p>}
@@ -274,8 +274,12 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
               <input id="akis-media-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" hidden multiple onChange={e => { addFiles(Array.from(e.target.files ?? [])); (e.currentTarget as HTMLInputElement).value = ''; }} />
               {items.length === 0 ? (
                 <div
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Medya seç"
                   style={{ border: '2px dashed var(--color-border)', borderRadius: 16, height: 220, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'border-color 0.15s', textAlign: 'center', overflow: 'hidden', position: 'relative' }}
                   onClick={() => document.getElementById('akis-media-input')?.click()}
+                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); document.getElementById('akis-media-input')?.click(); } }}
                   onDragOver={e => { e.preventDefault(); (e.currentTarget as HTMLElement).style.borderColor = 'var(--color-primary)'; }}
                   onDragLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--color-border)'; }}
                   onDrop={e => { e.preventDefault(); (e.currentTarget as HTMLElement).style.borderColor = 'var(--color-border)'; addFiles(Array.from(e.dataTransfer.files)); }}

@@ -131,7 +131,17 @@ export default function CarthagePage() {
             <div className="ca-card-wrapper">
               <div
                 className={`ca-flip-card${flipped === i ? ' flipped' : ''}`}
+                role="button"
+                tabIndex={0}
+                aria-pressed={flipped === i}
+                aria-label={`${ch.cardTitle} — kartı çevir, gerçeği gör`}
                 onClick={() => setFlipped(flipped === i ? null : i)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setFlipped(flipped === i ? null : i);
+                  }
+                }}
               >
                 <div className="ca-flip-inner">
                   <div className="ca-flip-front">

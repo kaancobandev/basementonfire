@@ -10,7 +10,7 @@ export default function RegisterForm() {
         <label style={labelStyle}>Kullanıcı adı</label>
         <input type="text" name="username" required autoComplete="username" placeholder="kullanici_adi"
           style={inputStyle}
-          onFocus={e => (e.target.style.borderColor = '#3b82f6')}
+          onFocus={e => (e.target.style.borderColor = 'var(--color-primary)')}
           onBlur={e => (e.target.style.borderColor = '#e2e8f0')}
         />
       </div>
@@ -18,7 +18,7 @@ export default function RegisterForm() {
         <label style={labelStyle}>E-posta</label>
         <input type="email" name="email" required autoComplete="email" placeholder="ornek@mail.com"
           style={inputStyle}
-          onFocus={e => (e.target.style.borderColor = '#3b82f6')}
+          onFocus={e => (e.target.style.borderColor = 'var(--color-primary)')}
           onBlur={e => (e.target.style.borderColor = '#e2e8f0')}
         />
       </div>
@@ -26,15 +26,15 @@ export default function RegisterForm() {
         <label style={labelStyle}>Şifre</label>
         <input type="password" name="password" required autoComplete="new-password" placeholder="En az 6 karakter"
           style={inputStyle}
-          onFocus={e => (e.target.style.borderColor = '#3b82f6')}
+          onFocus={e => (e.target.style.borderColor = 'var(--color-primary)')}
           onBlur={e => (e.target.style.borderColor = '#e2e8f0')}
         />
       </div>
       <button
         type="submit"
-        style={{ background: '#3b82f6', color: 'white', fontWeight: 700, fontSize: '1rem', padding: '12px', border: 'none', borderRadius: '10px', cursor: 'pointer', marginTop: '4px' }}
-        onMouseOver={e => ((e.target as HTMLButtonElement).style.background = '#2563eb')}
-        onMouseOut={e => ((e.target as HTMLButtonElement).style.background = '#3b82f6')}
+        style={{ background: 'var(--color-primary)', color: 'white', fontWeight: 700, fontSize: '1rem', padding: '12px', border: 'none', borderRadius: '10px', cursor: 'pointer', marginTop: '4px' }}
+        onMouseOver={e => ((e.target as HTMLButtonElement).style.background = 'var(--color-primary-hover)')}
+        onMouseOut={e => ((e.target as HTMLButtonElement).style.background = 'var(--color-primary)')}
       >
         Kayıt Ol
       </button>

@@ -217,7 +217,7 @@ export default function PostModal({ post, initialComments, initialLiked, initial
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m17 1 4 4-4 4" /><path d="M3 11V9a4 4 0 0 1 4-4h14" /><path d="m7 23-4-4 4-4" /><path d="M21 13v2a4 4 0 0 1-4 4H3" /></svg>
             </motion.button>
             <motion.button onClick={toggleBookmark} whileTap={{ scale: 0.80 }} aria-label="Kaydet"
-              style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: bookmarked ? '#d4a564' : 'var(--color-text-muted)', transition: 'color 0.15s' }}>
+              style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: bookmarked ? 'var(--color-accent-ink)' : 'var(--color-text-muted)', transition: 'color 0.15s' }}>
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill={bookmarked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" /></svg>
             </motion.button>
             <Link href={`/p/${post.id}`} prefetch={false} style={{ marginLeft: 'auto', fontSize: '0.8rem', color: 'var(--color-text-muted)', textDecoration: 'none' }}>{comments.length} yorum</Link>

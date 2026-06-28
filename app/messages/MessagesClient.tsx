@@ -222,7 +222,7 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
             <img src={m.content.slice(7)} alt="GIF" loading="lazy" style={{ width: '100%', display: 'block' }} />
           </div>
         ) : (
-          <div style={{ padding: '9px 14px', borderRadius: 18, fontSize: '0.88rem', lineHeight: 1.5, wordBreak: 'break-word', whiteSpace: 'pre-wrap', ...(mine ? { background: '#d4a564', color: '#0f0e0d', borderBottomRightRadius: 4 } : { background: 'rgba(255,255,255,0.08)', color: '#e8e0d8', borderBottomLeftRadius: 4 }) }}>
+          <div style={{ padding: '9px 14px', borderRadius: 18, fontSize: '0.88rem', lineHeight: 1.5, wordBreak: 'break-word', whiteSpace: 'pre-wrap', ...(mine ? { background: 'var(--color-accent)', color: '#0f0e0d', borderBottomRightRadius: 4 } : { background: 'rgba(255,255,255,0.08)', color: '#e8e0d8', borderBottomLeftRadius: 4 }) }}>
             {m.content}
           </div>
         )}
@@ -237,7 +237,7 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
       <div style={{ width: 320, flexShrink: 0, borderRight: '1px solid rgba(255,255,255,0.07)', display: 'flex', flexDirection: 'column', overflow: 'hidden', ...(panelOpen ? { display: 'none' } : {}) }} className="dm-sidebar-col">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px 12px', borderBottom: '1px solid rgba(255,255,255,0.07)', flexShrink: 0 }}>
           <h1 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#e8e0d8', margin: 0 }}>Mesajlar</h1>
-          <button onClick={() => setNewModalOpen(true)} style={{ width: 34, height: 34, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#d4a564', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s' }}>
+          <button onClick={() => setNewModalOpen(true)} style={{ width: 34, height: 34, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: 'var(--color-accent)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s' }}>
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 5v14M5 12h14"/></svg>
           </button>
         </div>
@@ -254,7 +254,7 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
                 <div style={{ width: 46, height: 46, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '1.1rem', color: '#fff', background: c.avatarBg, overflow: 'hidden' }}>
                   {c.otherUser.avatar ? <Img src={c.otherUser.avatar} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : c.otherUser.display_name[0].toUpperCase()}
                 </div>
-                {c.unreadCount > 0 && <span style={{ position: 'absolute', top: 1, right: 1, width: 11, height: 11, borderRadius: '50%', background: '#d4a564', border: '2px solid #0f0e0d' }} />}
+                {c.unreadCount > 0 && <span style={{ position: 'absolute', top: 1, right: 1, width: 11, height: 11, borderRadius: '50%', background: 'var(--color-accent)', border: '2px solid #0f0e0d' }} />}
               </div>
               <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#e8e0d8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.otherUser.display_name}</span>
@@ -262,7 +262,7 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
                 {c.lastTimeAgo && <span style={{ fontSize: '0.72rem', color: '#666' }}>{c.lastTimeAgo}</span>}
-                {c.unreadCount > 0 && <span style={{ background: '#d4a564', color: '#0f0e0d', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 700, padding: '1px 6px', minWidth: 18, textAlign: 'center' }}>{c.unreadCount}</span>}
+                {c.unreadCount > 0 && <span style={{ background: 'var(--color-accent)', color: '#0f0e0d', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 700, padding: '1px 6px', minWidth: 18, textAlign: 'center' }}>{c.unreadCount}</span>}
               </div>
             </button>
           ))}
@@ -281,7 +281,7 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.07)', flexShrink: 0 }}>
-              <button onClick={() => { setPanelOpen(false); setActiveConvId(null); }} style={{ display: 'none', background: 'none', border: 'none', color: '#d4a564', cursor: 'pointer', padding: 4, borderRadius: '50%', alignItems: 'center' }} className="dm-back-btn">
+              <button onClick={() => { setPanelOpen(false); setActiveConvId(null); }} style={{ display: 'none', background: 'none', border: 'none', color: 'var(--color-accent)', cursor: 'pointer', padding: 4, borderRadius: '50%', alignItems: 'center' }} className="dm-back-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m15 18-6-6 6-6"/></svg>
               </button>
               <div style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, background: activeOtherUser ? avatarBg(activeOtherUser.username) : '#333', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#fff', fontSize: '1rem', overflow: 'hidden' }}>
@@ -317,9 +317,9 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
 
             {/* Input bar */}
             <form onSubmit={sendMsg} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderTop: '1px solid rgba(255,255,255,0.07)', flexShrink: 0 }}>
-              <button type="button" onClick={() => setGifPickerOpen(p => !p)} style={{ width: 36, height: 36, borderRadius: 8, border: '1px solid rgba(255,255,255,0.12)', background: gifPickerOpen ? 'rgba(212,165,100,0.18)' : 'rgba(255,255,255,0.05)', color: '#d4a564', fontWeight: 800, fontSize: '0.65rem', letterSpacing: '0.02em', cursor: 'pointer', flexShrink: 0, fontFamily: 'inherit' }}>GIF</button>
+              <button type="button" onClick={() => setGifPickerOpen(p => !p)} style={{ width: 36, height: 36, borderRadius: 8, border: '1px solid rgba(255,255,255,0.12)', background: gifPickerOpen ? 'rgba(212,165,100,0.18)' : 'rgba(255,255,255,0.05)', color: 'var(--color-accent)', fontWeight: 800, fontSize: '0.65rem', letterSpacing: '0.02em', cursor: 'pointer', flexShrink: 0, fontFamily: 'inherit' }}>GIF</button>
               <input value={msgText} onChange={e => setMsgText(e.target.value)} placeholder="Mesaj yaz…" maxLength={1000} autoComplete="off" style={{ flex: 1, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '9999px', padding: '10px 16px', fontSize: '0.9rem', color: '#e8e0d8', outline: 'none', fontFamily: 'inherit' }} />
-              <button type="submit" style={{ width: 40, height: 40, borderRadius: '50%', border: 'none', background: '#d4a564', color: '#0f0e0d', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 0.15s' }}>
+              <button type="submit" style={{ width: 40, height: 40, borderRadius: '50%', border: 'none', background: 'var(--color-accent)', color: '#0f0e0d', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 0.15s' }}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
               </button>
             </form>
@@ -341,7 +341,7 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
             <div style={{ maxHeight: 280, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
               {searchResults.length === 0 && searchQ && <p style={{ padding: '12px', color: '#666', fontSize: '0.85rem' }}>Kullanıcı bulunamadı</p>}
               {searchResults.map((u: any) => (
-                <div key={u.id} onClick={() => startConv(u.username, { id: u.id, username: u.username, display_name: u.display_name ?? u.username, avatar: u.avatar ?? null })} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 4px', cursor: 'pointer', borderRadius: 12, transition: 'background 0.15s' }} onMouseOver={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')} onMouseOut={e => (e.currentTarget.style.background = 'transparent')}>
+                <div key={u.id} role="button" tabIndex={0} aria-label={`${u.display_name ?? u.username} ile konuşma başlat`} onClick={() => startConv(u.username, { id: u.id, username: u.username, display_name: u.display_name ?? u.username, avatar: u.avatar ?? null })} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); startConv(u.username, { id: u.id, username: u.username, display_name: u.display_name ?? u.username, avatar: u.avatar ?? null }); } }} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 4px', cursor: 'pointer', borderRadius: 12, transition: 'background 0.15s' }} onMouseOver={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')} onMouseOut={e => (e.currentTarget.style.background = 'transparent')}>
                   <div style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.9rem', color: '#fff', background: avatarBg(u.username), overflow: 'hidden' }}>
                     {u.avatar ? <Img src={u.avatar} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (u.display_name ?? u.username)[0].toUpperCase()}
                   </div>

@@ -138,7 +138,7 @@ export default function PostDetailClient({ post, initialComments, initialLiked, 
           <button onClick={toggleRepost} aria-label="Repost" title={reposted ? 'Repost geri al' : 'Repost'} style={{ display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', color: reposted ? '#22c55e' : 'var(--color-text)' }}>
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m17 1 4 4-4 4" /><path d="M3 11V9a4 4 0 0 1 4-4h14" /><path d="m7 23-4-4 4-4" /><path d="M21 13v2a4 4 0 0 1-4 4H3" /></svg>
           </button>
-          <button onClick={toggleBookmark} aria-label="Kaydet" style={{ display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', color: bookmarked ? '#d4a564' : 'var(--color-text)', marginLeft: 'auto' }}>
+          <button onClick={toggleBookmark} aria-label="Kaydet" style={{ display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', color: bookmarked ? 'var(--color-accent-ink)' : 'var(--color-text)', marginLeft: 'auto' }}>
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill={bookmarked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg>
           </button>
         </div>

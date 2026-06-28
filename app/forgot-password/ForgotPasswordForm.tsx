@@ -38,7 +38,7 @@ export default function ForgotPasswordForm() {
           autoComplete="email"
           placeholder="ornek@mail.com"
           style={inputStyle}
-          onFocus={e => (e.target.style.borderColor = '#3b82f6')}
+          onFocus={e => (e.target.style.borderColor = 'var(--color-primary)')}
           onBlur={e => (e.target.style.borderColor = '#e2e8f0')}
         />
       </div>
@@ -46,7 +46,7 @@ export default function ForgotPasswordForm() {
       <button
         type="submit"
         style={{
-          background: '#3b82f6',
+          background: 'var(--color-primary)',
           color: 'white',
           fontWeight: 700,
           fontSize: '1rem',
@@ -58,8 +58,8 @@ export default function ForgotPasswordForm() {
           marginTop: '4px',
           fontFamily: 'inherit',
         }}
-        onMouseOver={e => ((e.target as HTMLButtonElement).style.background = '#2563eb')}
-        onMouseOut={e => ((e.target as HTMLButtonElement).style.background = '#3b82f6')}
+        onMouseOver={e => ((e.target as HTMLButtonElement).style.background = 'var(--color-primary-hover)')}
+        onMouseOut={e => ((e.target as HTMLButtonElement).style.background = 'var(--color-primary)')}
       >
         Bağlantı Gönder
       </button>

@@ -139,7 +139,7 @@ export default function ResetPasswordPage() {
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-          <div style={{ fontSize: '2rem', fontWeight: 800, color: '#3b82f6', marginBottom: '4px' }}>
+          <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--color-primary)', marginBottom: '4px' }}>
             Basements
           </div>
           <div style={{ color: '#536471', fontSize: '0.9rem' }}>Yeni şifre belirle</div>
@@ -169,7 +169,7 @@ export default function ResetPasswordPage() {
             </div>
             <a
               href="/forgot-password"
-              style={{ color: '#3b82f6', fontWeight: 600, textDecoration: 'none', fontSize: '0.9rem' }}
+              style={{ color: 'var(--color-primary)', fontWeight: 600, textDecoration: 'none', fontSize: '0.9rem' }}
             >
               Yeni bağlantı iste
             </a>
@@ -203,7 +203,7 @@ export default function ResetPasswordPage() {
                 required
                 placeholder="En az 6 karakter"
                 style={inputStyle}
-                onFocus={e => (e.target.style.borderColor = '#3b82f6')}
+                onFocus={e => (e.target.style.borderColor = 'var(--color-primary)')}
                 onBlur={e => (e.target.style.borderColor = '#e2e8f0')}
               />
             </div>
@@ -218,7 +218,7 @@ export default function ResetPasswordPage() {
                 required
                 placeholder="Şifreyi tekrar gir"
                 style={inputStyle}
-                onFocus={e => (e.target.style.borderColor = '#3b82f6')}
+                onFocus={e => (e.target.style.borderColor = 'var(--color-primary)')}
                 onBlur={e => (e.target.style.borderColor = '#e2e8f0')}
               />
             </div>
@@ -227,7 +227,7 @@ export default function ResetPasswordPage() {
               type="submit"
               disabled={submitting}
               style={{
-                background: submitting ? '#93c5fd' : '#3b82f6',
+                background: submitting ? '#93c5fd' : 'var(--color-primary)',
                 color: 'white',
                 fontWeight: 700,
                 fontSize: '1rem',
@@ -239,8 +239,8 @@ export default function ResetPasswordPage() {
                 marginTop: '4px',
                 fontFamily: 'inherit',
               }}
-              onMouseOver={e => { if (!submitting) (e.target as HTMLButtonElement).style.background = '#2563eb'; }}
-              onMouseOut={e => { if (!submitting) (e.target as HTMLButtonElement).style.background = '#3b82f6'; }}
+              onMouseOver={e => { if (!submitting) (e.target as HTMLButtonElement).style.background = 'var(--color-primary-hover)'; }}
+              onMouseOut={e => { if (!submitting) (e.target as HTMLButtonElement).style.background = 'var(--color-primary)'; }}
             >
               {submitting ? 'Güncelleniyor…' : 'Şifreyi Güncelle'}
             </button>
