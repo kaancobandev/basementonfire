@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 
@@ -9,6 +9,12 @@ type Item = { id: number; slug: string; title: string; summary: string; created_
 export default function AdminClient({ items: initial }: { items: Item[] }) {
   const [items, setItems] = useState(initial);
   const [busy, setBusy] = useState<number | null>(null);
+  // Tarih yereli/saat dilimi server ile client'ta farkli olabilir -> hydration
+  // uyusmazligi (React #418). Server'da ISO'nun gun kismini bas, mount sonrasi
+  // yerellestir; ilk client render server ile AYNI olsun.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  const fmt = (iso: string) => (mounted ? new Date(iso).toLocaleString('tr-TR') : iso.slice(0, 10));
 
   async function moderate(id: number, action: 'approve' | 'reject') {
     let reason = '';
@@ -45,7 +51,7 @@ export default function AdminClient({ items: initial }: { items: Item[] }) {
             <div style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--color-text)' }}>{a.title}</div>
             <div style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', margin: '4px 0 8px' }}>
               <Link href={`/u/${a.username}`} style={{ color: 'var(--color-primary)' }}>{a.author}</Link>
-              {' · '}{new Date(a.created_at).toLocaleString('tr-TR')}
+              {' · '}{fmt(a.created_at)}
             </div>
             {a.summary && <p style={{ fontSize: '0.9rem', color: 'var(--color-text)', margin: '0 0 12px' }}>{a.summary}</p>}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
