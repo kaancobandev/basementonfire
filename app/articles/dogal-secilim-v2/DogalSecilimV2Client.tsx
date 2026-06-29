@@ -1,15 +1,12 @@
 'use client';
 
-import { useRef, useMemo } from 'react';
+import { useRef } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { useGSAP } from '@gsap/react';
 import {
   CamouflageSim, SelectionTypes, Quiz, Reveal, ArticleBibliography,
-  shadeColor, BORDER, ICONBG, ingredients, misconceptions, examples, otherMechanisms, timeline, refs,
+  BORDER, ICONBG, ingredients, misconceptions, examples, otherMechanisms, timeline, refs,
 } from './widgets';
 
 // WebGL hero yalnızca istemcide + lazy (bundle'a ve SSR'a dokunmaz).
@@ -17,9 +14,6 @@ const ShaderHero = dynamic(() => import('./ShaderHero'), {
   ssr: false,
   loading: () => null,
 });
-
-const EVO_N = 42;
-const EVO_TARGET = 74;
 
 export default function DogalSecilimV2Client() {
   // Hero parallax
@@ -29,34 +23,6 @@ export default function DogalSecilimV2Client() {
   const heroOp = useTransform(scrollYProgress, [0, 1], [1, 0]);
   const bgScale = useTransform(scrollYProgress, [0, 1], [1, 1.15]);
   const bgOp = useTransform(scrollYProgress, [0, 1], [1, 0.25]);
-
-  // GSAP: scroll'a kilitli "evrim şeridi"
-  const evoRef = useRef<HTMLElement>(null);
-  const dotsRef = useRef<(HTMLSpanElement | null)[]>([]);
-  const genRef = useRef<HTMLSpanElement>(null);
-  const START = useMemo(() => Array.from({ length: EVO_N }, (_, i) => Math.round((i / (EVO_N - 1)) * 100)), []);
-
-  useGSAP(() => {
-    if (typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    gsap.registerPlugin(ScrollTrigger);
-    const st = ScrollTrigger.create({
-      trigger: evoRef.current!,
-      start: 'top top',
-      end: 'bottom bottom',
-      scrub: 0.5,
-      onUpdate: (self) => {
-        const p = self.progress;
-        const dots = dotsRef.current;
-        for (let i = 0; i < dots.length; i++) {
-          const el = dots[i];
-          if (!el) continue;
-          el.style.background = shadeColor(START[i] + (EVO_TARGET - START[i]) * p);
-        }
-        if (genRef.current) genRef.current.textContent = String(Math.round(p * 60));
-      },
-    });
-    return () => st.kill();
-  }, { scope: evoRef });
 
   const titleWords = ['Doğal', 'Seçilim'];
   const container = { hidden: {}, show: { transition: { staggerChildren: 0.14, delayChildren: 0.15 } } };
@@ -119,21 +85,6 @@ export default function DogalSecilimV2Client() {
               </p>
             </section>
           </Reveal>
-
-          {/* ░░ GSAP — scroll'a kilitli evrim şeridi ░░ */}
-          <section ref={evoRef} className="relative h-[260vh]">
-            <div className="sticky top-0 flex h-screen flex-col items-center justify-center px-6">
-              <div className="mb-2 text-xs font-semibold tracking-[0.25em] text-lime-400">KAYDIRDIKÇA</div>
-              <h2 className="mb-8 max-w-xl text-center text-3xl font-bold text-white sm:text-4xl">Rastgele bir popülasyon, ortama uyana kadar</h2>
-              <div className="grid max-w-2xl grid-cols-7 gap-2.5 sm:grid-cols-14">
-                {START.map((s, i) => (
-                  <span key={i} ref={el => { dotsRef.current[i] = el; }} className="aspect-square rounded-full ring-1 ring-black/20" style={{ background: shadeColor(s) }} aria-hidden />
-                ))}
-              </div>
-              <div className="mt-8 font-mono text-sm text-slate-400">Nesil <span ref={genRef} className="text-2xl font-bold text-emerald-300">0</span></div>
-              <p className="mt-2 max-w-md text-center text-xs text-slate-500">Hiçbir nokta rengini değiştirmiyor — değişen, hangilerinin hayatta kalıp çoğaldığı.</p>
-            </div>
-          </section>
 
           {/* Dört malzeme — alternar düzen */}
           <Reveal>
