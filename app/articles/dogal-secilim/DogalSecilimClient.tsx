@@ -346,7 +346,8 @@ export default function DogalSecilimClient() {
           <Link href="/" aria-label="Ana sayfa" className="grid h-9 w-9 place-items-center rounded-lg border border-white/10 bg-white/5 text-emerald-400 transition hover:-translate-x-0.5 hover:bg-emerald-500/10">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6" /></svg>
           </Link>
-          <span className="text-sm font-semibold tracking-wide text-slate-400">Doğal Seçilim</span>
+          <span className="text-sm font-semibold tracking-wide text-slate-400">Doğal Seçilim · <span className="text-slate-500">KLASİK</span></span>
+          <Link href="/articles/dogal-secilim-v2" className="ml-auto rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-400/20">✨ Yeni tasarımı gör</Link>
         </div>
 
         {/* Hero */}
