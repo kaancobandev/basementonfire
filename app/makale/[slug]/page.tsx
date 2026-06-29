@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { db, getMe, isAdmin } from '@/lib/supabase/server';
 import { breadcrumbJsonLd, jsonLdScript } from '@/lib/seo';
 import { sanitizeArticleHtml } from '@/lib/articleSanitize';
-import { type ArticleBlock } from '@/lib/userArticles';
+import { type ArticleBlock, ARTICLE_GOOGLE_FONTS_HREF } from '@/lib/userArticles';
 import Img from '@/app/components/Img';
 import ArticleEmbed from '@/app/components/ArticleEmbed';
 
@@ -88,6 +88,8 @@ export default async function UserArticlePage({ params }: { params: Promise<{ sl
 
   return (
     <main className="main-content ua-view">
+      {/* Yazarın seçtiği fontlar (yalnızca kullanılanlar indirilir, display=swap) */}
+      <link rel="stylesheet" href={ARTICLE_GOOGLE_FONTS_HREF} />
       {jsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />}
       {breadcrumbLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbLd) }} />}
 
@@ -135,7 +137,7 @@ export default async function UserArticlePage({ params }: { params: Promise<{ sl
             if (b.type === 'image') {
               return (
                 <figure key={i} className="ua-fig">
-                  <Img src={b.url} alt={b.alt || ''} loading="lazy" sizes="(max-width:820px) 100vw, 820px" style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 12 }} />
+                  <Img src={b.url} alt={b.alt || ''} loading="lazy" sizes="(max-width:820px) 100vw, 820px" style={{ width: '100%', maxWidth: '100%', height: 'auto', display: 'block', borderRadius: 12 }} />
                   {b.caption && <figcaption>{b.caption}</figcaption>}
                 </figure>
               );
@@ -198,6 +200,7 @@ export default async function UserArticlePage({ params }: { params: Promise<{ sl
         .ua-prose img { max-width: 100%; height: auto; }
 
         .ua-fig { margin: 22px 0; }
+        .ua-fig img { width: 100%; max-width: 100%; height: auto; display: block; }
         .ua-fig figcaption { font-size: 0.8rem; color: var(--color-text-muted); text-align: center; margin-top: 7px; }
 
         .ua-bib { margin-top: 36px; padding-top: 22px; border-top: 1px solid var(--color-border); }

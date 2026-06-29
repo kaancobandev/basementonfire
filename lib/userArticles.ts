@@ -44,13 +44,57 @@ export const LIMITS = {
 
 // Prose icin secilebilir font yiginlari (sanitize-html font-family'yi yalnizca
 // guvenli karakterlere izin vererek dogrular; bu liste UI icindir).
+// Web fontlari ARTICLE_GOOGLE_FONTS_HREF ile editor + goruntuleyicide yuklenir;
+// tarayici yalnizca GERCEKTEN kullanilan fontu indirir (display=swap).
 export const FONT_OPTIONS: { label: string; value: string }[] = [
   { label: 'Varsayılan', value: '' },
+  // Sans-serif (popüler)
+  { label: 'Inter', value: '"Inter", system-ui, sans-serif' },
+  { label: 'Roboto', value: '"Roboto", system-ui, sans-serif' },
+  { label: 'Open Sans', value: '"Open Sans", system-ui, sans-serif' },
+  { label: 'Lato', value: '"Lato", system-ui, sans-serif' },
+  { label: 'Montserrat', value: '"Montserrat", system-ui, sans-serif' },
+  { label: 'Poppins', value: '"Poppins", system-ui, sans-serif' },
+  { label: 'Nunito', value: '"Nunito", system-ui, sans-serif' },
+  { label: 'Raleway', value: '"Raleway", system-ui, sans-serif' },
   { label: 'Manrope', value: 'Manrope, system-ui, sans-serif' },
-  { label: 'Space Grotesk', value: '"Space Grotesk", system-ui, sans-serif' },
-  { label: 'Georgia (servis)', value: 'Georgia, "Times New Roman", serif' },
+  { label: 'Space Grotesk', value: '"Space Grotesk", sans-serif' },
+  { label: 'Quicksand', value: '"Quicksand", system-ui, sans-serif' },
+  { label: 'Oswald', value: '"Oswald", system-ui, sans-serif' },
+  // Serif (başlık/edebi)
+  { label: 'Playfair Display', value: '"Playfair Display", Georgia, serif' },
+  { label: 'Merriweather', value: '"Merriweather", Georgia, serif' },
+  { label: 'Lora', value: '"Lora", Georgia, serif' },
+  { label: 'Roboto Slab', value: '"Roboto Slab", Georgia, serif' },
+  { label: 'Georgia', value: 'Georgia, "Times New Roman", serif' },
+  // Monospace (kod)
+  { label: 'Fira Code', value: '"Fira Code", ui-monospace, monospace' },
   { label: 'Space Mono', value: '"Space Mono", ui-monospace, monospace' },
 ];
+
+// Yukaridaki fontlarin web-font surumleri (Georgia/Times sistem fontu; yuklenmez).
+// Tek bir CSS istegi -> woff2 yalnizca kullanilan fontlar icin (lazy).
+export const ARTICLE_GOOGLE_FONTS_HREF =
+  'https://fonts.googleapis.com/css2?' + [
+    'Inter:wght@400;600;700',
+    'Roboto:wght@400;700',
+    'Open+Sans:wght@400;700',
+    'Lato:wght@400;700',
+    'Montserrat:wght@400;700',
+    'Poppins:wght@400;600;700',
+    'Nunito:wght@400;700',
+    'Raleway:wght@400;700',
+    'Manrope:wght@400;600;700',
+    'Space+Grotesk:wght@400;500;700',
+    'Quicksand:wght@400;700',
+    'Oswald:wght@400;700',
+    'Playfair+Display:wght@400;700',
+    'Merriweather:wght@400;700',
+    'Lora:wght@400;700',
+    'Roboto+Slab:wght@400;700',
+    'Fira+Code:wght@400;700',
+    'Space+Mono:wght@400;700',
+  ].map((f) => 'family=' + f).join('&') + '&display=swap';
 
 // Editor renk paletleri (metin rengi + vurgu). Deger olarak hex kullanilir;
 // sanitize-html hex/rgb/hsl/isimli renkleri kabul eder.

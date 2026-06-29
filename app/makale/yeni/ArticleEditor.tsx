@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 import { uploadToStorage } from '@/lib/upload';
 import {
-  ARTICLE_CATEGORIES, FONT_OPTIONS, TEXT_COLORS, HIGHLIGHT_COLORS, EMBED_LIBS, LIMITS,
+  ARTICLE_CATEGORIES, FONT_OPTIONS, ARTICLE_GOOGLE_FONTS_HREF, TEXT_COLORS, HIGHLIGHT_COLORS, EMBED_LIBS, LIMITS,
   buildEmbedSrcDoc, clampHeight, type ArticleBlock,
 } from '@/lib/userArticles';
 
@@ -75,11 +75,20 @@ export default function ArticleEditor({ initial }: { initial: Initial | null }) 
     el.focus();
     if (savedRange.current) {
       const sel = window.getSelection();
-      sel?.removeAllRanges();
-      sel?.addRange(savedRange.current);
+      try { sel?.removeAllRanges(); sel?.addRange(savedRange.current); } catch {}
     }
     try { document.execCommand('styleWithCSS', false, 'true'); } catch {}
     try { document.execCommand(cmd, false, val); } catch {}
+    saveSelection();
+  }, [saveSelection]);
+
+  // Geri Al / İleri Al — secimi geri yuklemeden dogrudan aktif blogun
+  // contentEditable undo yiginini kullanir (eski hale dondurur).
+  const applyHistory = useCallback((cmd: 'undo' | 'redo') => {
+    const el = activeCid.current ? editableRefs.current.get(activeCid.current) : null;
+    if (!el) { toast('Önce bir metin bloğuna tıkla'); return; }
+    el.focus();
+    try { document.execCommand(cmd, false); } catch {}
     saveSelection();
   }, [saveSelection]);
 
@@ -226,6 +235,8 @@ export default function ArticleEditor({ initial }: { initial: Initial | null }) 
 
   return (
     <main className="main-content ed-main">
+      {/* Makale fontlari (editör + önizleme aynı görünsün) */}
+      <link rel="stylesheet" href={ARTICLE_GOOGLE_FONTS_HREF} />
       <div className="feed-header" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <Link href="/" className="back-btn" aria-label="Geri">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
@@ -254,6 +265,9 @@ export default function ArticleEditor({ initial }: { initial: Initial | null }) 
 
         {/* Bicim cubugu (aktif metin blogunu uygular) */}
         <div className="ed-toolbar" onMouseDown={(e) => { if ((e.target as HTMLElement).tagName !== 'SELECT' && (e.target as HTMLElement).tagName !== 'INPUT') e.preventDefault(); }}>
+          <button type="button" onClick={() => applyHistory('undo')} title="Geri al (eski haline getir)">↶</button>
+          <button type="button" onClick={() => applyHistory('redo')} title="İleri al (yinele)">↷</button>
+          <span className="ed-sep" />
           <button type="button" onClick={() => applyCmd('bold')} title="Kalın"><b>B</b></button>
           <button type="button" onClick={() => applyCmd('italic')} title="İtalik"><i>I</i></button>
           <button type="button" onClick={() => applyCmd('underline')} title="Altı çizili"><u>U</u></button>
@@ -272,7 +286,7 @@ export default function ArticleEditor({ initial }: { initial: Initial | null }) 
           <span className="ed-sep" />
           <select className="ed-font" defaultValue="" onChange={(e) => { applyCmd('fontName', e.target.value); e.target.selectedIndex = 0; }} title="Yazı tipi">
             <option value="" disabled>Yazı tipi</option>
-            {FONT_OPTIONS.filter((f) => f.value).map((f) => <option key={f.label} value={f.value}>{f.label}</option>)}
+            {FONT_OPTIONS.filter((f) => f.value).map((f) => <option key={f.label} value={f.value} style={{ fontFamily: f.value }}>{f.label}</option>)}
           </select>
           <span className="ed-sep" />
           <span className="ed-swatches" title="Metin rengi">
@@ -402,7 +416,7 @@ export default function ArticleEditor({ initial }: { initial: Initial | null }) 
         .ed-edit a { color: var(--color-primary); text-decoration: underline; }
 
         .ed-img { padding: 10px; }
-        .ed-img-prev { width: 100%; border-radius: 10px; display: block; }
+        .ed-img-prev { width: 100%; max-width: 100%; height: auto; border-radius: 10px; display: block; }
         .ed-img-pick { width: 100%; padding: 30px; border: 2px dashed var(--color-border); border-radius: 10px; background: var(--color-bg); cursor: pointer; color: var(--color-text-muted); font-weight: 600; }
         .ed-img-fields { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
         .ed-img-fields input { border: 1px solid var(--color-border); border-radius: 8px; padding: 7px 10px; font-size: 0.85rem; font-family: inherit; background: var(--color-bg); color: var(--color-text); }
