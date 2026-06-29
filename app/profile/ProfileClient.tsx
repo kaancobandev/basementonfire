@@ -35,6 +35,7 @@ interface Props {
   savedPosts: MediaPost[];
   repostedPosts: MediaPost[];
   myArticles: MyArticle[];
+  isAdmin?: boolean;
   progress: UserProgress | null;
   badgeKeys: string[];
   error: string | null;
@@ -42,7 +43,7 @@ interface Props {
 
 const GENDER_LABEL: Record<string, string> = { erkek: 'Erkek', kadin: 'Kadın', diger: 'Diğer' };
 
-export default function ProfileClient({ user, bg, hasPhoto, age, followersCount, followingCount, mediaPosts, savedPosts, repostedPosts, myArticles, progress, badgeKeys, error }: Props) {
+export default function ProfileClient({ user, bg, hasPhoto, age, followersCount, followingCount, mediaPosts, savedPosts, repostedPosts, myArticles, isAdmin, progress, badgeKeys, error }: Props) {
   const isMobile = useIsMobile();
   const [tab, setTab] = useState<'posts' | 'saved' | 'reposts' | 'articles'>('posts');
   const [articles, setArticles] = useState<MyArticle[]>(myArticles);
@@ -157,6 +158,12 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
             {avatarUrl && avatarUrl !== '/avatars/default.png' ? <Img src={avatarUrl} alt="" fixedWidth={200} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} /> : user.display_name[0].toUpperCase()}
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            {isAdmin && (
+              <Link href="/yonetim/makaleler" title="Makale onay paneli" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 14px', height: 38, borderRadius: '9999px', border: '2px solid var(--color-primary)', background: 'var(--color-primary)', color: '#fff', textDecoration: 'none', fontSize: '0.85rem', fontWeight: 700 }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Yönetim
+              </Link>
+            )}
             <Link href="/settings" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 38, height: 38, borderRadius: '50%', border: '2px solid var(--color-border)', background: 'white', color: 'var(--color-text-muted)', textDecoration: 'none' }}>
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
             </Link>

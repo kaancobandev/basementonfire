@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { db, getMe, logIfError } from '@/lib/supabase/server';
+import { db, getMe, isAdmin, logIfError } from '@/lib/supabase/server';
 import type { DbUser } from '@/lib/types';
 import ProfileClient from './ProfileClient';
 
@@ -74,6 +74,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
       savedPosts={savedPosts}
       repostedPosts={repostedPosts}
       myArticles={myArticles}
+      isAdmin={isAdmin(user as any)}
       progress={progress}
       badgeKeys={badgeKeys}
       error={error ?? null}
