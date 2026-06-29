@@ -30,6 +30,7 @@ export const ARTICLES: ArticleMeta[] = [
   { slug: 'endosimbiyoz', title: 'Endosimbiyoz', emoji: '🧬', desc: 'İki hücrenin birleşip karmaşık yaşamı yarattığı an: mitokondri, Margulis, nitroplast', category: 'Biyoloji' },
   { slug: 'kaligrafi', title: 'Kaligrafi', emoji: '✒️', desc: 'Güzel yazının sanatı: hat, Doğu Asya ve Batı gelenekleri, araçlar ve başlangıç rehberi', category: 'Kültür' },
   { slug: 'doppler', title: 'Doppler Etkisi', emoji: '📡', desc: 'Hareketin sesi ve ışığı nasıl değiştirdiği: kırmızıya kayma, radar, evrenin genişlemesi — interaktif', category: 'Fizik' },
+  { slug: 'dogal-secilim', title: 'Doğal Seçilim', emoji: '🐦', desc: "Darwin'in büyük fikri: çeşitlilik, kalıtım ve uyum — kamuflaj simülasyonu ve gerçek örneklerle interaktif", category: 'Biyoloji' },
 ];
 
 export const ARTICLE_MAP: Record<string, ArticleMeta> = Object.fromEntries(ARTICLES.map(a => [a.slug, a]));

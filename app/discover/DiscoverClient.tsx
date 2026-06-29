@@ -45,6 +45,7 @@ const ARTICLE_GRADIENTS: Record<string, string> = {
   'endosimbiyoz': 'linear-gradient(135deg,#b45309,#6d28d9)',
   'kaligrafi': 'linear-gradient(135deg,#92400e,#57534e)',
   'doppler': 'linear-gradient(135deg,#2563eb,#b91c1c)',
+  'dogal-secilim': 'linear-gradient(135deg,#059669,#65a30d)',
 };
 const FALLBACK_GRADIENT = 'linear-gradient(135deg,#6366f1,#8b5cf6)';
 
