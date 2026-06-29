@@ -1,10 +1,10 @@
 'use client';
 
-// Doğal Seçilim v2 (immersive) — yeniden kullanılan interaktif widget'lar + veri.
-// İçerik v1 ile AYNI (adil "yalnızca tasarım" karşılaştırması); yalnızca çevreleyen
-// düzen/hareket farklı. v1 dosyasına dokunulmadı.
-import { useState, useEffect, useRef, type ReactNode } from 'react';
-import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
+// Doğal Seçilim'e ÖZEL interaktif widget'lar + içerik verisi.
+// Genel şablon parçaları (hero, bölüm, zaman çizelgesi, quiz, kabuk) için bkz.
+// @/app/components/article/ArticleBlocks.
+import { useState, useEffect, useRef } from 'react';
+import type { BibItem } from '@/app/components/ArticleBibliography';
 
 export const ingredients = [
   { icon: '🎲', title: 'Çeşitlilik', color: 'emerald', text: 'Aynı türün bireyleri birbirinin kopyası değildir: kimi daha hızlı, kimi daha koyu, kimi daha kalın gagalı. Bu farklar büyük ölçüde rastgele mutasyonlardan doğar. Seçecek bir çeşitlilik yoksa seçilim de olmaz.' },
@@ -66,14 +66,6 @@ export const refs: BibItem[] = [
   { title: 'Natural selection', source: 'Wikipedia', url: 'https://en.wikipedia.org/wiki/Natural_selection' },
 ];
 
-export { ArticleBibliography };
-
-/* renk + stil yardımcıları */
-export function shadeColor(s: number) {
-  const t = Math.max(0, Math.min(100, s)) / 100;
-  const lerp = (a: number, b: number) => Math.round(a + (b - a) * t);
-  return `rgb(${lerp(196, 20)},${lerp(244, 74)},${lerp(110, 40)})`;
-}
 export const BORDER: Record<string, string> = {
   emerald: 'border-emerald-500/30 bg-emerald-500/10',
   lime: 'border-lime-500/30 bg-lime-500/10',
@@ -86,6 +78,12 @@ export const ICONBG: Record<string, string> = {
   amber: 'bg-amber-400/15 text-amber-300',
   fuchsia: 'bg-fuchsia-400/15 text-fuchsia-300',
 };
+
+export function shadeColor(s: number) {
+  const t = Math.max(0, Math.min(100, s)) / 100;
+  const lerp = (a: number, b: number) => Math.round(a + (b - a) * t);
+  return `rgb(${lerp(196, 20)},${lerp(244, 74)},${lerp(110, 40)})`;
+}
 
 /* ─── Kamuflaj seçilim simülatörü ─── */
 const POP_SIZE = 32, HIST_BINS = 14, GEN_CAP = 80;
@@ -220,73 +218,4 @@ export function SelectionTypes() {
       <p className="mt-3 text-sm leading-relaxed text-slate-300">{cur.ex}</p>
     </div>
   );
-}
-
-/* ─── Mini test ─── */
-export function Quiz() {
-  const [quizQ, setQuizQ] = useState(0);
-  const [score, setScore] = useState(0);
-  const [pick, setPick] = useState<number | null>(null);
-  const [done, setDone] = useState(false);
-  const q = quizQs[quizQ];
-  const answered = pick !== null;
-  function answerQ(sel: number) { if (answered) return; setPick(sel); if (sel === q.a) setScore(s => s + 1); }
-  function next() { if (quizQ + 1 < quizQs.length) { setQuizQ(n => n + 1); setPick(null); } else setDone(true); }
-  function restart() { setQuizQ(0); setScore(0); setPick(null); setDone(false); }
-
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur sm:p-6">
-      {!done ? (
-        <>
-          <div className="mb-4">
-            <div className="mb-1.5 flex items-center justify-between text-xs text-slate-500"><span>Soru {quizQ + 1} / {quizQs.length}</span><span className="font-mono text-emerald-400">{score} doğru</span></div>
-            <div className="h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-lime-400 transition-all duration-500" style={{ width: `${((quizQ + (answered ? 1 : 0)) / quizQs.length) * 100}%` }} /></div>
-          </div>
-          <p className="mb-5 text-lg font-semibold text-slate-100">{q.text}</p>
-          <div className="space-y-2.5">
-            {q.opts.map((opt, i) => {
-              const correct = i === q.a;
-              let cls = 'border-white/10 bg-white/5 hover:border-emerald-400/40 hover:bg-emerald-400/5';
-              if (answered && correct) cls = 'border-emerald-400 bg-emerald-400/15 text-emerald-100';
-              else if (answered && i === pick) cls = 'border-rose-400 bg-rose-400/15 text-rose-100';
-              else if (answered) cls = 'border-white/10 bg-white/5 opacity-50';
-              return (
-                <button key={i} onClick={() => answerQ(i)} disabled={answered} className={`flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left text-sm transition ${cls}`}>
-                  <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full border border-current text-xs font-bold">{String.fromCharCode(65 + i)}</span><span>{opt}</span>
-                  {answered && correct && <span className="ml-auto">✓</span>}{answered && i === pick && !correct && <span className="ml-auto">✗</span>}
-                </button>
-              );
-            })}
-          </div>
-          {answered && (
-            <div className="mt-4">
-              <div className={`rounded-xl border p-4 text-sm leading-relaxed ${pick === q.a ? 'border-emerald-400/30 bg-emerald-400/5 text-emerald-100/90' : 'border-amber-400/30 bg-amber-400/5 text-amber-100/90'}`}><span className="font-bold">{pick === q.a ? 'Doğru! ' : 'Doğru cevap: ' + q.opts[q.a] + '. '}</span>{q.exp}</div>
-              <button onClick={next} className="mt-3 w-full rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-emerald-950 transition hover:bg-emerald-400">{quizQ + 1 < quizQs.length ? 'Sonraki soru →' : 'Sonucu gör 🎉'}</button>
-            </div>
-          )}
-        </>
-      ) : (
-        <div className="py-6 text-center">
-          <div className="mb-2 text-5xl">{score === quizQs.length ? '🏆' : score >= quizQs.length / 2 ? '🌿' : '🌱'}</div>
-          <p className="mb-1 text-2xl font-bold text-slate-100">{score} / {quizQs.length}</p>
-          <p className="mb-5 text-slate-400">{score === quizQs.length ? 'Kusursuz — Darwin gurur duyardı!' : score >= quizQs.length / 2 ? 'Güzel! Mantığı yakaladın.' : 'Fena değil — tekrar dene.'}</p>
-          <button onClick={restart} className="rounded-full bg-emerald-500 px-6 py-2.5 text-sm font-bold text-emerald-950 transition hover:bg-emerald-400">↻ Tekrar dene</button>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ─── Motion tabanlı scroll-reveal sarmalayıcı (immersive) ─── */
-export function Reveal({ children, className = '' }: { children: ReactNode; className?: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [shown, setShown] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const o = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setShown(true); o.disconnect(); } }, { threshold: 0.1 });
-    o.observe(el);
-    return () => o.disconnect();
-  }, []);
-  return <div ref={ref} className={`transition-all duration-[900ms] ease-out ${shown ? 'translate-y-0 opacity-100 blur-0' : 'translate-y-10 opacity-0 blur-[6px]'} ${className}`}>{children}</div>;
 }

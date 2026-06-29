@@ -3,8 +3,15 @@
 import { useEffect, useRef } from 'react';
 import { Renderer, Triangle, Program, Mesh } from 'ogl';
 
-// Canlı WebGL gradyan/akış zemini (ogl ~ küçük). dynamic(ssr:false) ile yüklenir.
-// WebGL başlatılamazsa canvas gizlenir → arkadaki CSS gradyanı (fallback) görünür.
+// Genel, TEMA-PARAMETRELİ canlı WebGL gradyan/akış zemini (ogl). Her makale 4 renk
+// vererek farklı bir hero atmosferi alır. dynamic(ssr:false) ile yüklenir; WebGL
+// başlatılamazsa canvas gizlenir → arkadaki CSS gradyan fallback'i görünür.
+
+export type Rgb = [number, number, number]; // 0..1
+
+const DEFAULT_COLORS: [Rgb, Rgb, Rgb, Rgb] = [
+  [0.016, 0.086, 0.063], [0.063, 0.45, 0.30], [0.40, 0.83, 0.31], [0.98, 0.74, 0.18],
+];
 
 const vertex = `
 attribute vec2 uv;
@@ -17,6 +24,7 @@ const fragment = `
 precision highp float;
 uniform float uTime;
 uniform vec2 uMouse;
+uniform vec3 uC1; uniform vec3 uC2; uniform vec3 uC3; uniform vec3 uC4;
 varying vec2 vUv;
 void main(){
   vec2 uv = vUv;
@@ -26,21 +34,18 @@ void main(){
   w = w / 3.2;
   float m = distance(uv, uMouse);
   w += (0.28 - m) * 0.55;
-  vec3 c1 = vec3(0.016, 0.086, 0.063);
-  vec3 c2 = vec3(0.063, 0.45, 0.30);
-  vec3 c3 = vec3(0.40, 0.83, 0.31);
-  vec3 c4 = vec3(0.98, 0.74, 0.18);
-  vec3 col = mix(c1, c2, smoothstep(-1.0, 0.1, w));
-  col = mix(col, c3, smoothstep(0.1, 0.7, w));
-  col = mix(col, c4, smoothstep(0.7, 1.2, w) * 0.55);
+  vec3 col = mix(uC1, uC2, smoothstep(-1.0, 0.1, w));
+  col = mix(col, uC3, smoothstep(0.1, 0.7, w));
+  col = mix(col, uC4, smoothstep(0.7, 1.2, w) * 0.55);
   float vig = smoothstep(1.15, 0.25, length(uv - 0.5));
   col *= mix(0.5, 1.05, vig);
   gl_FragColor = vec4(col, 1.0);
 }
 `;
 
-export default function ShaderHero() {
+export default function ShaderHero({ colors }: { colors?: [Rgb, Rgb, Rgb, Rgb] }) {
   const ref = useRef<HTMLCanvasElement>(null);
+  const c = colors ?? DEFAULT_COLORS;
 
   useEffect(() => {
     const canvas = ref.current;
@@ -53,7 +58,13 @@ export default function ShaderHero() {
       const renderer = new Renderer({ canvas, alpha: false, antialias: false, dpr: Math.min(window.devicePixelRatio || 1, 1.75) });
       const gl = renderer.gl;
       const geometry = new Triangle(gl);
-      const program = new Program(gl, { vertex, fragment, uniforms: { uTime: { value: 0 }, uMouse: { value: mouse } } });
+      const program = new Program(gl, {
+        vertex, fragment,
+        uniforms: {
+          uTime: { value: 0 }, uMouse: { value: mouse },
+          uC1: { value: c[0] }, uC2: { value: c[1] }, uC3: { value: c[2] }, uC4: { value: c[3] },
+        },
+      });
       const mesh = new Mesh(gl, { geometry, program });
 
       const resize = () => {
@@ -86,7 +97,7 @@ export default function ShaderHero() {
         try { gl.getExtension('WEBGL_lose_context')?.loseContext(); } catch {}
       };
     } catch {
-      canvas.style.display = 'none'; // fallback gradyan görünsün
+      canvas.style.display = 'none';
     }
   }, []);
 
