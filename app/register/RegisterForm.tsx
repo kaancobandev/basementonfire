@@ -1,7 +1,7 @@
 'use client';
 
 export default function RegisterForm() {
-  const inputStyle = { width: '100%', padding: '10px 14px', border: '1.5px solid #e2e8f0', borderRadius: '10px', fontSize: '0.95rem', outline: 'none', transition: 'border-color 0.15s', boxSizing: 'border-box' as const };
+  const inputStyle = { width: '100%', padding: '10px 14px', border: '1.5px solid #e2e8f0', borderRadius: '10px', fontSize: '0.95rem', outline: 'none', transition: 'border-color 0.15s', boxSizing: 'border-box' as const, color: '#111827', backgroundColor: '#fff' };
   const labelStyle = { display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#374151', marginBottom: '4px' } as const;
 
   return (

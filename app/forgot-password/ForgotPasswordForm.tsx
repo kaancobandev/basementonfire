@@ -11,6 +11,8 @@ export default function ForgotPasswordForm() {
     transition: 'border-color 0.15s',
     boxSizing: 'border-box',
     fontFamily: 'inherit',
+    color: '#111827',
+    backgroundColor: '#fff',
   };
 
   return (

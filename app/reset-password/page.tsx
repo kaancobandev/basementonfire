@@ -107,6 +107,8 @@ export default function ResetPasswordPage() {
     transition: 'border-color 0.15s',
     boxSizing: 'border-box',
     fontFamily: 'inherit',
+    color: '#111827',
+    backgroundColor: '#fff',
   };
 
   const labelStyle: React.CSSProperties = {

@@ -11,7 +11,7 @@ export default function LoginForm() {
           required
           autoComplete="email"
           placeholder="ornek@mail.com"
-          style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #e2e8f0', borderRadius: '10px', fontSize: '0.95rem', outline: 'none', transition: 'border-color 0.15s', boxSizing: 'border-box' }}
+          style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #e2e8f0', borderRadius: '10px', fontSize: '0.95rem', outline: 'none', transition: 'border-color 0.15s', boxSizing: 'border-box', color: '#111827', backgroundColor: '#fff' }}
           onFocus={e => (e.target.style.borderColor = 'var(--color-primary)')}
           onBlur={e => (e.target.style.borderColor = '#e2e8f0')}
         />
@@ -25,7 +25,7 @@ export default function LoginForm() {
           required
           autoComplete="current-password"
           placeholder="Şifreniz"
-          style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #e2e8f0', borderRadius: '10px', fontSize: '0.95rem', outline: 'none', transition: 'border-color 0.15s', boxSizing: 'border-box' }}
+          style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #e2e8f0', borderRadius: '10px', fontSize: '0.95rem', outline: 'none', transition: 'border-color 0.15s', boxSizing: 'border-box', color: '#111827', backgroundColor: '#fff' }}
           onFocus={e => (e.target.style.borderColor = 'var(--color-primary)')}
           onBlur={e => (e.target.style.borderColor = '#e2e8f0')}
         />
