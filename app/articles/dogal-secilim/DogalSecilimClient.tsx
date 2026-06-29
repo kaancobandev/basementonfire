@@ -49,12 +49,12 @@ const timeline = [
 ];
 
 const quizQs = [
-  { text: 'Doğal seçilimde “en uyumlu birey” kimdir?', opts: ['En güçlü ve en iri olan', 'Ortamına en iyi uyup en çok yavru bırakan', 'En uzun yaşayan', 'En zeki olan'], a: 1 },
-  { text: 'Bir popülasyonda hiç çeşitlilik (varyasyon) yoksa ne olur?', opts: ['Seçilim daha hızlı işler', 'Doğal seçilim işleyemez — seçecek bir fark yoktur', 'Mutasyonlar durur', 'Tüm bireyler ölür'], a: 1 },
-  { text: 'Aslında “evrimleşen” nedir?', opts: ['Tek bir birey, yaşamı boyunca', 'Popülasyon, nesiller boyunca', 'Sadece DNA, anında', 'Ortam, kendi başına'], a: 1 },
-  { text: 'Antibiyotik direncinin yayılması neyin örneğidir?', opts: ['Bireysel öğrenme', 'Gerçek zamanlı doğal seçilim', 'Genetik sürüklenme', 'Rastgele şans'], a: 1 },
-  { text: 'Mutasyon ile seçilim arasındaki ilişki nedir?', opts: ['İkisi de rastgeledir', 'İkisi de yönlüdür', 'Mutasyon rastgeledir; seçilim rastgele değildir', 'Seçilim rastgeledir; mutasyon yönlüdür'], a: 2 },
-  { text: 'Biber güvesinin koyu formu Sanayi Devrimi’nde neden çoğaldı?', opts: ['Daha sıcak olduğu için', 'Kurumlu ağaçlarda kuşlardan saklanıp daha çok ürediği için', 'Koyu renk daha hızlı uçtuğu için', 'Tesadüfen, hiçbir nedenle'], a: 1 },
+  { text: 'Doğal seçilimde “en uyumlu birey” kimdir?', opts: ['En güçlü ve en iri olan', 'Ortamına en iyi uyup en çok yavru bırakan', 'En uzun yaşayan', 'En zeki olan'], a: 1, exp: 'Uyum = ortama uygunluk ve üreme başarısı; kas ya da zekâ şart değil. Bir mağara balığı için gözler bile gereksizdir.' },
+  { text: 'Bir popülasyonda hiç çeşitlilik (varyasyon) yoksa ne olur?', opts: ['Seçilim daha hızlı işler', 'Doğal seçilim işleyemez — seçecek bir fark yoktur', 'Mutasyonlar durur', 'Tüm bireyler ölür'], a: 1, exp: 'Seçilim, var olan farklar arasından “seçer”. Fark yoksa seçecek bir şey de yoktur; süreç durur.' },
+  { text: 'Aslında “evrimleşen” nedir?', opts: ['Tek bir birey, yaşamı boyunca', 'Popülasyon, nesiller boyunca', 'Sadece DNA, anında', 'Ortam, kendi başına'], a: 1, exp: 'Birey yaşamı boyunca evrimleşmez. Değişen, popülasyondaki özelliklerin oranıdır — nesiller boyunca.' },
+  { text: 'Antibiyotik direncinin yayılması neyin örneğidir?', opts: ['Bireysel öğrenme', 'Gerçek zamanlı doğal seçilim', 'Genetik sürüklenme', 'Rastgele şans'], a: 1, exp: 'Dirençliler hayatta kalıp çoğalır, duyarlılar elenir. Bu gözlemlenebilir, gerçek zamanlı doğal seçilimdir.' },
+  { text: 'Mutasyon ile seçilim arasındaki ilişki nedir?', opts: ['İkisi de rastgeledir', 'İkisi de yönlüdür', 'Mutasyon rastgeledir; seçilim rastgele değildir', 'Seçilim rastgeledir; mutasyon yönlüdür'], a: 2, exp: 'Mutasyonlar yönsüz/rastgele oluşur; ama hangi varyantın yayılacağını ortam (seçilim) sistematik biçimde belirler.' },
+  { text: 'Biber güvesinin koyu formu Sanayi Devrimi’nde neden çoğaldı?', opts: ['Daha sıcak olduğu için', 'Kurumlu ağaçlarda kuşlardan saklanıp daha çok ürediği için', 'Koyu renk daha hızlı uçtuğu için', 'Tesadüfen, hiçbir nedenle'], a: 1, exp: 'Kararmış ağaçlarda koyu güveler kuşlardan saklandı, daha çok üredi. Çevre temizlenince açık form geri döndü.' },
 ];
 
 const refs: BibItem[] = [
@@ -102,96 +102,182 @@ const ICONBG: Record<string, string> = {
   fuchsia: 'bg-fuchsia-400/15 text-fuchsia-300',
 };
 
-/* ─── İnteraktif 1: Kamuflaj seçilim simülatörü ─── */
-const POP_SIZE = 28;
+/* ─── İnteraktif 1: Kamuflaj seçilim simülatörü (geliştirildi) ─── */
+const POP_SIZE = 32;
+const HIST_BINS = 14;
+const GEN_CAP = 80;
 // Deterministik başlangıç (SSR/hydration uyumlu — Math.random YOK): 0..100 yelpazesi.
 const initialPop = () => Array.from({ length: POP_SIZE }, (_, i) => Math.round((i / (POP_SIZE - 1)) * 100));
+const camoOf = (pop: number[], bg: number) => Math.round(100 - pop.reduce((a, s) => a + Math.abs(s - bg), 0) / pop.length);
+const INIT_BG = 74;
 
 function CamouflageSim() {
-  const [bg, setBg] = useState(72);
+  const [bg, setBg] = useState(INIT_BG);
   const [pop, setPop] = useState<number[]>(initialPop);
   const [gen, setGen] = useState(0);
+  const [mut, setMut] = useState(9);
+  const [playing, setPlaying] = useState(false);
+  const [history, setHistory] = useState<number[]>(() => [camoOf(initialPop(), INIT_BG)]);
 
-  const camo = Math.round(100 - pop.reduce((a, s) => a + Math.abs(s - bg), 0) / pop.length);
+  const camo = camoOf(pop, bg);
+  const mean = Math.round(pop.reduce((a, b) => a + b, 0) / pop.length);
+
+  // dağılım histogramı
+  const hist = Array.from({ length: HIST_BINS }, () => 0);
+  pop.forEach(s => { hist[Math.min(HIST_BINS - 1, Math.floor((s / 100) * HIST_BINS))]++; });
+  const maxBin = Math.max(...hist, 1);
+
+  // güncel değerleri zamanlayıcıdan okumak için ref'ler
+  const ref = useRef({ bg, mut, gen });
+  ref.current = { bg, mut, gen };
 
   function step() {
+    const { bg: b, mut: m } = ref.current;
     setPop(prev => {
-      const fit = prev.map(s => 1 - Math.abs(s - bg) / 100); // 0..1 (arka plana yakınlık)
-      const survivors = prev.filter((_, i) => Math.random() < fit[i] * 0.92 + 0.04);
-      const base = survivors.length ? survivors : prev; // hiç kalmazsa boş kalmasın
-      return Array.from({ length: POP_SIZE }, () => {
+      const fit = prev.map(s => 1 - Math.abs(s - b) / 100);           // 0..1 (ortama yakınlık)
+      const survivors = prev.filter((_, i) => Math.random() < fit[i] * 0.92 + 0.05);
+      const base = survivors.length ? survivors : prev;               // hiç kalmazsa boş kalmasın
+      const next = Array.from({ length: POP_SIZE }, () => {
         const parent = base[Math.floor(Math.random() * base.length)];
-        const mut = parent + (Math.random() * 2 - 1) * 9; // küçük mutasyon
-        return Math.max(0, Math.min(100, Math.round(mut)));
+        return Math.max(0, Math.min(100, Math.round(parent + (Math.random() * 2 - 1) * m)));
       });
+      setHistory(h => [...h, camoOf(next, b)].slice(-46));
+      return next;
     });
     setGen(g => g + 1);
   }
-  function reset() { setPop(initialPop()); setGen(0); }
+  const stepRef = useRef(step);
+  stepRef.current = step;
+
+  useEffect(() => {
+    if (!playing) return;
+    const id = setInterval(() => {
+      if (ref.current.gen >= GEN_CAP) { setPlaying(false); return; }
+      stepRef.current();
+    }, 620);
+    return () => clearInterval(id);
+  }, [playing]);
+
+  function reset() { setPop(initialPop()); setGen(0); setHistory([camoOf(initialPop(), bg)]); setPlaying(false); }
+  function flip() { setBg(b => (b > 50 ? 16 : 84)); }
+
+  const spark = history.length > 1
+    ? 'M' + history.map((c, i) => `${(i / (history.length - 1) * 300).toFixed(1)},${(54 - (c / 100) * 48).toFixed(1)}`).join(' L')
+    : '';
 
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-5">
+      {/* ortam + popülasyon */}
       <div className="rounded-xl p-4 ring-1 ring-black/20 transition-colors duration-500" style={{ background: shadeColor(bg) }}>
-        <div className="grid grid-cols-7 gap-2.5 sm:grid-cols-14">
+        <div className="grid grid-cols-8 gap-2 sm:grid-cols-[repeat(16,minmax(0,1fr))]">
           {pop.map((s, i) => (
             <span key={i} className="aspect-square rounded-full ring-1 ring-black/10 transition-colors duration-500" style={{ background: shadeColor(s) }} aria-hidden />
           ))}
         </div>
       </div>
 
+      {/* dağılım histogramı */}
       <div className="mt-4">
-        <span className="flex justify-between text-sm text-slate-300"><span>Ortam rengi (avcının gördüğü zemin)</span><span className="font-mono text-emerald-300">{bg < 40 ? 'açık' : bg > 70 ? 'koyu' : 'orta'}</span></span>
-        <input type="range" min={0} max={100} value={bg} onChange={e => setBg(+e.target.value)} className="mt-2 w-full accent-emerald-500" aria-label="Ortam rengi" />
-        <div className="flex justify-between text-xs text-slate-500"><span>açık limon</span><span>koyu orman</span></div>
+        <div className="mb-1.5 flex items-center justify-between text-xs text-slate-400">
+          <span>Renk dağılımı (popülasyon)</span>
+          <span className="font-mono text-emerald-300">ortalama: {mean}</span>
+        </div>
+        <div className="relative flex h-20 items-end gap-1 rounded-xl bg-black/30 p-2 ring-1 ring-white/5">
+          {hist.map((n, i) => (
+            <div key={i} className="flex-1 rounded-sm transition-all duration-500" style={{ height: `${Math.max(4, (n / maxBin) * 100)}%`, background: shadeColor((i + 0.5) / HIST_BINS * 100) }} />
+          ))}
+          {/* ortam çizgisi */}
+          <div className="pointer-events-none absolute bottom-0 top-0 w-0.5 bg-white/80" style={{ left: `calc(8px + ${bg / 100} * (100% - 16px))` }}>
+            <span className="absolute -top-0.5 left-1 whitespace-nowrap text-[0.6rem] font-bold text-white/90">↑ ortam</span>
+          </div>
+        </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-3 gap-3 text-center">
-        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3">
+      {/* kontroller */}
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <label className="block">
+          <span className="flex justify-between text-sm text-slate-300"><span>Ortam rengi</span><span className="font-mono text-emerald-300">{bg < 38 ? 'açık' : bg > 70 ? 'koyu' : 'orta'}</span></span>
+          <input type="range" min={0} max={100} value={bg} onChange={e => setBg(+e.target.value)} className="mt-2 w-full accent-emerald-500" aria-label="Ortam rengi" />
+        </label>
+        <label className="block">
+          <span className="flex justify-between text-sm text-slate-300"><span>Mutasyon oranı</span><span className="font-mono text-fuchsia-300">{mut}</span></span>
+          <input type="range" min={1} max={20} value={mut} onChange={e => setMut(+e.target.value)} className="mt-2 w-full accent-fuchsia-500" aria-label="Mutasyon oranı" />
+          <span className="text-xs text-slate-500">çeşitliliğin yenilenme hızı</span>
+        </label>
+      </div>
+
+      {/* istatistik + butonlar */}
+      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-center">
           <div className="font-mono text-2xl font-bold text-emerald-300">{gen}</div>
           <div className="text-xs text-emerald-200/80">nesil</div>
         </div>
-        <div className="rounded-xl border border-lime-500/30 bg-lime-500/10 p-3">
+        <div className="rounded-xl border border-lime-500/30 bg-lime-500/10 p-3 text-center">
           <div className="font-mono text-2xl font-bold text-lime-300">{camo}%</div>
           <div className="text-xs text-lime-200/80">kamuflaj uyumu</div>
         </div>
-        <div className="flex flex-col gap-2">
-          <button onClick={step} className="rounded-xl bg-emerald-500 px-3 py-2 text-sm font-bold text-emerald-950 transition hover:bg-emerald-400">🧬 Bir nesil</button>
-          <button onClick={reset} className="rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold text-slate-300 transition hover:bg-white/10">↺ Sıfırla</button>
-        </div>
+        <button onClick={step} disabled={playing} className="rounded-xl bg-emerald-500 px-3 py-2 text-sm font-bold text-emerald-950 transition hover:bg-emerald-400 disabled:opacity-40">🧬 Bir nesil</button>
+        <button onClick={() => setPlaying(p => !p)} className={`rounded-xl px-3 py-2 text-sm font-bold transition ${playing ? 'bg-rose-500 text-rose-950 hover:bg-rose-400' : 'bg-amber-400 text-amber-950 hover:bg-amber-300'}`}>{playing ? '⏸ Durdur' : '▶ Otomatik'}</button>
       </div>
+      <div className="mt-2 flex gap-2">
+        <button onClick={flip} className="flex-1 rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold text-slate-300 transition hover:bg-white/10">🌗 Ortamı tersine çevir</button>
+        <button onClick={reset} className="flex-1 rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold text-slate-300 transition hover:bg-white/10">↺ Sıfırla</button>
+      </div>
+
+      {/* kamuflaj uyumu geçmişi */}
+      {history.length > 1 && (
+        <div className="mt-4">
+          <div className="mb-1 text-xs text-slate-400">Kamuflaj uyumu — nesil geçmişi</div>
+          <div className="overflow-hidden rounded-xl bg-black/30 ring-1 ring-white/5">
+            <svg viewBox="0 0 300 54" className="h-12 w-full" preserveAspectRatio="none">
+              <line x1="0" y1="6" x2="300" y2="6" stroke="#1e3a2e" strokeWidth="1" />
+              <line x1="0" y1="54" x2="300" y2="54" stroke="#1e3a2e" strokeWidth="1" />
+              <path d={spark} fill="none" stroke="#a3e635" strokeWidth="2" />
+            </svg>
+          </div>
+        </div>
+      )}
+
       <div className="sr-only" aria-live="polite">Nesil {gen}, kamuflaj uyumu yüzde {camo}.</div>
-      <p className="mt-3 text-xs leading-relaxed text-slate-400">Zemini bir renge ayarla ve <strong className="text-emerald-300">“Bir nesil”</strong>e arka arkaya bas. Zemine uymayan bireyler avcılara yem olur, uyanlar çoğalır — popülasyon birkaç nesilde tam o tona kayar. Zemini değiştirirsen seçilim yön değiştirir. Hiçbir birey rengini <em className="not-italic text-slate-200">değiştirmiyor</em>; değişen, hangi bireylerin hayatta kaldığı.</p>
+      <p className="mt-3 text-xs leading-relaxed text-slate-400">Zemini bir renge ayarla, <strong className="text-emerald-300">▶ Otomatik</strong>’e bas ve seyret: zemine uymayan bireyler avcılara yem olur, uyanlar çoğalır — dağılım birkaç nesilde tam <em className="not-italic text-slate-200">ortam çizgisinin</em> üstüne toplanır. <strong className="text-amber-300">🌗 Ortamı tersine çevir</strong>’le seçilim yön değiştirir; mutasyonu kısarsan uyum yavaşlar. Hiçbir birey rengini değiştirmiyor — değişen, kimin hayatta kaldığı.</p>
     </div>
   );
 }
 
-/* ─── İnteraktif 2: Seçilim türleri ─── */
+/* ─── İnteraktif 2: Seçilim türleri (canlı slider-morph) ─── */
 function gaussPath(cx: number, sd: number, amp: number) {
   const pts: string[] = [];
-  for (let x = 10; x <= 290; x += 4) {
+  for (let x = 10; x <= 290; x += 3) {
     const y = 96 - amp * Math.exp(-((x - cx) ** 2) / (2 * sd * sd));
-    pts.push(`${x},${y.toFixed(1)}`);
+    pts.push(`${x},${Math.max(6, y).toFixed(1)}`);
   }
   return 'M' + pts.join(' L');
 }
-function gauss2Path(amp: number) {
+function gauss2Path(amp: number, c1: number, c2: number, sd: number) {
   const pts: string[] = [];
-  for (let x = 10; x <= 290; x += 4) {
-    const y = 96 - amp * (Math.exp(-((x - 96) ** 2) / (2 * 22 * 22)) + Math.exp(-((x - 204) ** 2) / (2 * 22 * 22)));
-    pts.push(`${x},${Math.max(8, y).toFixed(1)}`);
+  for (let x = 10; x <= 290; x += 3) {
+    const y = 96 - amp * (Math.exp(-((x - c1) ** 2) / (2 * sd * sd)) + Math.exp(-((x - c2) ** 2) / (2 * sd * sd)));
+    pts.push(`${x},${Math.max(6, y).toFixed(1)}`);
   }
   return 'M' + pts.join(' L');
 }
-const BASE_CURVE = gaussPath(150, 40, 72);
+const BASE_CURVE = gaussPath(150, 40, 70);
 const SEL_TYPES = [
-  { key: 'yonlu', label: 'Yönlü', color: '#34d399', after: gaussPath(206, 36, 74), desc: 'Bir uç avantajlıdır → dağılım o yöne kayar. Kuraklıkta büyük gagaların seçilmesi gibi. En tanıdık seçilim türü.' },
-  { key: 'dengeleyici', label: 'Dengeleyici', color: '#fbbf24', after: gaussPath(150, 22, 92), desc: 'Orta değer kazanır, uçlar elenir → dağılım daralır. İnsan doğum ağırlığı: çok küçük ve çok büyük bebekler dezavantajlıdır.' },
-  { key: 'ayirici', label: 'Ayırıcı', color: '#e879f9', after: gauss2Path(74), desc: 'İki uç da kazanır, orta elenir → dağılım ikiye bölünür. Bazen yeni türlerin doğuşuna giden ilk adımdır.' },
+  { key: 'yonlu', label: 'Yönlü', color: '#34d399', ex: 'Kuraklıkta büyük gagaların, antibiyotik altında dirençli bakterilerin seçilmesi. En tanıdık seçilim türü.' },
+  { key: 'dengeleyici', label: 'Dengeleyici', color: '#fbbf24', ex: 'İnsan doğum ağırlığı ve sıtma bölgelerinde orak hücre taşıyıcılığı: çok küçük de çok büyük de dezavantajlı.' },
+  { key: 'ayirici', label: 'Ayırıcı', color: '#e879f9', ex: 'İki uç da kazanır, orta elenir. Farklı tohum boylarına uyan iki gaga tipi gibi — bazen türleşmenin ilk adımı.' },
 ] as const;
 
 function SelectionTypes() {
   const [type, setType] = useState<typeof SEL_TYPES[number]['key']>('yonlu');
+  const [strength, setStrength] = useState(60);
   const cur = SEL_TYPES.find(t => t.key === type)!;
+  const k = strength / 100;
+  const after =
+    type === 'yonlu' ? gaussPath(150 + k * 78, 40 - k * 6, 70 + k * 6)
+      : type === 'dengeleyici' ? gaussPath(150, 40 - k * 28, 70 + k * 48)
+        : gauss2Path(58 + k * 18, 150 - (16 + k * 46), 150 + (16 + k * 46), 19);
+
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-5">
       <div className="mb-4 flex flex-wrap gap-2">
@@ -206,16 +292,25 @@ function SelectionTypes() {
       <div className="overflow-hidden rounded-xl bg-[#04140d] ring-1 ring-white/5">
         <svg viewBox="0 0 300 110" className="h-auto w-full">
           <line x1="10" y1="96" x2="290" y2="96" stroke="#1e3a2e" strokeWidth="1" />
+          {/* seçilim bandı: hangi değerler avantajlı */}
+          {type === 'dengeleyici' && <rect x={150 - 18} y="6" width="36" height="90" fill={cur.color} opacity="0.08" />}
+          {type === 'yonlu' && <rect x={Math.min(288, 150 + k * 78 - 6)} y="6" width="20" height="90" fill={cur.color} opacity="0.08" />}
+          {type === 'ayirici' && <><rect x={150 - (16 + k * 46) - 10} y="6" width="20" height="90" fill={cur.color} opacity="0.08" /><rect x={150 + (16 + k * 46) - 10} y="6" width="20" height="90" fill={cur.color} opacity="0.08" /></>}
           <path d={BASE_CURVE} fill="none" stroke="#64748b" strokeWidth="2" strokeDasharray="4 4" />
-          <path d={cur.after} fill="none" stroke={cur.color} strokeWidth="3" />
+          <path d={after} fill="none" stroke={cur.color} strokeWidth="3" />
           <text x="150" y="108" textAnchor="middle" fontSize="8" fill="#475569">özellik değeri (örn. gaga boyu) →</text>
         </svg>
       </div>
+      <div className="mt-4">
+        <span className="flex justify-between text-sm text-slate-300"><span>Seçilim baskısı</span><span className="font-mono" style={{ color: cur.color }}>{strength}%</span></span>
+        <input type="range" min={0} max={100} value={strength} onChange={e => setStrength(+e.target.value)} className="mt-2 w-full" style={{ accentColor: cur.color }} aria-label="Seçilim baskısı" />
+        <div className="flex justify-between text-xs text-slate-500"><span>zayıf</span><span>güçlü</span></div>
+      </div>
       <div className="mt-3 flex items-center gap-4 text-xs text-slate-400">
         <span className="flex items-center gap-1.5"><span className="inline-block h-0.5 w-5 border-t-2 border-dashed border-slate-500" />önce</span>
-        <span className="flex items-center gap-1.5"><span className="inline-block h-0.5 w-5" style={{ background: cur.color }} />seçilimden sonra</span>
+        <span className="flex items-center gap-1.5"><span className="inline-block h-0.5 w-5" style={{ background: cur.color }} />sonra</span>
       </div>
-      <p className="mt-3 text-sm leading-relaxed text-slate-300">{cur.desc}</p>
+      <p className="mt-3 text-sm leading-relaxed text-slate-300">{cur.ex} <span className="text-slate-400">Baskıyı artırdıkça etkiyi abartılı gör.</span></p>
     </div>
   );
 }
@@ -225,16 +320,22 @@ function SelectionTypes() {
 export default function DogalSecilimClient() {
   const [quizQ, setQuizQ] = useState(0);
   const [score, setScore] = useState(0);
-  const [answered, setAnswered] = useState<Record<number, number>>({});
+  const [pick, setPick] = useState<number | null>(null);
   const [done, setDone] = useState(false);
 
+  const q = quizQs[quizQ];
+  const answered = pick !== null;
+
   function answerQ(sel: number) {
-    if (answered[quizQ] !== undefined) return;
-    if (sel === quizQs[quizQ].a) setScore(s => s + 1);
-    setAnswered(prev => ({ ...prev, [quizQ]: sel }));
-    setTimeout(() => { if (quizQ + 1 < quizQs.length) setQuizQ(q => q + 1); else setDone(true); }, 850);
+    if (answered) return;
+    setPick(sel);
+    if (sel === q.a) setScore(s => s + 1);
   }
-  function restartQuiz() { setQuizQ(0); setScore(0); setAnswered({}); setDone(false); }
+  function next() {
+    if (quizQ + 1 < quizQs.length) { setQuizQ(n => n + 1); setPick(null); }
+    else setDone(true);
+  }
+  function restartQuiz() { setQuizQ(0); setScore(0); setPick(null); setDone(false); }
 
   return (
     <main className="main-content">
@@ -252,7 +353,6 @@ export default function DogalSecilimClient() {
         <header className="relative mx-auto max-w-3xl px-6 pb-10 pt-16 text-center">
           <div aria-hidden className="pointer-events-none absolute left-1/2 top-4 -z-0 h-60 w-[130%] -translate-x-1/2 bg-[radial-gradient(closest-side,rgba(52,211,153,0.20),transparent)] blur-2xl" />
           <div className="relative z-10 mb-5 flex justify-center" aria-hidden>
-            {/* popülasyonun zamanla bir tona kayışı */}
             <svg viewBox="0 0 260 60" width="220">
               {Array.from({ length: 13 }, (_, i) => {
                 const t = i / 12;
@@ -316,7 +416,7 @@ export default function DogalSecilimClient() {
           <section className="mx-auto max-w-3xl px-6 py-8">
             <div className="mb-3 text-xs font-semibold tracking-[0.2em] text-lime-400">İNTERAKTİF · DENE</div>
             <h2 className="mb-2 text-2xl font-bold text-slate-100">Bir popülasyonu kendin evrimleştir</h2>
-            <p className="mb-6 text-slate-400">Avcı, zemine uymayan böcekleri yer. Zemini seç, nesilleri ilerlet ve seçilimi iş başında izle.</p>
+            <p className="mb-6 text-slate-400">Avcı, zemine uymayan böcekleri yer. Zemini seç, otomatiğe bas ve dağılımın ortam çizgisine toplanışını izle.</p>
             <CamouflageSim />
           </section>
         </Reveal>
@@ -326,7 +426,7 @@ export default function DogalSecilimClient() {
           <section className="mx-auto max-w-3xl px-6 py-8">
             <div className="mb-3 text-xs font-semibold tracking-[0.2em] text-fuchsia-400">İNTERAKTİF · KARŞILAŞTIR</div>
             <h2 className="mb-2 text-2xl font-bold text-slate-100">Seçilim her zaman aynı yöne itmez</h2>
-            <p className="mb-6 text-slate-400">Ortama göre seçilim dağılımı kaydırabilir, daraltabilir ya da ikiye bölebilir. Sekmeleri değiştir.</p>
+            <p className="mb-6 text-slate-400">Türü seç, baskı kaydırıcısını oynat: seçilim dağılımı kaydırabilir, daraltabilir ya da ikiye bölebilir.</p>
             <SelectionTypes />
           </section>
         </Reveal>
@@ -415,31 +515,46 @@ export default function DogalSecilimClient() {
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 sm:p-6">
               {!done ? (
                 <>
-                  <div className="mb-4 flex items-center justify-between text-xs text-slate-500">
-                    <span>Soru {quizQ + 1} / {quizQs.length}</span>
-                    <span className="font-mono text-emerald-400">{score} doğru</span>
+                  {/* ilerleme çubuğu */}
+                  <div className="mb-4">
+                    <div className="mb-1.5 flex items-center justify-between text-xs text-slate-500">
+                      <span>Soru {quizQ + 1} / {quizQs.length}</span>
+                      <span className="font-mono text-emerald-400">{score} doğru</span>
+                    </div>
+                    <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+                      <div className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-lime-400 transition-all duration-500" style={{ width: `${((quizQ + (answered ? 1 : 0)) / quizQs.length) * 100}%` }} />
+                    </div>
                   </div>
-                  <p className="mb-5 text-lg font-semibold text-slate-100">{quizQs[quizQ].text}</p>
+                  <p className="mb-5 text-lg font-semibold text-slate-100">{q.text}</p>
                   <div className="space-y-2.5">
-                    {quizQs[quizQ].opts.map((opt, i) => {
-                      const picked = answered[quizQ];
-                      const isAns = picked !== undefined;
-                      const correct = i === quizQs[quizQ].a;
+                    {q.opts.map((opt, i) => {
+                      const correct = i === q.a;
                       let cls = 'border-white/10 bg-white/5 hover:border-emerald-400/40 hover:bg-emerald-400/5';
-                      if (isAns && correct) cls = 'border-emerald-400 bg-emerald-400/15 text-emerald-100';
-                      else if (isAns && i === picked) cls = 'border-rose-400 bg-rose-400/15 text-rose-100';
-                      else if (isAns) cls = 'border-white/10 bg-white/5 opacity-50';
+                      if (answered && correct) cls = 'border-emerald-400 bg-emerald-400/15 text-emerald-100';
+                      else if (answered && i === pick) cls = 'border-rose-400 bg-rose-400/15 text-rose-100';
+                      else if (answered) cls = 'border-white/10 bg-white/5 opacity-50';
                       return (
-                        <button key={i} onClick={() => answerQ(i)} disabled={isAns}
+                        <button key={i} onClick={() => answerQ(i)} disabled={answered}
                           className={`flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left text-sm transition ${cls}`}>
                           <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full border border-current text-xs font-bold">{String.fromCharCode(65 + i)}</span>
                           <span>{opt}</span>
-                          {isAns && correct && <span className="ml-auto">✓</span>}
-                          {isAns && i === picked && !correct && <span className="ml-auto">✗</span>}
+                          {answered && correct && <span className="ml-auto">✓</span>}
+                          {answered && i === pick && !correct && <span className="ml-auto">✗</span>}
                         </button>
                       );
                     })}
                   </div>
+                  {/* açıklama + ilerleme */}
+                  {answered && (
+                    <div className="mt-4">
+                      <div className={`rounded-xl border p-4 text-sm leading-relaxed ${pick === q.a ? 'border-emerald-400/30 bg-emerald-400/5 text-emerald-100/90' : 'border-amber-400/30 bg-amber-400/5 text-amber-100/90'}`}>
+                        <span className="font-bold">{pick === q.a ? 'Doğru! ' : 'Doğru cevap: ' + q.opts[q.a] + '. '}</span>{q.exp}
+                      </div>
+                      <button onClick={next} className="mt-3 w-full rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-emerald-950 transition hover:bg-emerald-400">
+                        {quizQ + 1 < quizQs.length ? 'Sonraki soru →' : 'Sonucu gör 🎉'}
+                      </button>
+                    </div>
+                  )}
                 </>
               ) : (
                 <div className="py-6 text-center">
