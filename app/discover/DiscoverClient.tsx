@@ -46,6 +46,7 @@ const ARTICLE_GRADIENTS: Record<string, string> = {
   'kaligrafi': 'linear-gradient(135deg,#92400e,#57534e)',
   'doppler': 'linear-gradient(135deg,#2563eb,#b91c1c)',
   'dogal-secilim': 'linear-gradient(135deg,#059669,#65a30d)',
+  'dunya': 'linear-gradient(135deg,#0c4a6e,#0891b2)',
 };
 const FALLBACK_GRADIENT = 'linear-gradient(135deg,#6366f1,#8b5cf6)';
 

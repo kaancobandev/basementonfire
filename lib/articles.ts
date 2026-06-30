@@ -31,6 +31,7 @@ export const ARTICLES: ArticleMeta[] = [
   { slug: 'kaligrafi', title: 'Kaligrafi', emoji: '✒️', desc: 'Güzel yazının sanatı: hat, Doğu Asya ve Batı gelenekleri, araçlar ve başlangıç rehberi', category: 'Kültür' },
   { slug: 'doppler', title: 'Doppler Etkisi', emoji: '📡', desc: 'Hareketin sesi ve ışığı nasıl değiştirdiği: kırmızıya kayma, radar, evrenin genişlemesi — interaktif', category: 'Fizik' },
   { slug: 'dogal-secilim', title: 'Doğal Seçilim', emoji: '🐦', desc: "Darwin'in büyük fikri: çeşitlilik, kalıtım ve uyum — kamuflaj simülasyonu ve gerçek örneklerle interaktif", category: 'Biyoloji' },
+  { slug: 'dunya', title: 'Dünya', emoji: '🌍', desc: "Gezegenimizin doğum hikâyesi: güneş bulutsusundan demir çekirdeğe, dev çarpışmadan Ay'a — interaktif iç yapı modeliyle", category: 'Fizik' },
 ];
 
 export const ARTICLE_MAP: Record<string, ArticleMeta> = Object.fromEntries(ARTICLES.map(a => [a.slug, a]));
