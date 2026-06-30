@@ -1,5 +1,6 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import {
   ArticleShell, ArticleHero, ArticleSection, CardGrid, HorizontalTimeline, ArticleQuiz, ArticleBibliography, ArticleFooter,
 } from '@/app/components/article/ArticleBlocks';
@@ -7,6 +8,12 @@ import {
   EarthLayers, PlanetCompare,
   accretion, heatSources, moonEvidence, moonEffects, uniqueFeatures, nicheFacts, timeline, quizQs, refs,
 } from './widgets';
+
+// 3B Dünya küresi (cobe) — istemcide + lazy.
+const Globe3D = dynamic(() => import('./Globe3D'), {
+  ssr: false,
+  loading: () => <div className="mx-auto aspect-square w-full max-w-[440px]" />,
+});
 
 const ACCENT = '#38bdf8';
 // Hero shader paleti: derin uzay → okyanus mavisi → camgöbeği → erimiş çekirdek turuncusu
@@ -34,7 +41,8 @@ export default function DunyaClient() {
 
       {/* 1. Güneş Bulutsusu */}
       <ArticleSection title="Her şeyin başlangıcı: Güneş Bulutsusu">
-        <p className="mb-4 leading-relaxed text-slate-300">
+        <Globe3D />
+        <p className="mb-4 mt-6 leading-relaxed text-slate-300">
           Dünya'nın hikâyesi ~4,6 milyar yıl önce, devasa bir gaz ve toz bulutunun çökmesiyle başlar: <strong className="text-sky-300">güneş bulutsusu</strong>.
           Çoğunlukla hidrojen ve helyumdan oluşan bu buluta, ölmüş yıldızların süpernova patlamalarından saçılan ağır elementler de karışmıştı.
           Çekirdeğimizdeki demir de kanımızdaki demir de bu ölü yıldızların külünden gelir.
