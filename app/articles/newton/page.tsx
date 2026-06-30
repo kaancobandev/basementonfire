@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
-import { breadcrumbJsonLd, jsonLdScript } from '@/lib/seo';
+import { breadcrumbJsonLd, jsonLdScript, articleJsonLd } from '@/lib/seo';
 import NewtonClient from './NewtonClient';
+import { refs } from './refs';
 
 const title = 'Isaac Newton: Bilimi Yeniden Kuran Adam';
 const description = 'Isaac Newton kimdi? Üç hareket yasası (F = m·a), evrensel kütleçekim, kalkülüs ve optik; Mucize Yıllar, Principia, Güney Denizi Balonu dolandırılması ve bugün hangi yasalarını hâlâ kullandığımız — F=ma oyun alanı, ters-kare kütleçekim simülasyonu ve interaktif yasalarla.';
@@ -11,24 +12,16 @@ export const metadata: Metadata = {
   description,
   keywords: ['Isaac Newton', 'Newton hareket yasaları', 'F = ma', 'evrensel kütleçekim', 'ters kare yasası', 'kalkülüs', 'Principia', 'annus mirabilis', 'mucize yıllar', 'optik', 'prizma', 'yansıtmalı teleskop', 'Güney Denizi Balonu', 'Newton Leibniz kavgası', 'eylemsizlik', 'etki tepki', 'görelilik', 'kuantum', 'bilim devrimi'],
   alternates: { canonical: path },
-  openGraph: { type: 'article', title: `${title} · Basements`, description, url: path, images: ['/opengraph-image'] },
+  openGraph: { type: 'article', title: `${title} · Basements`, description, url: path },
   twitter: { card: 'summary_large_image', title: `${title} · Basements`, description },
 };
 
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'Article',
-  headline: title,
-  description,
-  inLanguage: 'tr-TR',
+const jsonLd = articleJsonLd({
+  title, description, path,
   datePublished: '2026-06-30',
-  dateModified: '2026-06-30',
-  url: `https://basementonfire.com${path}`,
-  image: 'https://basementonfire.com/opengraph-image',
-  author: { '@type': 'Organization', name: 'Basements' },
-  publisher: { '@type': 'Organization', name: 'Basements' },
-  about: { '@type': 'Person', name: 'Isaac Newton' },
-};
+  about: { type: 'Person', name: 'Isaac Newton', sameAs: ['https://www.wikidata.org/wiki/Q935', 'https://tr.wikipedia.org/wiki/Isaac_Newton'] },
+  citation: refs.map((r) => ({ title: r.title, url: r.url })),
+});
 
 const breadcrumbLd = breadcrumbJsonLd([
   { name: 'Ana Sayfa', path: '/' },

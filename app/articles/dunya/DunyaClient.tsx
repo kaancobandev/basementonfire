@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import {
-  ArticleShell, ArticleHero, ArticleSection, CardGrid, HorizontalTimeline, ArticleQuiz, ArticleBibliography, ArticleFooter,
+  ArticleShell, ArticleHero, ArticleLede, ArticleSection, CardGrid, HorizontalTimeline, ArticleQuiz, ArticleBibliography, ArticleFooter,
 } from '@/app/components/article/ArticleBlocks';
 import {
   EarthLayers, PlanetCompare,
@@ -26,10 +26,19 @@ export default function DunyaClient() {
     <ArticleShell accent={ACCENT} title="Dünya">
       <ArticleHero
         title="Dünya"
+        fullTitle="Dünya'nın Oluşumu, İç Yapısı ve Onu Eşsiz Kılan Özellikler"
         eyebrow="GEZEGENİMİZİN HİKÂYESİ · İNTERAKTİF DOSYA"
         subtitle={<>Sıvı demir çekirdeği, görünmez manyetik kalkanı, hareket eden kabuğu ve tek yoldaşı Ay — hepsi bir dizi <strong className="font-semibold text-sky-300">olağanüstü tesadüfün</strong> ve <em className="not-italic text-amber-300">şiddetli kozmik olayın</em> ürünü. Aşağı kaydır.</>}
         colors={HERO_COLORS}
       />
+
+      <ArticleLede points={[
+        'Güneş bulutsusu → yığışma → demir felaketi (katmanlı çekirdek/manto/kabuk)',
+        'Manyetik kalkan (jeodinamo) + levha tektoniği + oksijenli atmosfer',
+        'Ay, Theia adlı bir gezegenin dev çarpışmasıyla oluştu; eksen eğikliğini dengeler',
+      ]}>
+        Dünya, Güneş Sistemi'nde üzerinde yaşam bilinen tek gezegendir ve yaklaşık 4,54 milyar yıl önce bir gaz-toz bulutundan oluştu. Sıvı demir çekirdeği manyetik kalkanı üretir, levha tektoniği iklimi düzenler, büyük uydusu Ay ise eksen eğikliğini dengeler.
+      </ArticleLede>
 
       {/* Giriş */}
       <ArticleSection center>

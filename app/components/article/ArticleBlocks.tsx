@@ -78,8 +78,8 @@ export function ArticleShell({ accent = '#34d399', title, backHref = '/', childr
 }
 
 /* ─── Hero: WebGL + pinlenip parçalanan başlık ─── */
-export function ArticleHero({ title, eyebrow, subtitle, colors, gradientText }: {
-  title: string; eyebrow?: string; subtitle?: ReactNode; colors?: [Rgb, Rgb, Rgb, Rgb]; gradientText?: string;
+export function ArticleHero({ title, fullTitle, eyebrow, subtitle, colors, gradientText }: {
+  title: string; fullTitle?: string; eyebrow?: string; subtitle?: ReactNode; colors?: [Rgb, Rgb, Rgb, Rgb]; gradientText?: string;
 }) {
   const accent = useAccent();
   const heroRef = useRef<HTMLElement>(null);
@@ -112,16 +112,19 @@ export function ArticleHero({ title, eyebrow, subtitle, colors, gradientText }: 
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#04120c]" aria-hidden />
 
       <div className="relative z-10 px-6 text-center">
+        {/* SEO/erişilebilirlik: gerçek (zengin) başlık görünmez ama taranabilir <h1>;
+            dev animasyonlu kelime dekoratif (aria-hidden). Sayfada TEK h1. */}
+        <h1 className="sr-only">{fullTitle ?? title}</h1>
         {eyebrow && <div className="hero-eyebrow mb-4 text-xs font-semibold tracking-[0.3em]" style={{ color: `color-mix(in srgb, ${accent} 85%, white)` }}>{eyebrow}</div>}
-        <h1 className="flex flex-wrap justify-center text-6xl font-black leading-[0.95] tracking-tight text-white drop-shadow-[0_2px_30px_rgba(0,0,0,0.5)] sm:text-8xl" aria-label={title}>
+        <div className="flex flex-wrap justify-center text-6xl font-black leading-[0.95] tracking-tight text-white drop-shadow-[0_2px_30px_rgba(0,0,0,0.5)] sm:text-8xl" aria-hidden>
           {title.split(' ').map((word, wi) => (
-            <span key={wi} className="mr-3 inline-flex whitespace-nowrap sm:mr-5" aria-hidden>
+            <span key={wi} className="mr-3 inline-flex whitespace-nowrap sm:mr-5">
               {word.split('').map((ch, ci) => (
                 <span key={ci} className="hero-char inline-block" style={gradientText && word === gradientText ? { color: accent } : undefined}>{ch}</span>
               ))}
             </span>
           ))}
-        </h1>
+        </div>
         {subtitle && <p className="hero-sub mx-auto mt-6 max-w-xl text-lg text-white/85 drop-shadow">{subtitle}</p>}
       </div>
 
@@ -145,6 +148,29 @@ export function ArticleSection({ kicker, title, max = 'max-w-3xl', center, child
           {kicker && <div className="mb-3 text-xs font-semibold tracking-[0.2em]" style={{ color: accent }}>{kicker}</div>}
           {title && <h2 className="mb-6 text-3xl font-bold text-white sm:text-4xl">{title}</h2>}
           {children}
+        </section>
+      </Reveal>
+    </div>
+  );
+}
+
+/* ─── Cevap-önce (answer-first) giriş — AI alıntısı + SEO için kalın tanım + özet ─── */
+export function ArticleLede({ children, points }: { children: ReactNode; points?: string[] }) {
+  const accent = useAccent();
+  return (
+    <div className="relative z-10">
+      <Reveal>
+        <section className="mx-auto max-w-3xl px-6 pt-10">
+          <div className="rounded-2xl border p-5 sm:p-6" style={{ borderColor: `color-mix(in srgb, ${accent} 30%, transparent)`, background: `color-mix(in srgb, ${accent} 7%, transparent)` }}>
+            <p className="text-lg font-semibold leading-relaxed text-slate-100">{children}</p>
+            {points && points.length > 0 && (
+              <ul className="mt-4 space-y-1.5">
+                {points.map((p, i) => (
+                  <li key={i} className="flex gap-2 text-sm leading-relaxed text-slate-300"><span style={{ color: accent }}>▸</span><span>{p}</span></li>
+                ))}
+              </ul>
+            )}
+          </div>
         </section>
       </Reveal>
     </div>

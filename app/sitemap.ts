@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { db } from '@/lib/supabase/server';
+import { ARTICLES } from '@/lib/articles';
 
 const SITE_URL = 'https://basementonfire.com';
 
@@ -16,9 +17,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/muzik`, lastModified: now, changeFrequency: 'weekly', priority: 0.5 },
   ];
 
-  const articles = ['greece', 'carthage', 'rome', 'black-hole', 'turkler', 'ekonomi', 'einstein-rosen', 'arcade', 'tibbi', 'internet', 'pirus', 'takyon', 'tardigrad', 'bagirsak', 'bakteriyofaj', 'endosimbiyoz', 'kaligrafi', 'doppler', 'dogal-secilim', 'dunya', 'newton'];
-  const articleRoutes: MetadataRoute.Sitemap = articles.map(a => ({
-    url: `${SITE_URL}/articles/${a}`,
+  // Makale listesi TEK kaynaktan (lib/articles.ts) — yeni makale eklenince
+  // sitemap otomatik güncellenir (elle senkron riski yok).
+  const articleRoutes: MetadataRoute.Sitemap = ARTICLES.map(a => ({
+    url: `${SITE_URL}/articles/${a.slug}`,
     lastModified: now,
     changeFrequency: 'monthly',
     priority: 0.9,

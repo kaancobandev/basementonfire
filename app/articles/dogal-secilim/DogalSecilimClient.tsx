@@ -1,7 +1,7 @@
 'use client';
 
 import {
-  ArticleShell, ArticleHero, ArticleSection, CardGrid, HorizontalTimeline, ArticleQuiz, ArticleBibliography, ArticleFooter,
+  ArticleShell, ArticleHero, ArticleLede, ArticleSection, CardGrid, HorizontalTimeline, ArticleQuiz, ArticleBibliography, ArticleFooter,
 } from '@/app/components/article/ArticleBlocks';
 import {
   CamouflageSim, SelectionTypes, BORDER, ICONBG,
@@ -15,9 +15,18 @@ export default function DogalSecilimClient() {
     <ArticleShell accent={ACCENT} title="Doğal Seçilim">
       <ArticleHero
         title="Doğal Seçilim"
+        fullTitle="Doğal Seçilim — Evrimin Motoru"
         eyebrow="EVRİMİN MOTORU · İNTERAKTİF DOSYA"
         subtitle={<>Ne tasarımcı ne amaç var — yalnızca bir <strong className="font-semibold text-emerald-300">filtre.</strong> Aşağı kaydır; başlık dağılsın, seçilim <em className="not-italic text-lime-300">iş başında</em> başlasın.</>}
       />
+
+      <ArticleLede points={[
+        'Çeşitlilik + kalıtım + farklı üreme başarısı + zaman',
+        'Antibiyotik direnci, biber güvesi, Darwin ispinozları — gözlemlenen gerçek örnekler',
+        'Mutasyon rastgeledir; ama seçilim rastgele değildir — yönü ortam belirler',
+      ]}>
+        Doğal seçilim, Charles Darwin ve Alfred Russel Wallace'ın 1858'de ortaya koyduğu, evrimin uyumu açıklayan ana mekanizmasıdır: kalıtsal çeşitliliğe sahip bir popülasyonda ortama daha uyumlu bireyler daha çok yavru bırakır ve bu özellikler nesiller boyunca yaygınlaşır.
+      </ArticleLede>
 
       {/* Açılış cümlesi */}
       <ArticleSection center>

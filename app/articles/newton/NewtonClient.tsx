@@ -2,7 +2,7 @@
 
 import { type ReactNode } from 'react';
 import {
-  ArticleShell, ArticleHero, ArticleSection, CardGrid, HorizontalTimeline, ArticleQuiz, ArticleBibliography, ArticleFooter,
+  ArticleShell, ArticleHero, ArticleLede, ArticleSection, CardGrid, HorizontalTimeline, ArticleQuiz, ArticleBibliography, ArticleFooter,
 } from '@/app/components/article/ArticleBlocks';
 import {
   ForceCalc, GravityCalc, LawStatus,
@@ -36,10 +36,19 @@ export default function NewtonClient() {
     <ArticleShell accent={ACCENT} title="Isaac Newton">
       <ArticleHero
         title="Newton"
+        fullTitle="Isaac Newton: Bilimi Yeniden Kuran Adam"
         eyebrow="ISAAC NEWTON · BİLİMİ YENİDEN KURAN ADAM"
         subtitle={<>Hareketi, kütleçekimi, ışığı ve matematiğin kendisini öyle yeniden tanımladı ki ondan sonra iki yüzyıl boyunca fizik, esasen <strong className="font-semibold text-amber-300">“Newton'ın dünyasında”</strong> yapıldı. Aşağı kaydır.</>}
         colors={HERO_COLORS}
       />
+
+      <ArticleLede points={[
+        'Üç hareket yasası + evrensel kütleçekim → başyapıtı Principia (1687)',
+        'Kalkülüs, yansıtmalı teleskop ve optik (ışığın renklere ayrışması)',
+        'Yasaları bugün hâlâ günlük mühendisliğin temeli; yalnızca aşırı uçlarda yerini Einstein ve kuantuma bırakır',
+      ]}>
+        Isaac Newton (1642–1727), modern fiziğin ve matematiğin kurucusu sayılan İngiliz bilim insanıdır. Üç hareket yasasını (F = m·a dâhil), evrensel kütleçekim yasasını ve kalkülüsü geliştirdi; prizmayla ışığın renklere ayrıştığını gösterdi.
+      </ArticleLede>
 
       <ArticleSection center>
         <p className="text-2xl font-medium leading-relaxed text-slate-200 sm:text-3xl">

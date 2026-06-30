@@ -4,7 +4,7 @@
 // Genel şablon parçaları (hero, bölüm, zaman çizelgesi, quiz, kabuk) için bkz.
 // @/app/components/article/ArticleBlocks.
 import { useState, useEffect, useRef } from 'react';
-import type { BibItem } from '@/app/components/ArticleBibliography';
+export { refs } from './refs';
 
 export const ingredients = [
   { icon: '🎲', title: 'Çeşitlilik', color: 'emerald', text: 'Aynı türün bireyleri birbirinin kopyası değildir: kimi daha hızlı, kimi daha koyu, kimi daha kalın gagalı. Bu farklar büyük ölçüde rastgele mutasyonlardan doğar. Seçecek bir çeşitlilik yoksa seçilim de olmaz.' },
@@ -57,14 +57,7 @@ export const quizQs = [
   { text: 'Biber güvesinin koyu formu neden çoğaldı?', opts: ['Daha sıcak olduğu için', 'Kurumlu ağaçlarda kuşlardan saklanıp daha çok ürediği için', 'Koyu renk daha hızlı uçtuğu için', 'Tesadüfen'], a: 1, exp: 'Kararmış ağaçlarda koyu güveler saklandı, daha çok üredi.' },
 ];
 
-export const refs: BibItem[] = [
-  { title: 'On the Origin of Species by Means of Natural Selection', authors: 'Charles Darwin', year: '1859', source: 'John Murray, Londra' },
-  { title: 'On the Tendency of Species to form Varieties (Darwin–Wallace ortak bildirisi)', authors: 'C. Darwin & A. R. Wallace', year: '1858', source: 'J. Proc. Linnean Society (Zoology) 3, 45' },
-  { title: '40 Years of Evolution: Darwin’s Finches on Daphne Major Island', authors: 'P. R. Grant & B. R. Grant', year: '2014', source: 'Princeton University Press' },
-  { title: 'The industrial melanism mutation in British peppered moths is a transposable element', authors: 'A. E. van’t Hof ve ark.', year: '2016', source: 'Nature 534, 102' },
-  { title: 'Understanding Evolution — Natural selection', source: 'UC Berkeley', url: 'https://evolution.berkeley.edu/evolution-101/mechanisms-the-processes-of-evolution/natural-selection/' },
-  { title: 'Natural selection', source: 'Wikipedia', url: 'https://en.wikipedia.org/wiki/Natural_selection' },
-];
+// refs yukarıda './refs' düz modülünden re-export edilir.
 
 export const BORDER: Record<string, string> = {
   emerald: 'border-emerald-500/30 bg-emerald-500/10',
