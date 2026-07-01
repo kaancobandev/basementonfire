@@ -1,6 +1,7 @@
 'use client';
 
 import { type ReactNode } from 'react';
+import Link from 'next/link';
 import {
   ArticleShell, ArticleHero, ArticleLede, ArticleSection, CardGrid, HorizontalTimeline, ArticleQuiz, ArticleBibliography, ArticleFooter,
 } from '@/app/components/article/ArticleBlocks';
@@ -163,12 +164,13 @@ export default function BilgisayarClient() {
 
       {/* 13. Diğer parçalar */}
       <ArticleSection title="13. Diğer önemli parçalar" max="max-w-4xl">
+        <p className="mb-6 leading-relaxed text-slate-300">Bunlardan ağ kartı, bilgisayarı dış dünyaya bağlayan kapıdır; milyarlarca cihazın birbiriyle nasıl konuştuğunu ise <Link href="/articles/internet" className="article-ilink">internetin nasıl çalıştığı</Link> ayrı bir hikâyedir.</p>
         <CardGrid items={otherParts} cols={3} />
       </ArticleSection>
 
       {/* 14. Hepsi bir arada */}
       <ArticleSection title="14. Hepsi bir arada: bir oyun açtığında" max="max-w-3xl">
-        <p className="mb-6 text-slate-400">Parçaları birleştirelim — bir oyun açtığında saniyede onlarca kez tekrar eden zincir:</p>
+        <p className="mb-6 text-slate-400">Parçaları birleştirelim — <Link href="/articles/arcade" className="article-ilink">bir oyun açtığında</Link> saniyede onlarca kez tekrar eden zincir:</p>
         <ol className="space-y-3">
           {gameFlow.map((s, i) => (
             <li key={i} className="flex gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur">

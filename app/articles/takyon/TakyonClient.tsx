@@ -345,6 +345,10 @@ export default function TakyonClient() {
           ))}
         </div>
         <p className="tky-hint">🔑 Anahtar fark: Takyonlar tehlikelidir çünkü gerçek <strong>bilgi</strong> taşırlar. Gölge ve lazer beneği taşımaz — o yüzden serbesttirler.</p>
+        <p className="tky-p">
+          Bizden uzaklaşan galaksilerin ışığı, tıpkı uzaklaşan bir sirenin sesinin kalınlaşması gibi daha uzun dalga
+          boylarına, yani <strong>kırmızıya</strong> kayar; ışık ve gölgenin bu davranışının ardında yatan <Link href="/articles/doppler" className="article-ilink">Doppler etkisi</Link>, dalga boyunun hareketle nasıl esnediğini anlatır.
+        </p>
       </section>
 
       {/* ── 9. CHERENKOV ── */}
@@ -420,6 +424,11 @@ export default function TakyonClient() {
           Yine de takyonlar değerlidir: Bizi <strong>neyin neden mümkün olmadığını</strong> derinlemesine
           düşünmeye, görelilik ile nedenselliğin ne kadar sıkı örülü olduğunu görmeye zorlarlar. Bazen bir fikrin en
           büyük armağanı, doğru çıkması değil; bize evrenin sınırlarını öğretmesidir.
+        </p>
+        <p className="tky-p">
+          Işıktan hızlı bir parçacık olmadan da uzayda kestirmeden gitmenin bir yolu olabilir mi? Bazı fizikçiler,
+          uzay-zamanın kendisini bükerek iki uzak noktayı birleştiren <Link href="/articles/einstein-rosen" className="article-ilink">solucan deliği (Einstein-Rosen köprüsü)</Link> gibi
+          egzotik geçitlerin, takyonlara başvurmadan da bir “kestirme yol” vaat edebileceğini düşünür.
         </p>
       </section>
 

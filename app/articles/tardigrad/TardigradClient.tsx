@@ -359,7 +359,8 @@ export default function TardigradClient() {
         </p>
         <p className="trd-p">
           Görünüşleri sevimli ve sakindir; sallana sallana yürürler. Ama bu masum görüntünün altında, doğanın
-          tasarladığı <strong>en inanılmaz hayatta kalma makinesi</strong> saklı.
+          tasarladığı <strong>en inanılmaz hayatta kalma makinesi</strong> saklı — milyonlarca yıllık{' '}
+          <Link href="/articles/dogal-secilim" className="article-ilink">doğal seçilimin</Link> şekillendirdiği bir başyapıt.
         </p>
         <div className="trd-anatomy">
           <svg viewBox="0 0 420 200" className="trd-svg">

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { type ReactNode } from 'react';
 import {
   ArticleShell, ArticleHero, ArticleLede, ArticleSection, CardGrid, HorizontalTimeline, ArticleQuiz, ArticleBibliography, ArticleFooter,
@@ -118,7 +119,7 @@ export default function NewtonClient() {
             <div key={t} className="rounded-xl border border-white/10 bg-white/[0.04] p-4 backdrop-blur"><div className="mb-1 text-2xl">{i}</div><h4 className="font-bold text-white">{t}</h4><p className="text-sm leading-relaxed text-slate-400">{d}</p></div>
           ))}
         </div>
-        <p className="mt-6 leading-relaxed text-slate-300">Yüzeydeki ağırlığını veren <span className="font-mono text-amber-300">g = 9,8 m/s²</span> de bu formülün özel hâlidir: 70 kg'lık biri Dünya'da ~686 N çekilir; Ay'da g küçük olduğu için altıda biri kadar.</p>
+        <p className="mt-6 leading-relaxed text-slate-300">Yüzeydeki ağırlığını veren <span className="font-mono text-amber-300">g = 9,8 m/s²</span> de bu formülün özel hâlidir: 70 kg'lık biri <Link href="/articles/dunya" className="article-ilink">Dünya</Link>'da ~686 N çekilir; Ay'da g küçük olduğu için altıda biri kadar.</p>
       </ArticleSection>
 
       {/* 5. Diğer buluşlar */}

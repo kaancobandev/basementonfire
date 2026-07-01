@@ -258,7 +258,7 @@ export default function DopplerClient() {
             <p className="mb-4 leading-relaxed">Ambulans gelirken öndeki sıkışmış dalgaları duyarsın (tiz); geçip uzaklaşınca arkadaki gerilmiş dalgaları (kalın). Sirenin frekansı hiç değişmedi — senin konumun değişti.</p>
             <div className="flex gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
               <span className="text-xl">🏃</span>
-              <p className="text-sm text-slate-300">Etki sadece kaynak hareket edince değil, <strong className="font-semibold text-slate-100">sen hareket edince</strong> de olur. Sabit bir çana doğru koşarsan ses daha tiz gelir; çünkü dalga tepelerine koşarak onlara daha sık çarparsın. Önemli olan <strong className="font-semibold text-slate-100">göreli harekettir.</strong></p>
+              <p className="text-sm text-slate-300">Etki sadece kaynak hareket edince değil, <strong className="font-semibold text-slate-100">sen hareket edince</strong> de olur. Sabit bir çana doğru koşarsan ses daha tiz gelir; çünkü dalga tepelerine koşarak onlara daha sık çarparsın. Önemli olan <Link href="/articles/newton" className="article-ilink"><strong className="font-semibold text-slate-100">göreli harekettir.</strong></Link></p>
             </div>
           </section>
         </Reveal>
@@ -320,7 +320,7 @@ export default function DopplerClient() {
                 <div className="text-sm text-slate-300">Kaynak uzaklaşıyorsa dalga boyu uzar, renk kırmızı uca kayar.</div>
               </div>
             </div>
-            <p className="mb-4 leading-relaxed">Kritik fark: ses yayılmak için bir <strong className="font-semibold text-slate-100">ortama</strong> (hava, su) muhtaçtır; ışık ise boşlukta da yol alır. Bu yüzden ışıkta "havanın hızı" yoktur, yalnızca göreli hız önemlidir. Işık hızına yakın hızlarda Einstein'ın göreliliği işe karışır (zaman genleşmesi); kaynak tam yana hareket etse bile küçük bir <strong className="font-semibold text-slate-100">enine Doppler etkisi</strong> görülür — tamamen göreliliğe özgüdür.</p>
+            <p className="mb-4 leading-relaxed">Kritik fark: ses yayılmak için bir <strong className="font-semibold text-slate-100">ortama</strong> (hava, su) muhtaçtır; ışık ise boşlukta da yol alır. Bu yüzden ışıkta "havanın hızı" yoktur, yalnızca göreli hız önemlidir. <Link href="/articles/takyon" className="article-ilink">Işık hızına</Link> yakın hızlarda Einstein'ın göreliliği işe karışır (zaman genleşmesi); kaynak tam yana hareket etse bile küçük bir <strong className="font-semibold text-slate-100">enine Doppler etkisi</strong> görülür — tamamen göreliliğe özgüdür.</p>
             <p className="leading-relaxed">Günlük hayatta arabanın farları maviye kaymaz; araba ışık hızının yanında kaplumbağa kadar yavaştır. Doppler'in yıldız fikrinin ilk başta tutmamasının sebebi de buydu. Ama astronomik hızlarda kayma ölçülebilir hale gelir — ve işte orada işler büyür.</p>
           </section>
         </Reveal>
@@ -331,7 +331,7 @@ export default function DopplerClient() {
             <div className="mb-2 text-sm font-bold tracking-widest text-sky-400">05</div>
             <h2 className="mb-4 text-2xl font-bold text-slate-50 sm:text-3xl">Evrenin Genişlemesi: Kozmik Kırmızıya Kayma</h2>
             <p className="mb-4 leading-relaxed">20. yüzyılın en büyük keşiflerinden biri doğrudan bu kırmızıya kaymadan doğdu. 1910'larda <strong className="font-semibold text-slate-100">Vesto Slipher</strong> uzak galaksilerde belirgin kırmızıya kaymalar ölçtü. 1929'da <strong className="font-semibold text-slate-100">Edwin Hubble</strong> bunu uzaklıklarla birleştirip şaşırtıcı bir örüntü buldu: galaksiler bizden uzaklaşıyordu ve <strong className="font-semibold text-slate-100">ne kadar uzaktaysa o kadar hızlı.</strong></p>
-            <p className="mb-4 leading-relaxed">Tek mantıklı açıklama vardı: <strong className="font-semibold text-sky-300">evren genişliyor.</strong> Bu, Büyük Patlama modelinin temel taşlarından biri oldu.</p>
+            <p className="mb-4 leading-relaxed">Tek mantıklı açıklama vardı: <Link href="/articles/black-hole" className="article-ilink"><strong className="font-semibold text-sky-300">evren genişliyor.</strong></Link> Bu, Büyük Patlama modelinin temel taşlarından biri oldu.</p>
             <div className="flex gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
               <span className="text-xl">🍞</span>
               <p className="text-sm text-slate-300">Güzel incelik: kozmik kırmızıya kayma, galaksilerin uzayda "fırlatılmış top gibi" koşmasından değil; <strong className="font-semibold text-slate-100">uzayın kendisinin genişlemesinden</strong> kaynaklanır — ışığın dalga boyu da onunla gerilir. Galaksiler boşlukta koşmuyor, aralarındaki boşluk büyüyor. Hamuru gererken üzerindeki iki noktanın uzaklaşması gibi.</p>

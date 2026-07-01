@@ -280,7 +280,7 @@ export default function RomePage() {
             <div className="ro-section-badge">II</div>
             <h2 className="ro-h2">Roma Cumhuriyeti <span className="ro-chip">MÖ 509 – 27</span></h2>
 
-            <p className="ro-p">Roma Krallığı'nın son imparatoru <strong className="ro-gold">Lucius Tarquinius Superbus</strong>'un tahttan indirilmesiyle MÖ 509'da cumhuriyete geçildi. Romalılar barbarları dışarıda tutmak için mükemmele yakın duvarlar inşa etti, dümdüz yollar yaptı; cumhuriyet, savaşta cesur davranan askerlerine arazi kazandırıyordu.</p>
+            <p className="ro-p">Roma Krallığı'nın son imparatoru <strong className="ro-gold">Lucius Tarquinius Superbus</strong>'un tahttan indirilmesiyle MÖ 509'da cumhuriyete geçildi. Romalılar barbarları dışarıda tutmak için mükemmele yakın duvarlar inşa etti, dümdüz yollar yaptı; cumhuriyet, savaşta cesur davranan askerlerine arazi kazandırıyordu. Cumhuriyetin Akdeniz'e açılmasının önündeki en büyük engel ise, üç kanlı <Link href="/articles/carthage" className="article-ilink">Pön Savaşları'nda karşı karşıya geldiği Kartaca</Link> oldu.</p>
 
             <h3 className="ro-h3">Jül Sezar'ın Yükselişi</h3>
             <div className="ro-caesar-tl">
@@ -334,7 +334,7 @@ export default function RomePage() {
             {/* Pax Romana */}
             <h3 className="ro-h3">Pax Romana — Roma Barışı <span className="ro-chip">MÖ 27 – MS 180</span></h3>
             <div className="ro-intro-card">
-              <p className="ro-p" style={{ margin: 0 }}>Augustus ile başlayan yaklaşık <strong className="ro-gold">200 yıllık</strong> bu dönem, Akdeniz dünyasının görece barış, istikrar ve refah yaşadığı çağdır. Akdeniz artık tümüyle Roma'nın iç denizi — <em className="ro-gold">Mare Nostrum</em> (Bizim Deniz) — olmuştu. Güvenli yollar ve ortak para birimi sayesinde ticaret patladı, şehirler büyüdü ve Roma'nın nüfusu bir milyonu aştı.</p>
+              <p className="ro-p" style={{ margin: 0 }}>Augustus ile başlayan yaklaşık <strong className="ro-gold">200 yıllık</strong> bu dönem, Akdeniz dünyasının görece barış, istikrar ve refah yaşadığı çağdır. Akdeniz artık tümüyle Roma'nın iç denizi — <em className="ro-gold">Mare Nostrum</em> (Bizim Deniz) — olmuştu. Güvenli yollar ve ortak para birimi sayesinde <Link href="/articles/ekonomi" className="article-ilink">ticaret ve para ekonomisi</Link> patladı, şehirler büyüdü ve Roma'nın nüfusu bir milyonu aştı.</p>
             </div>
 
             {/* İmparatorlar galerisi */}
@@ -369,7 +369,7 @@ export default function RomePage() {
               <div>
                 <p className="ro-p">MS 395'te İmparator I. Theodosius, imparatorluğu iki oğlu arasında kalıcı biçimde <strong className="ro-gold">Doğu</strong> ve <strong className="ro-gold">Batı Roma</strong> olarak böldü. Sınırlardaki baskı, ekonomik bunalım, salgınlar ve iç çekişmeler Batı'yı giderek zayıflattı.</p>
                 <p className="ro-p">Kavimler Göçü ile gelen Germen kabileleri sınırları zorladı; Roma MS 410'da Vizigotlar, MS 455'te Vandallar tarafından yağmalandı. Son Batı Roma imparatoru <strong className="ro-gold">Romulus Augustulus</strong>, MS 476'da Germen komutan Odoacer tarafından tahttan indirildi — bu tarih geleneksel olarak Batı Roma'nın sonu kabul edilir.</p>
-                <p className="ro-p">Ancak <strong className="ro-gold">Doğu Roma (Bizans)</strong> İmparatorluğu, başkenti Konstantinopolis'te bin yıl daha yaşadı ve nihayet MS <strong className="ro-gold">1453</strong>'te İstanbul'un fethiyle tarihe karıştı.</p>
+                <p className="ro-p">Ancak <Link href="/articles/turkler" className="article-ilink"><strong className="ro-gold">Doğu Roma (Bizans)</strong></Link> İmparatorluğu, başkenti Konstantinopolis'te bin yıl daha yaşadı ve nihayet MS <strong className="ro-gold">1453</strong>'te İstanbul'un fethiyle tarihe karıştı.</p>
               </div>
               <div className="ro-colosseum">
                 <div style={{ fontSize: '3.5rem', textAlign: 'center' }}>💀</div>

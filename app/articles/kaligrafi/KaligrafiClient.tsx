@@ -195,7 +195,7 @@ export default function KaligrafiClient() {
         <div className="cal-num">I</div>
         <h2 className="cal-h2">Kaligrafi Nedir?</h2>
         <p className="cal-lead">
-          Kelime, Yunanca <em>kallos</em> (güzellik) ve <em>graphein</em> (yazmak) köklerinden gelir: kelimenin tam
+          Kelime, <Link href="/articles/greece" className="article-ilink"><em>Yunanca</em></Link> <em>kallos</em> (güzellik) ve <em>graphein</em> (yazmak) köklerinden gelir: kelimenin tam
           anlamıyla "güzel yazı."
         </p>
         <p className="cal-p">
@@ -221,7 +221,7 @@ export default function KaligrafiClient() {
         <p className="cal-p">
           İslam kültüründe yazı, resmin görece geri planda kaldığı bir ortamda en yüksek görsel sanat haline geldi.
           Türkçede bu sanata <strong>hat</strong> (Arapça "çizgi"), güzeline <strong>hüsn-i hat</strong>, sanatçısına ise
-          <strong> hattat</strong> denir. İşte ölçünün doğuşundan Osmanlı zirvesine uzanan yol:
+          <strong> hattat</strong> denir. İşte ölçünün doğuşundan <Link href="/articles/turkler" className="article-ilink">Osmanlı</Link> zirvesine uzanan yol:
         </p>
         <ol className="cal-timeline">
           {islamTimeline.map((e, i) => (

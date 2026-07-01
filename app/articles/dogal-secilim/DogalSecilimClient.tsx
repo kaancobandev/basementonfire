@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import {
   ArticleShell, ArticleHero, ArticleLede, ArticleSection, CardGrid, HorizontalTimeline, ArticleQuiz, ArticleBibliography, ArticleFooter,
 } from '@/app/components/article/ArticleBlocks';
@@ -79,12 +80,18 @@ export default function DogalSecilimClient() {
       {/* Gerçek örnekler */}
       <ArticleSection title="Laboratuvar değil, gerçek hayat" max="max-w-4xl">
         <CardGrid items={examples} cols={2} />
+        <p className="mt-6 leading-relaxed text-slate-400">
+          Aynı sürecin uç koşullara dayanıklılığı ne kadar ileri götürebildiğinin en çarpıcı örneği ise, kaynar sudan mutlak sıfıra ve uzay boşluğuna kadar akıl almaz ortamlara katlanabilen <Link href="/articles/tardigrad" className="article-ilink">su ayıları</Link>dır.
+        </p>
       </ArticleSection>
 
       {/* Diğer mekanizmalar */}
       <ArticleSection title="Tek motor değil">
         <p className="mb-6 text-slate-400">Doğal seçilim, uyumu açıklayan ana mekanizmadır — ama tek değildir.</p>
         <CardGrid items={otherMechanisms} cols={2} />
+        <p className="mt-6 leading-relaxed text-slate-400">
+          Bazen evrimin en büyük sıçramaları yeni bir mutasyondan değil, iki ayrı canlının tek bir hücrede birleşmesinden doğar; karmaşık hücrenin kökenindeki bu ortaklık hikayesi <Link href="/articles/endosimbiyoz" className="article-ilink">endosimbiyoz</Link> olarak bilinir.
+        </p>
       </ArticleSection>
 
       {/* Yatay zaman çizelgesi */}

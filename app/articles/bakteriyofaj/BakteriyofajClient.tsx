@@ -185,7 +185,7 @@ export default function BakteriyofajClient() {
         <p className="phg-p">
           Gezegende tahminen <strong>10³¹ adet</strong> bakteriyofaj bulunuyor — bu, evrendeki yıldız sayısından
           milyonlarca kat fazla. Hepsini uç uca dizebilseydiniz, oluşan zincir <strong>200 milyon ışıkyılı</strong>
-          uzanırdı. Bir kaşık deniz suyunda yaklaşık on milyon, bir gram bağırsak içeriğinde milyarlarca faj yaşar.
+          uzanırdı. Bir kaşık deniz suyunda yaklaşık on milyon, bir gram <Link href="/articles/bagirsak" className="article-ilink">bağırsak</Link> içeriğinde milyarlarca faj yaşar.
         </p>
         <div className="phg-bignums">
           {[
@@ -202,7 +202,8 @@ export default function BakteriyofajClient() {
           <em> phagein</em> (yemek) kökünden gelir: kelimenin tam anlamıyla "bakteri yiyenler". İnsanları,
           hayvanları ya da bitkileri hiç enfekte edemezler; tek hedefleri çoğu zaman tek bir bakteri türüdür. Bu
           olağanüstü hassasiyet, hem onları gezegenin en başarılı yırtıcısı yapar hem de modern tıbbın yeniden
-          ilgisini çeken özelliktir.
+          ilgisini çeken özelliktir. Fajların avladığı bu bakteriler öyle köklü bir soydan gelir ki, milyarlarca yıl
+          önce bazıları karmaşık hücrelerin içine yerleşip mitokondri ve kloroplasta dönüştü — <Link href="/articles/endosimbiyoz" className="article-ilink">hücre içine yerleşen bakterilerin evrimsel öyküsü</Link> bugünkü tüm karmaşık yaşamın temelini attı.
         </p>
         <div className="phg-note">
           <span>🌊</span>
@@ -332,7 +333,7 @@ export default function BakteriyofajClient() {
         <p className="phg-p">
           Fajların belki de en şaşırtıcı mirası, modern biyolojinin en güçlü aracını doğurmuş olmalarıdır:
           <strong> CRISPR</strong>. Bakteriler ve fajlar en az <strong>üç milyar yıldır</strong> kıyasıya bir
-          silahlanma yarışı içinde — gezegenin en eski ve en yoğun evrimsel mücadelesi.
+          <Link href="/articles/dogal-secilim" className="article-ilink"> silahlanma yarışı</Link> içinde — gezegenin en eski ve en yoğun evrimsel mücadelesi.
         </p>
         <p className="phg-p">
           Bir bakteri bir faj saldırısından sağ kurtulduğunda, fajın DNA'sının küçük bir parçasını kendi genomuna

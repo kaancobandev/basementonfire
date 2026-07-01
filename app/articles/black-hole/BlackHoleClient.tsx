@@ -163,7 +163,7 @@ export default function BlackHolePage() {
           <h2 style={{ fontFamily: 'monospace', fontSize: 'clamp(1.2rem,3vw,1.8rem)', color: '#ff4500', borderLeft: '4px solid #ff4500', paddingLeft: 16, marginBottom: 28 }}>Kara Delik Nedir?</h2>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 32, alignItems: 'center' }}>
             <div>
-              <p style={{ color: '#b0b0b0', lineHeight: 1.85, marginBottom: 14, fontSize: '0.95rem' }}>Kara delikler, evrendeki en yoğun nesnelerdir. Bir bowling topunu düşünün, ancak ağırlığı Everest Dağı kadar olsun. Bu yoğunluk, uzay-zaman dokusunu öylesine büker ki, <strong style={{ color: '#ff8c00' }}>ışık bile kaçamaz</strong>.</p>
+              <p style={{ color: '#b0b0b0', lineHeight: 1.85, marginBottom: 14, fontSize: '0.95rem' }}>Kara delikler, evrendeki en yoğun nesnelerdir. Bir bowling topunu düşünün, ancak ağırlığı Everest Dağı kadar olsun. Bu yoğunluk, uzay-zaman dokusunu öylesine büker ki, <Link href="/articles/doppler" className="article-ilink"><strong style={{ color: '#ff8c00' }}>ışık bile kaçamaz</strong></Link>.</p>
               <p style={{ color: '#b0b0b0', lineHeight: 1.85, marginBottom: 14, fontSize: '0.95rem' }}>Dev yıldızlar yakıtlarını tükettiklerinde kendi içlerine çökerler. Bu çöküş durdurulamaz bir noktaya geldiğinde, bir kara delik doğar.</p>
             </div>
             <div style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 16, padding: 28, textAlign: 'center' }}>
@@ -210,7 +210,7 @@ export default function BlackHolePage() {
                 <p style={{ color: '#b0b0b0', lineHeight: 1.85, marginBottom: 14, fontSize: '0.95rem' }}>Eğer Güneşimiz aniden bir kara deliğe dönüşseydi, Dünya içine çekilmezdi. Sadece karanlıkta kalırdık.</p>
                 <div style={{ padding: 16, border: '1px solid rgba(255,69,0,0.35)', borderRadius: 12, background: 'rgba(255,69,0,0.06)' }}>
                   <h4 style={{ color: '#ff8c00', fontWeight: 700, marginBottom: 8 }}>⚠ Spagettileşme Nedir?</h4>
-                  <p style={{ fontSize: '0.85rem', color: '#aaa', lineHeight: 1.7 }}>Bir kara deliğe ayaklarınız önde düşerseniz, ayaklarınızdaki çekim kuvveti başınızdakinden çok fazla olur ki, bir makarna gibi uzarsınız.</p>
+                  <p style={{ fontSize: '0.85rem', color: '#aaa', lineHeight: 1.7 }}>Bir kara deliğe ayaklarınız önde düşerseniz, ayaklarınızdaki <Link href="/articles/newton" className="article-ilink">çekim kuvveti</Link> başınızdakinden çok fazla olur ki, bir makarna gibi uzarsınız.</p>
                   <div style={{ textAlign: 'center', marginTop: 16 }}>
                     <span title="Üzerime gel!" style={{ fontSize: '3.5rem', display: 'inline-block', transition: 'transform 1s ease, filter 1s ease', cursor: 'help' }}
                       onMouseOver={e => { (e.target as HTMLElement).style.transform = 'scaleY(3.5) scaleX(0.4)'; (e.target as HTMLElement).style.filter = 'blur(1px)'; }}
@@ -280,7 +280,7 @@ export default function BlackHolePage() {
         {/* Closing */}
         <section className="reveal" style={{ maxWidth: 920, margin: '0 auto', padding: '60px 24px 80px', textAlign: 'center' }}>
           <h2 style={{ fontFamily: 'monospace', fontSize: 'clamp(1.2rem,3vw,1.8rem)', color: '#ff4500', textAlign: 'center', marginBottom: 20 }}>Hawking Radyasyonu ve Evrenin Sonu</h2>
-          <p style={{ maxWidth: 640, margin: '0 auto 24px', color: '#aaa', lineHeight: 1.8, fontSize: '0.95rem' }}>Trilyonlarca yıl sonra yıldızlar söndüğünde, evrende sadece kara delikler kalacak. Stephen Hawking'in teorisine göre, onlar da çok yavaş bir şekilde radyasyon yayarak buharlaşacaklar. Ve sonunda, evren sessizliğe gömülecek.</p>
+          <p style={{ maxWidth: 640, margin: '0 auto 24px', color: '#aaa', lineHeight: 1.8, fontSize: '0.95rem' }}>Trilyonlarca yıl sonra yıldızlar söndüğünde, evrende sadece kara delikler kalacak. Stephen Hawking'in teorisine göre, onlar da çok yavaş bir şekilde radyasyon yayarak buharlaşacaklar. Ve sonunda, evren sessizliğe gömülecek. Yine de kara deliklerin en cüretkâr teorik akrabası, uzayda iki uzak noktayı birbirine bağlayan bir kestirme yol vaat eden <Link href="/articles/einstein-rosen" className="article-ilink"><strong style={{ color: '#ff8c00' }}>solucan delikleridir (Einstein-Rosen köprüsü)</strong></Link>.</p>
           <div style={{ display: 'inline-block', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, padding: '12px 24px', fontSize: '0.85rem' }}>
             <span style={{ color: '#888' }}>Hazırlayan:</span>
             <span style={{ color: '#ff4500', fontWeight: 700, marginLeft: 6 }}>Kaan Çoban</span>

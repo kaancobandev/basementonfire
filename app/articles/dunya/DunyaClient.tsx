@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 import {
   ArticleShell, ArticleHero, ArticleLede, ArticleSection, CardGrid, HorizontalTimeline, ArticleQuiz, ArticleBibliography, ArticleFooter,
 } from '@/app/components/article/ArticleBlocks';
@@ -53,7 +54,7 @@ export default function DunyaClient() {
         <Globe3D />
         <p className="mb-4 mt-6 leading-relaxed text-slate-300">
           Dünya'nın hikâyesi ~4,6 milyar yıl önce, devasa bir gaz ve toz bulutunun çökmesiyle başlar: <strong className="text-sky-300">güneş bulutsusu</strong>.
-          Çoğunlukla hidrojen ve helyumdan oluşan bu buluta, ölmüş yıldızların süpernova patlamalarından saçılan ağır elementler de karışmıştı.
+          Çoğunlukla hidrojen ve helyumdan oluşan bu buluta, ölmüş yıldızların <Link href="/articles/black-hole" className="article-ilink">süpernova patlamalarından</Link> saçılan ağır elementler de karışmıştı.
           Çekirdeğimizdeki demir de kanımızdaki demir de bu ölü yıldızların külünden gelir.
         </p>
         <p className="mb-5 leading-relaxed text-slate-300">
@@ -147,7 +148,7 @@ export default function DunyaClient() {
       <ArticleSection title="Ay'ın doğuşu: bir gezegenin Dünya'ya çarpması" max="max-w-4xl">
         <p className="mb-6 leading-relaxed text-slate-300">
           En geniş kabul gören açıklama <strong className="text-sky-300">Dev Çarpışma Hipotezi</strong>'dir. ~4,5 milyar yıl önce, Mars büyüklüğünde bir embriyo — <strong className="text-amber-300">Theia</strong> — genç Dünya'ya teğet çarptı.
-          Her iki cismin dış katmanları eriyip buharlaştı; saçılan kızgın enkaz bir halka oluşturdu ve bu halka kendi kütleçekimiyle birleşerek Ay'ı yaptı. Theia'nın metalik çekirdeği ise büyük olasılıkla Dünya'nınkiyle birleşti.
+          Her iki cismin dış katmanları eriyip buharlaştı; saçılan kızgın enkaz bir halka oluşturdu ve bu halka kendi <Link href="/articles/newton" className="article-ilink">kütleçekimiyle</Link> birleşerek Ay'ı yaptı. Theia'nın metalik çekirdeği ise büyük olasılıkla Dünya'nınkiyle birleşti.
         </p>
         <CardGrid items={moonEvidence} cols={2} />
         <p className="my-6 leading-relaxed text-slate-300">

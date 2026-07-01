@@ -253,7 +253,7 @@ export default function InternetClient() {
         </ol>
         <div className="net-callout">
           <span className="net-callout-icon">💡</span>
-          <p>İnternet tek bir bilgisayar değil; <strong>ağların ağıdır</strong> (inter-network). Milyarlarca cihaz, ortak
+          <p>İnternet tek bir <Link href="/articles/bilgisayar" className="article-ilink">bilgisayar</Link> değil; <strong>ağların ağıdır</strong> (inter-network). Milyarlarca cihaz, ortak
           kurallar (protokoller) sayesinde marka ve ülke farkı gözetmeksizin birbiriyle konuşabilir.</p>
         </div>
       </section>

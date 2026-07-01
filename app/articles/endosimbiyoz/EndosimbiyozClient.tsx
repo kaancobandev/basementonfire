@@ -419,7 +419,9 @@ export default function EndosimbiyozClient() {
         <h2 className="endo-h2">Her Yerdeki Simbiyoz</h2>
         <p className="endo-p">
           Hücre içindeki dramatik versiyonu en ünlüsü olsa da, ortak yaşam doğanın her köşesinde. Bir kez bu gözle
-          bakınca, yaşamın iş birliği üzerine kurulu olduğunu görürsünüz:
+          bakınca, yaşamın iş birliği üzerine kurulu olduğunu görürsünüz. Aynı mikroskobik ölçekte, bu ortaklıkların
+          yaşandığı dünyanın en dayanıklı sakinlerinden biri, uzayın boşluğuna bile katlanabilen{' '}
+          <Link href="/articles/tardigrad" className="article-ilink">su ayıları (tardigradlar)</Link>dır.
         </p>
         <div className="endo-cards">
           {everywhere.map(([e, t, d], i) => (
@@ -451,7 +453,7 @@ export default function EndosimbiyozClient() {
         <div className="endo-num">XI</div>
         <h2 className="endo-h2">İş Birliğinin Yaratıcı Gücü</h2>
         <p className="endo-p">
-          Evrim deyince çoğumuzun aklına "doğanın acımasız rekabeti" gelir. Endosimbiyoz, bu resmin yarım olduğunu
+          <Link href="/articles/dogal-secilim" className="article-ilink">Evrim</Link> deyince çoğumuzun aklına "doğanın acımasız rekabeti" gelir. Endosimbiyoz, bu resmin yarım olduğunu
           gösterir. Hayatın tarihindeki en büyük sıçrama — basit mikroptan karmaşık yaşama geçiş — bir rekabetle değil,
           bir <strong>ortaklıkla</strong> gerçekleşti. İki farklı canlı, birbirini yok etmek yerine birbirine teslim oldu
           ve hiçbirinin tek başına olamayacağı bir şeye dönüştü.

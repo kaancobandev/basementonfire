@@ -154,6 +154,23 @@ body {
   min-height: 100vh;
 }
 
+/* Makale gövdesi içi bağlam linkleri (iç linkleme / internal linking).
+   Renk çevreleyen metinden miras alınır (currentColor) ki her makalenin kendi
+   temasına uysun; alt çizgi + kalınlık "burası link" sinyalini verir. */
+.article-ilink {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+  transition: text-decoration-color 0.2s ease, opacity 0.2s ease;
+}
+.article-ilink:hover {
+  text-decoration-color: currentColor;
+  opacity: 0.85;
+}
+
 .app-shell {
   display: flex;
   min-height: 100vh;

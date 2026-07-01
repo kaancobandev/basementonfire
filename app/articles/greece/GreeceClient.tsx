@@ -105,6 +105,9 @@ export default function GreecePage() {
               ))}
             </div>
           </div>
+          <p className="gr-god-desc" style={{ marginTop: 20 }}>
+            Bu iki şehrin ortak mirası olan Yunan alfabesi, yalnızca felsefeyi ve edebiyatı taşımakla kalmadı; harflerin dengeli oranları ve zarif çizgileri, sonraki çağlarda güzel yazı sanatının, yani <Link href="/articles/kaligrafi" className="article-ilink">kaligrafinin</Link>, temel esin kaynaklarından biri oldu.
+          </p>
         </section>
 
       {/* ── Tanrılar ── */}
@@ -139,6 +142,9 @@ export default function GreecePage() {
               </div>
             ))}
           </div>
+          <p className="gr-tl-desc" style={{ marginTop: 20 }}>
+            İskender'in ardından açılan Helenistik dönemin en çarpıcı krallarından biri, Roma'ya karşı kazandığı ama ordusunu tüketen zaferlerle anılan <Link href="/articles/pirus" className="article-ilink">Epiros kralı Pirus</Link> olmuştur.
+          </p>
         </section>
 
       {/* ── Olimpiyat ── */}

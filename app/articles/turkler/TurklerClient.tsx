@@ -248,7 +248,7 @@ export default function TurklerPage() {
             <div className="tp-two-col">
               <div>
                 <h3 className="tp-tab-h3">Orhun Alfabesi: Taşa Kazınan Tarih</h3>
-                <p className="tp-tab-p">Göktürkler, Proto-Türk yazısından geliştirdikleri özgün runik bir alfabe kullandı. 38 harfli bu sistem soldan sağa veya sağdan sola yazılabilirdi. Moğolistan'daki Orhun Vadisi'nde taşlara kazınan metinler, 8. yüzyıldan bu yana sağlam durmaktadır.</p>
+                <p className="tp-tab-p">Göktürkler, Proto-Türk yazısından geliştirdikleri özgün runik bir alfabe kullandı. 38 harfli bu sistem soldan sağa veya sağdan sola yazılabilirdi. Moğolistan'daki Orhun Vadisi'nde taşlara kazınan metinler, 8. yüzyıldan bu yana sağlam durmaktadır. Bu yazı geleneği asırlar sonra Osmanlı'nın hat sanatında doruğa ulaştı; bu incelik bugün bir görsel dil olarak <Link href="/articles/kaligrafi" className="article-ilink">kaligrafinin en gelişmiş geleneklerinden</Link> biri sayılır.</p>
                 <p className="tp-tab-note">💡 Harflerin üzerine gelin — Türkçe karşılıklarını görün</p>
               </div>
               <div className="tp-rune-grid">
@@ -282,6 +282,8 @@ export default function TurklerPage() {
           )}
 
           {activeTab === 'war' && (
+            <>
+            <p className="tp-tab-p tp-war-intro">Bozkırın savaş makinesini besleyen şey yalnızca at ve yay değildi; İpek Yolu üzerindeki kervan trafiği ordulara altın akıttı. Ticaret yollarını denetlemek, çağların en güçlü <Link href="/articles/ekonomi" className="article-ilink">ekonomik kaldıraçlarından</Link> biriydi ve büyük Türk devletleri gücünü buradan devşirdi.</p>
             <div className="tp-war-grid">
               {warCards.map(w => (
                 <div key={w.name} className="tp-war-card">
@@ -291,6 +293,7 @@ export default function TurklerPage() {
                 </div>
               ))}
             </div>
+            </>
           )}
         </div>
       </section>
@@ -492,6 +495,7 @@ export default function TurklerPage() {
         .tp-tengri-desc { font-size: 0.7rem; color: #7a6050; line-height: 1.4; }
 
         /* War grid */
+        .tp-war-intro { margin: 0 0 20px; }
         .tp-war-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
         .tp-war-card {
           background: rgba(192,57,43,0.05); border: 1px solid rgba(192,57,43,0.15);

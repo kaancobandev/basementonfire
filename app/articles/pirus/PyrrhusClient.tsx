@@ -234,7 +234,7 @@ export default function PyrrhusClient() {
         <div className="pyr-kicker">I — Efsanenin Doğuşu</div>
         <h2 className="pyr-h2">Kim bu Pirus?</h2>
         <p className="pyr-p">
-          Pirus, antik dünyanın kuzeybatı Yunanistan'daki <strong>Epir</strong> krallığının hükümdarıydı.
+          Pirus, antik dünyanın kuzeybatı <Link href="/articles/greece" className="article-ilink">Yunanistan</Link>'daki <strong>Epir</strong> krallığının hükümdarıydı.
           Damarlarında Akhilleus'a uzandığına inanılan bir kan taşıyordu ve <strong>Büyük İskender'in
           uzaktan akrabasıydı</strong>. Çağdaşları onu İskender'in yeniden doğuşu gibi gördü: aynı cüret,
           aynı karizma, aynı doymak bilmez fetih arzusu.
@@ -246,8 +246,10 @@ export default function PyrrhusClient() {
         </p>
         <div className="pyr-callout">
           <span className="pyr-callout-icon">🏆</span>
-          <p>Kartacalı <strong>Hannibal</strong>'a gelmiş geçmiş en büyük komutanlar sorulduğunda, birinciliğe
-          İskender'i, ikinciliğe <strong>Pirus</strong>'u koyduğu, kendini ancak üçüncü saydığı anlatılır.</p>
+          <p><Link href="/articles/carthage" className="article-ilink">Kartaca</Link>lı <strong>Hannibal</strong>'a gelmiş geçmiş en büyük komutanlar sorulduğunda, birinciliğe
+          İskender'i, ikinciliğe <strong>Pirus</strong>'u koyduğu, kendini ancak üçüncü saydığı anlatılır.
+          Zira Pirus'un Sicilya'da karşısına aldığı Kartaca da, Akdeniz'in kaderini belirleyecek güç
+          mücadelesinin başat oyuncularından biriydi.</p>
         </div>
       </section>
 
@@ -424,7 +426,7 @@ export default function PyrrhusClient() {
         </p>
         <p className="pyr-p">
           Kiremit Pirus'u ensesinden vurdu; sersemleyen kral atından düştü ve öldürüldü. Onlarca orduyu
-          bozguna uğratan, Roma'yı titreten efsanevi savaşçı, sıradan bir kiremitle tarihe karıştı —
+          bozguna uğratan, <Link href="/articles/rome" className="article-ilink">Roma</Link>'yı titreten efsanevi savaşçı, sıradan bir kiremitle tarihe karıştı —
           kaderin acı bir cilvesi.
         </p>
         <div className="pyr-callout pyr-callout-red">

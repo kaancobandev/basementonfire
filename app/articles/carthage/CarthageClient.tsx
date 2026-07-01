@@ -34,8 +34,9 @@ const chapters = [
     backText: 'Büyük imparatorluk hedefleri değil, Sicilya\'daki yerel bir kriz ve karşılıklı blöfler savaşı başlattı.',
     h2: 'Kazayla Başlayan Yüzyıllık Savaş',
     paragraphs: [
-      'Tarihin en büyük rekabetlerinden biri olan Roma-Kartaca savaşlarının büyük imparatorluk hedeflerinin sonucu olarak başladığı düşünülür. Ancak gerçek çok daha farklıdır. Akdeniz\'in kaderini değiştirecek Birinci Pön Savaşı, Sicilya\'daki yerel bir krizin kontrolden çıkmasıyla neredeyse kazara patlak verdi.',
+      'Tarihin en büyük rekabetlerinden biri olan <a href="/articles/rome" class="article-ilink">Roma-Kartaca savaşları</a>nın büyük imparatorluk hedeflerinin sonucu olarak başladığı düşünülür. Ancak gerçek çok daha farklıdır. Akdeniz\'in kaderini değiştirecek Birinci Pön Savaşı, Sicilya\'daki yerel bir krizin kontrolden çıkmasıyla neredeyse kazara patlak verdi.',
       '"Mamertinler" adıyla bilinen bir grup paralı askerin Messana\'yı ele geçirmesiyle başlayan süreç, önce Kartaca\'dan, sonra Roma\'dan yardım istenmesiyle devam etti. Her iki güç de diğerinin geri çekileceğini sandı.',
+      'Roma\'nın Sicilya\'ya adım atması bir ilk değildi; henüz on yıl önce Roma ordularını dize getirmenin ne kadar pahalı olabileceğini <a href="/articles/pirus" class="article-ilink">Roma\'ya karşı savaşan komutan Kral Pirus</a> acı bir zaferle göstermişti.',
     ],
     quote: '"Kimse, bu yerel krizin fitilini ateşlediği barut fıçısının tüm Akdeniz\'i havaya uçuracağını öngöremedi."',
   },
