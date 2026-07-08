@@ -156,7 +156,7 @@ export default function CiftYarikClient() {
           Fiziğin en dürüst itiraflarından biri: deneyin <em className="not-italic text-violet-300">ne olduğu</em> konusunda tam uzlaşma var, ama <em className="not-italic text-fuchsia-300">ne anlama geldiği</em> konusunda yok. Matematik kusursuz çalışıyor; “gerçekte olan nedir?” sorusuna farklı fizikçiler farklı cevap veriyor.
         </p>
         <CardGrid items={interpretations} cols={3} />
-        <p className="mt-6 leading-relaxed text-slate-300">Bu yorumların hepsi aynı deneysel sonuçları verir; şu an aralarında bir deneyle karar veremiyoruz. Hangisini seçtiğin bir fizik sorusundan çok felsefe ve estetik tercihi hâline geliyor.</p>
+        <p className="mt-6 leading-relaxed text-slate-300">Bu yorumların hepsi aynı deneysel sonuçları verir; şu an aralarında bir deneyle karar veremiyoruz. Hangisini seçtiğin bir fizik sorusundan çok felsefe ve estetik tercihi hâline geliyor. Çok Dünyalı Yorum'un baş döndürücü bir sonucu için: <Link href="/articles/kuantum-olumsuzlugu" className="article-ilink">kuantum ölümsüzlüğü</Link>.</p>
       </ArticleSection>
 
       {/* 10. Neden önemli */}
