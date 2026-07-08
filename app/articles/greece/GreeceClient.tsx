@@ -106,7 +106,7 @@ export default function GreecePage() {
             </div>
           </div>
           <p className="gr-god-desc" style={{ marginTop: 20 }}>
-            Bu iki şehrin ortak mirası olan Yunan alfabesi, yalnızca felsefeyi ve edebiyatı taşımakla kalmadı; harflerin dengeli oranları ve zarif çizgileri, sonraki çağlarda güzel yazı sanatının, yani <Link href="/articles/kaligrafi" className="article-ilink">kaligrafinin</Link>, temel esin kaynaklarından biri oldu.
+            Bu iki şehrin ortak mirası olan Yunan alfabesi, yalnızca felsefeyi ve edebiyatı taşımakla kalmadı; harflerin dengeli oranları ve zarif çizgileri, sonraki çağlarda güzel yazı sanatının, yani <Link href="/articles/kaligrafi" className="article-ilink">kaligrafinin</Link>, temel esin kaynaklarından biri oldu. Yunan heykelinin ideal oranları ve “asil sadelik” anlayışı ise Rönesans'tan Neoklasizme kadar Batı'daki <Link href="/articles/sanat-akimlari" className="article-ilink">sanat akımlarını</Link> doğrudan besledi.
           </p>
         </section>
 

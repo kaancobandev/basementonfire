@@ -53,6 +53,7 @@ const ARTICLE_GRADIENTS: Record<string, string> = {
   'kuantum-olumsuzlugu': 'linear-gradient(135deg,#1e1b4b,#0f766e)',
   'mol': 'linear-gradient(135deg,#78350f,#f59e0b)',
   'fizik-101': 'linear-gradient(135deg,#2563eb,#f59e0b)',
+  'sanat-akimlari': 'linear-gradient(135deg,#6b0f2a,#e11d48)',
 };
 const FALLBACK_GRADIENT = 'linear-gradient(135deg,#6366f1,#8b5cf6)';
 
