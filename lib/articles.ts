@@ -37,6 +37,7 @@ export const ARTICLES: ArticleMeta[] = [
   { slug: 'cift-yarik', title: 'Çift Yarık Deneyi', emoji: '⚛️', desc: "Kuantumun tek gerçek gizemi: dalga-parçacık ikiliği, tek elektronların girişimi, gözlemin etkisi — interaktif çift yarık simülatörü, dalga havuzu ve de Broglie hesaplayıcısıyla, arka planda hareket eden elektronlarla", category: 'Fizik' },
   { slug: 'kuantum-olumsuzlugu', title: 'Kuantum Ölümsüzlüğü', emoji: '♾️', desc: "Kendi ölümünü neden hiç deneyimlemeyebilirsin? Süperpozisyon, Çok Dünyalı Yorum ve kuantum intiharı — ve fikrin Adam Fawer'ın Mobius romanına kaçmış hâli; interaktif dallanma simülatörü ve dönen Möbius şeridiyle", category: 'Fizik' },
   { slug: 'mol', title: 'Kimyada Mol Kavramı', emoji: '⚗️', desc: "Kimyanın en temel kavramı gündelik örneklerle: 1 mol = 6,022 × 10²³ tane. Molar kütle, dönüşüm haritası, molarite ve stokiyometri — interaktif mol hesaplayıcı, Avogadro ölçeği ve periyodik tablodan molar kütle aracıyla", category: 'Kimya' },
+  { slug: 'fizik-101', title: 'Sıfırdan Fizik', emoji: '🚀', desc: "Fizik hiç bilmeyenler için sıfırdan: kütle, kuvvet, Newton (F=ma), ivme, hız, momentum, enerji, sürtünme — gündelik örnekler ve bolca interaktif deneyle (kuvvet laboratuvarı, çarpışma simülatörü, enerji rampası). Açık temalı", category: 'Fizik' },
 ];
 
 export const ARTICLE_MAP: Record<string, ArticleMeta> = Object.fromEntries(ARTICLES.map(a => [a.slug, a]));

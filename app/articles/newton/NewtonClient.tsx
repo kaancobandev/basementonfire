@@ -82,7 +82,7 @@ export default function NewtonClient() {
 
       {/* 3. Üç yasa */}
       <ArticleSection title="Üç hareket yasası" max="max-w-4xl">
-        <p className="mb-6 leading-relaxed text-slate-300">Bu üç cümle, bir asansörün hareketinden roketlerin fırlatılmasına kadar neredeyse her mekanik olayı açıklar.</p>
+        <p className="mb-6 leading-relaxed text-slate-300">Bu üç cümle, bir asansörün hareketinden roketlerin fırlatılmasına kadar neredeyse her mekanik olayı açıklar. Kütle, kuvvet, ivme gibi terimler sana yeniyse önce <Link href="/articles/fizik-101" className="article-ilink">temel fizik kavramlarını sıfırdan</Link> gözden geçirebilirsin.</p>
         <div className="space-y-4">
           <Law n={1} title="Eylemsizlik (Atalet)" statement="Bir cisim, üzerine net bir dış kuvvet etki etmedikçe durgunsa durgun kalır; hareketliyse sabit hızla düz çizgide gider.">
             Cisimler “tembeldir”, hâllerini değiştirmeye direnir. Otobüs frene basınca öne savrulmanız, masa örtüsü hızla çekilince bardağın yerinde kalması bu yüzdendir. Günlük hayatta her şeyin durması sürtünme yüzündendir.
