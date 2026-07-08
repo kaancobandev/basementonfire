@@ -7,6 +7,7 @@ import {
 } from '@/app/components/article/ArticleBlocks';
 import {
   BinaryPlayground, CommandCycle, Compare, CPU_GPU, SSD_HDD, RgbMixer,
+  StatStrip, LogicGates, CpuGpuRace, DramRefreshGame, BinaryChallenge, PartMatchGame,
   ddrGens, motherboardParts, otherParts, journey, gameFlow, quizQs, refs,
 } from './widgets';
 
@@ -17,6 +18,15 @@ const HERO_COLORS: [[number, number, number], [number, number, number], [number,
 
 function Analogy({ children }: { children: ReactNode }) {
   return <div className="mt-5 flex gap-3 rounded-xl border-l-4 border-cyan-400/60 bg-cyan-400/[0.06] px-5 py-4 text-slate-200"><span>💡</span><p className="m-0 leading-relaxed">{children}</p></div>;
+}
+
+function FunFact({ icon = '🤯', title = 'Şaşırtıcı bilgi', children }: { icon?: string; title?: string; children: ReactNode }) {
+  return (
+    <div className="mt-5 rounded-xl border border-violet-400/30 bg-violet-400/[0.06] px-5 py-4">
+      <div className="mb-1 flex items-center gap-2 text-sm font-bold text-violet-200"><span>{icon}</span><span>{title}</span></div>
+      <p className="m-0 text-sm leading-relaxed text-slate-300">{children}</p>
+    </div>
+  );
 }
 
 export default function BilgisayarClient() {
@@ -44,10 +54,22 @@ export default function BilgisayarClient() {
         </p>
       </ArticleSection>
 
+      {/* Görsel istatistik şeridi */}
+      <ArticleSection max="max-w-4xl">
+        <StatStrip />
+        <p className="mt-4 text-center text-xs text-slate-500">Bu sayfada 9 mini oyun ve interaktif araç var — kaydırdıkça dene. 👇</p>
+      </ArticleSection>
+
       {/* İnteraktif: bit oyun alanı */}
       <ArticleSection kicker="İNTERAKTİF · DENE" title="Önce temel: 1'ler ve 0'lar nasıl anlam kazanır?">
         <p className="mb-6 text-slate-400">Anahtarlara tıkla; sekiz “açık/kapalı” bir sayıya, sayı da bir harfe dönüşsün.</p>
         <BinaryPlayground />
+        <FunFact icon="🔢" title="8 bit = 1 bayt">
+          Bir harf tam olarak <strong className="text-white">8 bit</strong> (1 bayt) ile saklanır ve 8 bit ile 0–255 arası <strong className="text-white">256</strong> farklı değer yazabilirsin. Bilgisayarın gördüğü “metin” aslında bu sayılardan ibarettir — bu eşlemeye <strong className="text-white">ASCII</strong> denir.
+        </FunFact>
+        <p className="mb-4 mt-8 font-bold text-cyan-300">🎮 Mini oyun: İkili sayı meydan okuması</p>
+        <p className="mb-4 text-sm text-slate-400">Sana bir harf verelim; sen bitleri açıp kapatarak onun sayısını yakala. Doğru yapınca skorun artar ve sıradaki harf gelir.</p>
+        <BinaryChallenge />
       </ArticleSection>
 
       {/* 1. CPU */}
@@ -65,6 +87,17 @@ export default function BilgisayarClient() {
           ))}
         </div>
         <Analogy>CPU, çok zeki ama az sayıda çalışanı olan bir ofis gibidir — her çalışan karmaşık problemleri çözebilir, ama hepsi sıraya girerek çalışır.</Analogy>
+
+        <p className="mb-4 mt-8 font-bold text-cyan-300">🎮 Mini oyun: Mantık kapıları</p>
+        <p className="mb-4 text-sm text-slate-400">Transistörler tek başına “açık/kapalı” anahtardır. Birkaçını birleştirince <strong className="text-cyan-300">mantık kapıları</strong> (VE, VEYA, DEĞİL, XOR) ortaya çıkar — hesaplamanın gerçek yapı taşları. Girişleri değiştir, çıkışı izle:</p>
+        <LogicGates />
+
+        <FunFact icon="🕰️" title="İlk transistör 1947'de doğdu">
+          İlk transistör 1947'de Bell Labs'ta üretildi ve neredeyse bir avuç içi büyüklüğündeydi. Bugün bir işlemcideki transistörler <strong className="text-white">birkaç nanometre</strong> — bir grip virüsünden bile küçük. Aynı çipe artık <strong className="text-white">on milyarlarca</strong> sığıyor.
+        </FunFact>
+        <FunFact icon="⚡" title="Işık bile yavaş kalıyor">
+          3 GHz'de bir “tık” yalnızca <strong className="text-white">0,33 nanosaniye</strong> sürer. Bu sürede elektrik sinyali ancak ~10 santimetre yol alabilir — bu yüzden çip ne kadar küçükse o kadar hızlı olur: sinyalin gidecek yolu kısalır.
+        </FunFact>
       </ArticleSection>
 
       {/* 2. GPU */}
@@ -77,6 +110,14 @@ export default function BilgisayarClient() {
         </p>
         <Compare items={CPU_GPU} />
         <Analogy>CPU birkaç dâhi profesörse, GPU binlerce öğrencinin aynı anda kolay çarpım yapmasıdır. Tek karmaşık problem için profesör, milyonlarca basit işlem için ordu lazımdır.</Analogy>
+
+        <p className="mb-4 mt-8 font-bold text-cyan-300">🎮 Mini oyun: CPU ↔ GPU yarışı</p>
+        <p className="mb-4 text-sm text-slate-400">Aynı işi verelim: 2000 piksel boyamak. CPU sırayla, GPU aynı anda çalışır. Başlat ve farkı gör:</p>
+        <CpuGpuRace />
+
+        <FunFact icon="🤖" title="Yapay zekâ neden GPU sever?">
+          Modern bir GPU saniyede <strong className="text-white">on trilyonlarca</strong> işlem (TFLOP) yapabilir. Yapay zekânın tamamı dev matris çarpımlarından ibarettir ve bu tam da GPU'nun uzmanlığıdır — bu yüzden büyük yapay zekâ modelleri <strong className="text-white">binlerce GPU</strong> ile aynı anda eğitilir.
+        </FunFact>
       </ArticleSection>
 
       {/* 3. Sistem kristali */}
@@ -87,6 +128,9 @@ export default function BilgisayarClient() {
         <p className="leading-relaxed text-slate-300">
           Bu titreşim bir <strong className="text-cyan-300">metronom</strong> gibidir: her “tık”ta bir işlem adımı gerçekleşir, böylece tüm parçalar aynı tempoda çalışır. Kristalin temel frekansı düşüktür; anakarttaki <strong className="text-cyan-300">PLL</strong> devreleri onu çarparak işlemcinin GHz'lik hızlarını elde eder.
         </p>
+        <FunFact icon="⌚" title="Kol saatindeki kristalle aynı">
+          Kuvars saatlerin çoğunda kristal saniyede tam <strong className="text-white">32.768 kez</strong> titreşir (2¹⁵). Bu titreşim o kadar kararlıdır ki iyi bir kuvars saat ayda yalnızca birkaç saniye şaşar — bilgisayarındaki “kalp atışı” da aynı fiziğe dayanır.
+        </FunFact>
       </ArticleSection>
 
       {/* 4. PSU */}
@@ -105,6 +149,14 @@ export default function BilgisayarClient() {
         <p className="leading-relaxed text-slate-300">
           RAM <strong className="text-amber-300">uçucudur (volatile)</strong>: elektrik kesilince her şey anında silinir. Kaydetmeden kapanırsan belgeni kaybedersin. Neden var? Diskler yavaş, işlemci hızlıdır; RAM ikisi arasındaki hızlı tampondur. “Random Access”: herhangi bir adrese, sırayla aramadan, doğrudan ve eşit hızda erişilir.
         </p>
+
+        <p className="mb-4 mt-8 font-bold text-cyan-300">🎮 Mini oyun: Sızan hücreleri tazele</p>
+        <p className="mb-4 text-sm text-slate-400">DRAM'deki minik kapasitörler yükünü sürekli sızdırır. Hücreler 0'a düşmeden tıklayıp <strong className="text-cyan-300">tazele</strong> ki veri kaybolmasın. Kaç bit kurtarabilirsin?</p>
+        <DramRefreshGame />
+
+        <FunFact icon="💧" title="Saniyede binlerce tazeleme">
+          Gerçek RAM, sen bu oyunu oynarken zorlandığın işi <strong className="text-white">her hücre için saniyede binlerce kez</strong>, hiç hata yapmadan yapar. Sadece “tazeleme” işlemi bile sürekli enerji ister — bu yüzden elektrik kesilince RAM anında boşalır.
+        </FunFact>
       </ArticleSection>
 
       {/* 6. DDR */}
@@ -122,6 +174,9 @@ export default function BilgisayarClient() {
         </p>
         <Compare items={SSD_HDD} />
         <p className="mt-6 leading-relaxed text-slate-300">Pratikte: işletim sistemini SSD'ye kurarsan bilgisayar saniyeler içinde açılır; HDD'de bu dakikaları bulabilir. Bu yüzden çoğu sistemde <strong className="text-cyan-300">SSD (işletim sistemi)</strong> + <strong className="text-amber-300">HDD (büyük depo)</strong> birlikte kullanılır.</p>
+        <FunFact icon="🗄️" title="İlk sabit disk bir buzdolabı kadardı">
+          1956'da IBM'in ilk sabit diski <strong className="text-white">5 MB</strong> tutuyordu (bir tek şarkı bile sığmaz), bir buzdolabı boyutundaydı ve tonlarca ağırlıktaydı. Bugün tırnak ucu kadar bir SSD <strong className="text-white">binlerce kat</strong> fazlasını taşıyor.
+        </FunFact>
       </ArticleSection>
 
       {/* 8. Anakart */}
@@ -181,6 +236,12 @@ export default function BilgisayarClient() {
         </ol>
       </ArticleSection>
 
+      {/* Finale oyunu: eşleştirme */}
+      <ArticleSection kicker="🎮 BÜYÜK OYUN" title="Bilgisayarını kur" max="max-w-4xl">
+        <p className="mb-6 text-slate-400">Öğrendiklerini birleştir: her parçayı doğru göreviyle eşleştir. Hepsini bulabilir misin?</p>
+        <PartMatchGame />
+      </ArticleSection>
+
       {/* Quiz */}
       <ArticleSection kicker="MİNİ TEST" title="Ne kadar anladın?">
         <ArticleQuiz questions={quizQs} />
@@ -193,6 +254,11 @@ export default function BilgisayarClient() {
           CPU düşünür, GPU paralel çizer, RAM hızlı geçici hafıza tutar, SSD/HDD kalıcı saklar, anakart herkesi bağlar, güç kaynağı besler, sistem kristali ritmi tutar.
           Milyarlarca “aptal” anahtarın kusursuz uyumu, elindeki bu olağanüstü makineyi oluşturur.
         </p>
+        <div className="mx-auto mt-6 max-w-2xl">
+          <FunFact icon="🐛" title="“Bug” neden böcek demek?">
+            1947'de bir bilgisayarın rölesine sıkışmış gerçek bir <strong className="text-white">güve</strong> arızaya yol açtı; mühendisler onu çıkarıp deftere “ilk gerçek bug bulundu” diye yapıştırdı. Yazılım hatalarına hâlâ “bug” (böcek) dememizin sebebi bu.
+          </FunFact>
+        </div>
       </ArticleSection>
 
       <div className="relative z-10">
