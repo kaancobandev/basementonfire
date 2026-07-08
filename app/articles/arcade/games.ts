@@ -296,34 +296,54 @@ export const GAME_JS = `
   ===================================================== */
   function startPlatformer(){
     var W=canvas.width, H=canvas.height, T=30;
-    var GRAV=0.62, ACC=0.82, MAXV=4.5, FRIC=0.80, JUMP=11.7, JCUT=0.42, COYOTE=6, JBUF=6, STOMP=8.4, ESPD=1.15;
+    var GRAV=0.60, ACC=0.82, MAXV=4.5, FRIC=0.80, JUMP=12.6, JCUT=0.42, COYOTE=9, JBUF=9, STOMP=8.6, ESPD=1.1;
     var PW=20, PH=26, EW=24, EH=20;
-    // --- ozgun bolum haritalari (# zemin, ? odul, B tugla, o altin, E dusman, ^ diken, G kapi, P baslangic) ---
+    // --- ozgun bolum haritalari (# zemin  ? yildiz-blok  o altin  ^ diken  G kapi  P baslangic
+    //     E slime  H zipzip-kurbaga  F ucan yarasa  S dikenli top(basma!) ) ---
     var LEVELS = [
       [ '','','','','','','','','','','',
-        '               oooo              oooo         ',
-        '     ? ?                                       ',
-        '               ####              ####          ',
-        '    o o o ooo                                   ',
-        '  P                 E   ^^      E           G  ',
-        '##########   ###############   ###############',
-        '##########   ###############   ###############' ],
+        '                oooo                oooo        ',
+        '      ? ?                                        ',
+        '              ######               ######       ',
+        '    o o o                                        ',
+        '  P              E         ^^        H         G ',
+        '##########   ##################   ##############',
+        '##########   ##################   ##############' ],
       [ '','','','','','','','','','',
-        '          oooo            oooo      oooo       ',
-        '                ? ?                            ',
-        '          ####            ####      ####       ',
-        '    ooo        ooo             ooo             ',
-        '  P     E         E           ^^  E          E      G ',
-        '###########   ##########   ##########   ##############',
-        '###########   ##########   ##########   ##############' ],
+        '                oooo                 oooo        ',
+        '        ? ?                                       ',
+        '               ######                ######      ',
+        '    oo        oo           oo                     ',
+        '  P       H          E        ^^      H      E   G',
+        '###########   ##################   #################',
+        '###########   ##################   #################' ],
       [ '','','','','','','','','',
-        '        oooo         oooo            oooo          ',
-        '     ? ?                       ? ?                 ',
-        '        ####         ####            ####          ',
-        '   ooo         ooo         ooo             ooo      ',
-        '  P     E        ^^   E         E   ^^      E     G ',
-        '############   ###########   ###########   #############',
-        '############   ###########   ###########   #############' ]
+        '                 F                       F         ',
+        '              oooo                oooo             ',
+        '       ? ?                                          ',
+        '             ######               ######           ',
+        '   ooo                     ooo                      ',
+        '  P       E        H     ^^   S           E         G   ',
+        '############   ###################   ###################',
+        '############   ###################   ###################' ],
+      [ '','','','','','','','',
+        '              F                  F                  F     ',
+        '           oooo            oooo          oooo             ',
+        '      ? ?                                                  ',
+        '          ######           ######         ######          ',
+        '    oo                                          oo         ',
+        '  P     H         S       E          ^^  S   E        G',
+        '############   ################   #############   ##########',
+        '############   ################   #############   ##########' ],
+      [ '','','','','','','',
+        '            F              F              F               F   ',
+        '          oooo          oooo          oooo          oooo       ',
+        '      ? ?                        ? ?                            ',
+        '         ######         ######         ######         ######    ',
+        '   ooo                                              ooo         ',
+        '  P    H        S     E   ^^      H    S   E       ^^    E    G',
+        '############   ##############   ##############   ###############',
+        '############   ##############   ##############   ###############' ]
     ];
     var LV, cols, rows, G, coins, foes, spikes, goal, spawn, pops, dust;
     var px,py,pvx,pvy,onGround,face,animT,coyote,jbuf,jheld;
@@ -343,7 +363,10 @@ export const GAME_JS = `
       G=[]; coins=[]; foes=[]; spikes=[]; goal=null; spawn={x:T,y:T}; pops=[]; dust=[]; levelCoins=0;
       for(var r=0;r<rows;r++){ var row=[]; for(var c=0;c<cols;c++){ var ch=map[r].charAt(c)||' ';
         if(ch==='o'){ coins.push({x:c*T+T/2,y:r*T+T/2,got:false}); row.push(' '); }
-        else if(ch==='E'){ foes.push({x:c*T+(T-EW)/2,y:r*T+(T-EH),vx:-ESPD,alive:true,sq:0}); row.push(' '); }
+        else if(ch==='E'){ foes.push({x:c*T+(T-EW)/2,y:r*T+(T-EH),vx:-ESPD,vy:0,type:'slime',alive:true,sq:0}); row.push(' '); }
+        else if(ch==='H'){ foes.push({x:c*T+(T-EW)/2,y:r*T+(T-EH),vx:ESPD*0.7,vy:0,type:'hopper',hopT:30,alive:true,sq:0}); row.push(' '); }
+        else if(ch==='F'){ foes.push({x:c*T+(T-EW)/2,y:r*T+(T-EH),vx:ESPD*1.3,vy:0,type:'flyer',homeX:c*T,baseY:r*T+(T-EH),range:3*T,wob:0,alive:true,sq:0}); row.push(' '); }
+        else if(ch==='S'){ foes.push({x:c*T+(T-EW)/2,y:r*T+(T-EH),vx:-ESPD*0.85,vy:0,type:'spiky',alive:true,sq:0}); row.push(' '); }
         else if(ch==='^'){ spikes.push({x:c*T,y:r*T}); row.push(' '); }
         else if(ch==='G'){ goal={x:c*T,y:(r-1)*T}; row.push(' '); }
         else if(ch==='P'){ spawn={x:c*T+(T-PW)/2,y:r*T+(T-PH)}; row.push(' '); }
@@ -393,17 +416,29 @@ export const GAME_JS = `
         if(px<co.x+9 && px+PW>co.x-9 && py<co.y+9 && py+PH>co.y-9){ co.got=true; score+=20; coinCount++; levelCoins++; beep(1040,0.05,'square',0.04); } }
       // dikenler
       for(var i=0;i<spikes.length;i++){ var sp=spikes[i]; if(px<sp.x+T-4 && px+PW>sp.x+4 && py+PH>sp.y+10 && py<sp.y+T){ die(); return; } }
-      // dusmanlar
+      // dusmanlar (turlere gore)
       for(var i=0;i<foes.length;i++){ var f=foes[i]; if(!f.alive){ f.sq+=s; continue; }
-        f.x+=f.vx*ss; var fc=Math.floor((f.vx<0?f.x:f.x+EW)/T), fr=Math.floor((f.y+EH-1)/T);
-        if(isSolid(fc,fr)){ f.vx=-f.vx; f.x+=f.vx*ss*2; }
-        var ahead=Math.floor((f.vx<0?f.x-2:f.x+EW+2)/T), below=Math.floor((f.y+EH+2)/T);
-        if(!isSolid(ahead,below)){ f.vx=-f.vx; }
-        // gravite (platform kenarina denk gelirse dussun)
-        var fb=Math.floor((f.y+EH+2)/T), fcx=Math.floor((f.x+EW/2)/T);
-        if(!isSolid(fcx,fb)){ f.y+=2.4*ss; }
+        if(f.y>rows*T+60){ f.alive=false; continue; } // haritadan dusen dusmani yok et (sonsuz dusme engeli)
+        if(f.type==='flyer'){
+          f.x+=f.vx*ss; if(f.x<f.homeX-f.range||f.x>f.homeX+f.range) f.vx=-f.vx;
+          var fwc=Math.floor((f.vx<0?f.x:f.x+EW-1)/T), fmy=Math.floor((f.y+EH/2)/T); if(isSolid(fwc,fmy)) f.vx=-f.vx;
+          f.wob+=0.09*ss; f.y=f.baseY+Math.sin(f.wob)*11;
+        } else {
+          // yatay yuru + duvar donusu
+          f.x+=f.vx*ss; var fwc2=Math.floor((f.vx<0?f.x:f.x+EW-1)/T), fmy2=Math.floor((f.y+EH/2)/T);
+          if(isSolid(fwc2,fmy2)){ f.vx=-f.vx; f.x+=f.vx*ss; }
+          // gravite
+          f.vy=(f.vy||0)+0.55*ss; if(f.vy>11) f.vy=11; f.y+=f.vy*ss; f.onG=false;
+          var fgl=Math.floor(f.x/T), fgr=Math.floor((f.x+EW-1)/T), fgb=Math.floor((f.y+EH-1)/T);
+          for(var cc=fgl;cc<=fgr;cc++) if(isSolid(cc,fgb)){ f.y=fgb*T-EH; f.vy=0; f.onG=true; break; }
+          // kenar donusu (zeminde VE inis sirasinda -> ucuruma dusup kaybolmaz)
+          var ah=Math.floor((f.vx<0?f.x-1:f.x+EW)/T), bl=Math.floor((f.y+EH+1)/T); if(!isSolid(ah,bl) && (f.onG||f.vy>=0)) f.vx=-f.vx;
+          // zipla (hopper)
+          if(f.type==='hopper'){ f.hopT-=s; if(f.onG && f.hopT<=0){ f.vy=-9.4; f.hopT=34+Math.random()*30; } }
+        }
+        // oyuncu ile carpisma
         if(px<f.x+EW-3 && px+PW>f.x+3 && py<f.y+EH && py+PH>f.y){
-          if(pvy>0 && py+PH < f.y+EH*0.6){ f.alive=false; f.sq=0; pvy=-STOMP; score+=100; beep(520,0.08,'square',0.045); }
+          if(f.type!=='spiky' && pvy>0 && py+PH < f.y+EH*0.62){ f.alive=false; f.sq=0; pvy=-STOMP; score+=100; beep(520,0.08,'square',0.045); beep(760,0.06,'square',0.04); }
           else { die(); return; } } }
       // kapi
       if(goal && px+PW>goal.x+4 && px<goal.x+T-4 && py+PH>goal.y && py<goal.y+2*T){ cleared=true; clearT=300; clearBonus=lives*50+levelCoins*10+150; score+=clearBonus; beep(784,0.1,'square',0.05); beep(1046,0.12,'square',0.05); }
@@ -418,6 +453,9 @@ export const GAME_JS = `
       dc.fillStyle=col; dc.fillRect(x-2,y-7,2,2); dc.fillRect(x+2,y-7,2,2); dc.fillRect(x,y-9,2,2); dc.fillRect(x,y-5,2,2); dc.fillStyle='#fff2a8'; dc.fillRect(x,y-7,2,2); }
     function drawTuft(x,y){ dc.fillStyle='#3a9430'; dc.fillRect(x,y-3,2,3); dc.fillRect(x+3,y-4,2,4); dc.fillRect(x-3,y-3,2,3); }
     function drawBush(x,y,sc){ dc.save(); dc.translate(x,y); dc.scale(sc,sc); dc.fillStyle='#3a8f34'; dc.fillRect(-14,-8,28,9); dc.fillRect(-9,-13,18,8); dc.fillRect(4,-11,11,7); dc.fillStyle='#57b84a'; dc.fillRect(-12,-8,24,3); dc.restore(); }
+    function drawHillLayer(baseY,par,col,topCol,amp,freq){ var ox=Math.floor(camX*par);
+      for(var x=0;x<W+4;x+=4){ var wx=x+ox; var hh=Math.round((amp*(0.55+0.45*Math.sin(wx*freq))+amp*0.28*Math.sin(wx*freq*2.7+1.3))/4)*4; var ty=baseY-hh;
+        dc.fillStyle=col; dc.fillRect(x,ty,4,H-ty); dc.fillStyle=topCol; dc.fillRect(x,ty,4,3); } }
     function panel(hp){ var wp=380; ctx.fillStyle='rgba(18,26,54,0.74)'; ctx.fillRect(W/2-wp/2,H/2-hp/2,wp,hp); ctx.strokeStyle='rgba(255,255,255,0.28)'; ctx.lineWidth=2; ctx.strokeRect(W/2-wp/2,H/2-hp/2,wp,hp); }
     function drawTile(ch,x,y){
       if(ch==='#'){ dc.fillStyle='#9b5a2a'; dc.fillRect(x,y,T,T); dc.fillStyle='#7a4420'; dc.fillRect(x+4,y+12,5,5); dc.fillRect(x+18,y+18,5,5);
@@ -428,15 +466,38 @@ export const GAME_JS = `
       else if(ch==='u'){ dc.fillStyle='#a9812f'; dc.fillRect(x,y,T,T); dc.fillStyle='#c19a45'; dc.fillRect(x+2,y+2,T-4,T-4); }
       else if(ch==='='){ dc.fillStyle='#79e05f'; dc.fillRect(x,y,T,5); dc.fillStyle='#3a9430'; dc.fillRect(x,y+5,T,2); }
     }
-    function drawFoe(f){ var x=f.x-camX, y=f.y; if(x<-40||x>W+40) return;
-      if(!f.alive){ dc.fillStyle='#c0553f'; dc.fillRect(x,y+EH-6,EW,6); return; }
-      var bob=Math.sin(t*0.25+f.x*0.1)*2;
+    function drawFoe(f){ var x=f.x-camX, y=f.y; if(x<-44||x>W+44) return; var bob=Math.sin(t*0.25+f.x*0.1)*2;
+      if(!f.alive){ var dcol=f.type==='spiky'?'#7a3f8f':(f.type==='flyer'?'#4a3f7a':(f.type==='hopper'?'#1f5f2a':'#7a2418')); dc.fillStyle=dcol; dc.fillRect(x,y+EH-6,EW,6); return; }
+      if(f.type==='flyer') drawFlyer(x,y);
+      else if(f.type==='hopper') drawHopper(x,y,f);
+      else if(f.type==='spiky') drawSpiky(x,y,bob);
+      else drawSlime(x,y,bob); }
+    function drawSlime(x,y,bob){
       dc.fillStyle='#7a2418'; dc.fillRect(x,y+bob-1,EW,EH-bob+2);
       dc.fillStyle='#ff6f5e'; dc.fillRect(x+2,y+bob,EW-4,EH-bob-1);
       dc.fillStyle='#ffb09f'; dc.fillRect(x+2,y+4+bob,EW-4,3);
       dc.fillStyle='#fff'; dc.fillRect(x+6,y+7+bob,5,5); dc.fillRect(x+EW-11,y+7+bob,5,5);
       dc.fillStyle='#2a0f0a'; dc.fillRect(x+8,y+9+bob,3,3); dc.fillRect(x+EW-9,y+9+bob,3,3);
       dc.fillStyle='#7a2418'; dc.fillRect(x+4,y+EH-3,4,3); dc.fillRect(x+EW-8,y+EH-3,4,3); }
+    function drawHopper(x,y,f){ var air=f.onG?0:-2;
+      dc.fillStyle='#1f5f2a'; dc.fillRect(x,y+air,EW,EH-air);
+      dc.fillStyle='#43b64a'; dc.fillRect(x+2,y+2+air,EW-4,EH-4-air);
+      dc.fillStyle='#6fe06a'; dc.fillRect(x+2,y+3+air,EW-4,3);
+      dc.fillStyle='#fff'; dc.fillRect(x+4,y+air,6,6); dc.fillRect(x+EW-10,y+air,6,6);
+      dc.fillStyle='#0a2a0f'; dc.fillRect(x+6,y+2+air,3,3); dc.fillRect(x+EW-8,y+2+air,3,3);
+      dc.fillStyle='#1f5f2a'; dc.fillRect(x+1,y+EH-4,5,4); dc.fillRect(x+EW-6,y+EH-4,5,4); }
+    function drawFlyer(x,y){ var flap=Math.sin(t*0.5)*4;
+      dc.fillStyle='#6a4fb0'; dc.beginPath(); dc.moveTo(x-6,y+EH/2-flap); dc.lineTo(x+5,y+4); dc.lineTo(x+5,y+EH-4); dc.closePath(); dc.fill();
+      dc.beginPath(); dc.moveTo(x+EW+6,y+EH/2-flap); dc.lineTo(x+EW-5,y+4); dc.lineTo(x+EW-5,y+EH-4); dc.closePath(); dc.fill();
+      dc.fillStyle='#4a3f7a'; dc.fillRect(x+4,y+3,EW-8,EH-6); dc.fillStyle='#8f7fd0'; dc.fillRect(x+5,y+4,EW-10,3);
+      dc.fillStyle='#fff'; dc.fillRect(x+7,y+7,3,3); dc.fillRect(x+EW-10,y+7,3,3);
+      dc.fillStyle='#1a0f2a'; dc.fillRect(x+8,y+8,2,2); dc.fillRect(x+EW-9,y+8,2,2); }
+    function drawSpiky(x,y,bob){
+      dc.fillStyle='#5a1f6a'; dc.fillRect(x+2,y+7+bob,EW-4,EH-9-bob);
+      dc.fillStyle='#c13fd0'; dc.fillRect(x+4,y+9+bob,EW-8,EH-13-bob);
+      dc.fillStyle='#e77fff'; for(var k=0;k<4;k++){ dc.beginPath(); dc.moveTo(x+3+k*5,y+9+bob); dc.lineTo(x+5.5+k*5,y+1+bob); dc.lineTo(x+8+k*5,y+9+bob); dc.closePath(); dc.fill(); }
+      dc.fillStyle='#fff'; dc.fillRect(x+6,y+12+bob,4,4); dc.fillRect(x+EW-10,y+12+bob,4,4);
+      dc.fillStyle='#2a0a2a'; dc.fillRect(x+8,y+13+bob,2,2); dc.fillRect(x+EW-8,y+13+bob,2,2); }
     function drawPlayer(){ var x=px-camX, y=py, w=PW, h=PH, walk=onGround&&Math.abs(pvx)>0.3?Math.sin(animT*0.35):0;
       // golge
       dc.fillStyle='rgba(0,0,0,0.22)'; dc.fillRect(x+2,y+h-1,w-4,3);
@@ -477,12 +538,14 @@ export const GAME_JS = `
       // gunes
       dc.fillStyle='rgba(255,240,150,0.35)'; dc.beginPath(); dc.arc(W-86,72,40,0,TAU); dc.fill();
       dc.fillStyle='#fff2a8'; dc.beginPath(); dc.arc(W-86,72,25,0,TAU); dc.fill();
-      // bulutlar (paralaks)
-      for(var i=0;i<5;i++){ var clx=((i*230 - camX*0.25)%(W+200)+W+200)%(W+200)-100; drawCloud(clx,52+((i*61)%80),0.85+((i%3)*0.22)); }
-      // yesil tepeler + calilar (paralaks)
-      dc.fillStyle='#4aa640'; for(var i=0;i<7;i++){ var hx=i*160-((camX*0.45)%160); dc.beginPath(); dc.arc(hx,H-58,115,Math.PI,0); dc.fill(); }
-      dc.fillStyle='#63c455'; for(var i=0;i<7;i++){ var hx2=i*160-((camX*0.45)%160)+80; dc.beginPath(); dc.arc(hx2,H-58,82,Math.PI,0); dc.fill(); }
-      for(var i=0;i<7;i++){ var hb=i*160-((camX*0.45)%160)+80; if(i%2===0) drawBush(hb,H-128,0.85+((i%3)*0.2)); }
+      // bulutlar (integer konum -> shimmer/yirtilma yok)
+      for(var i=0;i<5;i++){ var clx=Math.floor(((i*230 - camX*0.25)%(W+200)+W+200)%(W+200))-100; drawCloud(clx,52+((i*61)%80),0.85+((i%3)*0.22)); }
+      // bloklu tepeler (dikissiz: her kolon dunya-x fonksiyonu + integer kaydirma)
+      drawHillLayer(H-44, 0.28, '#3f9a3a', '#57b84a', 20, 0.011);
+      drawHillLayer(H-20, 0.5,  '#5bc052', '#7fe06a', 30, 0.017);
+      // calilar (dunyaya sabit, integer kaydirma)
+      var bstep=210, bp=Math.floor(camX*0.5), b0=Math.floor(bp/bstep)*bstep;
+      for(var wbx=b0; wbx<bp+W+bstep; wbx+=bstep){ drawBush(wbx-bp+50, H-38, 0.8+((wbx/bstep)&1)*0.25); }
       if(started){
         var c0=Math.max(0,Math.floor(camX/T)-1), c1=Math.min(cols,Math.floor((camX+W)/T)+2);
         for(var cy=0;cy<rows;cy++) for(var cx=c0;cx<c1;cx++){ var ch=G[cy][cx]; if(!ch||ch===' ') continue; var tx=cx*T-camX, ty=cy*T; drawTile(ch,tx,ty);
