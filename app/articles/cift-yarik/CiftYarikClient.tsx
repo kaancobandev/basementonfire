@@ -140,7 +140,7 @@ export default function CiftYarikClient() {
       {/* 8. Ne kadar büyük? */}
       <ArticleSection title="Bu deney ne kadar büyük nesnelerle yapılabilir?" max="max-w-4xl">
         <p className="mb-4 leading-relaxed text-slate-300">
-          1999'da Viyana'da <strong className="text-violet-300">Anton Zeilinger</strong> ve ekibi, deneyi 60 karbon atomlu futbol topu şeklindeki dev <strong className="text-fuchsia-300">C60 “buckyball”</strong> molekülleriyle yaptı. Bu koca moleküller bile yarıklardan bir dalga gibi geçti. 2019'a gelindiğinde iki binden fazla atomlu moleküllerle bile girişim gözlenebiliyordu.
+          1999'da Viyana'da <strong className="text-violet-300">Anton Zeilinger</strong> ve ekibi, deneyi 60 karbon atomlu futbol topu şeklindeki dev <strong className="text-fuchsia-300">C60 “buckyball”</strong> molekülleriyle yaptı — bir molekülde ya da bir avuç maddede kaç atom olduğunu ise <Link href="/articles/mol" className="article-ilink">mol kavramı</Link> sayar. Bu koca moleküller bile yarıklardan bir dalga gibi geçti. 2019'a gelindiğinde iki binden fazla atomlu moleküllerle bile girişim gözlenebiliyordu.
         </p>
         <p className="leading-relaxed text-slate-300">
           Peki neden bir kahve fincanı iki yarıktan aynı anda geçmez? Çünkü büyük nesnelerin dalga boyu inanılmaz küçüktür ve çevreleriyle sürekli etkileşirler — bu etkileşim (dekoherans) kuantum tuhaflığını anında yok eder. Sınır keskin bir duvar değil; nesne büyüdükçe kuantum tuhaflığı yavaşça <strong className="text-cyan-300">söner</strong>.

@@ -51,6 +51,7 @@ const ARTICLE_GRADIENTS: Record<string, string> = {
   'bilgisayar': 'linear-gradient(135deg,#0e3a4a,#6d28d9)',
   'cift-yarik': 'linear-gradient(135deg,#3b0764,#0e7490)',
   'kuantum-olumsuzlugu': 'linear-gradient(135deg,#1e1b4b,#0f766e)',
+  'mol': 'linear-gradient(135deg,#78350f,#f59e0b)',
 };
 const FALLBACK_GRADIENT = 'linear-gradient(135deg,#6366f1,#8b5cf6)';
 
