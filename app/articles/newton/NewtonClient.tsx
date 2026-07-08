@@ -48,7 +48,7 @@ export default function NewtonClient() {
         'Kalkülüs, yansıtmalı teleskop ve optik (ışığın renklere ayrışması)',
         'Yasaları bugün hâlâ günlük mühendisliğin temeli; yalnızca aşırı uçlarda yerini Einstein ve kuantuma bırakır',
       ]}>
-        Isaac Newton (1642–1727), modern fiziğin ve matematiğin kurucusu sayılan İngiliz bilim insanıdır. Üç hareket yasasını (F = m·a dâhil), evrensel kütleçekim yasasını ve kalkülüsü geliştirdi; prizmayla ışığın renklere ayrıştığını gösterdi.
+        Isaac Newton (1642–1727), modern fiziğin ve matematiğin kurucusu sayılan İngiliz bilim insanıdır. Üç hareket yasasını (F = m·a dâhil), evrensel kütleçekim yasasını ve kalkülüsü geliştirdi; prizmayla ışığın renklere ayrıştığını gösterdi. Işığın parçacık olduğu görüşünü de savundu — ama bu görüş sonradan <Link href="/articles/cift-yarik" className="article-ilink">çift yarık deneyiyle</Link> bambaşka bir boyut kazandı.
       </ArticleLede>
 
       <ArticleSection center>

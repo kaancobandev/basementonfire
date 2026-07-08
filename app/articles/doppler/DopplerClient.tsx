@@ -240,7 +240,7 @@ export default function DopplerClient() {
           <section className="mx-auto max-w-3xl border-t border-white/10 px-6 py-10">
             <div className="mb-2 text-sm font-bold tracking-widest text-sky-400">01</div>
             <h2 className="mb-4 text-2xl font-bold text-slate-50 sm:text-3xl">Temel Sezgi: Dalgaların Sıkışması ve Gerilmesi</h2>
-            <p className="mb-4 leading-relaxed">Doppler etkisini anlamanın en kolay yolu, onu bir <strong className="font-semibold text-slate-100">dalga olayı</strong> olarak düşünmektir. Ses bir dalgadır; ışık da bir dalgadır. Her dalganın iki temel özelliği vardır:</p>
+            <p className="mb-4 leading-relaxed">Doppler etkisini anlamanın en kolay yolu, onu bir <strong className="font-semibold text-slate-100">dalga olayı</strong> olarak düşünmektir. Ses bir dalgadır; ışık da bir dalgadır — ışığın dalga doğası en çarpıcı biçimde <Link href="/articles/cift-yarik" className="article-ilink">çift yarık deneyinde</Link> ortaya çıkar. Her dalganın iki temel özelliği vardır:</p>
             <div className="mb-5 grid gap-3 sm:grid-cols-2">
               {waveProps.map(([e, t, d]) => (
                 <div key={t} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">

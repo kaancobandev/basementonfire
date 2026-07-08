@@ -49,6 +49,7 @@ const ARTICLE_GRADIENTS: Record<string, string> = {
   'dunya': 'linear-gradient(135deg,#0c4a6e,#0891b2)',
   'newton': 'linear-gradient(135deg,#312e81,#b45309)',
   'bilgisayar': 'linear-gradient(135deg,#0e3a4a,#6d28d9)',
+  'cift-yarik': 'linear-gradient(135deg,#3b0764,#0e7490)',
 };
 const FALLBACK_GRADIENT = 'linear-gradient(135deg,#6366f1,#8b5cf6)';
 

@@ -34,6 +34,7 @@ export const ARTICLES: ArticleMeta[] = [
   { slug: 'dunya', title: 'Dünya', emoji: '🌍', desc: "Gezegenimizin doğum hikâyesi: güneş bulutsusundan demir çekirdeğe, dev çarpışmadan Ay'a — interaktif iç yapı modeliyle", category: 'Fizik' },
   { slug: 'newton', title: 'Isaac Newton', emoji: '🍎', desc: "Hareket yasaları, kütleçekim, kalkülüs ve optik — F=ma oyun alanı, ters-kare simülasyonu ve dolandırılma hikâyesiyle interaktif", category: 'Fizik' },
   { slug: 'bilgisayar', title: 'Bilgisayar Nasıl Çalışır?', emoji: '💻', desc: "CPU, GPU, RAM, SSD, anakart, LCD, mikrofon ve hoparlör — bol benzetme ve interaktif araçlarla (ikili sayı, komut döngüsü, RGB piksel) tüm parçaların rehberi", category: 'Teknoloji' },
+  { slug: 'cift-yarik', title: 'Çift Yarık Deneyi', emoji: '⚛️', desc: "Kuantumun tek gerçek gizemi: dalga-parçacık ikiliği, tek elektronların girişimi, gözlemin etkisi — interaktif çift yarık simülatörü, dalga havuzu ve de Broglie hesaplayıcısıyla, arka planda hareket eden elektronlarla", category: 'Fizik' },
 ];
 
 export const ARTICLE_MAP: Record<string, ArticleMeta> = Object.fromEntries(ARTICLES.map(a => [a.slug, a]));
