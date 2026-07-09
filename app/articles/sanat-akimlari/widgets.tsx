@@ -2,7 +2,11 @@
 
 // "Sanat Akımları" makalesine ÖZEL interaktifler + akım veritabanı + veri.
 // Genel şablon: @/app/components/article/ArticleBlocks
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+
+// GSAP ScrollTrigger'ı yenile (pinlenmiş zaman çizelgesinin konumu bayatlamasın).
+// Kâşifin yüksekliği değişince (filtre/aç-kapa) çağrılır; native 'resize' -> ScrollTrigger.refresh().
+function refreshScroll() { if (typeof window !== 'undefined') window.dispatchEvent(new Event('resize')); }
 
 export { refs } from './refs';
 
@@ -118,6 +122,8 @@ export function MovementExplorer() {
       .filter((m) => (!era || m.era === era) && (!region || m.r === region) && (!ql || (m.n + ' ' + m.who + ' ' + m.why).toLocaleLowerCase('tr').includes(ql)))
       .sort((a, b) => a.y - b.y);
   }, [q, era, region]);
+  // filtre değişip liste yüksekliği oynadıkça pinli çizelgeyi yenile
+  useEffect(() => { const id = setTimeout(refreshScroll, 60); return () => clearTimeout(id); }, [q, era, region]);
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur sm:p-5">
       <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="🔍 Ara… (akım, sanatçı, sebep — örn. Freud, Paris, kolaj)" className="w-full rounded-full border border-white/15 bg-black/30 px-5 py-2.5 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-rose-400/60" aria-label="Akım ara" />
@@ -139,7 +145,7 @@ export function MovementExplorer() {
         {list.map((m) => {
           const e = eraOf(m.era);
           return (
-            <details key={m.n} className="group rounded-xl border border-white/10 bg-white/[0.03] p-4" style={{ borderLeft: '3px solid ' + e.col }}>
+            <details key={m.n} onToggle={refreshScroll} className="group rounded-xl border border-white/10 bg-white/[0.03] p-4" style={{ borderLeft: '3px solid ' + e.col }}>
               <summary className="flex cursor-pointer list-none items-start justify-between gap-2 [&::-webkit-details-marker]:hidden">
                 <div>
                   <div className="font-bold text-white">{m.n}</div>
