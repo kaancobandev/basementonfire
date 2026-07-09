@@ -54,6 +54,17 @@ export default async function RootLayout({ children, modal }: { children: React.
   let convIds: number[] = [];
 
   if (me) {
+    // "Şu an online" için son görülme zamanını en fazla ~2 dk'da bir güncelle.
+    // Ateşle-unut (await yok → TTFB'ye eklenmez); throttle sayesinde çoğu istek
+    // yazmaz. last_seen_at kolonu yoksa (SQL henüz çalışmadıysa) tamamen atlanır.
+    if ('last_seen_at' in me) {
+      const last = (me as any).last_seen_at ? new Date((me as any).last_seen_at).getTime() : 0;
+      if (Date.now() - last > 120_000) {
+        db.from('users').update({ last_seen_at: new Date().toISOString() }).eq('id', me.id)
+          .then(({ error }) => logIfError('touch last_seen', error));
+      }
+    }
+
     // Tek turda üç sayaç: okunmamış mesaj sorgusu artık konuşma listesini
     // BEKLEMEZ (conversations!inner birleşimi kullanıcının konuşmalarına
     // filtreler) → her sayfa gezinmesinde bir veritabanı turu eksilir (TTFB).

@@ -1,4 +1,5 @@
 import { createAuthClientForResponse } from '@/lib/supabase/server';
+import { recordLogin } from '@/lib/login-tracking';
 import { NextResponse, type NextRequest } from 'next/server';
 
 export async function POST(req: NextRequest) {
@@ -16,10 +17,14 @@ export async function POST(req: NextRequest) {
   const response = NextResponse.redirect(new URL('/?welcome=1', req.url), { status: 303 });
   const client = createAuthClientForResponse(req, response);
 
-  const { error } = await client.auth.signUp({ email, password, options: { data: { username } } });
+  const { data, error } = await client.auth.signUp({ email, password, options: { data: { username } } });
 
   if (error)
     return NextResponse.redirect(new URL(`/register?error=${encodeURIComponent(error.message)}`, req.url), { status: 303 });
+
+  // Ilk kayit girisini de kaydet (method='register'). users satiri trigger'la
+  // ayni islemde olusur -> lookup bulur; bulamazsa sessizce atlar (girisi bozmaz).
+  if (data.user) await recordLogin(req, { authId: data.user.id, method: 'register' });
 
   return response;
 }

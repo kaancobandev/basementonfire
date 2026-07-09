@@ -38,7 +38,10 @@ export default function AdminClient({ items: initial }: { items: Item[] }) {
 
   return (
     <main className="main-content" style={{ minHeight: '100vh', background: 'var(--color-bg)' }}>
-      <div className="feed-header">Makale Yönetimi · İnceleme Kuyruğu</div>
+      <div className="feed-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+        <span>Makale Yönetimi · İnceleme Kuyruğu</span>
+        <Link href="/yonetim/istatistik" style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-primary)', textDecoration: 'none' }}>Giriş İstatistikleri →</Link>
+      </div>
       <div style={{ maxWidth: 820, margin: '0 auto', padding: '18px 16px 64px', display: 'flex', flexDirection: 'column', gap: 12 }}>
         {items.length === 0 && (
           <div style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 48 }}>
