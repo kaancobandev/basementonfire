@@ -5,6 +5,7 @@ import { getMe, db, logIfError } from '@/lib/supabase/server';
 import AppShell from './components/AppShell';
 import CelebrateOnParam from './components/CelebrateOnParam';
 import CookieConsent from './components/CookieConsent';
+import PageviewBeacon from './components/PageviewBeacon';
 
 // Google Analytics (GA4) ID — CookieConsent'e geçilir. GA YALNIZCA hem
 // NEXT_PUBLIC_GA_ID tanımlıysa hem de ziyaretçi çerez onayı verdiyse yüklenir
@@ -130,6 +131,8 @@ export default async function RootLayout({ children, modal }: { children: React.
         </AppShell>
         {/* Intercepting-route modal slotu (gönderi /p/[id] modalı) */}
         {modal}
+        {/* Çerezsiz sayfa görüntüleme beacon'ı — onaydan bağımsız, herkesi sayar */}
+        <PageviewBeacon />
         <CookieConsent gaId={GA_ID} />
       </body>
     </html>
