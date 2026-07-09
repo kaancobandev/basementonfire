@@ -1,6 +1,6 @@
 'use client';
 
-import { type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import Link from 'next/link';
 import {
   ArticleShell, ArticleHero, ArticleLede, ArticleSection, CardGrid, ArticleQuiz, ArticleBibliography, ArticleFooter,
@@ -22,16 +22,29 @@ function Story({ icon = '🎭', title, children }: { icon?: string; title: strin
 }
 
 // Sayfa-içi, PINLENMEYEN yatay zaman çizelgesi (GSAP yok → önceki bölümle çakışmaz).
-// Normal akışta bir blok; native yatay kaydırma + scroll-snap.
+// Scrollbar gizli; fareyle sürükle, dokunmatik/trackpad native kayar.
 function ScrollTimeline({ kicker, heading, items }: { kicker: string; heading: string; items: { year: string; title: string; text: string }[] }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    let down = false, startX = 0, startL = 0;
+    const pd = (e: PointerEvent) => { if (e.pointerType !== 'mouse') return; down = true; startX = e.clientX; startL = el.scrollLeft; el.classList.add('is-drag'); };
+    const pm = (e: PointerEvent) => { if (!down) return; el.scrollLeft = startL - (e.clientX - startX); };
+    const pu = () => { down = false; el.classList.remove('is-drag'); };
+    el.addEventListener('pointerdown', pd);
+    window.addEventListener('pointermove', pm);
+    window.addEventListener('pointerup', pu);
+    return () => { el.removeEventListener('pointerdown', pd); window.removeEventListener('pointermove', pm); window.removeEventListener('pointerup', pu); };
+  }, []);
   return (
     <div className="relative z-10">
       <section className="mx-auto max-w-6xl px-6 py-16">
         <div className="mb-2 text-xs font-semibold tracking-[0.2em]" style={{ color: ACCENT }}>{kicker}</div>
-        <h2 className="mb-6 text-3xl font-bold text-white sm:text-4xl">{heading} <span className="ml-2 align-middle text-sm font-normal text-slate-500">← kaydır →</span></h2>
-        <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 [scrollbar-width:thin]">
+        <h2 className="mb-6 text-3xl font-bold text-white sm:text-4xl">{heading} <span className="ml-2 align-middle text-sm font-normal text-slate-500">← sürükle →</span></h2>
+        <div ref={ref} className="sanat-tl flex cursor-grab gap-4 overflow-x-auto pb-2 select-none" style={{ scrollbarWidth: 'none' }}>
           {items.map((t, i) => (
-            <article key={t.year + i} className="flex w-[80vw] max-w-xs shrink-0 snap-start flex-col rounded-2xl border border-white/10 bg-white/[0.05] p-6 backdrop-blur">
+            <article key={t.year + i} className="flex w-[78vw] max-w-xs shrink-0 flex-col rounded-2xl border border-white/10 bg-white/[0.05] p-6 backdrop-blur">
               <div className="mb-1 font-mono text-4xl font-black" style={{ color: `color-mix(in srgb, ${ACCENT} 90%, transparent)` }}>{String(i + 1).padStart(2, '0')}</div>
               <div className="mb-3 inline-flex w-fit rounded-full border px-3 py-1 font-mono text-sm font-bold" style={{ color: ACCENT, borderColor: `color-mix(in srgb, ${ACCENT} 30%, transparent)`, background: `color-mix(in srgb, ${ACCENT} 10%, transparent)` }}>{t.year}</div>
               <h3 className="mb-2 text-lg font-bold text-white">{t.title}</h3>
@@ -40,6 +53,7 @@ function ScrollTimeline({ kicker, heading, items }: { kicker: string; heading: s
           ))}
           <div className="w-4 shrink-0" aria-hidden />
         </div>
+        <style>{`.sanat-tl::-webkit-scrollbar{display:none} .sanat-tl.is-drag{cursor:grabbing}`}</style>
       </section>
     </div>
   );
