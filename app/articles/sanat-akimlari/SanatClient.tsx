@@ -3,7 +3,7 @@
 import { type ReactNode } from 'react';
 import Link from 'next/link';
 import {
-  ArticleShell, ArticleHero, ArticleLede, ArticleSection, CardGrid, HorizontalTimeline, ArticleQuiz, ArticleBibliography, ArticleFooter,
+  ArticleShell, ArticleHero, ArticleLede, ArticleSection, CardGrid, ArticleQuiz, ArticleBibliography, ArticleFooter,
 } from '@/app/components/article/ArticleBlocks';
 import { FiveMotors, MovementExplorer, timeline, quizQs, refs } from './widgets';
 
@@ -17,6 +17,30 @@ function Story({ icon = '🎭', title, children }: { icon?: string; title: strin
     <div className="mt-5 rounded-xl border border-rose-400/25 bg-rose-500/[0.06] px-5 py-4">
       <div className="mb-1 flex items-center gap-2 text-sm font-bold text-rose-200"><span>{icon}</span><span>{title}</span></div>
       <p className="m-0 text-sm leading-relaxed text-slate-300">{children}</p>
+    </div>
+  );
+}
+
+// Sayfa-içi, PINLENMEYEN yatay zaman çizelgesi (GSAP yok → önceki bölümle çakışmaz).
+// Normal akışta bir blok; native yatay kaydırma + scroll-snap.
+function ScrollTimeline({ kicker, heading, items }: { kicker: string; heading: string; items: { year: string; title: string; text: string }[] }) {
+  return (
+    <div className="relative z-10">
+      <section className="mx-auto max-w-6xl px-6 py-16">
+        <div className="mb-2 text-xs font-semibold tracking-[0.2em]" style={{ color: ACCENT }}>{kicker}</div>
+        <h2 className="mb-6 text-3xl font-bold text-white sm:text-4xl">{heading} <span className="ml-2 align-middle text-sm font-normal text-slate-500">← kaydır →</span></h2>
+        <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 [scrollbar-width:thin]">
+          {items.map((t, i) => (
+            <article key={t.year + i} className="flex w-[80vw] max-w-xs shrink-0 snap-start flex-col rounded-2xl border border-white/10 bg-white/[0.05] p-6 backdrop-blur">
+              <div className="mb-1 font-mono text-4xl font-black" style={{ color: `color-mix(in srgb, ${ACCENT} 90%, transparent)` }}>{String(i + 1).padStart(2, '0')}</div>
+              <div className="mb-3 inline-flex w-fit rounded-full border px-3 py-1 font-mono text-sm font-bold" style={{ color: ACCENT, borderColor: `color-mix(in srgb, ${ACCENT} 30%, transparent)`, background: `color-mix(in srgb, ${ACCENT} 10%, transparent)` }}>{t.year}</div>
+              <h3 className="mb-2 text-lg font-bold text-white">{t.title}</h3>
+              <p className="text-sm leading-relaxed text-slate-300">{t.text}</p>
+            </article>
+          ))}
+          <div className="w-4 shrink-0" aria-hidden />
+        </div>
+      </section>
     </div>
   );
 }
@@ -92,8 +116,8 @@ export default function SanatClient() {
         </p>
       </ArticleSection>
 
-      {/* Zaman çizelgesi */}
-      <HorizontalTimeline kicker="KRONOLOJİK ÖZET · 1400 → 2022" heading="Altı yüzyıl, tek bir çizgide" items={timeline} />
+      {/* Zaman çizelgesi (pinlenmeyen; üstteki bölümle çakışmaz) */}
+      <ScrollTimeline kicker="KRONOLOJİK ÖZET · 1400 → 2022" heading="Altı yüzyıl, tek bir çizgide" items={timeline} />
 
       {/* Quiz */}
       <ArticleSection kicker="MİNİ TEST" title="Ne kadar yakaladın?">
