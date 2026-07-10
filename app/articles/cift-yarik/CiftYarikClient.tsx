@@ -102,6 +102,12 @@ export default function CiftYarikClient() {
         <p className="mt-5 leading-relaxed text-slate-300">
           Ne oluyor? Elektron yarıklardan geçerken bir <strong className="text-cyan-300">olasılık dalgası</strong> (dalga fonksiyonu) olarak yayılır — fiziksel bir su dalgası değil, parçacığın nerede bulunma ihtimalini tanımlayan matematiksel bir dalga. Bu dalga iki yarıktan da geçer, kendisiyle girişir; ekrana çarptığı an ise tek bir noktaya “yerleşir”.
         </p>
+        <p className="mt-4 leading-relaxed text-slate-400">
+          Aynı olasılık dalgası, bir parçacığın aşamayacağı bir enerji duvarının içinden bir ihtimalle sızmasına da izin
+          verir. Buna kuantum tünellemesi denir ve doğadaki en inatçı olaylardan birini açıklar: bir çekirdeğin ne zaman{' '}
+          <Link href="/articles/radyoaktivite" className="article-ilink">radyoaktif olarak bozunacağı</Link>. Kimse
+          bilmiyor — çünkü bu bir mekanizma değil, bir kumar.
+        </p>
       </ArticleSection>
 
       {/* 5. Hangi yarıktan? */}

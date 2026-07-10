@@ -83,6 +83,11 @@ export default function DunyaClient() {
           hafif silikatlar yukarı süzüldü. Bu olaya <strong className="text-sky-300">demir felaketi</strong> (gezegensel farklılaşma) denir — ve bugünkü katmanlı yapımızın kaynağıdır.
         </p>
         <CardGrid items={heatSources} cols={3} />
+        <p className="mt-6 leading-relaxed text-slate-400">
+          Bu ısı kaynaklarından biri bugün de sürüyor: mantoda ve kabukta yavaşça bozunan uranyum, toryum ve
+          potasyum-40, yüzeyden kaçan ısının kabaca yarısını üretiyor. Yani levhaları hareket ettiren motorun bir ucu{' '}
+          <Link href="/articles/radyoaktivite" className="article-ilink">radyoaktivitede</Link>.
+        </p>
       </ArticleSection>
 
       {/* İnteraktif: iç yapı */}

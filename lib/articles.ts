@@ -39,6 +39,7 @@ export const ARTICLES: ArticleMeta[] = [
   { slug: 'mol', title: 'Kimyada Mol Kavramı', emoji: '⚗️', desc: "Kimyanın en temel kavramı gündelik örneklerle: 1 mol = 6,022 × 10²³ tane. Molar kütle, dönüşüm haritası, molarite ve stokiyometri — interaktif mol hesaplayıcı, Avogadro ölçeği ve periyodik tablodan molar kütle aracıyla", category: 'Kimya' },
   { slug: 'fizik-101', title: 'Sıfırdan Fizik', emoji: '🚀', desc: "Fizik hiç bilmeyenler için sıfırdan: kütle, kuvvet, Newton (F=ma), ivme, hız, momentum, enerji, sürtünme — gündelik örnekler ve bolca interaktif deneyle (kuvvet laboratuvarı, çarpışma simülatörü, enerji rampası). Açık temalı", category: 'Fizik' },
   { slug: 'sanat-akimlari', title: 'Sanat Akımları', emoji: '🎨', desc: "Rönesans'tan yapay zekâya 60'tan fazla akım: hangi akım, nerede, kim, neden? Beş 'motor' çerçevesi + aranıp filtrelenebilen interaktif akım kâşifi. Batı-dışı gelenekler ve Türkiye dahil", category: 'Kültür' },
+  { slug: 'radyoaktivite', title: 'Radyoaktivite', emoji: '☢️', desc: "Kararsız bir çekirdeğin kendiliğinden bozunması: yarılanma süresi, alfa-beta-gama, bozunma zinciri, doz ve radon. Becquerel'in kazasından Curie'nin defterlerine, Oklo'nun doğal reaktöründen kemiklerinizdeki potasyum-40'a — yıldız yarılanma simülatörü, sürüklenebilir nüfuz kutusu, sesli Geiger sayacı ve 'sen ne kadar radyoaktifsin?' hesaplayıcısıyla interaktif", category: 'Fizik' },
 ];
 
 export const ARTICLE_MAP: Record<string, ArticleMeta> = Object.fromEntries(ARTICLES.map(a => [a.slug, a]));

@@ -54,6 +54,7 @@ const ARTICLE_GRADIENTS: Record<string, string> = {
   'mol': 'linear-gradient(135deg,#78350f,#f59e0b)',
   'fizik-101': 'linear-gradient(135deg,#2563eb,#f59e0b)',
   'sanat-akimlari': 'linear-gradient(135deg,#6b0f2a,#e11d48)',
+  'radyoaktivite': 'linear-gradient(135deg,#1a2e05,#65a30d)',
 };
 const FALLBACK_GRADIENT = 'linear-gradient(135deg,#6366f1,#8b5cf6)';
 
