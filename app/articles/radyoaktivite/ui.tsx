@@ -23,6 +23,19 @@ export type RayKey = keyof typeof RAY;
 export const prefersReduced = () =>
   typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+/**
+ * Pinlenmiş HorizontalTimeline'ın (GSAP ScrollTrigger) konumunu tazeler.
+ * Bu sayfada zaman çizelgesinin ÜSTÜNDE yüksekliği sonradan değişen öğeler var
+ * (lazy mount olan canvas modülleri, açılır bozunma zinciri). Onlar yükseklik
+ * değiştirince pin konumu bayatlar ve çizelge komşu bölümle çakışır. Native
+ * 'resize' → ScrollTrigger.refresh(). GSAP yoksa zararsız no-op.
+ * (sanat-akımları makalesinde kanıtlanmış root-cause fix.)
+ */
+export function refreshScroll() {
+  if (typeof window === 'undefined') return;
+  requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
+}
+
 /** Deterministik tr-TR sayı biçimi (binlik "." ondalık ","). Intl KULLANMAZ:
  *  Node ile tarayıcının ICU'su farklı olduğunda hidrasyon uyuşmazlığı doğuyor. */
 export function tr(n: number, dec = 0): string {
@@ -114,6 +127,17 @@ export function InView({
   }, []);
 
   const active = visible || forced;
+
+  // Modül mount olup (poster/iskelet → gerçek modül) yüksekliği değiştikçe pinli
+  // zaman çizelgesinin ScrollTrigger konumunu tazele. Birden çok gecikmeyle:
+  // hemen (poster→iskelet) ve sonra (dynamic chunk yüklenince).
+  useEffect(() => {
+    if (!active) return;
+    refreshScroll();
+    const t1 = setTimeout(refreshScroll, 150);
+    const t2 = setTimeout(refreshScroll, 600);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [active]);
 
   return (
     <div ref={ref} style={{ minHeight: active ? undefined : minHeight }}>

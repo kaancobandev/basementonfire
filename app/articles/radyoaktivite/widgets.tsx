@@ -9,7 +9,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   BANANA_SV, BODY, CHAIN, DEFAULT_WEIGHT, DOSES, DOSE_MAX_SV, DOSE_MIN_SV,
 } from './data';
-import { ACCENT, ActionButton, RAY, WidgetFrame, tr } from './ui';
+import { ACCENT, ActionButton, RAY, WidgetFrame, refreshScroll, tr } from './ui';
 
 export { refs } from './refs';
 
@@ -279,7 +279,9 @@ const LOG_MIN = Math.log10(CHAIN.reduce((m, s) => Math.min(m, s.halfLifeS), Infi
 const LOG_MAX = Math.log10(CHAIN.reduce((m, s) => Math.max(m, s.halfLifeS), 0));
 
 export function DecayChain() {
-  const [open, setOpen] = useState<number | null>(6); // radon adımı açık başlasın
+  const [open, setOpenState] = useState<number | null>(6); // radon adımı açık başlasın
+  // Adım aç/kapa yüksekliği değiştirir; çizelge bunun altında → pin konumunu tazele.
+  const setOpen = (v: number | null) => { setOpenState(v); refreshScroll(); };
   const alphas = CHAIN.filter(s => s.mode === 'alpha').length;
   const betas = CHAIN.filter(s => s.mode === 'beta').length;
 

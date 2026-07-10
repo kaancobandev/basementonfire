@@ -6,7 +6,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { GRID_COLS, GRID_N, GRID_ROWS, ISOTOPES } from './data';
-import { ActionButton, Chip, Stat, WidgetFrame, humanTime, tr } from './ui';
+import { ActionButton, Chip, Stat, WidgetFrame, humanTime, refreshScroll, tr } from './ui';
 
 const MAX_T = 8;              // grafikte gösterilen yarılanma sayısı
 const SPEED = 0.45;           // saniyede kaç yarılanma
@@ -95,6 +95,7 @@ export default function HalfLifeSim() {
 
   /* ── döngü ── */
   useEffect(() => {
+    refreshScroll(); // modül mount olup yükseklik değişti → pinli çizelgeyi tazele
     let raf = 0, last = performance.now(), acc = 0;
     const loop = (now: number) => {
       const s = sim.current;

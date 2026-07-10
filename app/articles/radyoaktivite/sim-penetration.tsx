@@ -6,7 +6,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { BARRIERS, RAY_INFO, type BarrierKey } from './data';
-import { ActionButton, RAY, WidgetFrame, tr, type RayKey } from './ui';
+import { ActionButton, RAY, WidgetFrame, refreshScroll, tr, type RayKey } from './ui';
 
 const SLOT_X = [0.345, 0.49, 0.635];
 const SRC_X = 0.085, DET_X = 0.915;
@@ -50,6 +50,7 @@ export default function PenetrationBox() {
 
   /* animasyon */
   useEffect(() => {
+    refreshScroll(); // modül mount olup yükseklik değişti → pinli çizelgeyi tazele
     let raf = 0, last = performance.now(), acc = 0;
     const loop = (now: number) => {
       const canvas = canvasRef.current;

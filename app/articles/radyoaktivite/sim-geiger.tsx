@@ -9,7 +9,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { GEIGER_BG_CPM, SCENES } from './data';
-import { ACCENT, WidgetFrame, tr } from './ui';
+import { ACCENT, WidgetFrame, refreshScroll, tr } from './ui';
 
 const CLICK_CAP = 50;       // saniyede en fazla bu kadar ayrı tık duyulur
 const ORE_REF_CM = 5;
@@ -109,6 +109,7 @@ export default function GeigerCounter() {
 
   /* ── döngü: Poisson tıklar + çizim ── */
   useEffect(() => {
+    refreshScroll(); // modül mount olup yükseklik değişti → pinli çizelgeyi tazele
     let raf = 0, last = performance.now(), acc = 0;
     const loop = (now: number) => {
       const s = w.current;
