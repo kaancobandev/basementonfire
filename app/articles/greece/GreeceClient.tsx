@@ -113,6 +113,9 @@ export default function GreecePage() {
       {/* ── Tanrılar ── */}
       <section className="gr-section">
         <h2 className="gr-section-title">Olimpos Tanrıları</h2>
+        <p className="gr-god-desc" style={{ maxWidth: 760, margin: '0 auto 22px', textAlign: 'center' }}>
+          Yunanlılar tanrılarına mermer tapınaklar dikmeden binlerce yıl önce, insanlık ilk anıtsal kutsal yapısını çoktan kurmuştu: Anadolu’da, yazının icadından altı bin yıl önce yükselen <Link href="/articles/gobeklitepe" className="article-ilink">Göbeklitepe</Link>.
+        </p>
         <div className="gr-gods-grid">
           {gods.map(g => (
             <div key={g.name} className="gr-god-card" style={{ borderColor: `${g.color}40` }}>
