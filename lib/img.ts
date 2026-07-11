@@ -11,8 +11,10 @@ function isProd() {
 
 function eligible(src: string): boolean {
   if (!src) return false;
-  if (!/^https?:\/\//i.test(src)) return false;        // sadece mutlak http(s): yerel/relative/blob/data atlanır
-  if (/\.gif($|\?)/i.test(src)) return false;          // animasyonlu GIF'i bozma
+  const isAbs = /^https?:\/\//i.test(src);             // uzak (Supabase vb.) — netlify.toml remote_images allowlist gerektirir
+  const isLocal = /^\/[^/]/.test(src);                 // site-içi kök-göreli (/articles/x.jpg, /_next/static/media/...) — allowlist gerekmez
+  if (!isAbs && !isLocal) return false;                // blob:/data:/relative/'//' protokol-göreli atlanır
+  if (/\.(gif|svg)($|\?)/i.test(src)) return false;    // animasyonlu GIF bozulmasın; SVG'yi CDN dönüştüremez → olduğu gibi sun
   return true;
 }
 
