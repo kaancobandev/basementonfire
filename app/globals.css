@@ -9,24 +9,30 @@
   --color-text-muted: #536471;
   --color-border: #e2e8f0;
 
-  /* ── Marka: indigo/mor primary ── */
-  --color-primary: #4f46e5;        /* indigo-600 — beyaz metinle de, link metni olarak da WCAG AA */
-  --color-primary-hover: #4338ca;  /* indigo-700 */
-  --color-primary-soft: #eef2ff;   /* indigo-50 — yumuşak vurgu zemini / hover */
+  /* ── Marka: elektrik indigo primary ── */
+  --color-primary: #5b2eef;        /* elektrik indigo — beyaz metinle 6.8:1, link metni 6.1:1 (WCAG AA) */
+  --color-primary-hover: #4a1fd6;  /* daha koyu elektrik (AA 8.5:1) */
+  --color-primary-soft: #efeafe;   /* yumuşak vurgu zemini / hover */
   --color-on-primary: #ffffff;
 
-  /* ── Sıcak aksan: amber/altın ── */
-  --color-accent: #f59e0b;         /* amber-500 — dolgu/vurgu */
-  --color-accent-ink: #b45309;     /* amber-700 — açık zeminde aksan METNİ (AA) */
-  --color-accent-soft: #fef3c7;    /* amber-100 — yumuşak zemin */
+  /* ── Sıcak aksan: parlak amber ── */
+  --color-accent: #ff9d0a;         /* parlak amber — dolgu/vurgu */
+  --color-accent-ink: #b45309;     /* amber-700 — açık zeminde aksan METNİ (AA 5:1) */
+  --color-accent-soft: #fff1d6;    /* yumuşak zemin */
+
+  /* ── Spark: enerjik magenta (eşleşme-pembesinden doğdu, ayrı token) ── */
+  --color-spark: #f5288e;          /* magenta — gradyan/dolgu/nokta; METİN için -ink kullan */
+  --color-spark-ink: #c81e6f;      /* açık zeminde spark METNİ (AA 5.4:1) */
+  --color-spark-soft: #ffe4f1;     /* yumuşak zemin */
 
   /* ── Özellik-semantiği (rastgele değil, kasıtlı; token'a bağlı) ── */
   --color-match: #ec4899;          /* pembe — eşleşme/romantik */
   --color-match-2: #8b5cf6;        /* mor — eşleşme gradyan ucu */
   --gradient-match: linear-gradient(135deg, var(--color-match), var(--color-match-2));
   --gradient-story: linear-gradient(135deg, #f58529, #dd2a7b, #8134af, #515bd4); /* story halkası — Instagram-tarzı, kasıtlı */
-  --gradient-brand: linear-gradient(135deg, var(--color-primary), var(--color-match-2));
-  --gradient-hero: radial-gradient(120% 130% at 72% 25%, #312e81 0%, #1e1b4b 55%, #14121f 100%); /* marka indigo hero */
+  --gradient-brand: linear-gradient(135deg, var(--color-primary), var(--color-spark)); /* elektrik indigo → spark */
+  --gradient-spark: linear-gradient(100deg, var(--color-primary) 0%, var(--color-spark) 52%, var(--color-accent) 100%); /* indigo → magenta → amber sweep */
+  --gradient-hero: radial-gradient(120% 130% at 72% 25%, #3a1e9e 0%, #1e1440 55%, #120e26 100%); /* elektrik indigo hero */
 
   /* ── Durum renkleri ── */
   --color-success: #22c55e;
@@ -75,6 +81,9 @@
 }
 
 * { box-sizing: border-box; }
+
+/* ── Marka tipografisi: başlıklar Bricolage Grotesque, gövde DM Sans (next/font, bkz. layout.tsx) ── */
+h1, h2, h3, .font-display { font-family: var(--font-display), system-ui, sans-serif; }
 
 /* ── Global klavye odak halkası ──
    Önceden HİÇ focus stili yoktu; klavye kullanıcıları nerede olduklarını göremiyordu.
@@ -147,7 +156,7 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-body), system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   background: var(--color-bg);
   color: var(--color-text);
   margin: 0;
@@ -740,31 +749,34 @@ body {
 
 /* ── Dark theme ── */
 [data-theme="dark"] {
-  --color-bg: #0f1419;
-  --color-surface: #16202a;
+  --color-bg: #0b0917;             /* derin indigo-ink */
+  --color-surface: #151130;
   --color-hover: rgba(255,255,255,0.06);
-  --color-primary: #6366f1;        /* indigo-500 — koyu zeminde daha canlı */
-  --color-primary-hover: #818cf8;  /* indigo-400 */
-  --color-primary-soft: rgba(99,102,241,0.16);
-  --color-accent: #fbbf24;         /* amber-400 — koyuda dolgu */
-  --color-accent-ink: #fbbf24;     /* koyuda aksan metni de açık amber okunur */
-  --color-accent-soft: rgba(245,158,11,0.18);
+  --color-primary: #8f74ff;        /* koyuda kaldırılmış elektrik indigo (AA 5.7:1) */
+  --color-primary-hover: #a892ff;
+  --color-primary-soft: rgba(143,116,255,0.18);
+  --color-accent: #ffbd54;         /* koyuda parlak amber */
+  --color-accent-ink: #ffbd54;
+  --color-accent-soft: rgba(255,157,10,0.18);
+  --color-spark: #ff54a6;          /* koyuda spark (AA 6.6:1) */
+  --color-spark-ink: #ff54a6;
+  --color-spark-soft: rgba(255,84,166,0.18);
   --color-success-soft: rgba(34,197,94,0.18);
   --color-danger-soft: rgba(239,68,68,0.18);
-  --color-text: #e7e9ea;
-  --color-text-muted: #8b98a5;
-  --color-border: #2f3336;
+  --color-text: #f2f0fb;
+  --color-text-muted: #9d96b8;
+  --color-border: #2a2350;
   color-scheme: dark;
 }
 
-[data-theme="dark"] .post-card:hover          { background: #1c2732; }
+[data-theme="dark"] .post-card:hover          { background: #1b1640; }
 [data-theme="dark"] .nav-link:hover           { background: rgba(255,255,255,0.06); }
 [data-theme="dark"] .back-btn:hover           { background: rgba(255,255,255,0.06); }
 [data-theme="dark"] .mobile-nav-btn:hover     { background: rgba(255,255,255,0.06); }
 [data-theme="dark"] .action-btn:hover         { background: var(--color-primary-soft); }
 [data-theme="dark"] .trending-item:hover      { background: rgba(255,255,255,0.04); }
-[data-theme="dark"] .feed-header  { background: rgba(15,20,25,0.88); }
-[data-theme="dark"] .widget-card  { background: #1c2732; }
+[data-theme="dark"] .feed-header  { background: rgba(11,9,23,0.88); }
+[data-theme="dark"] .widget-card  { background: #1a1538; }
 [data-theme="dark"] .category-science { background: rgba(59,130,246,0.18);  color: #93c5fd; }
 [data-theme="dark"] .category-history { background: rgba(245,158,11,0.18);  color: #fcd34d; }
 [data-theme="dark"] .category-general { background: rgba(156,163,175,0.15); color: #d1d5db; }

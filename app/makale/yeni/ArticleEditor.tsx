@@ -434,7 +434,7 @@ export default function ArticleEditor({ initial }: { initial: Initial | null }) 
         .ed-source button { width: 32px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-bg); cursor: pointer; color: var(--color-text); }
         .ed-source-add { align-self: flex-start; border: 1px dashed var(--color-border); background: transparent; border-radius: 9px; padding: 7px 14px; cursor: pointer; font-size: 0.85rem; color: var(--color-text-muted); font-weight: 600; }
 
-        .ed-submit { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; font-weight: 800; font-size: 1rem; padding: 15px; border: none; border-radius: 14px; cursor: pointer; }
+        .ed-submit { background: var(--gradient-brand); color: #fff; font-weight: 800; font-size: 1rem; padding: 15px; border: none; border-radius: 14px; cursor: pointer; }
         .ed-submit:disabled { opacity: 0.7; cursor: default; }
         .ed-note { font-size: 0.78rem; color: var(--color-text-muted); text-align: center; margin: 0; line-height: 1.5; }
 

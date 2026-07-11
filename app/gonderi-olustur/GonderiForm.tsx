@@ -315,7 +315,7 @@ export default function GonderiForm({ error: initialError }: Props) {
             disabled={submitting}
             style={{
               width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff',
+              background: 'var(--gradient-brand)', color: '#fff',
               fontWeight: 700, fontSize: '1rem', padding: 14, border: 'none', borderRadius: 14,
               cursor: submitting ? 'not-allowed' : 'pointer',
               transition: 'opacity 0.15s, transform 0.15s', opacity: submitting ? 0.7 : 1, fontFamily: 'inherit',

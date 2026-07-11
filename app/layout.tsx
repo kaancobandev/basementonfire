@@ -1,6 +1,22 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
+import { Bricolage_Grotesque, DM_Sans } from 'next/font/google';
 import './globals.css';
+
+// Marka tipografisi (self-hosted → CDN/CSP sorunu yok, latin-ext ile tam Türkçe).
+// Display: Bricolage Grotesque (başlıklar) · Gövde: DM Sans.
+const fontDisplay = Bricolage_Grotesque({
+  subsets: ['latin', 'latin-ext'],
+  weight: ['600', '700', '800'],
+  variable: '--font-display',
+  display: 'swap',
+});
+const fontBody = DM_Sans({
+  subsets: ['latin', 'latin-ext'],
+  weight: ['400', '500', '700'],
+  variable: '--font-body',
+  display: 'swap',
+});
 import { getMe, db, logIfError } from '@/lib/supabase/server';
 import AppShell from './components/AppShell';
 import CelebrateOnParam from './components/CelebrateOnParam';
@@ -98,7 +114,7 @@ export default async function RootLayout({ children, modal }: { children: React.
   const user = me ? { id: me.id, username: me.username, display_name: me.display_name } : null;
 
   return (
-    <html lang="tr" suppressHydrationWarning>
+    <html lang="tr" className={`${fontDisplay.variable} ${fontBody.variable}`} suppressHydrationWarning>
       <head>
         {/* Supabase'e erken bağlantı: video/avatar/hikâye medyası + realtime
             ilk istekte DNS+TLS beklemez (crossorigin'li olan fetch/XHR için) */}
