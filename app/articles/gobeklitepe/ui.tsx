@@ -5,7 +5,9 @@
 
 import type { ReactNode } from 'react';
 
-export const ACCENT = '#d9954a'; // güneşte kireçtaşı — sıcak kum-amber tonu
+export const ACCENT = '#4cc3ff';   // elektrik mavisi — derin zaman ekseni teması
+export const NAVY = '#060a18';      // en koyu zemin (siyah-lacivert)
+export const NAVY_MID = '#0c1630';  // ara lacivert (kart/çizgi zeminleri)
 
 /** Deterministik tr-TR sayı biçimi (binlik "." ondalık ","). Intl KULLANMAZ:
  *  Node ile tarayıcının ICU'su ayrışınca hidrasyon uyuşmazlığı doğuyor. */

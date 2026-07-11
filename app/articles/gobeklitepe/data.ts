@@ -4,6 +4,82 @@
 
 export const GOBEKLI_BCE = 9600; // en eski tabaka (Kat III); radyokarbon MÖ 9745–9300
 
+/* ═══════════════ FAZ 1 · Derin Zaman Ekseni (scroll beat'leri) ═══════════════
+ * Okuyucu aşağı kaydırdıkça GERİYE gider. Metin ekseni anlatmaz, ekseni hareket
+ * ettirir. Ekran satırları (lines) birebir kopya defterinden; kısa, dokunulmaz.
+ * scroll = beat'in bölüm yüksekliği (vh); önceki durakla arasındaki ZAMAN farkına
+ * kabaca orantılı → büyük boşluklar (yazı→çömlek, ve varıştan hemen önceki sessizlik)
+ * bileğe hissettirilir. kind = siluet. */
+export type Beat = { n: string; year: string; label: string; lines: string[]; kind: string; scroll: number; detail?: string };
+
+export const BEATS: Beat[] = [
+  {
+    n: '00', year: 'BUGÜN', label: '11 Temmuz 2026', kind: 'now', scroll: 95,
+    lines: [`Bugün. 11 Temmuz 2026.`, `Şimdi yavaşça geriye kaydır. Acele etme.`],
+    detail: `Buradasın. Yolculuk buradan başlıyor.`,
+  },
+  {
+    n: '01', year: '1453', label: 'İstanbul’un Fethi', kind: 'ottoman', scroll: 105,
+    lines: [`1453. Fatih surları geçeli 573 yıl olmuş.`, `Sana “eski tarih” gibi gelen yer burası. Oysa daha yeni yürümeye başladık.`],
+    detail: `İstanbul’un fethi. Sana çok eski gelen tarih — oysa daha dün gibi.`,
+  },
+  {
+    n: '02', year: 'MÖ 27', label: 'Roma İmparatorluğu', kind: 'roma', scroll: 135,
+    lines: [`MÖ 27. Roma İmparatorluğu daha yeni kuruluyor.`, `“İşte kadim dünya” dediğin an. Sütun, akvedükt, lejyon. Kaydırmaya devam et.`],
+    detail: `İmparatorluk kuruluyor. Sütun, akvedükt, lejyon — “kadim dünya”.`,
+  },
+  {
+    n: '03', year: 'MÖ 2560', label: 'Giza Piramitleri', kind: 'pyramid', scroll: 175,
+    lines: [`MÖ 2560. Giza’daki Büyük Piramit dikiliyor.`, `Çoğu insanın kafasında “en eski şey” burasıdır. Sen daha yolun başındasın.`],
+    detail: `Giza’daki Büyük Piramit. Çoğu insanın “en eski” sandığı yer.`,
+  },
+  {
+    n: '04', year: 'MÖ 2500', label: 'Stonehenge', kind: 'stonehenge', scroll: 85,
+    lines: [`MÖ 2500. İngiltere’de Stonehenge’in dev taşları yerine konuyor.`, `Piramitlerle neredeyse yaşıt. İkisini de geçtin. Ekran hâlâ dibe değmedi.`],
+    detail: `Dev taşlar diziliyor. Piramitlerle neredeyse yaşıt.`,
+  },
+  {
+    n: '05', year: 'MÖ 3400', label: 'Yazının İcadı', kind: 'writing', scroll: 115,
+    lines: [`MÖ 3400. Sümerler yazıyı icat ediyor.`, `Dur bir saniye. Yazı, piramitlerden bile eski. Ama bu bile Göbeklitepe’nin çok sonrası.`],
+    detail: `Sümer çivi yazısı. Piramitlerden bile eski — ama Göbeklitepe’nin çok sonrası.`,
+  },
+  {
+    n: '06', year: 'MÖ 7000', label: 'Çömlekçilik', kind: 'pottery', scroll: 200,
+    lines: [`MÖ 7000. İnsanlar çömlek yapmayı yeni öğreniyor.`, `Toprağı pişirip kap yapmak. Bu kadar temel bir şey, bu kadar geç.`],
+    detail: `Toprağı pişirip kap yapmak. Bu kadar temel bir şey, bu kadar geç.`,
+  },
+  {
+    n: '07', year: 'MÖ 7400', label: 'Çatalhöyük', kind: 'catalhoyuk', scroll: 85,
+    lines: [`MÖ 7400. Konya’da Çatalhöyük kuruluyor. Kapıları çatıda, sokakları yok.`, `Dünyanın en eski şehirlerinden biri. Ve hâlâ Göbeklitepe’ye varmadık.`],
+    detail: `Kapıları çatıda bir kasaba. Dünyanın en eski şehirlerinden biri.`,
+  },
+  {
+    n: '08', year: 'MÖ ~9000', label: 'Tarımın Doğuşu', kind: 'wheat', scroll: 130,
+    lines: [`MÖ 9000. İnsanlık tarımı yeni yeni deniyor.`, `Buğdayı ehlileştirmek, yerleşik düzene geçmek. “Uygarlığın ilk adımı” derler. Bir adım daha kaydır.`],
+    detail: `Buğday ehlileştiriliyor. “Uygarlığın ilk adımı” — ama hâlâ Göbeklitepe’den sonra.`,
+  },
+  {
+    n: '09', year: '', label: '', kind: 'void', scroll: 210,
+    lines: [`Kaydırmaya devam.`, `…`, `Daha var.`],
+  },
+  {
+    n: '10', year: 'MÖ 9600', label: 'GÖBEKLİTEPE', kind: 'gobekli', scroll: 150,
+    lines: [`MÖ 9600.`, `Göbeklitepe.`, `Yaklaşık 11.600 yıl önce, henüz çömlek bile yokken, avcı-toplayıcılar 15 tonluk taş sütunları buraya diktiler.`],
+    detail: `Hepsinden önce. Avcı-toplayıcılar, tonlarca taşı buraya dikti — tarım, çömlek, yazı yokken.`,
+  },
+];
+
+// Kapanış ekranı (sticky yolculuğun dışında; bütün ekseni açığa çıkarır).
+export const FINALE_LINES = [
+  `Şimdi yukarı bak.`,
+  `Az önce geçtiğin her şey. Tarım, çömlek, yazı, piramitler, Roma. Göbeklitepe’yi kuranlar için henüz hiçbiri yoktu. Hepsi onların geleceğinde.`,
+];
+export const FINALE_PUNCH = [
+  `Piramitler ile bugün arasında yaklaşık 4.600 yıl var.`,
+  `Piramitler ile Göbeklitepe arasında yaklaşık 7.000 yıl.`,
+  `Yani piramitler, geçmişe değil, bize daha yakın.`,
+];
+
 /* ─────────────── Derin zaman kaydırıcısı: kilometre taşları ─────────────── */
 
 export type Milestone = { label: string; yearBCE: number; icon: string; note: string };

@@ -3,8 +3,8 @@ import { breadcrumbJsonLd, jsonLdScript, articleJsonLd } from '@/lib/seo';
 import GobeklitepeClient from './GobeklitepeClient';
 import { refs } from './refs';
 
-const title = 'Göbeklitepe — Tarladan Önce Tapınak';
-const description = 'Göbeklitepe nedir, ne kadar eski ve neden tarihi yeniden yazdı? Yaklaşık MÖ 9600’de avcı-toplayıcıların diktiği T-biçimli taş devler: piramitlerden 7.000, yazıdan 6.000 yıl önce. İnteraktif derin zaman kaydırıcısı, T-pilar kâşifi, çevre haritası ve doğrulanmış kaynaklarla.';
+const title = 'Göbeklitepe — Derin Zaman Ekseni';
+const description = 'Göbeklitepe ne kadar eski? Yaklaşık MÖ 9600 — piramitlerden 7.000, yazıdan 6.000 yıl önce. Bu sayıyı okumak yerine kaydırarak kat et: her durakta insanlığın ne yapabildiğini gör ve Göbeklitepe’ye varmadan önce mesafeyi hisset. Piramitler bize Göbeklitepe’ye olduğundan zaman olarak daha yakın.';
 const path = '/articles/gobeklitepe';
 
 export const metadata: Metadata = {
