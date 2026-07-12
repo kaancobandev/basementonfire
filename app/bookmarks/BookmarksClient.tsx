@@ -8,10 +8,12 @@ import { factMediaList } from '@/lib/types';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Caption from '@/app/components/Caption';
+import ReportButton from '@/app/components/ReportButton';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 
 interface Post {
   id: number;
+  user_id: number;
   media_url: string;
   media_type: string;
   caption: string;
@@ -25,9 +27,10 @@ interface Post {
 
 interface Props {
   initialPosts: Post[];
+  meId?: number | null;
 }
 
-export default function BookmarksClient({ initialPosts }: Props) {
+export default function BookmarksClient({ initialPosts, meId = null }: Props) {
   const isMobile = useIsMobile();
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [selected, setSelected] = useState<Post | null>(null);
@@ -207,6 +210,7 @@ export default function BookmarksClient({ initialPosts }: Props) {
                   </svg>
                   {selected.likes}
                 </div>
+                <ReportButton targetType="post" targetId={selected.id} subtitle={`@${selected.username} gönderisi`} size={30} canReport={!!meId && meId !== selected.user_id} />
               </div>
 
               {/* Açıklama */}

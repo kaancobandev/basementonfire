@@ -1,10 +1,11 @@
 import { db, getMe } from '@/lib/supabase/server';
+import { REPORT_TARGET_TYPES, REPORT_REASON_VALUES } from '@/lib/reports';
 import { NextResponse } from 'next/server';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
 
-const TARGET_TYPES = new Set(['post', 'comment', 'user', 'article']);
-const REASONS = new Set(['spam', 'taciz', 'nefret', 'uygunsuz', 'siddet', 'yanlis_bilgi', 'diger']);
+const TARGET_TYPES = new Set<string>(REPORT_TARGET_TYPES);
+const REASONS = new Set<string>(REPORT_REASON_VALUES);
 
 // POST /api/report — içerik/kullanıcı şikayeti. body: { targetType, targetId, reason, note? }
 export async function POST(req: Request) {

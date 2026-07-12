@@ -18,7 +18,7 @@ export type DetailComment = {
 };
 
 export type PostProp = {
-  id: number; caption: string; media_url: string; media_type: string; media: any;
+  id: number; user_id: number; caption: string; media_url: string; media_type: string; media: any;
   likes: number; created_at: string; username: string; display_name: string; avatar: string | null;
 };
 
@@ -77,6 +77,7 @@ export async function getPostDetail(postId: number, meId: number | null): Promis
   const u = post.users || {};
   const postProp: PostProp = {
     id: post.id,
+    user_id: post.user_id,
     caption: post.caption ?? '',
     media_url: post.media_url,
     media_type: post.media_type,

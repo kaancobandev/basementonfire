@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import { db, logIfError } from '@/lib/supabase/server';
+import { db, getMe, logIfError } from '@/lib/supabase/server';
 import { breadcrumbJsonLd, jsonLdScript } from '@/lib/seo';
 import HashtagClient from './HashtagClient';
 
@@ -48,8 +48,10 @@ export default async function HashtagPage({ params }: { params: Promise<{ tag: s
     .eq('tag', normalizedTag)
     .maybeSingle();
 
+  const { me } = await getMe();
+
   type Post = {
-    id: number; media_url: string; media_type: string;
+    id: number; user_id: number; media_url: string; media_type: string;
     caption: string; likes: number; created_at: string;
     display_name: string; username: string; avatarBg: string;
     is_private: boolean;
@@ -78,6 +80,7 @@ export default async function HashtagPage({ params }: { params: Promise<{ tag: s
         if (!p) return null;
         return {
           id:           p.id           as number,
+          user_id:      p.user_id      as number,
           media_url:    p.media_url    as string,
           media_type:   p.media_type   as string,
           caption:      p.caption      as string,
@@ -152,7 +155,7 @@ export default async function HashtagPage({ params }: { params: Promise<{ tag: s
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(collectionLd) }} />
-      <HashtagClient tag={normalizedTag} posts={posts} related={related} />
+      <HashtagClient tag={normalizedTag} posts={posts} related={related} meId={me?.id ?? null} />
     </>
   );
 }

@@ -9,6 +9,7 @@ import Caption from '@/app/components/Caption';
 import Img from '@/app/components/Img';
 import { factMediaList } from '@/lib/types';
 import { useIsMobile } from '@/lib/useIsMobile';
+import ReportButton from '@/app/components/ReportButton';
 import type { PostProp, DetailComment } from '@/app/p/[id]/postData';
 
 interface CurrentUser { id: number; username: string; display_name: string; avatar: string | null; }
@@ -148,6 +149,7 @@ export default function PostModal({ post, initialComments, initialLiked, initial
               <div style={{ color: 'var(--color-text-muted)', fontSize: '0.78rem' }}>@{post.username}</div>
             </div>
             <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{timeAgo(post.created_at)}</span>
+            <ReportButton targetType="post" targetId={post.id} subtitle={`@${post.username} gönderisi`} size={30} canReport={!!currentUser && currentUser.id !== post.user_id} />
           </div>
           {post.caption && (
             <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border)', flexShrink: 0, maxHeight: '40%', overflowY: 'auto' }}>
@@ -171,6 +173,7 @@ export default function PostModal({ post, initialComments, initialLiked, initial
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
                         <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>{timeAgo(c.created_at)}</span>
                         <button onClick={() => { setReplyToId(c.id); setCommentText(`@${c.username} `); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-muted)', padding: '1px 0', fontFamily: 'inherit' }}>Yanıtla</button>
+                        <ReportButton targetType="comment" targetId={c.id} subtitle={`@${c.username} yorumu`} variant="inline" canReport={!!currentUser && currentUser.id !== c.user_id} />
                       </div>
                     </div>
                     {currentUser?.id === c.user_id && (
@@ -183,7 +186,10 @@ export default function PostModal({ post, initialComments, initialLiked, initial
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <span style={{ fontWeight: 700, fontSize: '0.8rem', marginRight: 4 }}>{r.display_name}</span>
                         <span style={{ fontSize: '0.82rem', color: 'var(--color-text)', lineHeight: 1.4, wordBreak: 'break-word' }}>{r.content}</span>
-                        <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--color-text-muted)', marginTop: 2 }}>{timeAgo(r.created_at)}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
+                          <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>{timeAgo(r.created_at)}</span>
+                          <ReportButton targetType="comment" targetId={r.id} subtitle={`@${r.username} yorumu`} variant="inline" canReport={!!currentUser && currentUser.id !== r.user_id} />
+                        </div>
                       </div>
                       {currentUser?.id === r.user_id && (
                         <button onClick={() => deleteComment(r.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: '1rem', padding: '2px 4px', lineHeight: 1 }}>×</button>

@@ -6,9 +6,10 @@ import Caption from '@/app/components/Caption';
 import MediaCarousel from '@/app/components/MediaCarousel';
 import Img from '@/app/components/Img';
 import { factMediaList } from '@/lib/types';
+import ReportButton from '@/app/components/ReportButton';
 
 interface PostProp {
-  id: number; caption: string; media_url: string; media_type: string; media: unknown;
+  id: number; user_id: number; caption: string; media_url: string; media_type: string; media: unknown;
   likes: number; created_at: string; username: string; display_name: string; avatar: string | null;
 }
 interface CommentT {
@@ -127,6 +128,7 @@ export default function PostDetailClient({ post, initialComments, initialLiked, 
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" x2="12" y1="2" y2="15" /></svg>
             {copied ? 'Kopyalandı' : 'Paylaş'}
           </button>
+          <ReportButton targetType="post" targetId={post.id} subtitle={`@${post.username} gönderisi`} canReport={!!currentUser && currentUser.id !== post.user_id} />
         </div>
 
         {/* Aksiyonlar */}
@@ -164,6 +166,7 @@ export default function PostDetailClient({ post, initialComments, initialLiked, 
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 3 }}>
                     <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>{timeAgo(c.created_at)}</span>
                     {currentUser && <button onClick={() => { setReplyToId(c.id); setCommentText(`@${c.username} `); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-muted)', padding: 0, fontFamily: 'inherit' }}>Yanıtla</button>}
+                    <ReportButton targetType="comment" targetId={c.id} subtitle={`@${c.username} yorumu`} variant="inline" canReport={!!currentUser && currentUser.id !== c.user_id} />
                   </div>
                 </div>
                 {currentUser?.id === c.user_id && <button onClick={() => deleteComment(c.id)} aria-label="Sil" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: '1rem', lineHeight: 1, padding: '0 4px' }}>×</button>}
@@ -174,7 +177,10 @@ export default function PostDetailClient({ post, initialComments, initialLiked, 
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <Link href={`/u/${r.username}`} style={{ fontWeight: 700, fontSize: '0.8rem', marginRight: 5, color: 'var(--color-text)', textDecoration: 'none' }}>{r.display_name}</Link>
                     <span style={{ fontSize: '0.83rem', color: 'var(--color-text)', lineHeight: 1.45, wordBreak: 'break-word' }}>{r.content}</span>
-                    <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--color-text-muted)', marginTop: 2 }}>{timeAgo(r.created_at)}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 2 }}>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>{timeAgo(r.created_at)}</span>
+                      <ReportButton targetType="comment" targetId={r.id} subtitle={`@${r.username} yorumu`} variant="inline" canReport={!!currentUser && currentUser.id !== r.user_id} />
+                    </div>
                   </div>
                   {currentUser?.id === r.user_id && <button onClick={() => deleteComment(r.id)} aria-label="Sil" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: '1rem', lineHeight: 1, padding: '0 4px' }}>×</button>}
                 </div>

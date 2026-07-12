@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation';
 import Caption from '@/app/components/Caption';
 import AnimatedNumber from '@/app/components/AnimatedNumber';
 import ReportModal from '@/app/components/ReportModal';
+import ReportButton from '@/app/components/ReportButton';
 
 interface ProfileUser {
   id: number; username: string; display_name: string; bio: string | null; avatar: string | null;
@@ -388,6 +389,7 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#ef4444"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
                   {lightbox.likes}
                 </div>
+                <ReportButton targetType="post" targetId={lightbox.id} subtitle={`@${profileUser.username} gönderisi`} size={30} canReport={!!me && me.id !== profileUser.id} />
               </div>
 
               {/* Caption */}
@@ -416,6 +418,7 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
                             <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>{timeAgo(c.created_at)}</span>
                             {me && <button onClick={() => { setReplyToId(c.id); setCommentText(`@${c.username} `); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-muted)', padding: '1px 0', fontFamily: 'inherit' }}>Yanıtla</button>}
+                            <ReportButton targetType="comment" targetId={c.id} subtitle={`@${c.username} yorumu`} variant="inline" canReport={!!me && me.id !== c.user_id} />
                           </div>
                         </div>
                         {me?.id === c.user_id && <button onClick={() => deleteComment(c.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: '1rem', padding: '2px 4px', lineHeight: 1 }}>×</button>}
@@ -428,7 +431,10 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <span style={{ fontWeight: 700, fontSize: '0.8rem', marginRight: 4 }}>{r.display_name}</span>
                             <span style={{ fontSize: '0.82rem', color: 'var(--color-text)', lineHeight: 1.4, wordBreak: 'break-word' }}>{r.content}</span>
-                            <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', marginTop: 2 }}>{timeAgo(r.created_at)}</div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
+                              <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>{timeAgo(r.created_at)}</span>
+                              <ReportButton targetType="comment" targetId={r.id} subtitle={`@${r.username} yorumu`} variant="inline" canReport={!!me && me.id !== r.user_id} />
+                            </div>
                           </div>
                           {me?.id === r.user_id && <button onClick={() => deleteComment(r.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: '1rem', padding: '2px 4px', lineHeight: 1 }}>×</button>}
                         </div>

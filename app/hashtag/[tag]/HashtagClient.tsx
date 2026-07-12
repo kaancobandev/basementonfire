@@ -8,17 +8,18 @@ import { factMediaList } from '@/lib/types';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Caption from '@/app/components/Caption';
+import ReportButton from '@/app/components/ReportButton';
 
 interface Post {
-  id: number; media_url: string; media_type: string;
+  id: number; user_id: number; media_url: string; media_type: string;
   caption: string; likes: number; created_at: string;
   display_name: string; username: string; avatarBg: string;
   media?: { url: string; type: 'image' | 'video' }[] | null;
 }
 
-interface Props { tag: string; posts: Post[]; related?: { tag: string; count: number }[]; }
+interface Props { tag: string; posts: Post[]; related?: { tag: string; count: number }[]; meId?: number | null; }
 
-export default function HashtagClient({ tag, posts, related = [] }: Props) {
+export default function HashtagClient({ tag, posts, related = [], meId = null }: Props) {
   const isMobile = useIsMobile();
   const [selected, setSelected] = useState<Post | null>(null);
 
@@ -184,6 +185,7 @@ export default function HashtagClient({ tag, posts, related = [] }: Props) {
                   </svg>
                   {selected.likes}
                 </div>
+                <ReportButton targetType="post" targetId={selected.id} subtitle={`@${selected.username} gönderisi`} size={30} canReport={!!meId && meId !== selected.user_id} />
               </div>
 
               {/* Caption — hashtag ve mention linkleri */}

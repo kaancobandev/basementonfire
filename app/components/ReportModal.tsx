@@ -1,24 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { REPORT_REASONS, type ReportTargetType } from '@/lib/reports';
 
 // Yeniden kullanılabilir şikayet modalı. Kullanıcı/gönderi/yorum/makale için.
 // /api/report'a gönderir; sebep seçimi + isteğe bağlı not.
 
-const REASONS: { value: string; label: string }[] = [
-  { value: 'spam', label: 'Spam / yanıltıcı' },
-  { value: 'taciz', label: 'Taciz veya zorbalık' },
-  { value: 'nefret', label: 'Nefret söylemi' },
-  { value: 'uygunsuz', label: 'Uygunsuz / cinsel içerik' },
-  { value: 'siddet', label: 'Şiddet veya tehdit' },
-  { value: 'yanlis_bilgi', label: 'Yanlış bilgi' },
-  { value: 'diger', label: 'Diğer' },
-];
+const REASONS = REPORT_REASONS;
 
 const TITLE: Record<string, string> = { post: 'Gönderiyi şikayet et', comment: 'Yorumu şikayet et', user: 'Kullanıcıyı şikayet et', article: 'Makaleyi şikayet et' };
 
 export default function ReportModal({ targetType, targetId, subtitle, onClose }: {
-  targetType: 'post' | 'comment' | 'user' | 'article';
+  targetType: ReportTargetType;
   targetId: number;
   subtitle?: string;
   onClose: () => void;

@@ -10,6 +10,7 @@ import Caption from './Caption';
 import Logo from './Logo';
 import DailyQuestion from './DailyQuestion';
 import DidYouKnowCard from './DidYouKnowCard';
+import ReportButton from './ReportButton';
 import { uploadToStorage } from '@/lib/upload';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -386,6 +387,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                         <Link href={`/u/${item.username}`} style={{ display: 'block', fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-text)', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.display_name}</Link>
                         <span style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)' }}>@{item.username} · {timeAgo(item.created_at)}</span>
                       </div>
+                      <ReportButton targetType="post" targetId={item.id} subtitle={`@${item.username} gönderisi`} size={32} canReport={!!currentUser && currentUser.id !== item.user_id} />
                     </div>
                     <div style={{ width: '100%', background: '#000', lineHeight: 0 }}>
                       <MediaCarousel media={factMediaList(item)} variant="feed" caption={item.caption ?? ''} sizes="(max-width:620px) 100vw, 600px" />
@@ -455,6 +457,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                     <span style={{ flexShrink: 0, fontSize: '0.7rem', fontWeight: 700, padding: '3px 8px', borderRadius: '9999px', marginLeft: 'auto', background: item.category === 'science' ? 'rgba(59,130,246,.15)' : item.category === 'history' ? 'rgba(245,158,11,.15)' : 'rgba(100,116,139,.15)', color: item.category === 'science' ? '#3b82f6' : item.category === 'history' ? '#b45309' : '#475569' }}>
                       {catLabel}
                     </span>
+                    <ReportButton targetType="post" targetId={item.id} subtitle={`@${item.username} gönderisi`} size={32} canReport={!!currentUser && currentUser.id !== item.user_id} />
                   </div>
                   <div style={{ padding: '12px 16px 4px', fontSize: '0.95rem', lineHeight: 1.6, color: 'var(--color-text)', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
                     <Caption text={item.content} clamp />

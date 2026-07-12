@@ -183,9 +183,12 @@ export default async function GirisIstatistikPage() {
   return (
     <main className="main-content" style={{ minHeight: '100vh', background: 'var(--color-bg)' }}>
       <AutoRefresh seconds={30} />
-      <div className="feed-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+      <div className="feed-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         <span>İstatistikler</span>
-        <Link href="/yonetim/makaleler" style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-primary)', textDecoration: 'none' }}>Makale Yönetimi →</Link>
+        <span style={{ display: 'flex', gap: 14 }}>
+          <Link href="/yonetim/makaleler" style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-primary)', textDecoration: 'none' }}>Makaleler →</Link>
+          <Link href="/yonetim/sikayetler" style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-primary)', textDecoration: 'none' }}>Şikayetler →</Link>
+        </span>
       </div>
 
       <div style={{ maxWidth: 860, margin: '0 auto', padding: '18px 16px 64px', display: 'flex', flexDirection: 'column', gap: 22 }}>

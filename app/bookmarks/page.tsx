@@ -33,6 +33,7 @@ export default async function BookmarksPage() {
       if (!p) return null;
       return {
         id:           p.id           as number,
+        user_id:      p.user_id      as number,
         media_url:    p.media_url    as string,
         media_type:   p.media_type   as string,
         caption:      p.caption      as string,
@@ -45,10 +46,10 @@ export default async function BookmarksPage() {
       };
     })
     .filter(Boolean) as Array<{
-      id: number; media_url: string; media_type: string; caption: string;
+      id: number; user_id: number; media_url: string; media_type: string; caption: string;
       likes: number; created_at: string; display_name: string; username: string; avatarBg: string;
       media?: { url: string; type: 'image' | 'video' }[] | null;
     }>;
 
-  return <BookmarksClient initialPosts={posts} />;
+  return <BookmarksClient initialPosts={posts} meId={me.id} />;
 }
