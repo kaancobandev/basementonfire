@@ -118,7 +118,7 @@ export default function AppShell({ children, user, unreadCount: initialNotif, un
 
           <nav className="sidebar-nav">
             {navItems.map(item => (
-              <Link key={item.id} href={item.href} className={`nav-link${activeId === item.id ? ' active' : ''}`}>
+              <Link key={item.id} href={item.href} aria-label={item.label} className={`nav-link${activeId === item.id ? ' active' : ''}`}>
                 <span className="nav-icon-wrap">
                   {item.icon}
                   {item.id === 'messages' && msgCount > 0 && (
@@ -173,12 +173,12 @@ export default function AppShell({ children, user, unreadCount: initialNotif, un
       <nav className="mobile-nav">
         <div className="mobile-nav-inner">
           {[
-            { href: '/', id: 'home', icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
-            { href: '/discover', id: 'discover', icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> },
-            { href: '/akis', id: 'akis', icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg> },
-            { href: '/muzik', id: 'muzik', icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> },
+            { href: '/', id: 'home', label: 'Ana Sayfa', icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
+            { href: '/discover', id: 'discover', label: 'İçerikler', icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> },
+            { href: '/akis', id: 'akis', label: 'Akış', icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg> },
+            { href: '/muzik', id: 'muzik', label: 'Müzik', icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> },
           ].map(item => (
-            <Link key={item.id} href={item.href} className={`mobile-nav-btn${activeId === item.id ? ' active' : ''}`}>
+            <Link key={item.id} href={item.href} aria-label={item.label} className={`mobile-nav-btn${activeId === item.id ? ' active' : ''}`}>
               {item.icon}
             </Link>
           ))}
@@ -189,14 +189,14 @@ export default function AppShell({ children, user, unreadCount: initialNotif, un
             </button>
           )}
 
-          <Link href="/messages" className={`mobile-nav-btn${activeId === 'messages' ? ' active' : ''}`}>
+          <Link href="/messages" aria-label={`Mesajlar${msgCount > 0 ? ` (${msgCount} okunmamış)` : ''}`} className={`mobile-nav-btn${activeId === 'messages' ? ' active' : ''}`}>
             <span className="nav-icon-wrap">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
               {msgCount > 0 && <span className="notif-badge">{msgCount > 99 ? '99+' : msgCount}</span>}
             </span>
           </Link>
 
-          <Link href="/profile" className={`mobile-nav-btn${activeId === 'profile' ? ' active' : ''}`}>
+          <Link href="/profile" aria-label="Profil" className={`mobile-nav-btn${activeId === 'profile' ? ' active' : ''}`}>
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
           </Link>
         </div>
