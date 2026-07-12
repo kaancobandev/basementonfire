@@ -14,7 +14,7 @@ const refs: BibItem[] = [
 const title = 'Ekonominin Dili';
 const description = 'Faiz, bileşik faiz, emtia, likidite, resesyon, stagflasyon, SWIFT/EFT/FAST, borsa, temettü, parite ve daha fazlası — interaktif araçlarla anlatılan ekonomi sözlüğü.';
 const path = '/articles/ekonomi';
-const FONTS = "@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');";
+const FONT_URL = 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap';
 
 export const metadata: Metadata = {
   title,
@@ -49,7 +49,9 @@ export default function Page() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbLd) }} />
-      <style dangerouslySetInnerHTML={{ __html: FONTS }} />
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      <link rel="stylesheet" href={FONT_URL} />
       <div className="main-content eko-root">
         <style dangerouslySetInnerHTML={{ __html: CSS }} />
         <div dangerouslySetInnerHTML={{ __html: HTML }} />

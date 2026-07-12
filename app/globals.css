@@ -84,6 +84,12 @@
 
 /* ── Marka tipografisi: başlıklar Bricolage Grotesque, gövde DM Sans (next/font, bkz. layout.tsx) ── */
 h1, h2, h3, .font-display { font-family: var(--font-display), system-ui, sans-serif; }
+/* Kürate makaleler (kendi -page/-root tipografisi olanlar: rome=Georgia, takyon/greece=system-ui,
+   carthage=Georgia vb.) başlıklarını KENDİ fontlarında tutar. :where() sıfır-özgüllük olduğundan
+   bu kural yalnız yukarıdaki global h1/h2/h3'ü ezer (kaynak-sırası) ama makalenin AÇIK başlık
+   font-family'sini (.gut-h2 gibi, 0,1,0) ezmez → onlar korunur. İmmersive şablon (yalın
+   .main-content) Bricolage başlıkları tutar; uygulama sayfaları etkilenmez. */
+:where(.main-content[class*="-page"], .main-content[class*="-root"]) :is(h1, h2, h3) { font-family: inherit; }
 
 /* ── Global klavye odak halkası ──
    Önceden HİÇ focus stili yoktu; klavye kullanıcıları nerede olduklarını göremiyordu.
