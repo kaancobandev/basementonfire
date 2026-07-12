@@ -81,7 +81,20 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
     isFollowing = !!data;
   }
 
-  const isHidden = profileUser.is_private && !isFollowing;
+  // Engel durumu (iki yönlü). blocks tablosu yoksa (SQL çalışmadı) sessizce false kalır.
+  let iBlocked = false, blockedMe = false;
+  if (me) {
+    const { data: br } = await db
+      .from('blocks')
+      .select('blocker_id')
+      .or(`and(blocker_id.eq.${me.id},blocked_id.eq.${profileUser.id}),and(blocker_id.eq.${profileUser.id},blocked_id.eq.${me.id})`);
+    for (const r of (br ?? []) as { blocker_id: number }[]) {
+      if (r.blocker_id === me.id) iBlocked = true; else blockedMe = true;
+    }
+  }
+
+  // Gizli hesap VEYA (iki yönlü) engel → içerik gizli.
+  const isHidden = (profileUser.is_private && !isFollowing) || iBlocked || blockedMe;
 
   const [followersRes, followingRes, postsRes, articlesRes] = await Promise.all([
     db.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', profileUser.id),
@@ -159,6 +172,8 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
       followingCount={followingRes.count ?? 0}
       isFollowing={isFollowing}
       isHidden={isHidden}
+      iBlocked={iBlocked}
+      blockedMe={blockedMe}
       mediaPosts={mediaPosts}
       articles={articles}
       me={me ? { id: me.id, username: me.username, display_name: me.display_name, avatar: me.avatar ?? null } : null}

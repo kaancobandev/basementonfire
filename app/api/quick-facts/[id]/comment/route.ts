@@ -1,5 +1,6 @@
 import { db, getMe } from '@/lib/supabase/server';
 import { createNotification } from '@/lib/notify';
+import { isBlockedBetween } from '@/lib/blocks';
 import { NextResponse } from 'next/server';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
@@ -13,6 +14,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (!me) return json({ error: 'Giriş gerekli' }, 401);
 
   const { data: post } = await db.from('quick_facts').select('user_id, users!quick_facts_user_id_fkey(comment_privacy)').eq('id', postId).single();
+
+  if (post && post.user_id !== me.id && await isBlockedBetween(me.id, post.user_id)) {
+    return json({ error: 'Bu gönderiye yorum yapamazsınız' }, 403);
+  }
 
   if (post && post.user_id !== me.id) {
     const policy: string = (post.users as any)?.comment_privacy ?? 'everyone';

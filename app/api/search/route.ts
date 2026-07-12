@@ -1,4 +1,5 @@
 import { db, getMe } from '@/lib/supabase/server';
+import { getBlockedUserIds } from '@/lib/blocks';
 import { NextResponse } from 'next/server';
 
 export async function GET(req: Request) {
@@ -21,6 +22,8 @@ export async function GET(req: Request) {
   ]);
 
   const { me } = await getMe();
+  // Engellediğim + beni engelleyen kullanıcılar aramada (hem profil hem gönderi) görünmez.
+  const blocked = me ? await getBlockedUserIds(me.id) : new Set<number>();
   let followingIds = new Set<number>();
 
   if (me && (type === 'users' || type === 'all') && (usersRes.data ?? []).length > 0) {
@@ -29,14 +32,16 @@ export async function GET(req: Request) {
     if (follows) follows.forEach((f: any) => followingIds.add(f.following_id));
   }
 
-  const users = (usersRes.data ?? []).map((u: any) => ({
-    ...u,
-    is_following: followingIds.has(u.id),
-    is_me: u.id === me?.id,
-  }));
+  const users = (usersRes.data ?? [])
+    .filter((u: any) => !blocked.has(u.id))
+    .map((u: any) => ({
+      ...u,
+      is_following: followingIds.has(u.id),
+      is_me: u.id === me?.id,
+    }));
 
-  // Gizli hesapların gönderileri arama sonuçlarında gösterilmez (profilleri aramada çıkar; içerik profilde gate'li).
-  const posts = ((postsRes.data ?? []) as any[]).filter((p) => !p.user?.is_private).slice(0, 20);
+  // Gizli hesapların ve engelli kullanıcıların gönderileri arama sonuçlarında gösterilmez.
+  const posts = ((postsRes.data ?? []) as any[]).filter((p) => !p.user?.is_private && !blocked.has(p.user?.id)).slice(0, 20);
 
   return NextResponse.json({ users, posts, hashtags: hashtagsRes.data ?? [] });
 }

@@ -1,4 +1,5 @@
 import { db, getMe } from '@/lib/supabase/server';
+import { isBlockedBetween } from '@/lib/blocks';
 import { NextResponse } from 'next/server';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
@@ -22,6 +23,7 @@ export async function POST(req: Request) {
   } catch { return json({ error: 'Geçersiz istek' }, 400); }
 
   if (targetId === me.id) return json({ error: 'Kendinize mesaj gönderemezsiniz' }, 400);
+  if (await isBlockedBetween(me.id, targetId)) return json({ error: 'Bu kullanıcıya mesaj gönderemezsiniz' }, 403);
 
   const { data: target } = await db.from('users').select('dm_privacy').eq('id', targetId).single();
   if (target) {

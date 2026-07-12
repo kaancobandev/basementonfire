@@ -1,4 +1,5 @@
 import { db, getMe, logIfError } from '@/lib/supabase/server';
+import { getBlockedUserIds } from '@/lib/blocks';
 import { NextResponse } from 'next/server';
 import { flattenFacts, flattenPosts } from '@/lib/types';
 
@@ -9,6 +10,9 @@ export async function GET(req: Request) {
   const type   = searchParams.get('type') ?? 'facts'; // 'facts' | 'mixed'
 
   const { me } = await getMe();
+  // Engellediğim + beni engelleyen kullanıcıların içeriği akışta gösterilmez.
+  const blocked = me ? await getBlockedUserIds(me.id) : new Set<number>();
+  const visible = (r: any) => !r.users?.is_private && !blocked.has(r.user_id);
 
   if (type === 'mixed') {
     // Ana sayfa: quick_facts + text posts birleşik
@@ -27,10 +31,10 @@ export async function GET(req: Request) {
     logIfError('feed mixed quick_facts', factsRes.error);
     logIfError('feed mixed posts', postsRes.error);
 
-    // Gizli hesapların gönderileri küresel akışta gösterilmez (yalnız profilinde + takipçilerine).
-    // is_private truthy = gizli; NULL/false = herkese açık.
-    const facts = flattenFacts((factsRes.data ?? []).filter((r: any) => !r.users?.is_private)).map(f => ({ ...f, kind: 'fact' as const }));
-    const posts = flattenPosts((postsRes.data ?? []).filter((r: any) => !r.users?.is_private)).map(p => ({ ...p, kind: 'post' as const }));
+    // Gizli hesapların gönderileri küresel akışta gösterilmez (yalnız profilinde + takipçilerine);
+    // engelli kullanıcılar da elenir. is_private truthy = gizli; NULL/false = herkese açık.
+    const facts = flattenFacts((factsRes.data ?? []).filter(visible)).map(f => ({ ...f, kind: 'fact' as const }));
+    const posts = flattenPosts((postsRes.data ?? []).filter(visible)).map(p => ({ ...p, kind: 'post' as const }));
 
     // Tarihe göre sırala ve cursor'dan sonrasını al
     let merged = [...facts, ...posts]
@@ -83,8 +87,8 @@ export async function GET(req: Request) {
 
   const { data: raw, error } = await query;
   logIfError('feed quick_facts', error);
-  // Gizli hesapların gönderileri küresel akışta gösterilmez.
-  const all     = flattenFacts((raw ?? []).filter((r: any) => !r.users?.is_private));
+  // Gizli hesapların ve engelli kullanıcıların gönderileri akışta gösterilmez.
+  const all     = flattenFacts((raw ?? []).filter(visible));
   const hasMore = all.length > limit;
   const items   = hasMore ? all.slice(0, limit) : all;
 

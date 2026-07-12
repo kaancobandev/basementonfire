@@ -1,4 +1,5 @@
 import { db, getMe } from '@/lib/supabase/server';
+import { isBlockedBetween } from '@/lib/blocks';
 import { NextResponse } from 'next/server';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
@@ -13,6 +14,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   const { data: conv } = await db.from('conversations').select('id, user1_id, user2_id').eq('id', convId).single();
   if (!conv || (conv.user1_id !== me.id && conv.user2_id !== me.id)) return json({ error: 'Erişim reddedildi' }, 403);
+
+  // Var olan sohbette bile: taraflardan biri diğerini engellediyse mesaj gönderilemez.
+  const otherId = conv.user1_id === me.id ? conv.user2_id : conv.user1_id;
+  if (await isBlockedBetween(me.id, otherId)) return json({ error: 'Bu kullanıcıya mesaj gönderemezsiniz' }, 403);
 
   const body = await req.json();
   const content = (body.content ?? '').trim();

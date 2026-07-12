@@ -5,11 +5,12 @@ import MediaCarousel, { MultiBadge, AudioThumb, MusicBadge } from '@/app/compone
 import { useIsMobile } from '@/lib/useIsMobile';
 import { factMediaList } from '@/lib/types';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Caption from '@/app/components/Caption';
 import AnimatedNumber from '@/app/components/AnimatedNumber';
+import ReportModal from '@/app/components/ReportModal';
 
 interface ProfileUser {
   id: number; username: string; display_name: string; bio: string | null; avatar: string | null;
@@ -27,6 +28,8 @@ interface Props {
   followingCount: number;
   isFollowing: boolean;
   isHidden: boolean;
+  iBlocked: boolean;
+  blockedMe: boolean;
   mediaPosts: MediaPost[];
   articles?: { slug: string; title: string; summary: string; cover_url: string | null; category: string | null }[];
   me: { id: number; username: string; display_name: string; avatar: string | null } | null;
@@ -43,13 +46,43 @@ function timeAgo(iso: string) {
 
 const GENDER_LABEL: Record<string, string> = { erkek: 'Erkek', kadin: 'Kadın', diger: 'Diğer' };
 
-export default function UserProfileClient({ profileUser, bg, age, followersCount, followingCount, isFollowing: initialFollowing, isHidden, mediaPosts, articles = [], me }: Props) {
+export default function UserProfileClient({ profileUser, bg, age, followersCount, followingCount, isFollowing: initialFollowing, isHidden, iBlocked, blockedMe, mediaPosts, articles = [], me }: Props) {
   const router = useRouter();
   const isMobile = useIsMobile();
   const [following, setFollowing] = useState(initialFollowing);
   const [followers, setFollowers] = useState(followersCount);
   const [followLoading, setFollowLoading] = useState(false);
   const [dmLoading, setDmLoading] = useState(false);
+
+  // Engelleme + şikayet
+  const [blocked, setBlocked] = useState(iBlocked);
+  const [blockLoading, setBlockLoading] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onDoc = (e: MouseEvent) => { if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false); };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [menuOpen]);
+
+  async function toggleBlock() {
+    if (!me) { router.push('/login'); return; }
+    setMenuOpen(false);
+    if (!blocked && !confirm(`@${profileUser.username} engellensin mi? Birbirinizin içeriğini ve mesajlarını göremezsiniz.`)) return;
+    setBlockLoading(true);
+    try {
+      const res = await fetch(`/api/users/${profileUser.username}/block`, { method: 'POST' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) { alert(data.error || 'İşlem başarısız.'); return; }
+      setBlocked(data.blocked);
+      router.refresh(); // içeriğin gizli/görünür durumunu yenile
+    } finally {
+      setBlockLoading(false);
+    }
+  }
 
   // Lightbox
   const [lightbox, setLightbox] = useState<MediaPost | null>(null);
@@ -145,6 +178,13 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
       {/* Banner */}
       <div style={{ height: 160, width: '100%', background: bg }} />
 
+      {blocked && (
+        <div style={{ background: 'var(--color-danger-soft)', color: 'var(--color-danger)', padding: '10px 16px', fontSize: '0.86rem', fontWeight: 600, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, justifyContent: 'center' }}>
+          Bu kullanıcıyı engelledin.
+          <button onClick={toggleBlock} style={{ background: 'none', border: 'none', color: 'var(--color-danger)', textDecoration: 'underline', cursor: 'pointer', fontWeight: 700, fontFamily: 'inherit' }}>Engeli kaldır</button>
+        </div>
+      )}
+
       {/* Profile header */}
       <div style={{ padding: '0 20px 16px', borderBottom: '1px solid var(--color-border)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: -40, marginBottom: 12 }}>
@@ -160,6 +200,7 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
             {me ? (
               <>
+                {!blocked && !blockedMe && (<>
                 <button
                   onClick={toggleFollow}
                   disabled={followLoading}
@@ -182,6 +223,22 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                   {dmLoading ? '…' : 'Mesaj'}
                 </button>
+                </>)}
+                <div ref={menuRef} style={{ position: 'relative' }}>
+                  <button onClick={() => setMenuOpen(o => !o)} aria-label="Daha fazla" aria-haspopup="menu" aria-expanded={menuOpen} style={{ width: 38, height: 38, borderRadius: '9999px', border: '2px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', cursor: 'pointer', display: 'grid', placeItems: 'center' }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+                  </button>
+                  {menuOpen && (
+                    <div role="menu" style={{ position: 'absolute', right: 0, top: 44, background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, boxShadow: 'var(--shadow-lg)', minWidth: 172, zIndex: 30, overflow: 'hidden' }}>
+                      <button role="menuitem" onClick={toggleBlock} disabled={blockLoading} style={{ width: '100%', textAlign: 'left', padding: '11px 14px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-danger)', fontFamily: 'inherit' }}>
+                        {blockLoading ? '…' : blocked ? 'Engeli kaldır' : 'Engelle'}
+                      </button>
+                      <button role="menuitem" onClick={() => { setMenuOpen(false); setReportOpen(true); }} style={{ width: '100%', textAlign: 'left', padding: '11px 14px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-text)', borderTop: '1px solid var(--color-border)', fontFamily: 'inherit' }}>
+                        Şikayet et
+                      </button>
+                    </div>
+                  )}
+                </div>
               </>
             ) : (
               <Link href="/login" style={{ padding: '9px 22px', borderRadius: '9999px', fontSize: '0.9rem', fontWeight: 700, background: 'var(--color-text)', color: 'white', border: '2px solid var(--color-text)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
@@ -266,8 +323,8 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
       {isHidden ? (
         <div style={{ textAlign: 'center', padding: '80px 20px', color: 'var(--color-text-muted)' }}>
           <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ marginBottom: 14, color: '#888', display: 'block', margin: '0 auto 14px' }}><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          <p style={{ fontWeight: 700, marginBottom: 6 }}>Bu hesap gizli</p>
-          <p style={{ fontSize: '0.85rem' }}>Gönderileri görmek için takip et.</p>
+          <p style={{ fontWeight: 700, marginBottom: 6 }}>{blocked ? 'Engellediğin kullanıcı' : blockedMe ? 'İçerik gösterilemiyor' : 'Bu hesap gizli'}</p>
+          <p style={{ fontSize: '0.85rem' }}>{blocked ? 'Engeli kaldırırsan içeriğini tekrar görebilirsin.' : blockedMe ? 'Bu kullanıcının gönderilerini göremezsin.' : 'Gönderileri görmek için takip et.'}</p>
         </div>
       ) : mediaPosts.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '80px 20px', color: 'var(--color-text-muted)' }}>
@@ -417,6 +474,10 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
           .pf-lightbox-box { flex-direction: column !important; border-radius: 20px 20px 0 0 !important; align-self: flex-end !important; max-width: 100% !important; }
         }
       `}</style>
+
+      {reportOpen && (
+        <ReportModal targetType="user" targetId={profileUser.id} subtitle={`@${profileUser.username}`} onClose={() => setReportOpen(false)} />
+      )}
     </main>
   );
 }
