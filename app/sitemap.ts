@@ -28,13 +28,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   let dynamicRoutes: MetadataRoute.Sitemap = [];
   try {
-    const [{ data: users }, { data: tags }, { data: posts }] = await Promise.all([
+    const [{ data: users }, { data: tags }, { data: posts }, { data: userArticles }] = await Promise.all([
       db.from('users').select('username, created_at').eq('is_private', false).limit(5000),
       db.from('hashtags').select('tag').limit(2000),
       db.from('quick_facts')
         .select('id, created_at, users!quick_facts_user_id_fkey!inner(is_private)')
         .eq('users.is_private', false)
         .order('created_at', { ascending: false })
+        .limit(5000),
+      // Onaylı (yayındaki) kullanıcı makaleleri — /makale/[slug] herkese açık yayınlanmış içerik.
+      db.from('user_articles')
+        .select('slug, published_at, updated_at')
+        .eq('status', 'approved')
+        .order('published_at', { ascending: false })
         .limit(5000),
     ]);
     const userRoutes: MetadataRoute.Sitemap = (users ?? [])
@@ -61,7 +67,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         changeFrequency: 'weekly',
         priority: 0.6,
       }));
-    dynamicRoutes = [...userRoutes, ...tagRoutes, ...postRoutes];
+    const uaRoutes: MetadataRoute.Sitemap = (userArticles ?? [])
+      .filter((a: any) => a.slug)
+      .map((a: any) => ({
+        url: `${SITE_URL}/makale/${encodeURIComponent(a.slug)}`,
+        lastModified: a.updated_at ? new Date(a.updated_at) : (a.published_at ? new Date(a.published_at) : now),
+        changeFrequency: 'monthly',
+        priority: 0.7,
+      }));
+    dynamicRoutes = [...userRoutes, ...tagRoutes, ...postRoutes, ...uaRoutes];
   } catch {
     // DB erişilemezse statik + makale haritası yine de döner
   }

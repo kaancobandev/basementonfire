@@ -2,6 +2,7 @@ import { db, getMe, isAdmin } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { revalidateTag } from 'next/cache';
 import { clampText } from '@/lib/articleSanitize';
+import { submitToIndexNow, articleUrl, isLiveRequest } from '@/lib/indexnow';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
 
@@ -17,7 +18,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   let body: any;
   try { body = await req.json(); } catch { return json({ error: 'Geçersiz istek' }, 400); }
 
-  const { data: existing } = await db.from('user_articles').select('id, status, published_at').eq('id', id).maybeSingle();
+  const { data: existing } = await db.from('user_articles').select('id, slug, status, published_at').eq('id', id).maybeSingle();
   if (!existing) return json({ error: 'Makale bulunamadı' }, 404);
 
   if (body.action === 'approve') {
@@ -26,6 +27,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const { error } = await db.from('user_articles').update(patch).eq('id', id);
     if (error) return json({ error: 'Onaylanamadı.' }, 500);
     revalidateTag('feed'); // Keşfet/feed onbellegini tazele -> makale gorunur olsun
+    // Yayına giren makaleyi arama motorlarına ANINDA bildir (yalnız canlı üretimde).
+    if (existing.slug && isLiveRequest(req)) await submitToIndexNow(articleUrl(existing.slug));
     return json({ ok: true, status: 'approved' });
   }
 

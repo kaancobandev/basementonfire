@@ -12,6 +12,7 @@ const ENDPOINT = 'https://api.indexnow.org/indexnow';
 export const INDEXNOW_KEY = KEY;
 export const postUrl = (id: number | string) => `${SITE}/p/${id}`;
 export const profileUrl = (username: string) => `${SITE}/u/${encodeURIComponent(username)}`;
+export const articleUrl = (slug: string) => `${SITE}/makale/${encodeURIComponent(slug)}`;
 
 // Otomatik ping'i YALNIZCA gerçek üretim isteklerinde at. Netlify'da production,
 // deploy-preview ve branch-deploy derlemelerinin HEPSİ `next build` (NODE_ENV=production)
