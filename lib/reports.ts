@@ -1,7 +1,7 @@
 // Şikayet (report) sistemi için ortak sabitler — modal, /api/report doğrulaması
 // ve /yonetim/sikayetler kuyruğu hep buradan okur ki sebep/tür listeleri sapmasın.
 
-export type ReportTargetType = 'post' | 'comment' | 'user' | 'article';
+export type ReportTargetType = 'post' | 'comment' | 'user' | 'article' | 'article_comment';
 export type ReportReason =
   | 'spam' | 'taciz' | 'nefret' | 'uygunsuz' | 'siddet' | 'yanlis_bilgi' | 'diger';
 
@@ -20,12 +20,13 @@ export const REASON_LABEL: Record<string, string> = Object.fromEntries(
   REPORT_REASONS.map((r) => [r.value, r.label]),
 );
 
-export const REPORT_TARGET_TYPES: ReportTargetType[] = ['post', 'comment', 'user', 'article'];
+export const REPORT_TARGET_TYPES: ReportTargetType[] = ['post', 'comment', 'user', 'article', 'article_comment'];
 export const TARGET_LABEL: Record<ReportTargetType, string> = {
   post: 'Gönderi',
   comment: 'Yorum',
   user: 'Kullanıcı',
   article: 'Makale',
+  article_comment: 'Makale yorumu',
 };
 
 export const REPORT_STATUS_LABEL: Record<string, string> = {

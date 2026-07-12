@@ -33,14 +33,14 @@ export default async function SikayetYonetimPage() {
   const reports = (rows ?? []) as any[];
 
   // Hedefleri türe göre topla → tek sorguda çöz (polimorfik target_id).
-  const byType: Record<ReportTargetType, Set<number>> = { post: new Set(), comment: new Set(), user: new Set(), article: new Set() };
+  const byType: Record<ReportTargetType, Set<number>> = { post: new Set(), comment: new Set(), user: new Set(), article: new Set(), article_comment: new Set() };
   for (const r of reports) {
     const t = r.target_type as ReportTargetType;
     if (byType[t]) byType[t].add(Number(r.target_id));
   }
   const ids = (t: ReportTargetType) => Array.from(byType[t]);
 
-  const [postsRes, commentsRes, usersRes, articlesRes] = await Promise.all([
+  const [postsRes, commentsRes, usersRes, articlesRes, articleCommentsRes] = await Promise.all([
     ids('post').length
       ? db.from('quick_facts').select('id, caption, media_url, media_type, users!quick_facts_user_id_fkey(username, display_name)').in('id', ids('post'))
       : Promise.resolve({ data: [] as any[] }),
@@ -53,12 +53,16 @@ export default async function SikayetYonetimPage() {
     ids('article').length
       ? db.from('user_articles').select('id, slug, title, users!user_articles_user_id_fkey(username, display_name)').in('id', ids('article'))
       : Promise.resolve({ data: [] as any[] }),
+    ids('article_comment').length
+      ? db.from('article_comments').select('id, content, article_slug, users(username, display_name)').in('id', ids('article_comment'))
+      : Promise.resolve({ data: [] as any[] }),
   ]);
 
   const postMap = new Map<number, any>((postsRes.data ?? []).map((p: any) => [p.id, p]));
   const commentMap = new Map<number, any>((commentsRes.data ?? []).map((c: any) => [c.id, c]));
   const userMap = new Map<number, any>((usersRes.data ?? []).map((u: any) => [u.id, u]));
   const articleMap = new Map<number, any>((articlesRes.data ?? []).map((a: any) => [a.id, a]));
+  const articleCommentMap = new Map<number, any>((articleCommentsRes.data ?? []).map((c: any) => [c.id, c]));
 
   function resolve(type: ReportTargetType, id: number): ResolvedTarget {
     if (type === 'post') {
@@ -76,6 +80,11 @@ export default async function SikayetYonetimPage() {
       const u = userMap.get(id);
       if (!u) return { kind: 'user', missing: true, preview: '', href: null };
       return { kind: 'user', preview: `${u.display_name || u.username} (@${u.username})`, href: `/u/${u.username}`, author: u.username, authorName: u.display_name };
+    }
+    if (type === 'article_comment') {
+      const ac = articleCommentMap.get(id);
+      if (!ac) return { kind: 'article_comment', missing: true, preview: '', href: null };
+      return { kind: 'article_comment', preview: snip(ac.content), href: ac.article_slug ? `/articles/${ac.article_slug}` : null, author: ac.users?.username ?? null, authorName: ac.users?.display_name ?? null };
     }
     // article
     const a = articleMap.get(id);

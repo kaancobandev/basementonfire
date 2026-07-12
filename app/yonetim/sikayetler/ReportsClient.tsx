@@ -26,7 +26,7 @@ export type QueueItem = {
 };
 
 const BADGE_BG: Record<ReportTargetType, string> = {
-  post: '#6366f1', comment: '#0ea5e9', user: '#f59e0b', article: '#10b981',
+  post: '#6366f1', comment: '#0ea5e9', user: '#f59e0b', article: '#10b981', article_comment: '#8b5cf6',
 };
 
 export default function ReportsClient({ items: initial }: { items: QueueItem[] }) {

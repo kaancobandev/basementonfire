@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Img from '@/app/components/Img';
 import { toast } from 'sonner';
+import ReportButton from '@/app/components/ReportButton';
 
 type Comment = {
   id: number;
@@ -150,6 +151,7 @@ export default function ArticleDiscussion({ slug }: { slug: string }) {
               <div className="as-c-meta">
                 <Link href={`/u/${c.username}`} className="as-c-name">{c.display_name}</Link>
                 <span className="as-c-sub">@{c.username} · {timeAgo(c.created_at)}</span>
+                <ReportButton targetType="article_comment" targetId={c.id} subtitle={`@${c.username} yorumu`} variant="inline" canReport={st.loggedIn && !c.is_mine} />
                 {c.is_mine && <button type="button" onClick={() => remove(c.id)} className="as-c-del" aria-label="Sil">Sil</button>}
               </div>
               <p className="as-c-text">{c.content}</p>

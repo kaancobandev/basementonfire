@@ -8,7 +8,7 @@ import { REPORT_REASONS, type ReportTargetType } from '@/lib/reports';
 
 const REASONS = REPORT_REASONS;
 
-const TITLE: Record<string, string> = { post: 'Gönderiyi şikayet et', comment: 'Yorumu şikayet et', user: 'Kullanıcıyı şikayet et', article: 'Makaleyi şikayet et' };
+const TITLE: Record<string, string> = { post: 'Gönderiyi şikayet et', comment: 'Yorumu şikayet et', user: 'Kullanıcıyı şikayet et', article: 'Makaleyi şikayet et', article_comment: 'Yorumu şikayet et' };
 
 export default function ReportModal({ targetType, targetId, subtitle, onClose }: {
   targetType: ReportTargetType;
