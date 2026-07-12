@@ -8,11 +8,14 @@ export async function GET() {
   const now = new Date().toISOString();
   const { data } = await db
     .from('stories')
-    .select('id, media_url, media_type, created_at, expires_at, user_id, users(id, username, display_name, avatar)')
+    .select('id, media_url, media_type, created_at, expires_at, user_id, users(id, username, display_name, avatar, is_private)')
     .gt('expires_at', now)
     .order('created_at', { ascending: false });
 
-  return NextResponse.json({ stories: data ?? [] });
+  // Gizli hesapların story'leri küresel story şeridinde gösterilmez (is_private truthy=gizli).
+  const stories = ((data ?? []) as any[]).filter((s) => !s.users?.is_private);
+
+  return NextResponse.json({ stories });
 }
 
 /**

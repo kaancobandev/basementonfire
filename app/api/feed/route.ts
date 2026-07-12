@@ -16,19 +16,21 @@ export async function GET(req: Request) {
 
     const [factsRes, postsRes] = await Promise.all([
       db.from('quick_facts')
-        .select('*, users!quick_facts_user_id_fkey(display_name, username, avatar)')
+        .select('*, users!quick_facts_user_id_fkey(display_name, username, avatar, is_private)')
         .order('created_at', { ascending: false })
         .limit(limit * 2),
       db.from('posts')
-        .select('*, users!posts_user_id_fkey(display_name, username, avatar)')
+        .select('*, users!posts_user_id_fkey(display_name, username, avatar, is_private)')
         .order('created_at', { ascending: false })
         .limit(limit * 2),
     ]);
     logIfError('feed mixed quick_facts', factsRes.error);
     logIfError('feed mixed posts', postsRes.error);
 
-    const facts = flattenFacts(factsRes.data ?? []).map(f => ({ ...f, kind: 'fact' as const }));
-    const posts = flattenPosts(postsRes.data ?? []).map(p => ({ ...p, kind: 'post' as const }));
+    // Gizli hesapların gönderileri küresel akışta gösterilmez (yalnız profilinde + takipçilerine).
+    // is_private truthy = gizli; NULL/false = herkese açık.
+    const facts = flattenFacts((factsRes.data ?? []).filter((r: any) => !r.users?.is_private)).map(f => ({ ...f, kind: 'fact' as const }));
+    const posts = flattenPosts((postsRes.data ?? []).filter((r: any) => !r.users?.is_private)).map(p => ({ ...p, kind: 'post' as const }));
 
     // Tarihe göre sırala ve cursor'dan sonrasını al
     let merged = [...facts, ...posts]
@@ -75,13 +77,14 @@ export async function GET(req: Request) {
     .select('*, users!quick_facts_user_id_fkey(display_name, username, avatar)')
     .order('created_at', { ascending: false })
     .order('id', { ascending: false })
-    .limit(limit + 1);
+    .limit(limit * 2 + 1); // gizli-hesap filtresinden sonra sayfa dolsun diye tampon
 
   if (cursor) query = query.lt('id', cursor);
 
   const { data: raw, error } = await query;
   logIfError('feed quick_facts', error);
-  const all     = flattenFacts(raw ?? []);
+  // Gizli hesapların gönderileri küresel akışta gösterilmez.
+  const all     = flattenFacts((raw ?? []).filter((r: any) => !r.users?.is_private));
   const hasMore = all.length > limit;
   const items   = hasMore ? all.slice(0, limit) : all;
 

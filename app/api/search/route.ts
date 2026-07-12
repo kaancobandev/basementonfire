@@ -15,7 +15,7 @@ export async function GET(req: Request) {
       ? db.from('users').select('id, username, display_name, avatar, bio').or(`username.ilike.${pattern},display_name.ilike.${pattern}`).limit(15)
       : { data: [] },
     type !== 'users'
-      ? db.from('quick_facts').select('id, caption, media_url, media_type, created_at, user:user_id(id, username, display_name, avatar)').ilike('caption', pattern).order('created_at', { ascending: false }).limit(20)
+      ? db.from('quick_facts').select('id, caption, media_url, media_type, created_at, user:user_id(id, username, display_name, avatar, is_private)').ilike('caption', pattern).order('created_at', { ascending: false }).limit(40)
       : { data: [] },
     db.from('hashtags').select('id, tag').ilike('tag', `%${q.replace(/^#/, '').toLowerCase()}%`).limit(8),
   ]);
@@ -35,5 +35,8 @@ export async function GET(req: Request) {
     is_me: u.id === me?.id,
   }));
 
-  return NextResponse.json({ users, posts: postsRes.data ?? [], hashtags: hashtagsRes.data ?? [] });
+  // Gizli hesapların gönderileri arama sonuçlarında gösterilmez (profilleri aramada çıkar; içerik profilde gate'li).
+  const posts = ((postsRes.data ?? []) as any[]).filter((p) => !p.user?.is_private).slice(0, 20);
+
+  return NextResponse.json({ users, posts, hashtags: hashtagsRes.data ?? [] });
 }

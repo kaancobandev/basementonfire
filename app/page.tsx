@@ -14,18 +14,24 @@ export const dynamic = 'force-dynamic';
 const getHomeContent = unstable_cache(
   async () => {
     const [{ data: rawFacts, error: factsErr }, { data: rawPosts, error: postsErr }] = await Promise.all([
-      db.from('quick_facts').select('*, users!quick_facts_user_id_fkey(display_name, username, avatar)').order('created_at', { ascending: false }).limit(30),
-      db.from('posts').select('*, users!posts_user_id_fkey(display_name, username, avatar)').order('created_at', { ascending: false }).limit(30),
+      db.from('quick_facts').select('*, users!quick_facts_user_id_fkey(display_name, username, avatar, is_private)').order('created_at', { ascending: false }).limit(60),
+      db.from('posts').select('*, users!posts_user_id_fkey(display_name, username, avatar, is_private)').order('created_at', { ascending: false }).limit(60),
     ]);
     logIfError('home quick_facts', factsErr);
     logIfError('home posts', postsErr);
     const { data: storiesRaw, error: storiesErr } = await db
       .from('stories')
-      .select('id, media_url, media_type, created_at, user_id, users(id, username, display_name, avatar)')
+      .select('id, media_url, media_type, created_at, user_id, users(id, username, display_name, avatar, is_private)')
       .gt('expires_at', new Date().toISOString())
       .order('created_at', { ascending: false });
     logIfError('home stories', storiesErr);
-    return { rawFacts: rawFacts ?? [], rawPosts: rawPosts ?? [], storiesRaw: storiesRaw ?? [] };
+    // Gizli hesapların içeriği küresel ana akışta/story şeridinde gösterilmez (is_private truthy=gizli).
+    const pub = (r: any) => !r.users?.is_private;
+    return {
+      rawFacts: (rawFacts ?? []).filter(pub).slice(0, 30),
+      rawPosts: (rawPosts ?? []).filter(pub).slice(0, 30),
+      storiesRaw: (storiesRaw ?? []).filter(pub),
+    };
   },
   ['home-content-v1'],
   { revalidate: 30, tags: ['feed'] },

@@ -34,11 +34,12 @@ export async function GET() {
   swiped.add(me.id);
 
   // Iki havuz: (1) ilgi alani ortusenler, (2) son kullanicilar (deste asla bos kalmasin).
+  // .not('is_private','is',true): gizli hesaplar deste'ye girmez (yalnız true olan; NULL/false açık).
   const queries: PromiseLike<{ data: unknown[] | null }>[] = [];
   if (myInterests.length) {
-    queries.push(db.from('users').select(SELECT).neq('id', me.id).overlaps('interests', myInterests).limit(80));
+    queries.push(db.from('users').select(SELECT).neq('id', me.id).not('is_private', 'is', true).overlaps('interests', myInterests).limit(80));
   }
-  queries.push(db.from('users').select(SELECT).neq('id', me.id).order('created_at', { ascending: false }).limit(40));
+  queries.push(db.from('users').select(SELECT).neq('id', me.id).not('is_private', 'is', true).order('created_at', { ascending: false }).limit(40));
 
   const results = await Promise.all(queries);
 
@@ -58,7 +59,9 @@ export async function GET() {
     .map((u) => {
       const ui: string[] = Array.isArray(u.interests) ? (u.interests as string[]) : [];
       const shared = ui.filter((t) => myInterests.includes(t));
-      return { ...u, shared, age: ageFrom((u.birthdate as string) ?? null) };
+      // Ham doğum tarihini (DOB) istemciye SIZDIRMA — sunucuda yaşa çevir, birthdate'i çıkar.
+      const { birthdate, ...rest } = u as Record<string, unknown>;
+      return { ...rest, shared, age: ageFrom((birthdate as string) ?? null) };
     })
     .sort((a, b) => b.shared.length - a.shared.length)
     .slice(0, 20);

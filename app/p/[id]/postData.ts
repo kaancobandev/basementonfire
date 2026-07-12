@@ -37,6 +37,19 @@ export async function getPostDetail(postId: number, meId: number | null): Promis
   const post = await getPost(postId);
   if (!post) return null;
 
+  // Gizli hesabın gönderisi: yalnızca SAHİBİ ve TAKİPÇİLERİ görebilir; aksi halde
+  // yokmuş gibi davran (çağıranlar null'ı notFound()'a çevirir). is_private truthy = gizli.
+  if (post.users?.is_private && post.user_id !== meId) {
+    if (!meId) return null;
+    const { data: follow } = await db
+      .from('follows')
+      .select('id')
+      .eq('follower_id', meId)
+      .eq('following_id', post.user_id)
+      .maybeSingle();
+    if (!follow) return null;
+  }
+
   const { data: rawComments } = await db
     .from('comments')
     .select('id, content, created_at, parent_id, user_id, users(username, display_name, avatar)')

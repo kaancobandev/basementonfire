@@ -150,7 +150,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
         location: (profileUser as any).location ?? null,
         website: (profileUser as any).website ?? null,
         gender: (profileUser as any).gender ?? '',
-        birthdate: (profileUser as any).birthdate ?? null,
+        birthdate: null, // ham DOB'yi istemciye SIZDIRMA — yaş ayrı `age` prop'uyla gidiyor
         interests: (profileUser as any).interests ?? [],
       }}
       bg={avatarBg(profileUser.username)}

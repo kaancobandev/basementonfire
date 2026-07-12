@@ -13,12 +13,13 @@ const getInitialFeed = unstable_cache(
   async (limit: number) => {
     const { data, error } = await db
       .from('quick_facts')
-      .select('*, users!quick_facts_user_id_fkey(display_name, username)')
+      .select('*, users!quick_facts_user_id_fkey(display_name, username, is_private)')
       .order('created_at', { ascending: false })
       .order('id', { ascending: false })
-      .limit(limit);
+      .limit(limit * 2); // gizli-hesap filtresinden sonra sayfa dolsun diye tampon
     logIfError('akis quick_facts', error);
-    return data ?? [];
+    // Gizli hesapların gönderileri küresel akışta gösterilmez (is_private truthy=gizli).
+    return (data ?? []).filter((r: any) => !r.users?.is_private).slice(0, limit);
   },
   ['akis-initial-feed-v1', 'limit-13'],
   { revalidate: 30, tags: ['feed'] },
