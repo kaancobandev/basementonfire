@@ -133,7 +133,7 @@ export default function PostDetailClient({ post, initialComments, initialLiked, 
 
         {/* Aksiyonlar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '2px 16px 8px' }}>
-          <button onClick={toggleLike} style={{ display: 'flex', alignItems: 'center', gap: 7, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.95rem', color: liked ? '#ef4444' : 'var(--color-text)' }}>
+          <button onClick={toggleLike} style={{ display: 'flex', alignItems: 'center', gap: 7, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.95rem', color: liked ? 'var(--color-danger)' : 'var(--color-text)' }}>
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /></svg>
             {likes}
           </button>
@@ -169,7 +169,7 @@ export default function PostDetailClient({ post, initialComments, initialLiked, 
                     <ReportButton targetType="comment" targetId={c.id} subtitle={`@${c.username} yorumu`} variant="inline" canReport={!!currentUser && currentUser.id !== c.user_id} />
                   </div>
                 </div>
-                {currentUser?.id === c.user_id && <button onClick={() => deleteComment(c.id)} aria-label="Sil" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: '1rem', lineHeight: 1, padding: '0 4px' }}>×</button>}
+                {currentUser?.id === c.user_id && <button onClick={() => deleteComment(c.id)} aria-label="Yorumu sil" className="hit" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: '1rem', lineHeight: 1, padding: '0 4px' }}>×</button>}
               </div>
               {(repMap.get(c.id) ?? []).map(r => (
                 <div key={r.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '7px 16px 7px 40px' }}>
@@ -182,7 +182,7 @@ export default function PostDetailClient({ post, initialComments, initialLiked, 
                       <ReportButton targetType="comment" targetId={r.id} subtitle={`@${r.username} yorumu`} variant="inline" canReport={!!currentUser && currentUser.id !== r.user_id} />
                     </div>
                   </div>
-                  {currentUser?.id === r.user_id && <button onClick={() => deleteComment(r.id)} aria-label="Sil" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: '1rem', lineHeight: 1, padding: '0 4px' }}>×</button>}
+                  {currentUser?.id === r.user_id && <button onClick={() => deleteComment(r.id)} aria-label="Yorumu sil" className="hit" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: '1rem', lineHeight: 1, padding: '0 4px' }}>×</button>}
                 </div>
               ))}
             </div>

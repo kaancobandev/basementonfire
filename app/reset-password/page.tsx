@@ -100,22 +100,22 @@ export default function ResetPasswordPage() {
   const inputStyle: React.CSSProperties = {
     width: '100%',
     padding: '10px 14px',
-    border: '1.5px solid #e2e8f0',
+    border: '1.5px solid var(--color-border)',
     borderRadius: '10px',
     fontSize: '0.95rem',
     outline: 'none',
     transition: 'border-color 0.15s',
     boxSizing: 'border-box',
     fontFamily: 'inherit',
-    color: '#111827',
-    backgroundColor: '#fff',
+    color: 'var(--color-text)',
+    backgroundColor: 'var(--color-bg)',
   };
 
   const labelStyle: React.CSSProperties = {
     display: 'block',
     fontSize: '0.85rem',
     fontWeight: 600,
-    color: '#374151',
+    color: 'var(--color-text)',
     marginBottom: '4px',
   };
 
@@ -127,29 +127,29 @@ export default function ResetPasswordPage() {
         alignItems: 'center',
         justifyContent: 'center',
         minHeight: '100vh',
-        background: '#f0f2f5',
+        background: 'var(--color-bg)',
       }}
     >
       <div
         style={{
-          background: 'white',
+          background: 'var(--color-surface)',
           borderRadius: '20px',
           padding: '40px',
           width: '100%',
           maxWidth: '420px',
-          boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
+          boxShadow: 'var(--shadow-md)',
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
           <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--color-primary)', marginBottom: '4px' }}>
             Basements
           </div>
-          <div style={{ color: '#536471', fontSize: '0.9rem' }}>Yeni şifre belirle</div>
+          <div style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Yeni şifre belirle</div>
         </div>
 
         {/* Yükleniyor */}
         {state === 'loading' && (
-          <div style={{ textAlign: 'center', padding: '20px', color: '#536471', fontSize: '0.9rem' }}>
+          <div style={{ textAlign: 'center', padding: '20px', color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
             Doğrulanıyor…
           </div>
         )}
@@ -158,9 +158,10 @@ export default function ResetPasswordPage() {
         {state === 'invalid' && (
           <div style={{ textAlign: 'center' }}>
             <div
+              role="alert"
               style={{
-                background: '#fee2e2',
-                color: '#dc2626',
+                background: 'var(--color-danger-soft)',
+                color: 'var(--color-danger)',
                 padding: '12px 14px',
                 borderRadius: '10px',
                 fontSize: '0.88rem',
@@ -183,9 +184,10 @@ export default function ResetPasswordPage() {
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {error && (
               <div
+                role="alert"
                 style={{
-                  background: '#fee2e2',
-                  color: '#dc2626',
+                  background: 'var(--color-danger-soft)',
+                  color: 'var(--color-danger)',
                   padding: '10px 14px',
                   borderRadius: '10px',
                   fontSize: '0.85rem',
@@ -206,7 +208,7 @@ export default function ResetPasswordPage() {
                 placeholder="En az 6 karakter"
                 style={inputStyle}
                 onFocus={e => (e.target.style.borderColor = 'var(--color-primary)')}
-                onBlur={e => (e.target.style.borderColor = '#e2e8f0')}
+                onBlur={e => (e.target.style.borderColor = 'var(--color-border)')}
               />
             </div>
 
@@ -221,7 +223,7 @@ export default function ResetPasswordPage() {
                 placeholder="Şifreyi tekrar gir"
                 style={inputStyle}
                 onFocus={e => (e.target.style.borderColor = 'var(--color-primary)')}
-                onBlur={e => (e.target.style.borderColor = '#e2e8f0')}
+                onBlur={e => (e.target.style.borderColor = 'var(--color-border)')}
               />
             </div>
 
@@ -229,7 +231,8 @@ export default function ResetPasswordPage() {
               type="submit"
               disabled={submitting}
               style={{
-                background: submitting ? '#93c5fd' : 'var(--color-primary)',
+                background: 'var(--color-primary)',
+                opacity: submitting ? 0.6 : 1,
                 color: 'white',
                 fontWeight: 700,
                 fontSize: '1rem',
@@ -252,9 +255,10 @@ export default function ResetPasswordPage() {
         {/* Başarı */}
         {state === 'success' && (
           <div
+            role="status"
             style={{
-              background: '#dcfce7',
-              color: '#166534',
+              background: 'var(--color-success-soft)',
+              color: 'var(--color-success)',
               padding: '16px',
               borderRadius: '10px',
               textAlign: 'center',

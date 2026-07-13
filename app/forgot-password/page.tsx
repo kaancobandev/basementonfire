@@ -20,33 +20,34 @@ export default async function ForgotPasswordPage({
         alignItems: 'center',
         justifyContent: 'center',
         minHeight: '100vh',
-        background: '#f0f2f5',
+        background: 'var(--color-bg)',
       }}
     >
       <div
         style={{
-          background: 'white',
+          background: 'var(--color-surface)',
           borderRadius: '20px',
           padding: '40px',
           width: '100%',
           maxWidth: '420px',
-          boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
+          boxShadow: 'var(--shadow-md)',
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
           <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--color-primary)', marginBottom: '4px' }}>
             Basements
           </div>
-          <div style={{ color: '#536471', fontSize: '0.9rem' }}>
+          <div style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
             Şifre sıfırlama bağlantısı gönder
           </div>
         </div>
 
         {sent && (
           <div
+            role="status"
             style={{
-              background: '#dcfce7',
-              color: '#166534',
+              background: 'var(--color-success-soft)',
+              color: 'var(--color-success)',
               padding: '12px 14px',
               borderRadius: '10px',
               fontSize: '0.88rem',
@@ -60,9 +61,10 @@ export default async function ForgotPasswordPage({
 
         {error && (
           <div
+            role="alert"
             style={{
-              background: '#fee2e2',
-              color: '#dc2626',
+              background: 'var(--color-danger-soft)',
+              color: 'var(--color-danger)',
               padding: '10px 14px',
               borderRadius: '10px',
               fontSize: '0.85rem',
@@ -75,7 +77,7 @@ export default async function ForgotPasswordPage({
 
         {!sent && <ForgotPasswordForm />}
 
-        <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '0.88rem', color: '#536471' }}>
+        <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '0.88rem', color: 'var(--color-text-muted)' }}>
           <a href="/login" style={{ color: 'var(--color-primary)', fontWeight: 600, textDecoration: 'none' }}>
             ← Giriş sayfasına dön
           </a>

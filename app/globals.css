@@ -82,6 +82,14 @@
 
 * { box-sizing: border-box; }
 
+/* ── Küçük butonlar için görünmez dokunma alanı (hitSlop) — layout kaymadan
+   tıklama/dokunma alanını her yönde 8px büyütür. Yoğun satırlarda taşmasın diye
+   ölçülü tutuldu. ── */
+.hit { position: relative; }
+.hit::after { content: ""; position: absolute; inset: -8px; }
+/* Değişen sayılar (beğeni/sayaç) hizalı kalsın → yeniden akıp zıplamasın (CLS) */
+.tnum { font-variant-numeric: tabular-nums; }
+
 /* ── Marka tipografisi: başlıklar Bricolage Grotesque, gövde DM Sans (next/font, bkz. layout.tsx) ── */
 h1, h2, h3, .font-display { font-family: var(--font-display), system-ui, sans-serif; }
 /* Kürate makaleler (kendi -page/-root tipografisi olanlar: rome=Georgia, takyon/greece=system-ui,

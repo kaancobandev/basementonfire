@@ -403,7 +403,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                             {liked ? <HeartFilled /> : <HeartEmpty />}
                           </motion.span>
                         </AnimatePresence>
-                        <motion.span key={likes} initial={{ y: -6, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.2 }}>{likes}</motion.span>
+                        <motion.span className="tnum" key={likes} initial={{ y: -6, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.2 }}>{likes}</motion.span>
                       </motion.button>
                       <Link href="/akis" style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '6px 8px', borderRadius: '9999px', color: 'var(--color-text)', textDecoration: 'none', transition: 'background 0.12s' }}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -419,7 +419,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                       </motion.button>
                     </div>
                     <div style={{ padding: '2px 14px 4px' }}>
-                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-text)' }}>{likes} beğeni</span>
+                      <span className="tnum" style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-text)' }}>{likes} beğeni</span>
                     </div>
                     {item.caption && (
                       <div style={{ padding: '2px 14px 14px', fontSize: '0.87rem', lineHeight: 1.5, color: 'var(--color-text)' }}>
@@ -473,7 +473,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                           {liked ? <HeartFilled /> : <HeartEmpty />}
                         </motion.span>
                       </AnimatePresence>
-                      <motion.span key={likes} initial={{ y: -6, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.2 }}>{likes}</motion.span>
+                      <motion.span className="tnum" key={likes} initial={{ y: -6, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.2 }}>{likes}</motion.span>
                     </motion.button>
                   </div>
                 </motion.article>

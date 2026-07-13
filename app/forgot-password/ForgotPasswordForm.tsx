@@ -4,15 +4,15 @@ export default function ForgotPasswordForm() {
   const inputStyle: React.CSSProperties = {
     width: '100%',
     padding: '10px 14px',
-    border: '1.5px solid #e2e8f0',
+    border: '1.5px solid var(--color-border)',
     borderRadius: '10px',
     fontSize: '0.95rem',
     outline: 'none',
     transition: 'border-color 0.15s',
     boxSizing: 'border-box',
     fontFamily: 'inherit',
-    color: '#111827',
-    backgroundColor: '#fff',
+    color: 'var(--color-text)',
+    backgroundColor: 'var(--color-bg)',
   };
 
   return (
@@ -27,7 +27,7 @@ export default function ForgotPasswordForm() {
             display: 'block',
             fontSize: '0.85rem',
             fontWeight: 600,
-            color: '#374151',
+            color: 'var(--color-text)',
             marginBottom: '4px',
           }}
         >
@@ -41,7 +41,7 @@ export default function ForgotPasswordForm() {
           placeholder="ornek@mail.com"
           style={inputStyle}
           onFocus={e => (e.target.style.borderColor = 'var(--color-primary)')}
-          onBlur={e => (e.target.style.borderColor = '#e2e8f0')}
+          onBlur={e => (e.target.style.borderColor = 'var(--color-border)')}
         />
       </div>
 

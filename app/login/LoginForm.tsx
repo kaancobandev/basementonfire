@@ -4,30 +4,30 @@ export default function LoginForm() {
   return (
     <form method="POST" action="/api/auth/login" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
       <div>
-        <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>E-posta</label>
+        <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text)', marginBottom: '4px' }}>E-posta</label>
         <input
           type="email"
           name="email"
           required
           autoComplete="email"
           placeholder="ornek@mail.com"
-          style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #e2e8f0', borderRadius: '10px', fontSize: '0.95rem', outline: 'none', transition: 'border-color 0.15s', boxSizing: 'border-box', color: '#111827', backgroundColor: '#fff' }}
+          style={{ width: '100%', padding: '10px 14px', border: '1.5px solid var(--color-border)', borderRadius: '10px', fontSize: '0.95rem', outline: 'none', transition: 'border-color 0.15s', boxSizing: 'border-box', color: 'var(--color-text)', backgroundColor: 'var(--color-bg)' }}
           onFocus={e => (e.target.style.borderColor = 'var(--color-primary)')}
-          onBlur={e => (e.target.style.borderColor = '#e2e8f0')}
+          onBlur={e => (e.target.style.borderColor = 'var(--color-border)')}
         />
       </div>
 
       <div>
-        <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>Şifre</label>
+        <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text)', marginBottom: '4px' }}>Şifre</label>
         <input
           type="password"
           name="password"
           required
           autoComplete="current-password"
           placeholder="Şifreniz"
-          style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #e2e8f0', borderRadius: '10px', fontSize: '0.95rem', outline: 'none', transition: 'border-color 0.15s', boxSizing: 'border-box', color: '#111827', backgroundColor: '#fff' }}
+          style={{ width: '100%', padding: '10px 14px', border: '1.5px solid var(--color-border)', borderRadius: '10px', fontSize: '0.95rem', outline: 'none', transition: 'border-color 0.15s', boxSizing: 'border-box', color: 'var(--color-text)', backgroundColor: 'var(--color-bg)' }}
           onFocus={e => (e.target.style.borderColor = 'var(--color-primary)')}
-          onBlur={e => (e.target.style.borderColor = '#e2e8f0')}
+          onBlur={e => (e.target.style.borderColor = 'var(--color-border)')}
         />
       </div>
 

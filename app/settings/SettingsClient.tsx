@@ -14,6 +14,7 @@ export default function SettingsClient({ user }: Props) {
   const [commentPrivacy, setCommentPrivacy] = useState(user.comment_privacy);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState(false);
 
   useEffect(() => {
     try {
@@ -31,24 +32,31 @@ export default function SettingsClient({ user }: Props) {
 
   async function savePrivacy() {
     setSaving(true);
-    await fetch('/api/settings/privacy', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ is_private: isPrivate, dm_privacy: dmPrivacy, comment_privacy: commentPrivacy }),
-    });
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    setSaveError(false);
+    try {
+      const res = await fetch('/api/settings/privacy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_private: isPrivate, dm_privacy: dmPrivacy, comment_privacy: commentPrivacy }),
+      });
+      if (!res.ok) { setSaveError(true); return; }
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch {
+      setSaveError(true);
+    } finally {
+      setSaving(false);
+    }
   }
 
-  const Toggle = ({ checked, onChange }: { checked: boolean; onChange: () => void }) => (
-    <button type="button" onClick={onChange} style={{ width: 44, height: 24, borderRadius: 12, border: 'none', background: checked ? 'var(--color-primary)' : 'var(--color-border)', cursor: 'pointer', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
-      <span style={{ position: 'absolute', top: 2, left: checked ? 22 : 2, width: 20, height: 20, borderRadius: '50%', background: 'white', transition: 'left 0.2s', boxShadow: '0 1px 4px rgba(0,0,0,0.15)' }} />
+  const Toggle = ({ checked, onChange, label }: { checked: boolean; onChange: () => void; label: string }) => (
+    <button type="button" role="switch" aria-checked={checked} aria-label={label} onClick={onChange} style={{ width: 44, height: 24, borderRadius: 12, border: 'none', background: checked ? 'var(--color-primary)' : 'var(--color-border)', cursor: 'pointer', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
+      <span aria-hidden="true" style={{ position: 'absolute', top: 2, left: checked ? 22 : 2, width: 20, height: 20, borderRadius: '50%', background: 'white', transition: 'left 0.2s', boxShadow: '0 1px 4px rgba(0,0,0,0.15)' }} />
     </button>
   );
 
-  const SelectInput = ({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: [string, string][] }) => (
-    <select value={value} onChange={e => onChange(e.target.value)} style={{ padding: '8px 12px', border: '1.5px solid var(--color-border)', borderRadius: 10, fontSize: '0.9rem', fontFamily: 'inherit', outline: 'none', background: 'var(--color-bg)', color: 'var(--color-text)', cursor: 'pointer' }}>
+  const SelectInput = ({ value, onChange, options, label }: { value: string; onChange: (v: string) => void; options: [string, string][]; label: string }) => (
+    <select value={value} onChange={e => onChange(e.target.value)} aria-label={label} style={{ padding: '8px 12px', border: '1.5px solid var(--color-border)', borderRadius: 10, fontSize: '0.9rem', fontFamily: 'inherit', outline: 'none', background: 'var(--color-bg)', color: 'var(--color-text)', cursor: 'pointer' }}>
       {options.map(([val, label]) => <option key={val} value={val}>{label}</option>)}
     </select>
   );
@@ -67,7 +75,7 @@ export default function SettingsClient({ user }: Props) {
                 <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>Karanlık Mod</div>
                 <div style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', marginTop: 2 }}>Koyu tema kullan</div>
               </div>
-              <Toggle checked={theme === 'dark'} onChange={toggleTheme} />
+              <Toggle checked={theme === 'dark'} onChange={toggleTheme} label="Karanlık mod" />
             </div>
           </div>
         </section>
@@ -81,26 +89,32 @@ export default function SettingsClient({ user }: Props) {
                 <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>Gizli Hesap</div>
                 <div style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', marginTop: 2 }}>Sadece takipçiler gönderi görebilir</div>
               </div>
-              <Toggle checked={isPrivate} onChange={() => setIsPrivate(p => !p)} />
+              <Toggle checked={isPrivate} onChange={() => setIsPrivate(p => !p)} label="Gizli hesap" />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid var(--color-border)' }}>
               <div>
                 <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>Mesaj Gizliliği</div>
                 <div style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', marginTop: 2 }}>Kimler mesaj gönderebilir</div>
               </div>
-              <SelectInput value={dmPrivacy} onChange={setDmPrivacy} options={[['everyone','Herkes'],['followers','Takipçilerim'],['none','Kimse']]} />
+              <SelectInput value={dmPrivacy} onChange={setDmPrivacy} label="Mesaj gizliliği" options={[['everyone','Herkes'],['followers','Takipçilerim'],['none','Kimse']]} />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px' }}>
               <div>
                 <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>Yorum Gizliliği</div>
                 <div style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', marginTop: 2 }}>Kimler yorum yapabilir</div>
               </div>
-              <SelectInput value={commentPrivacy} onChange={setCommentPrivacy} options={[['everyone','Herkes'],['followers','Takipçilerim'],['none','Kimse']]} />
+              <SelectInput value={commentPrivacy} onChange={setCommentPrivacy} label="Yorum gizliliği" options={[['everyone','Herkes'],['followers','Takipçilerim'],['none','Kimse']]} />
             </div>
           </div>
-          <button onClick={savePrivacy} disabled={saving} style={{ marginTop: 16, padding: '12px 24px', background: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '9999px', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.15s' }}>
-            {saving ? 'Kaydediliyor…' : saved ? '✓ Kaydedildi' : 'Ayarları Kaydet'}
-          </button>
+          <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+            <button onClick={savePrivacy} disabled={saving} style={{ padding: '12px 24px', background: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '9999px', fontWeight: 700, fontSize: '0.9rem', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1, fontFamily: 'inherit', transition: 'background 0.15s' }}>
+              {saving ? 'Kaydediliyor…' : 'Ayarları Kaydet'}
+            </button>
+            <span role="status" aria-live="polite" style={{ fontSize: '0.85rem', fontWeight: 600 }}>
+              {saved && <span style={{ color: 'var(--color-success)' }}>✓ Kaydedildi</span>}
+              {saveError && <span style={{ color: 'var(--color-danger)' }}>Kaydedilemedi. Tekrar dene.</span>}
+            </span>
+          </div>
         </section>
 
         {/* Account */}
@@ -108,7 +122,7 @@ export default function SettingsClient({ user }: Props) {
           <h2 style={{ fontSize: '1rem', fontWeight: 700, margin: '0 0 16px', color: 'var(--color-text)' }}>Hesap</h2>
           <div style={{ background: 'var(--color-bg)', borderRadius: 16, border: '1px solid var(--color-border)', overflow: 'hidden' }}>
             <form method="POST" action="/api/auth/logout">
-              <button type="submit" style={{ width: '100%', padding: '16px 20px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit', fontSize: '0.95rem', fontWeight: 600, color: '#ef4444', display: 'flex', alignItems: 'center', gap: 12 }}>
+              <button type="submit" style={{ width: '100%', padding: '16px 20px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit', fontSize: '0.95rem', fontWeight: 600, color: 'var(--color-danger)', display: 'flex', alignItems: 'center', gap: 12 }}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
                 Çıkış Yap
               </button>

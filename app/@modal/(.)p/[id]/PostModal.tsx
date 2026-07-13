@@ -177,7 +177,7 @@ export default function PostModal({ post, initialComments, initialLiked, initial
                       </div>
                     </div>
                     {currentUser?.id === c.user_id && (
-                      <button onClick={() => deleteComment(c.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: '1rem', padding: '2px 4px', borderRadius: 4, lineHeight: 1 }}>×</button>
+                      <button onClick={() => deleteComment(c.id)} aria-label="Yorumu sil" className="hit" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: '1rem', padding: '2px 4px', borderRadius: 4, lineHeight: 1 }}>×</button>
                     )}
                   </div>
                   {(repMap.get(c.id) ?? []).map(r => (
@@ -192,7 +192,7 @@ export default function PostModal({ post, initialComments, initialLiked, initial
                         </div>
                       </div>
                       {currentUser?.id === r.user_id && (
-                        <button onClick={() => deleteComment(r.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: '1rem', padding: '2px 4px', lineHeight: 1 }}>×</button>
+                        <button onClick={() => deleteComment(r.id)} aria-label="Yorumu sil" className="hit" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: '1rem', padding: '2px 4px', lineHeight: 1 }}>×</button>
                       )}
                     </div>
                   ))}
@@ -214,9 +214,9 @@ export default function PostModal({ post, initialComments, initialLiked, initial
           {/* Alt bar */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', borderTop: '1px solid var(--color-border)', flexShrink: 0 }}>
             <motion.button onClick={toggleLike} whileTap={{ scale: 0.80 }} aria-label="Beğen"
-              style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, fontSize: '1rem', fontFamily: 'inherit', color: liked ? '#ef4444' : 'var(--color-text-muted)', transition: 'color 0.15s' }}>
+              style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, fontSize: '1rem', fontFamily: 'inherit', color: liked ? 'var(--color-danger)' : 'var(--color-text-muted)', transition: 'color 0.15s' }}>
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /></svg>
-              <span>{likes}</span>
+              <span className="tnum">{likes}</span>
             </motion.button>
             <motion.button onClick={toggleRepost} whileTap={{ scale: 0.80 }} aria-label="Repost" title={reposted ? 'Repost geri al' : 'Repost'}
               style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: reposted ? '#22c55e' : 'var(--color-text-muted)', transition: 'color 0.15s' }}>

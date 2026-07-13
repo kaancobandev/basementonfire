@@ -421,7 +421,7 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
                             <ReportButton targetType="comment" targetId={c.id} subtitle={`@${c.username} yorumu`} variant="inline" canReport={!!me && me.id !== c.user_id} />
                           </div>
                         </div>
-                        {me?.id === c.user_id && <button onClick={() => deleteComment(c.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: '1rem', padding: '2px 4px', lineHeight: 1 }}>×</button>}
+                        {me?.id === c.user_id && <button onClick={() => deleteComment(c.id)} aria-label="Yorumu sil" className="hit" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: '1rem', padding: '2px 4px', lineHeight: 1 }}>×</button>}
                       </div>
                       {(repMap.get(c.id) ?? []).map(r => (
                         <div key={r.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '7px 16px', marginLeft: 30, borderLeft: '2px solid var(--color-border)', paddingLeft: 10 }}>
@@ -436,7 +436,7 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
                               <ReportButton targetType="comment" targetId={r.id} subtitle={`@${r.username} yorumu`} variant="inline" canReport={!!me && me.id !== r.user_id} />
                             </div>
                           </div>
-                          {me?.id === r.user_id && <button onClick={() => deleteComment(r.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: '1rem', padding: '2px 4px', lineHeight: 1 }}>×</button>}
+                          {me?.id === r.user_id && <button onClick={() => deleteComment(r.id)} aria-label="Yorumu sil" className="hit" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: '1rem', padding: '2px 4px', lineHeight: 1 }}>×</button>}
                         </div>
                       ))}
                     </div>
