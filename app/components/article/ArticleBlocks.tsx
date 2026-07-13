@@ -33,15 +33,15 @@ const ThemeCtx = createContext<{ accent: string }>({ accent: '#34d399' });
 const useAccent = () => useContext(ThemeCtx).accent;
 const prefersReduced = () => typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-// Mobil/dokunmatik veya dar ekran (ya da hareket-azaltma): GSAP pin+scrub scroll-jack YAPMA.
-// Mobil tarayıcının adres çubuğu göster/gizle olayı viewport'u değiştirince pinlenmiş
-// bölümün konumu bozuluyor → scroll "birden takılıp kalıyor" ve kasıyor. Masaüstünde
-// (ince pointer + geniş ekran) efekt korunur.
-const noScrollJack = () =>
-  typeof matchMedia === 'undefined'
-  || matchMedia('(prefers-reduced-motion: reduce)').matches
-  || matchMedia('(pointer: coarse)').matches
-  || matchMedia('(max-width: 768px)').matches;
+// Mobil tarayıcının adres çubuğu göster/gizle olayı viewport yüksekliğini değiştirip
+// pinlenmiş ScrollTrigger'ları refresh'e zorluyor → scroll "birden takılıp kalıyor".
+// Bu, ScrollTrigger'a o küçük mobil yükseklik değişimini YOK SAYMASINI söyler
+// (pin'ler mobilde de kalır; işaretçi olaylarına dokunmaz → sim sürükleme güvende).
+// Bir kez çağırmak yeterli (global), ama idempotent olduğu için efektlerde tekrar çağrılabilir.
+function tameMobilePin() {
+  gsap.registerPlugin(ScrollTrigger);
+  ScrollTrigger.config({ ignoreMobileResize: true });
+}
 
 export { ArticleBibliography, type BibItem };
 
@@ -96,16 +96,14 @@ export function ArticleHero({ title, fullTitle, eyebrow, subtitle, colors, gradi
 
   useGSAP(() => {
     const reduce = prefersReduced();
-    gsap.registerPlugin(ScrollTrigger);
+    tameMobilePin(); // ScrollTrigger'ı kaydeder + mobil adres-çubuğu resize'ını yok sayar
     const chars = Array.from(heroRef.current!.querySelectorAll<HTMLElement>('.hero-char'));
     if (reduce) return;
-    // Giriş (yükleme) animasyonları — her cihazda oynar, scroll'a bağlı değil.
+    // Giriş (yükleme) animasyonları
     gsap.from(chars, { yPercent: 120, opacity: 0, filter: 'blur(12px)', stagger: 0.045, duration: 0.9, ease: 'power3.out', delay: 0.15 });
     gsap.from('.hero-eyebrow', { opacity: 0, y: 18, duration: 0.8, delay: 0.1 });
     gsap.from('.hero-sub', { opacity: 0, y: 24, duration: 0.9, delay: 0.55 });
-    // Pin+scrub ile parçalanan başlık: YALNIZCA masaüstü. Mobilde pin, scroll'u
-    // dondurup kasmaya yol açıyor → mobilde hero sadece normal kayar (bkz. noScrollJack).
-    if (noScrollJack()) return;
+    // Pin+scrub ile parçalanan başlık — mobil dahil (ignoreMobileResize donmayı önler).
     const n = chars.length;
     const tl = gsap.timeline({ scrollTrigger: { trigger: heroRef.current!, start: 'top top', end: '+=92%', pin: true, scrub: 0.6, anticipatePin: 1 } });
     chars.forEach((c, i) => {
@@ -215,17 +213,12 @@ export function HorizontalTimeline({ heading, kicker = 'ZAMAN ÇİZELGESİ', ite
   const scrollerRef = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
+    const reduce = prefersReduced();
     const track = trackRef.current!, scroller = scrollerRef.current!;
-    // Mobil/dokunmatik + hareket-azaltma: pin+scrub scroll-jack yerine yerel yatay
-    // kaydırma (parmakla sağa-sola). Bölüm de 100vh yerine içeriğe göre büzülür
-    // (boş viewport kalmaz, mobil URL çubuğu taşması olmaz).
-    if (noScrollJack()) {
-      scroller.style.overflowX = 'auto';
-      if (tlRef.current) tlRef.current.style.height = 'auto';
-      return;
-    }
-    gsap.registerPlugin(ScrollTrigger);
-    track.style.willChange = 'transform'; // yalnız masaüstünde (transform scrub'lanıyor)
+    // Yalnız hareket-azaltma: pin yerine yerel yatay kaydırma. Mobil dahil herkeste pin kalır.
+    if (reduce) { scroller.style.overflowX = 'auto'; return; }
+    tameMobilePin(); // ScrollTrigger + mobil adres-çubuğu resize'ını yok say (donmayı önler)
+    track.style.willChange = 'transform'; // transform scrub'lanıyor (mobil + masaüstü)
     const amount = () => Math.max(0, track.scrollWidth - scroller.clientWidth);
     gsap.to(track, {
       x: () => -amount(), ease: 'none',
