@@ -265,6 +265,7 @@ export default function BagirsakClient() {
         <div className="gut-note"><span>✓</span><p>Bir düzeltme: Yıllarca “bakteriler vücut hücrelerimizin 10 katı, ~100 trilyon” denirdi. 2016'da yapılan daha titiz bir hesap (Sender, Fuchs &amp; Milo) bu rakamı <strong>~38 trilyona</strong> ve oranı yaklaşık <strong>1:1</strong>'e indirdi — yani bakteriler bizimle neredeyse eşit sayıda.</p></div>
         <p className="gut-p">Bu mikroplar sadece sindirime yardım etmez; vitamin üretir, bağışıklığı eğitir ve — en ilginci — <strong>ruh halimize karışır.</strong></p>
         <p className="gut-p">Üstelik bu ekosistemin avcıları da vardır: bağırsağımızda bakterilerden bile fazla sayıda bulunan, yalnızca belirli bakterileri avlayarak mikrop dengesini şekillendiren <Link href="/articles/bakteriyofaj" className="article-ilink">bakterileri avlayan virüsler, yani bakteriyofajlar</Link> da bu görünmez topluluğun bir parçasıdır.</p>
+        <p className="gut-p">Kafamızdaki beyin de sandığımız kadar yalıtık değil: başkalarının hareketlerini izlerken kendi devrelerini yeniden çalıştıran <Link href="/articles/ayna-noronlari" className="article-ilink">ayna nöronları</Link>, sinir sisteminin ne kadar “sosyal” olduğunu gösterir.</p>
       </section>
 
       {/* VI. HAYATIN İLK GÜNLERİ */}

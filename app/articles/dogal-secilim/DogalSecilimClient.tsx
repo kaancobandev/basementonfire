@@ -92,6 +92,9 @@ export default function DogalSecilimClient() {
         <p className="mt-6 leading-relaxed text-slate-400">
           Bazen evrimin en büyük sıçramaları yeni bir mutasyondan değil, iki ayrı canlının tek bir hücrede birleşmesinden doğar; karmaşık hücrenin kökenindeki bu ortaklık hikayesi <Link href="/articles/endosimbiyoz" className="article-ilink">endosimbiyoz</Link> olarak bilinir.
         </p>
+        <p className="mt-6 leading-relaxed text-slate-400">
+          Peki her işe yarar özellik doğuştan bir uyarlama mıdır? Beynin başkalarını yansıtan <Link href="/articles/ayna-noronlari" className="article-ilink">ayna nöronlarının</Link> bile sonradan öğrenilmiş olabileceği tartışması, doğal seçilim ile öğrenmenin sınırını tam da burada sınar.
+        </p>
       </ArticleSection>
 
       {/* Yatay zaman çizelgesi */}
