@@ -155,7 +155,7 @@ export default function PostDetailClient({ post, initialComments, initialLiked, 
         {/* Yorumlar */}
         <div style={{ borderTop: '1px solid var(--color-border)', padding: '6px 0 12px' }}>
           {topComments.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '24px 16px', fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>Henüz yorum yok</div>
+            <div style={{ textAlign: 'center', padding: '24px 16px', fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>İlk yorumu sen yaz ✍️</div>
           ) : topComments.map(c => (
             <div key={c.id}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '8px 16px' }}>

@@ -89,6 +89,14 @@
 .hit::after { content: ""; position: absolute; inset: -8px; }
 /* Değişen sayılar (beğeni/sayaç) hizalı kalsın → yeniden akıp zıplamasın (CLS) */
 .tnum { font-variant-numeric: tabular-nums; }
+/* Tutarlı, ölçülü yükleme göstergesi (300ms+ beklemelerde düz "Yükleniyor…" yerine).
+   Kullanım: <span class="dots" aria-label="Yükleniyor"><span></span><span></span><span></span></span> */
+.dots { display: inline-flex; gap: 5px; color: var(--color-text-muted); }
+.dots span { width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: .35; animation: dotpulse 1s ease-in-out infinite; }
+.dots span:nth-child(2) { animation-delay: .15s; }
+.dots span:nth-child(3) { animation-delay: .3s; }
+@keyframes dotpulse { 0%, 100% { opacity: .3; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-3px); } }
+@media (prefers-reduced-motion: reduce) { .dots span { animation: none; opacity: .55; } }
 
 /* ── Marka tipografisi: başlıklar Bricolage Grotesque, gövde DM Sans (next/font, bkz. layout.tsx) ── */
 h1, h2, h3, .font-display { font-family: var(--font-display), system-ui, sans-serif; }
@@ -503,6 +511,9 @@ body {
 .mobile-nav-btn:hover, .mobile-nav-btn.active { color: var(--color-primary); }
 /* Ekran daraldıkça alt-nav ikonları küçülür (ufak telefonlarda taşmayı önler) */
 .mobile-nav-btn svg { width: clamp(20px, 6.2vw, 24px); height: clamp(20px, 6.2vw, 24px); }
+/* Alt-nav ikon etiketi — keşfedilebilirlik (skill: nav-label-icon). Küçük ve dar
+   ekranda kısalır; taşmasın diye tek satır + ellipsis. */
+.mobile-nav-label { font-size: clamp(0.5rem, 2.4vw, 0.62rem); font-weight: 600; line-height: 1; margin-top: 3px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .page-header {
   padding: 16px 20px;

@@ -280,6 +280,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                 <Link href="/register" style={{ background: '#fff', color: '#1e1b4b', fontWeight: 700, fontSize: '0.85rem', padding: '9px 18px', borderRadius: 'var(--radius-pill)', textDecoration: 'none' }}>Hemen katıl</Link>
                 <Link href="/login" style={{ background: 'rgba(255,255,255,0.16)', color: '#fff', fontWeight: 700, fontSize: '0.85rem', padding: '9px 18px', borderRadius: 'var(--radius-pill)', textDecoration: 'none', border: '1px solid rgba(255,255,255,0.3)' }}>Giriş yap</Link>
               </div>
+              <Link href="/discover" style={{ marginTop: 12, color: 'rgba(255,255,255,0.85)', fontSize: '0.82rem', fontWeight: 600, textDecoration: 'none', alignSelf: 'flex-start' }}>İçerikleri keşfet — kayıt gerekmez →</Link>
             </div>
           </div>
         )}

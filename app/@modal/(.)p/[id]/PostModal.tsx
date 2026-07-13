@@ -161,7 +161,7 @@ export default function PostModal({ post, initialComments, initialLiked, initial
           {/* Yorumlar */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '4px 0', display: 'flex', flexDirection: 'column' }}>
             {comments.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '24px 16px', fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>Henüz yorum yok</div>
+              <div style={{ textAlign: 'center', padding: '24px 16px', fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>İlk yorumu sen yaz ✍️</div>
             ) : (
               topComments.map(c => (
                 <div key={c.id}>
