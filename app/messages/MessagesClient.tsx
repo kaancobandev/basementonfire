@@ -35,6 +35,9 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
   const [msgLoading, setMsgLoading] = useState(false);
   const [msgText, setMsgText] = useState('');
   const [panelOpen, setPanelOpen] = useState(false);
+  // Dar ekran (mobil ≤699px) = tek panel: konuşma açılınca liste gizlenir + geri butonu çıkar.
+  // Geniş ekran (masaüstü) = iki panel: liste HER ZAMAN görünür (geri butonu gereksiz).
+  const [isNarrow, setIsNarrow] = useState(false);
   const [newModalOpen, setNewModalOpen] = useState(false);
   const [searchQ, setSearchQ] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -51,6 +54,15 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
   const gifSearchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const realtimeChRef = useRef<ReturnType<typeof getSupa>['channel'] extends (...args: any[]) => infer R ? R : never | null>(null as any);
   const activeOtherUserRef = useRef<OtherUser | null>(null);
+
+  // Ekran genişliğini izle: mobilde tek panel + geri butonu, masaüstünde iki panel.
+  useEffect(() => {
+    const mq = matchMedia('(max-width: 699px)');
+    const sync = () => setIsNarrow(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
 
   // Mesaj kutusu ref'i — STABİL olmak ZORUNDA. msgAnimateRef (auto-animate) zaten
   // stabil; bu birleşik callback'i useCallback ile sabitliyoruz. Aksi halde inline
@@ -256,7 +268,7 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
   return (
     <main className="dm-main" style={{ display: 'flex', height: 'calc(100dvh)', overflow: 'hidden', flex: 1, background: '#0f0e0d' }}>
       {/* Sidebar */}
-      <div style={{ width: 320, flexShrink: 0, borderRight: '1px solid rgba(255,255,255,0.07)', display: 'flex', flexDirection: 'column', overflow: 'hidden', ...(panelOpen ? { display: 'none' } : {}) }} className="dm-sidebar-col">
+      <div style={{ width: 320, flexShrink: 0, borderRight: '1px solid rgba(255,255,255,0.07)', display: 'flex', flexDirection: 'column', overflow: 'hidden', ...(isNarrow && panelOpen ? { display: 'none' } : {}) }} className="dm-sidebar-col">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px 12px', borderBottom: '1px solid rgba(255,255,255,0.07)', flexShrink: 0 }}>
           <h1 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#e8e0d8', margin: 0 }}>Mesajlar</h1>
           <button onClick={() => setNewModalOpen(true)} style={{ width: 34, height: 34, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: 'var(--color-accent)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s' }}>
@@ -303,7 +315,7 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.07)', flexShrink: 0 }}>
-              <button onClick={() => { setPanelOpen(false); setActiveConvId(null); }} style={{ display: 'none', background: 'none', border: 'none', color: 'var(--color-accent)', cursor: 'pointer', padding: 4, borderRadius: '50%', alignItems: 'center' }} className="dm-back-btn">
+              <button onClick={() => { setPanelOpen(false); setActiveConvId(null); }} style={{ display: isNarrow ? 'inline-flex' : 'none', background: 'none', border: 'none', color: 'var(--color-accent)', cursor: 'pointer', padding: 4, borderRadius: '50%', alignItems: 'center' }} className="dm-back-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m15 18-6-6 6-6"/></svg>
               </button>
               <div style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, overflow: 'hidden' }}>
