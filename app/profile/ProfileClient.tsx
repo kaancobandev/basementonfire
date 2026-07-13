@@ -1,6 +1,7 @@
 'use client';
 
 import Img from '@/app/components/Img';
+import { avatarSrc } from '@/lib/avatar';
 import MediaCarousel, { MultiBadge, AudioThumb, MusicBadge } from '@/app/components/MediaCarousel';
 import { useIsMobile } from '@/lib/useIsMobile';
 import { factMediaList } from '@/lib/types';
@@ -27,7 +28,6 @@ interface MyArticle { id: number; slug: string; title: string; status: string; c
 interface Props {
   user: DbUser;
   bg: string;
-  hasPhoto: boolean;
   age: number | null;
   followersCount: number;
   followingCount: number;
@@ -43,7 +43,7 @@ interface Props {
 
 const GENDER_LABEL: Record<string, string> = { erkek: 'Erkek', kadin: 'Kadın', diger: 'Diğer' };
 
-export default function ProfileClient({ user, bg, hasPhoto, age, followersCount, followingCount, mediaPosts, savedPosts, repostedPosts, myArticles, isAdmin, progress, badgeKeys, error }: Props) {
+export default function ProfileClient({ user, bg, age, followersCount, followingCount, mediaPosts, savedPosts, repostedPosts, myArticles, isAdmin, progress, badgeKeys, error }: Props) {
   const isMobile = useIsMobile();
   const [tab, setTab] = useState<'posts' | 'saved' | 'reposts' | 'articles'>('posts');
   const [articles, setArticles] = useState<MyArticle[]>(myArticles);
@@ -154,8 +154,8 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
       {/* Profile header */}
       <div style={{ padding: '0 20px 16px', borderBottom: '1px solid var(--color-border)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: -40, marginBottom: 12 }}>
-          <div style={{ width: 80, height: 80, borderRadius: '50%', border: '4px solid white', boxShadow: '0 2px 12px rgba(0,0,0,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '2rem', fontWeight: 800, overflow: 'hidden', background: hasPhoto ? 'transparent' : bg }}>
-            {avatarUrl && avatarUrl !== '/avatars/default.png' ? <Img src={avatarUrl} alt="" fixedWidth={200} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} /> : user.display_name[0].toUpperCase()}
+          <div style={{ width: 80, height: 80, borderRadius: '50%', border: '4px solid white', boxShadow: '0 2px 12px rgba(0,0,0,0.12)', overflow: 'hidden' }}>
+            <Img src={avatarSrc(user.username, avatarUrl)} alt="" fixedWidth={200} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             {isAdmin && (
@@ -360,8 +360,8 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
             <form method="POST" action="/api/profile/edit" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {/* Avatar */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                <div role="button" tabIndex={0} aria-label="Profil fotoğrafını değiştir" aria-busy={avatarUploading} style={{ width: 72, height: 72, flexShrink: 0, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '1.8rem', fontWeight: 800, position: 'relative', overflow: 'hidden', cursor: avatarUploading ? 'default' : 'pointer', background: avatarUrl && avatarUrl !== '/avatars/default.png' ? 'transparent' : bg }} onClick={() => { if (!avatarUploading) document.getElementById('pf-avatar-input')?.click(); }} onKeyDown={e => { if ((e.key === 'Enter' || e.key === ' ') && !avatarUploading) { e.preventDefault(); document.getElementById('pf-avatar-input')?.click(); } }}>
-                  {avatarUrl && avatarUrl !== '/avatars/default.png' ? <Img src={avatarUrl} alt="" fixedWidth={200} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} /> : user.display_name[0].toUpperCase()}
+                <div role="button" tabIndex={0} aria-label="Profil fotoğrafını değiştir" aria-busy={avatarUploading} style={{ width: 72, height: 72, flexShrink: 0, borderRadius: '50%', position: 'relative', overflow: 'hidden', cursor: avatarUploading ? 'default' : 'pointer' }} onClick={() => { if (!avatarUploading) document.getElementById('pf-avatar-input')?.click(); }} onKeyDown={e => { if ((e.key === 'Enter' || e.key === ' ') && !avatarUploading) { e.preventDefault(); document.getElementById('pf-avatar-input')?.click(); } }}>
+                  <Img src={avatarSrc(user.username, avatarUrl)} alt="" fixedWidth={200} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   {avatarUploading ? (
                     <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%' }}>
                       <div style={{ width: 22, height: 22, border: '3px solid rgba(255,255,255,0.35)', borderTopColor: '#fff', borderRadius: '50%', animation: 'pf-spin 0.7s linear infinite' }} />
@@ -474,7 +474,7 @@ export default function ProfileClient({ user, bg, hasPhoto, age, followersCount,
             </div>
             <div style={{ width: isMobile ? '100%' : 280, maxHeight: isMobile ? '42%' : undefined, flexShrink: 0, borderLeft: isMobile ? 'none' : '1px solid var(--color-border)', borderTop: isMobile ? '1px solid var(--color-border)' : 'none', display: 'flex', flexDirection: 'column', padding: 16, gap: 12, minHeight: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '0.85rem', flexShrink: 0, background: bg }}>{user.display_name[0].toUpperCase()}</div>
+                <div style={{ width: 36, height: 36, borderRadius: '50%', flexShrink: 0, overflow: 'hidden' }}><Img src={avatarSrc(user.username, avatarUrl)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></div>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{user.display_name}</div>
                   <div style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>@{user.username}</div>

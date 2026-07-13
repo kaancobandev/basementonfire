@@ -7,6 +7,7 @@ import MediaCarousel from '@/app/components/MediaCarousel';
 import Img from '@/app/components/Img';
 import { factMediaList } from '@/lib/types';
 import ReportButton from '@/app/components/ReportButton';
+import { avatarSrc } from '@/lib/avatar';
 
 interface PostProp {
   id: number; user_id: number; caption: string; media_url: string; media_type: string; media: unknown;
@@ -18,20 +19,14 @@ interface CommentT {
 }
 interface CurrentUser { id: number; username: string; display_name: string; }
 
-function avatarBg(u: string) {
-  const gs = ['linear-gradient(135deg,#6366f1,#8b5cf6)', 'linear-gradient(135deg,#ec4899,#8b5cf6)', 'linear-gradient(135deg,#f97316,#ef4444)', 'linear-gradient(135deg,#10b981,#3b82f6)', 'linear-gradient(135deg,#f59e0b,#f97316)', 'linear-gradient(135deg,#14b8a6,#06b6d4)', 'linear-gradient(135deg,#3b82f6,#6366f1)', 'linear-gradient(135deg,#ef4444,#f97316)'];
-  let h = 0; for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff; return gs[Math.abs(h) % gs.length];
-}
 function timeAgo(iso: string) {
   const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
   if (s < 60) return `${s}sn`; if (s < 3600) return `${Math.floor(s / 60)}dk`; if (s < 86400) return `${Math.floor(s / 3600)}sa`; return `${Math.floor(s / 86400)}g`;
 }
 
-const Avatar = ({ username, display_name, avatar, size }: { username: string; display_name: string; avatar: string | null; size: number }) => (
-  <span style={{ width: size, height: size, borderRadius: '50%', flexShrink: 0, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: size * 0.4, background: avatarBg(username || 'a') }}>
-    {avatar && avatar !== '/avatars/default.png'
-      ? <Img src={avatar} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-      : (display_name[0] || '?').toUpperCase()}
+const Avatar = ({ username, avatar, size }: { username: string; display_name: string; avatar: string | null; size: number }) => (
+  <span style={{ width: size, height: size, borderRadius: '50%', flexShrink: 0, overflow: 'hidden' }}>
+    <Img src={avatarSrc(username, avatar)} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
   </span>
 );
 

@@ -1,6 +1,7 @@
 'use client';
 
 import Img from '@/app/components/Img';
+import { avatarSrc } from '@/lib/avatar';
 import MediaCarousel, { MultiBadge, AudioThumb, MusicBadge } from '@/app/components/MediaCarousel';
 import { useIsMobile } from '@/lib/useIsMobile';
 import { factMediaList } from '@/lib/types';
@@ -36,10 +37,6 @@ interface Props {
   me: { id: number; username: string; display_name: string; avatar: string | null } | null;
 }
 
-function avatarBg(u: string) {
-  const gs = ['linear-gradient(135deg,#6366f1,#8b5cf6)','linear-gradient(135deg,#ec4899,#8b5cf6)','linear-gradient(135deg,#f97316,#ef4444)','linear-gradient(135deg,#10b981,#3b82f6)','linear-gradient(135deg,#f59e0b,#f97316)','linear-gradient(135deg,#14b8a6,#06b6d4)','linear-gradient(135deg,#3b82f6,#6366f1)','linear-gradient(135deg,#ef4444,#f97316)'];
-  let h = 0; for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff; return gs[Math.abs(h) % gs.length];
-}
 function timeAgo(iso: string) {
   const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
   return s < 60 ? `${s}sn` : s < 3600 ? `${Math.floor(s/60)}dk` : s < 86400 ? `${Math.floor(s/3600)}sa` : `${Math.floor(s/86400)}g`;
@@ -190,11 +187,8 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
       <div style={{ padding: '0 20px 16px', borderBottom: '1px solid var(--color-border)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: -40, marginBottom: 12 }}>
           {/* Avatar */}
-          <div style={{ width: 80, height: 80, borderRadius: '50%', border: '4px solid white', boxShadow: '0 2px 12px rgba(0,0,0,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '2rem', fontWeight: 800, overflow: 'hidden', background: profileUser.avatar ? 'transparent' : bg, flexShrink: 0 }}>
-            {profileUser.avatar
-              ? <Img src={profileUser.avatar} alt="" fixedWidth={200} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
-              : profileUser.display_name[0].toUpperCase()
-            }
+          <div style={{ width: 80, height: 80, borderRadius: '50%', border: '4px solid white', boxShadow: '0 2px 12px rgba(0,0,0,0.12)', overflow: 'hidden', flexShrink: 0 }}>
+            <Img src={avatarSrc(profileUser.username, profileUser.avatar)} alt="" fixedWidth={200} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
 
           {/* Action buttons — dar ekranda alta sarsın (avatar 80px + iki buton 360px'e sığmaz) */}
@@ -378,8 +372,8 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
             <div style={{ width: isMobile ? '100%' : 280, maxHeight: isMobile ? '42%' : undefined, flexShrink: 0, display: 'flex', flexDirection: 'column', borderLeft: isMobile ? 'none' : '1px solid var(--color-border)', borderTop: isMobile ? '1px solid var(--color-border)' : 'none', minHeight: 0 }}>
               {/* User row */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px', borderBottom: '1px solid var(--color-border)', flexShrink: 0 }}>
-                <div style={{ width: 36, height: 36, borderRadius: '50%', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '0.85rem', flexShrink: 0, overflow: 'hidden' }}>
-                  {profileUser.avatar ? <Img src={profileUser.avatar} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : profileUser.display_name[0].toUpperCase()}
+                <div style={{ width: 36, height: 36, borderRadius: '50%', flexShrink: 0, overflow: 'hidden' }}>
+                  <Img src={avatarSrc(profileUser.username, profileUser.avatar)} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{profileUser.display_name}</div>
@@ -409,8 +403,8 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
                   topComments.map(c => (
                     <div key={c.id}>
                       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '7px 16px' }}>
-                        <Link href={`/u/${c.username}`} style={{ width: 26, height: 26, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.7rem', fontWeight: 700, textDecoration: 'none', background: avatarBg(c.username), overflow: 'hidden' }}>
-                          {c.avatar ? <Img src={c.avatar} alt="" fixedWidth={52} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : c.display_name[0].toUpperCase()}
+                        <Link href={`/u/${c.username}`} style={{ width: 26, height: 26, borderRadius: '50%', flexShrink: 0, textDecoration: 'none', overflow: 'hidden' }}>
+                          <Img src={avatarSrc(c.username, c.avatar)} alt="" fixedWidth={52} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         </Link>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <span style={{ fontWeight: 700, fontSize: '0.8rem', marginRight: 4 }}>{c.display_name}</span>
@@ -425,8 +419,8 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
                       </div>
                       {(repMap.get(c.id) ?? []).map(r => (
                         <div key={r.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '7px 16px', marginLeft: 30, borderLeft: '2px solid var(--color-border)', paddingLeft: 10 }}>
-                          <Link href={`/u/${r.username}`} style={{ width: 26, height: 26, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.7rem', fontWeight: 700, textDecoration: 'none', background: avatarBg(r.username), overflow: 'hidden' }}>
-                            {r.avatar ? <Img src={r.avatar} alt="" fixedWidth={52} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : r.display_name[0].toUpperCase()}
+                          <Link href={`/u/${r.username}`} style={{ width: 26, height: 26, borderRadius: '50%', flexShrink: 0, textDecoration: 'none', overflow: 'hidden' }}>
+                            <Img src={avatarSrc(r.username, r.avatar)} alt="" fixedWidth={52} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           </Link>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <span style={{ fontWeight: 700, fontSize: '0.8rem', marginRight: 4 }}>{r.display_name}</span>
@@ -447,8 +441,8 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
               {/* Comment form / login prompt */}
               {me ? (
                 <form onSubmit={submitComment} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderTop: '1px solid var(--color-border)', flexShrink: 0 }}>
-                  <div style={{ width: 26, height: 26, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.7rem', fontWeight: 700, background: avatarBg(me.username), overflow: 'hidden' }}>
-                    {me.avatar ? <Img src={me.avatar} alt="" fixedWidth={52} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : me.display_name[0].toUpperCase()}
+                  <div style={{ width: 26, height: 26, borderRadius: '50%', flexShrink: 0, overflow: 'hidden' }}>
+                    <Img src={avatarSrc(me.username, me.avatar)} alt="" fixedWidth={52} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
                   <input
                     value={commentText}

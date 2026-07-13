@@ -2,13 +2,10 @@ import { redirect } from 'next/navigation';
 import { db, getMe } from '@/lib/supabase/server';
 import Link from 'next/link';
 import Img from '@/app/components/Img';
+import { avatarSrc } from '@/lib/avatar';
 
 export const dynamic = 'force-dynamic';
 
-function avatarBg(u: string) {
-  const gs = ['linear-gradient(135deg,#6366f1,#8b5cf6)','linear-gradient(135deg,#ec4899,#8b5cf6)','linear-gradient(135deg,#f97316,#ef4444)','linear-gradient(135deg,#10b981,#3b82f6)','linear-gradient(135deg,#f59e0b,#f97316)','linear-gradient(135deg,#14b8a6,#06b6d4)','linear-gradient(135deg,#3b82f6,#6366f1)','linear-gradient(135deg,#ef4444,#f97316)'];
-  let h = 0; for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff; return gs[Math.abs(h) % gs.length];
-}
 function timeAgo(iso: string) {
   const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
   if (s < 60) return `${s}sn`; if (s < 3600) return `${Math.floor(s/60)}dk`; if (s < 86400) return `${Math.floor(s/3600)}sa`; return `${Math.floor(s/86400)}g`;
@@ -46,11 +43,10 @@ export default async function NotificationsPage() {
           {(notifs ?? []).map((n: any) => {
             const actor = n.actor;
             if (!actor) return null;
-            const bg = avatarBg(actor.username);
             return (
               <Link key={n.id} href={`/u/${actor.username}`} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 20px', borderBottom: '1px solid var(--color-border)', textDecoration: 'none', color: 'inherit', background: n.is_read ? 'transparent' : 'rgba(59,130,246,0.04)', transition: 'background 0.1s' }}>
-                <div style={{ width: 44, height: 44, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '1rem', background: bg, overflow: 'hidden' }}>
-                  {actor.avatar ? <Img src={actor.avatar} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : actor.display_name[0].toUpperCase()}
+                <div style={{ width: 44, height: 44, borderRadius: '50%', flexShrink: 0, overflow: 'hidden' }}>
+                  <Img src={avatarSrc(actor.username, actor.avatar)} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <span style={{ fontWeight: 700 }}>{actor.display_name}</span>{' '}

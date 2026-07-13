@@ -2,11 +2,12 @@
 
 import Img from '@/app/components/Img';
 import { AudioThumb } from '@/app/components/MediaCarousel';
+import { avatarSrc } from '@/lib/avatar';
 
 import { useEffect, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
 
-interface User { id: number; username: string; display_name: string; bio: string | null; avatar: string | null; avatarBg: string; }
+interface User { id: number; username: string; display_name: string; bio: string | null; avatar: string | null; }
 interface MediaPost { id: number; media_url: string; media_type: string; caption: string; likes: number; username: string; display_name: string; }
 interface Article { slug: string; title: string; emoji: string; desc: string; href?: string; }
 interface CommunityArticle { slug: string; title: string; summary: string; cover_url: string | null; category: string | null; author: string; username: string; }
@@ -18,11 +19,6 @@ interface Props {
   communityArticles?: CommunityArticle[];
   isLoggedIn: boolean;
   initialQuery?: string;
-}
-
-function avatarBg(u: string) {
-  const gs = ['linear-gradient(135deg,#6366f1,#8b5cf6)', 'linear-gradient(135deg,#ec4899,#8b5cf6)', 'linear-gradient(135deg,#f97316,#ef4444)', 'linear-gradient(135deg,#10b981,#3b82f6)', 'linear-gradient(135deg,#f59e0b,#f97316)', 'linear-gradient(135deg,#14b8a6,#06b6d4)', 'linear-gradient(135deg,#3b82f6,#6366f1)', 'linear-gradient(135deg,#ef4444,#f97316)'];
-  let h = 0; for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff; return gs[Math.abs(h) % gs.length];
 }
 
 // Her makaleye içeriğiyle ilişkili bir hover gradyanı: kart üstüne gelince beliren temalı arka plan.
@@ -76,7 +72,7 @@ export default function DiscoverClient({ users, media, articles, communityArticl
     try {
       const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
       const data = await res.json();
-      setSearchResults({ users: (data.users ?? []).map((u: any) => ({ ...u, avatarBg: avatarBg(u.username) })), posts: data.posts ?? [] });
+      setSearchResults({ users: data.users ?? [], posts: data.posts ?? [] });
     } finally {
       setSearching(false);
     }
@@ -93,11 +89,8 @@ export default function DiscoverClient({ users, media, articles, communityArticl
     const isFollowed = followed.has(u.username);
     return (
       <div className="dc-user-row">
-        <Link href={`/u/${u.username}`} className="dc-avatar" style={{ background: u.avatarBg }}>
-          {u.avatar
-            ? <Img src={u.avatar} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
-            : u.display_name[0].toUpperCase()
-          }
+        <Link href={`/u/${u.username}`} className="dc-avatar">
+          <Img src={avatarSrc(u.username, u.avatar)} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </Link>
         <div className="dc-user-info">
           <Link href={`/u/${u.username}`} className="dc-user-name">{u.display_name}</Link>

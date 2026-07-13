@@ -3,6 +3,7 @@
 import Img from '@/app/components/Img';
 import MediaCarousel from '@/app/components/MediaCarousel';
 import { factMediaList } from '@/lib/types';
+import { avatarSrc } from '@/lib/avatar';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
@@ -29,10 +30,6 @@ interface Props {
   otherStoryUsers: StoryUser[];
 }
 
-function avatarBg(u: string): string {
-  const gs = ['linear-gradient(135deg,#6366f1,#8b5cf6)','linear-gradient(135deg,#ec4899,#8b5cf6)','linear-gradient(135deg,#f97316,#ef4444)','linear-gradient(135deg,#10b981,#3b82f6)','linear-gradient(135deg,#f59e0b,#f97316)','linear-gradient(135deg,#14b8a6,#06b6d4)','linear-gradient(135deg,#3b82f6,#6366f1)','linear-gradient(135deg,#ef4444,#f97316)'];
-  let h = 0; for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff; return gs[Math.abs(h) % gs.length];
-}
 function storyAvatarBg(u: string): string {
   const gs = ['linear-gradient(135deg,#667eea,#764ba2)','linear-gradient(135deg,#f093fb,#f5576c)','linear-gradient(135deg,#4facfe,#00f2fe)','linear-gradient(135deg,#43e97b,#38f9d7)','linear-gradient(135deg,#fa709a,#fee140)','linear-gradient(135deg,#a18cd1,#fbc2eb)','linear-gradient(135deg,#fda085,#f6d365)','linear-gradient(135deg,#96fbc4,#f9f586)'];
   let h = 0; for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff; return gs[Math.abs(h) % gs.length];
@@ -381,8 +378,8 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                     transition={{ duration: 0.4, delay: Math.min(index * 0.07, 0.5), ease: 'easeOut' }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px' }}>
-                      <Link href={`/u/${item.username}`} style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '0.95rem', textDecoration: 'none', background: avatarBg(item.username), overflow: 'hidden' }}>
-                        {(item.avatar && item.avatar !== '/avatars/default.png') ? <Img src={item.avatar} alt="" fixedWidth={76} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (item.display_name[0] ?? '?').toUpperCase()}
+                      <Link href={`/u/${item.username}`} style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, textDecoration: 'none', overflow: 'hidden' }}>
+                        <Img src={avatarSrc(item.username, item.avatar)} alt="" fixedWidth={76} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       </Link>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <Link href={`/u/${item.username}`} style={{ display: 'block', fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-text)', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.display_name}</Link>
@@ -448,8 +445,8 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                   transition={{ duration: 0.4, delay: Math.min(index * 0.07, 0.5), ease: 'easeOut' }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px 0' }}>
-                    <Link href={`/u/${item.username}`} style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '0.95rem', textDecoration: 'none', background: avatarBg(item.username), overflow: 'hidden' }}>
-                      {(item.avatar && item.avatar !== '/avatars/default.png') ? <Img src={item.avatar} alt="" fixedWidth={76} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (item.display_name[0] ?? '?').toUpperCase()}
+                    <Link href={`/u/${item.username}`} style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, textDecoration: 'none', overflow: 'hidden' }}>
+                      <Img src={avatarSrc(item.username, item.avatar)} alt="" fixedWidth={76} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </Link>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <Link href={`/u/${item.username}`} style={{ display: 'block', fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-text)', textDecoration: 'none' }}>{item.display_name}</Link>
@@ -527,8 +524,8 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               {suggestedUsers.map(u => (
                 <div key={u.id} className="rp-link" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 4px', borderRadius: 12 }}>
-                  <Link href={`/u/${u.username}`} style={{ width: 40, height: 40, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '1rem', textDecoration: 'none', background: avatarBg(u.username), overflow: 'hidden' }}>
-                    {u.avatar ? <Img src={u.avatar} alt="" fixedWidth={80} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : u.display_name[0].toUpperCase()}
+                  <Link href={`/u/${u.username}`} style={{ width: 40, height: 40, borderRadius: '50%', flexShrink: 0, textDecoration: 'none', overflow: 'hidden' }}>
+                    <Img src={avatarSrc(u.username, u.avatar)} alt="" fixedWidth={80} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </Link>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <Link href={`/u/${u.username}`} style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-text)', textDecoration: 'none', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.display_name}</Link>

@@ -1,14 +1,10 @@
 import { redirect } from 'next/navigation';
 import { db, getMe, isAdmin, logIfError } from '@/lib/supabase/server';
+import { bannerGradient } from '@/lib/avatar';
 import type { DbUser } from '@/lib/types';
 import ProfileClient from './ProfileClient';
 
 export const dynamic = 'force-dynamic';
-
-function avatarBg(u: string): string {
-  const gs = ['linear-gradient(135deg,#6366f1,#8b5cf6)','linear-gradient(135deg,#ec4899,#8b5cf6)','linear-gradient(135deg,#f97316,#ef4444)','linear-gradient(135deg,#10b981,#3b82f6)','linear-gradient(135deg,#f59e0b,#f97316)','linear-gradient(135deg,#14b8a6,#06b6d4)','linear-gradient(135deg,#3b82f6,#6366f1)','linear-gradient(135deg,#ef4444,#f97316)'];
-  let h = 0; for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff; return gs[Math.abs(h) % gs.length];
-}
 
 export default async function ProfilePage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const { me } = await getMe();
@@ -50,8 +46,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
   // Repost edilen akış (quick_facts) gönderileri — medya ızgarasında gösterilir
   const repostedPosts = ((repostsRes.data ?? []) as any[]).map((r: any) => r.fact).filter(Boolean) as MediaPostRow[];
 
-  const bg = avatarBg(user.username);
-  const hasPhoto = !!user.avatar && user.avatar !== '/avatars/default.png';
+  const bg = bannerGradient(user.username);
 
   function calcAge(bd: string | null): number | null {
     if (!bd) return null;
@@ -66,7 +61,6 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
     <ProfileClient
       user={user}
       bg={bg}
-      hasPhoto={hasPhoto}
       age={calcAge(user.birthdate ?? null)}
       followersCount={followersRes.count ?? 0}
       followingCount={followingRes.count ?? 0}

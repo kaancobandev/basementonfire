@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import MediaCarousel from '@/app/components/MediaCarousel';
 import Caption from '@/app/components/Caption';
 import Img from '@/app/components/Img';
+import { avatarSrc } from '@/lib/avatar';
 import { factMediaList } from '@/lib/types';
 import { useIsMobile } from '@/lib/useIsMobile';
 import ReportButton from '@/app/components/ReportButton';
@@ -22,10 +23,6 @@ interface Props {
   currentUser: CurrentUser | null;
 }
 
-function avatarBg(u: string) {
-  const gs = ['linear-gradient(135deg,#6366f1,#8b5cf6)', 'linear-gradient(135deg,#ec4899,#8b5cf6)', 'linear-gradient(135deg,#f97316,#ef4444)', 'linear-gradient(135deg,#10b981,#3b82f6)', 'linear-gradient(135deg,#f59e0b,#f97316)', 'linear-gradient(135deg,#14b8a6,#06b6d4)', 'linear-gradient(135deg,#3b82f6,#6366f1)', 'linear-gradient(135deg,#ef4444,#f97316)'];
-  let h = 0; for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff; return gs[Math.abs(h) % gs.length];
-}
 function timeAgo(iso: string) {
   const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
   if (s < 60) return `${s}sn`; if (s < 3600) return `${Math.floor(s / 60)}dk`; if (s < 86400) return `${Math.floor(s / 3600)}sa`; return `${Math.floor(s / 86400)}g`;
@@ -141,8 +138,8 @@ export default function PostModal({ post, initialComments, initialLiked, initial
         {/* Bilgi paneli */}
         <div style={{ width: isMobile ? '100%' : 300, maxHeight: isMobile ? '42%' : undefined, flexShrink: 0, display: 'flex', flexDirection: 'column', borderLeft: isMobile ? 'none' : '1px solid var(--color-border)', borderTop: isMobile ? '1px solid var(--color-border)' : 'none', minHeight: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px', borderBottom: '1px solid var(--color-border)', flexShrink: 0 }}>
-            <Link href={`/u/${post.username}`} style={{ width: 34, height: 34, borderRadius: '50%', background: avatarBg(post.username), display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '0.85rem', flexShrink: 0, textDecoration: 'none', overflow: 'hidden' }}>
-              {post.avatar ? <Img src={post.avatar} alt="" fixedWidth={68} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (post.display_name || post.username || '?')[0].toUpperCase()}
+            <Link href={`/u/${post.username}`} style={{ width: 34, height: 34, borderRadius: '50%', flexShrink: 0, textDecoration: 'none', overflow: 'hidden' }}>
+              <Img src={avatarSrc(post.username, post.avatar)} alt="" fixedWidth={68} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </Link>
             <div>
               <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{post.display_name}</div>
@@ -166,7 +163,7 @@ export default function PostModal({ post, initialComments, initialLiked, initial
               topComments.map(c => (
                 <div key={c.id}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '7px 16px' }}>
-                    <Link href={`/u/${c.username}`} style={{ width: 26, height: 26, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.7rem', fontWeight: 700, textDecoration: 'none', background: avatarBg(c.username), overflow: 'hidden' }}>{c.avatar ? <Img src={c.avatar} alt="" fixedWidth={52} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (c.display_name || '?')[0].toUpperCase()}</Link>
+                    <Link href={`/u/${c.username}`} style={{ width: 26, height: 26, borderRadius: '50%', flexShrink: 0, textDecoration: 'none', overflow: 'hidden' }}><Img src={avatarSrc(c.username, c.avatar)} alt="" fixedWidth={52} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></Link>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <span style={{ fontWeight: 700, fontSize: '0.8rem', marginRight: 4 }}>{c.display_name}</span>
                       <span style={{ fontSize: '0.82rem', color: 'var(--color-text)', lineHeight: 1.4, wordBreak: 'break-word' }}>{c.content}</span>
@@ -182,7 +179,7 @@ export default function PostModal({ post, initialComments, initialLiked, initial
                   </div>
                   {(repMap.get(c.id) ?? []).map(r => (
                     <div key={r.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '7px 16px', marginLeft: 30, borderLeft: '2px solid var(--color-border)', paddingLeft: 10 }}>
-                      <Link href={`/u/${r.username}`} style={{ width: 26, height: 26, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.7rem', fontWeight: 700, textDecoration: 'none', background: avatarBg(r.username), overflow: 'hidden' }}>{r.avatar ? <Img src={r.avatar} alt="" fixedWidth={52} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (r.display_name || '?')[0].toUpperCase()}</Link>
+                      <Link href={`/u/${r.username}`} style={{ width: 26, height: 26, borderRadius: '50%', flexShrink: 0, textDecoration: 'none', overflow: 'hidden' }}><Img src={avatarSrc(r.username, r.avatar)} alt="" fixedWidth={52} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></Link>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <span style={{ fontWeight: 700, fontSize: '0.8rem', marginRight: 4 }}>{r.display_name}</span>
                         <span style={{ fontSize: '0.82rem', color: 'var(--color-text)', lineHeight: 1.4, wordBreak: 'break-word' }}>{r.content}</span>
@@ -203,7 +200,7 @@ export default function PostModal({ post, initialComments, initialLiked, initial
           {/* Yorum girişi */}
           {currentUser && (
             <form onSubmit={submitComment} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderTop: '1px solid var(--color-border)', flexShrink: 0 }}>
-              <div style={{ width: 26, height: 26, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.7rem', fontWeight: 700, background: avatarBg(currentUser.username), overflow: 'hidden' }}>{currentUser.avatar ? <Img src={currentUser.avatar} alt="" fixedWidth={52} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : currentUser.display_name[0].toUpperCase()}</div>
+              <div style={{ width: 26, height: 26, borderRadius: '50%', flexShrink: 0, overflow: 'hidden' }}><Img src={avatarSrc(currentUser.username, currentUser.avatar)} alt="" fixedWidth={52} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></div>
               <input value={commentText} onChange={e => setCommentText(e.target.value)} placeholder={replyToId ? '↩ yanıtlanıyor…' : 'Yorum ekle…'} maxLength={300} autoComplete="off" style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: '0.85rem', fontFamily: 'inherit', color: 'var(--color-text)', minWidth: 0 }} />
               {replyToId && <button type="button" onClick={() => { setReplyToId(null); setCommentText(''); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: '0.75rem', fontFamily: 'inherit' }}>×</button>}
               <button type="submit" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-primary)', padding: 4, display: 'flex', alignItems: 'center', opacity: commentText.trim() ? 1 : 0.4 }}>

@@ -39,11 +39,6 @@ export const metadata: Metadata = {
   },
 };
 
-function avatarBg(u: string) {
-  const gs = ['linear-gradient(135deg,#6366f1,#8b5cf6)','linear-gradient(135deg,#ec4899,#8b5cf6)','linear-gradient(135deg,#f97316,#ef4444)','linear-gradient(135deg,#10b981,#3b82f6)','linear-gradient(135deg,#f59e0b,#f97316)','linear-gradient(135deg,#14b8a6,#06b6d4)','linear-gradient(135deg,#3b82f6,#6366f1)','linear-gradient(135deg,#ef4444,#f97316)'];
-  let h = 0; for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff; return gs[Math.abs(h) % gs.length];
-}
-
 export default async function DiscoverPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const { me } = await getMe();
   const sp = await searchParams;
@@ -60,7 +55,7 @@ export default async function DiscoverPage({ searchParams }: { searchParams: Pro
   // Makale listesi artik tek kaynaktan (lib/articles.ts). Sira ayni -> görünüm degismez.
   return (
     <DiscoverClient
-      users={(users ?? []).map((u: any) => ({ ...u, avatarBg: avatarBg(u.username) }))}
+      users={users ?? []}
       media={media}
       articles={ARTICLES}
       communityArticles={communityArticles}

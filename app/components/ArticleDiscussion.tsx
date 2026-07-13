@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Img from '@/app/components/Img';
 import { toast } from 'sonner';
 import ReportButton from '@/app/components/ReportButton';
+import { avatarSrc } from '@/lib/avatar';
 
 type Comment = {
   id: number;
@@ -20,10 +21,6 @@ type State =
   | { phase: 'hidden' }
   | { phase: 'ready'; loggedIn: boolean; saved: boolean; comments: Comment[] };
 
-function avatarBg(u: string): string {
-  const gs = ['linear-gradient(135deg,#6366f1,#8b5cf6)', 'linear-gradient(135deg,#ec4899,#8b5cf6)', 'linear-gradient(135deg,#f97316,#ef4444)', 'linear-gradient(135deg,#10b981,#3b82f6)', 'linear-gradient(135deg,#f59e0b,#f97316)', 'linear-gradient(135deg,#14b8a6,#06b6d4)', 'linear-gradient(135deg,#3b82f6,#6366f1)', 'linear-gradient(135deg,#ef4444,#f97316)'];
-  let h = 0; for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff; return gs[Math.abs(h) % gs.length];
-}
 function timeAgo(iso: string) {
   const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
   if (s < 60) return `${s}sn`;
@@ -144,8 +141,8 @@ export default function ArticleDiscussion({ slug }: { slug: string }) {
           <p className="as-empty">İlk yorumu sen yaz ✍️</p>
         ) : st.comments.map(c => (
           <div key={c.id} className="as-c">
-            <Link href={`/u/${c.username}`} className="as-c-av" style={{ background: c.avatar ? undefined : avatarBg(c.username || '?') }}>
-              {c.avatar ? <Img src={c.avatar} alt="" fixedWidth={64} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} /> : (c.display_name?.[0] ?? '?').toUpperCase()}
+            <Link href={`/u/${c.username}`} className="as-c-av">
+              <Img src={avatarSrc(c.username, c.avatar)} alt="" fixedWidth={64} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </Link>
             <div className="as-c-body">
               <div className="as-c-meta">

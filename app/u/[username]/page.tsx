@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { db, getMe } from '@/lib/supabase/server';
 import { breadcrumbJsonLd, jsonLdScript } from '@/lib/seo';
+import { bannerGradient } from '@/lib/avatar';
 import UserProfileClient from './UserProfileClient';
 
 export const dynamic = 'force-dynamic';
@@ -37,11 +38,6 @@ export async function generateMetadata({ params }: { params: Promise<{ username:
     openGraph: { type: 'profile', title: `${title} · Basements`, description, url: path, images: ['/opengraph-image'] },
     twitter: { card: 'summary_large_image', title: `${title} · Basements`, description },
   };
-}
-
-function avatarBg(u: string): string {
-  const gs = ['linear-gradient(135deg,#6366f1,#8b5cf6)','linear-gradient(135deg,#ec4899,#8b5cf6)','linear-gradient(135deg,#f97316,#ef4444)','linear-gradient(135deg,#10b981,#3b82f6)','linear-gradient(135deg,#f59e0b,#f97316)','linear-gradient(135deg,#14b8a6,#06b6d4)','linear-gradient(135deg,#3b82f6,#6366f1)','linear-gradient(135deg,#ef4444,#f97316)'];
-  let h = 0; for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff; return gs[Math.abs(h) % gs.length];
 }
 
 function calcAge(bd: string | null): number | null {
@@ -166,7 +162,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
         birthdate: null, // ham DOB'yi istemciye SIZDIRMA — yaş ayrı `age` prop'uyla gidiyor
         interests: (profileUser as any).interests ?? [],
       }}
-      bg={avatarBg(profileUser.username)}
+      bg={bannerGradient(profileUser.username)}
       age={calcAge((profileUser as any).birthdate ?? null)}
       followersCount={followersRes.count ?? 0}
       followingCount={followingRes.count ?? 0}

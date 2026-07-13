@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Img from '@/app/components/Img';
 import { celebrate } from '@/lib/confetti';
+import { avatarSrc } from '@/lib/avatar';
 
 type Candidate = {
   id: number;
@@ -22,32 +23,13 @@ type MatchUser = { id: number; username: string; display_name: string; avatar: s
 type MatchRow = { id: number | string; conversationId: number | null; user: MatchUser };
 type Me = { id: number; username: string; display_name: string; avatar: string; interests: string[] };
 
-const DEFAULT_AVATAR = '/avatars/default.png';
-const hasAvatar = (a?: string | null) => !!a && a !== DEFAULT_AVATAR;
-const initial = (name: string) => (name?.[0] ?? '?').toUpperCase();
-
-// Avatar yoksa kullanici adindan stabil bir gradyan uret (discover/messages ile ayni his).
-function avatarBg(u: string) {
-  const gs = [
-    'linear-gradient(135deg,#6366f1,#8b5cf6)', 'linear-gradient(135deg,#ec4899,#8b5cf6)',
-    'linear-gradient(135deg,#f97316,#ef4444)', 'linear-gradient(135deg,#10b981,#3b82f6)',
-    'linear-gradient(135deg,#f59e0b,#f97316)', 'linear-gradient(135deg,#14b8a6,#06b6d4)',
-    'linear-gradient(135deg,#3b82f6,#6366f1)', 'linear-gradient(135deg,#ef4444,#f97316)',
-  ];
-  let h = 0;
-  for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff;
-  return gs[Math.abs(h) % gs.length];
-}
-
 // Kart icerigi — hem ust (suruklenebilir) hem arka plan kartlari ayni gorseli kullanir.
 function CardInner({ user, myInterests }: { user: Candidate; myInterests: string[] }) {
   const interests = Array.isArray(user.interests) ? user.interests : [];
   return (
     <>
-      <div className="match-card-photo" style={hasAvatar(user.avatar) ? undefined : { background: avatarBg(user.username) }}>
-        {hasAvatar(user.avatar)
-          ? <Img src={user.avatar} alt={user.display_name} fixedWidth={640} style={{ width: '100%', height: '100%', objectFit: 'cover' }} draggable={false} />
-          : <span className="match-card-initial">{initial(user.display_name)}</span>}
+      <div className="match-card-photo">
+        <Img src={avatarSrc(user.username, user.avatar)} alt="" fixedWidth={640} style={{ width: '100%', height: '100%', objectFit: 'cover' }} draggable={false} />
         <div className="match-card-gradient" />
         <div className="match-card-meta">
           <h3>{user.display_name}{user.age ? <span className="match-card-age">, {user.age}</span> : null}</h3>
@@ -195,10 +177,8 @@ export default function EslesmeClient({ me }: { me: Me }) {
         <div className="match-strip" aria-label="Eşleşmelerin">
           {matches.map((m) => (
             <button key={m.user.id} className="match-strip-item" onClick={() => router.push('/messages')} title={m.user.display_name}>
-              <span className="match-strip-avatar" style={hasAvatar(m.user.avatar) ? undefined : { background: avatarBg(m.user.username) }}>
-                {hasAvatar(m.user.avatar)
-                  ? <Img src={m.user.avatar} alt="" fixedWidth={96} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  : initial(m.user.display_name)}
+              <span className="match-strip-avatar">
+                <Img src={avatarSrc(m.user.username, m.user.avatar)} alt="" fixedWidth={96} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </span>
               <span className="match-strip-name">{m.user.display_name.split(' ')[0]}</span>
             </button>
@@ -260,16 +240,12 @@ export default function EslesmeClient({ me }: { me: Me }) {
           <div className="match-modal" onClick={(e) => e.stopPropagation()}>
             <div className="match-modal-title">Eşleştiniz!</div>
             <div className="match-modal-avatars">
-              <span className="match-modal-avatar" style={hasAvatar(me.avatar) ? undefined : { background: avatarBg(me.username) }}>
-                {hasAvatar(me.avatar)
-                  ? <Img src={me.avatar} alt="" fixedWidth={160} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  : initial(me.display_name)}
+              <span className="match-modal-avatar">
+                <Img src={avatarSrc(me.username, me.avatar)} alt="" fixedWidth={160} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </span>
               <span className="match-modal-heart">♥</span>
-              <span className="match-modal-avatar" style={hasAvatar(matched.user.avatar) ? undefined : { background: avatarBg(matched.user.username) }}>
-                {hasAvatar(matched.user.avatar)
-                  ? <Img src={matched.user.avatar} alt="" fixedWidth={160} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  : initial(matched.user.display_name)}
+              <span className="match-modal-avatar">
+                <Img src={avatarSrc(matched.user.username, matched.user.avatar)} alt="" fixedWidth={160} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </span>
             </div>
             <p className="match-modal-sub">Sen ve <b>{matched.user.display_name}</b> birbirinizi beğendiniz.</p>

@@ -33,20 +33,6 @@ export const metadata: Metadata = {
   },
 };
 
-function avatarBg(u: string): string {
-  const gs = [
-    'linear-gradient(135deg,#6366f1,#8b5cf6)',
-    'linear-gradient(135deg,#1db954,#1ed760)',
-    'linear-gradient(135deg,#ec4899,#8b5cf6)',
-    'linear-gradient(135deg,#f97316,#ef4444)',
-    'linear-gradient(135deg,#14b8a6,#06b6d4)',
-    'linear-gradient(135deg,#3b82f6,#6366f1)',
-  ];
-  let h = 0;
-  for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff;
-  return gs[Math.abs(h) % gs.length];
-}
-
 export default async function MuzikPage() {
   const { me } = await getMe();
 
@@ -62,7 +48,6 @@ export default async function MuzikPage() {
     username:     (r.users?.username     ?? '') as string,
     display_name: (r.users?.display_name ?? '') as string,
     avatar:       (r.users?.avatar ?? null) as string | null,
-    avatarBg:     avatarBg(r.users?.username ?? 'a'),
   }));
 
   const youtubeItems = (ytRaw ?? []).map((r: any) => ({
@@ -75,7 +60,6 @@ export default async function MuzikPage() {
     username:     (r.users?.username     ?? '') as string,
     display_name: (r.users?.display_name ?? '') as string,
     avatar:       (r.users?.avatar ?? null) as string | null,
-    avatarBg:     avatarBg(r.users?.username ?? 'a'),
   }));
 
   return (

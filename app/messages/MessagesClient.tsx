@@ -5,9 +5,10 @@ import Link from 'next/link';
 import { getSupa } from '@/lib/supabase/client';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 import Img from '@/app/components/Img';
+import { avatarSrc } from '@/lib/avatar';
 
 interface OtherUser { id: number; username: string; display_name: string; avatar: string | null; }
-interface Conversation { id: number; otherUser: OtherUser; lastMessage: any; unreadCount: number; avatarBg: string; lastTimeAgo: string; }
+interface Conversation { id: number; otherUser: OtherUser; lastMessage: any; unreadCount: number; lastTimeAgo: string; }
 interface Message { id: number; content: string; sender_id: number; created_at: string; sender?: any; }
 interface Me { id: number; username: string; display_name: string; avatar: string; }
 
@@ -16,10 +17,6 @@ interface Props {
   me: Me;
 }
 
-function avatarBg(u: string) {
-  const cs = ['linear-gradient(135deg,#667eea,#764ba2)','linear-gradient(135deg,#f093fb,#f5576c)','linear-gradient(135deg,#4facfe,#00f2fe)','linear-gradient(135deg,#43e97b,#38f9d7)','linear-gradient(135deg,#fa709a,#fee140)','linear-gradient(135deg,#a18cd1,#fbc2eb)','linear-gradient(135deg,#fda085,#f6d365)','linear-gradient(135deg,#96fbc4,#f9f586)'];
-  let h = 0; for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff; return cs[Math.abs(h) % cs.length];
-}
 function timeStr(iso: string) { const d = new Date(iso); return d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }); }
 function dayLabel(iso: string) {
   const d = new Date(iso), now = new Date();
@@ -212,7 +209,7 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
     const { id } = await res.json();
     if (id) {
       if (!convs.find(c => c.id === id)) {
-        setConvs(prev => [{ id, otherUser, lastMessage: null, unreadCount: 0, avatarBg: avatarBg(username), lastTimeAgo: '' }, ...prev]);
+        setConvs(prev => [{ id, otherUser, lastMessage: null, unreadCount: 0, lastTimeAgo: '' }, ...prev]);
       }
       openConv(id, otherUser);
     }
@@ -238,8 +235,8 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
     msgElements.push(
       <div key={m.id} style={{ display: 'flex', alignItems: 'flex-end', gap: 6, maxWidth: '72%', alignSelf: mine ? 'flex-end' : 'flex-start', flexDirection: mine ? 'row-reverse' : 'row' }}>
         {!mine && (
-          <div style={{ width: 24, height: 24, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 700, color: '#fff', background: activeOtherUser ? avatarBg(activeOtherUser.username) : '#555', overflow: 'hidden' }}>
-            {activeOtherUser?.avatar ? <Img src={activeOtherUser.avatar} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (activeOtherUser?.display_name[0].toUpperCase() ?? '?')}
+          <div style={{ width: 24, height: 24, borderRadius: '50%', flexShrink: 0, overflow: 'hidden' }}>
+            <Img src={avatarSrc(activeOtherUser?.username, activeOtherUser?.avatar)} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
         )}
         {isGif ? (
@@ -276,8 +273,8 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
           ) : convs.map(c => (
             <button key={c.id} onClick={() => openConv(c.id, c.otherUser)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', width: '100%', background: activeConvId === c.id ? 'rgba(212,165,100,0.07)' : 'none', border: 'none', cursor: 'pointer', textAlign: 'left', transition: 'background 0.15s', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
               <div style={{ position: 'relative', flexShrink: 0 }}>
-                <div style={{ width: 46, height: 46, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '1.1rem', color: '#fff', background: c.avatarBg, overflow: 'hidden' }}>
-                  {c.otherUser.avatar ? <Img src={c.otherUser.avatar} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : c.otherUser.display_name[0].toUpperCase()}
+                <div style={{ width: 46, height: 46, borderRadius: '50%', overflow: 'hidden' }}>
+                  <Img src={avatarSrc(c.otherUser.username, c.otherUser.avatar)} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
                 {c.unreadCount > 0 && <span style={{ position: 'absolute', top: 1, right: 1, width: 11, height: 11, borderRadius: '50%', background: 'var(--color-accent)', border: '2px solid #0f0e0d' }} />}
               </div>
@@ -309,8 +306,8 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
               <button onClick={() => { setPanelOpen(false); setActiveConvId(null); }} style={{ display: 'none', background: 'none', border: 'none', color: 'var(--color-accent)', cursor: 'pointer', padding: 4, borderRadius: '50%', alignItems: 'center' }} className="dm-back-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m15 18-6-6 6-6"/></svg>
               </button>
-              <div style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, background: activeOtherUser ? avatarBg(activeOtherUser.username) : '#333', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#fff', fontSize: '1rem', overflow: 'hidden' }}>
-                {activeOtherUser?.avatar ? <Img src={activeOtherUser.avatar} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (activeOtherUser?.display_name[0].toUpperCase() ?? '?')}
+              <div style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, overflow: 'hidden' }}>
+                <Img src={avatarSrc(activeOtherUser?.username, activeOtherUser?.avatar)} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <Link href={`/u/${activeOtherUser?.username}`} style={{ fontWeight: 700, fontSize: '0.95rem', color: '#e8e0d8', textDecoration: 'none' }}>{activeOtherUser?.display_name}</Link>
@@ -368,8 +365,8 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
               {searchResults.length === 0 && searchQ && <p style={{ padding: '12px', color: '#666', fontSize: '0.85rem' }}>Kullanıcı bulunamadı</p>}
               {searchResults.map((u: any) => (
                 <div key={u.id} role="button" tabIndex={0} aria-label={`${u.display_name ?? u.username} ile konuşma başlat`} onClick={() => startConv(u.username, { id: u.id, username: u.username, display_name: u.display_name ?? u.username, avatar: u.avatar ?? null })} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); startConv(u.username, { id: u.id, username: u.username, display_name: u.display_name ?? u.username, avatar: u.avatar ?? null }); } }} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 4px', cursor: 'pointer', borderRadius: 12, transition: 'background 0.15s' }} onMouseOver={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')} onMouseOut={e => (e.currentTarget.style.background = 'transparent')}>
-                  <div style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.9rem', color: '#fff', background: avatarBg(u.username), overflow: 'hidden' }}>
-                    {u.avatar ? <Img src={u.avatar} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (u.display_name ?? u.username)[0].toUpperCase()}
+                  <div style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, overflow: 'hidden' }}>
+                    <Img src={avatarSrc(u.username, u.avatar)} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
                   <div>
                     <div style={{ fontWeight: 600, fontSize: '0.88rem', color: '#e8e0d8' }}>{u.display_name ?? u.username}</div>

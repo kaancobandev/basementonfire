@@ -1,6 +1,7 @@
 'use client';
 
 import Img from '@/app/components/Img';
+import { avatarSrc } from '@/lib/avatar';
 import MediaCarousel, { MultiBadge, AudioThumb, MusicBadge } from '@/app/components/MediaCarousel';
 import { useIsMobile } from '@/lib/useIsMobile';
 import { factMediaList } from '@/lib/types';
@@ -21,7 +22,6 @@ interface Post {
   created_at: string;
   display_name: string;
   username: string;
-  avatarBg: string;
   media?: { url: string; type: 'image' | 'video' }[] | null;
 }
 
@@ -190,9 +190,9 @@ export default function BookmarksClient({ initialPosts, meId = null }: Props) {
                 <Link
                   href={`/u/${selected.username}`}
                   onClick={closeLightbox}
-                  style={{ width: 36, height: 36, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '0.85rem', textDecoration: 'none', background: selected.avatarBg }}
+                  style={{ width: 36, height: 36, borderRadius: '50%', flexShrink: 0, textDecoration: 'none', overflow: 'hidden' }}
                 >
-                  {selected.display_name[0].toUpperCase()}
+                  <Img src={avatarSrc(selected.username)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </Link>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <Link
