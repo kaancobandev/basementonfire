@@ -332,7 +332,7 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
             <button
               key={post.id}
               onClick={() => openLightbox(post)}
-              style={{ aspectRatio: '1', overflow: 'hidden', background: 'var(--color-border)', border: 'none', padding: 0, cursor: 'pointer', position: 'relative' }}
+              style={{ aspectRatio: '3/4', overflow: 'hidden', background: 'var(--color-border)', border: 'none', padding: 0, cursor: 'pointer', position: 'relative' }}
               className="hb-cell"
             >
               {post.media_type === 'audio'

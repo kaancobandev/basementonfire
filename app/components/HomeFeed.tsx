@@ -112,6 +112,11 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
   const [svUserIdx, setSvUserIdx] = useState(0);
   const [svStoryIdx, setSvStoryIdx] = useState(0);
   const svTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Geçerli hikayenin efektif süresi (sn). Foto = 5. Video = metadata gelene kadar
+  // geçici 15, sonra Math.min(gerçekSüre, 15). Hem timer'ı hem ilerleme çubuğunu sürer.
+  const [svDuration, setSvDuration] = useState(5);
+  // Timer ile video 'ended' olayının aynı hikayede iki kez ilerletmesini engeller (her hikayede sıfırlanır).
+  const svAdvancedRef = useRef(false);
 
   // Story create modal
   const [createOpen, setCreateOpen] = useState(false);
@@ -163,15 +168,33 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
     closeViewer();
   }
 
+  // Otomatik ilerleme (cap timer + video 'ended'): aynı hikayede yalnızca bir kez çalışır.
+  function autoAdvance() {
+    if (svAdvancedRef.current) return;
+    svAdvancedRef.current = true;
+    advanceStory(1);
+  }
+
+  // Hikaye değişince: çifte-ilerleme kilidini aç ve süreyi sıfırla
+  // (foto 5s; video, metadata gelene kadar geçici 15s).
   useEffect(() => {
     if (!viewerOpen) return;
-    const u = allStoryUsers[svUserIdx];
-    const s = u?.stories[svStoryIdx];
+    const s = allStoryUsers[svUserIdx]?.stories[svStoryIdx];
+    if (!s) return;
+    svAdvancedRef.current = false;
+    setSvDuration(s.mediaType === 'video' ? 15 : 5);
+  }, [viewerOpen, svUserIdx, svStoryIdx]);
+
+  // svDuration hem ilerleme çubuğunu hem bu timer'ı sürer; metadata süreyi
+  // güncelleyince (video) timer yeniden kurulur.
+  useEffect(() => {
+    if (!viewerOpen) return;
+    const s = allStoryUsers[svUserIdx]?.stories[svStoryIdx];
     if (!s) return;
     clearSvTimer();
-    svTimerRef.current = setTimeout(() => advanceStory(1), s.mediaType === 'video' ? 15000 : 5000);
+    svTimerRef.current = setTimeout(autoAdvance, svDuration * 1000);
     return clearSvTimer;
-  }, [viewerOpen, svUserIdx, svStoryIdx]);
+  }, [viewerOpen, svUserIdx, svStoryIdx, svDuration]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -566,14 +589,14 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
       {viewerOpen && currentSvUser && currentSvStory && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={e => { if (e.target === e.currentTarget) closeViewer(); }}>
           <div style={{ position: 'absolute', inset: 0, backgroundImage: currentSvStory.mediaType === 'image' ? `url(${currentSvStory.mediaUrl})` : undefined, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(30px) brightness(0.3)', transform: 'scale(1.1)', transition: 'background-image 0.3s' }} />
-          <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 420, height: '100dvh', maxHeight: 780, display: 'flex', flexDirection: 'column', borderRadius: 16, overflow: 'hidden', background: '#000' }}>
+          <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 'min(440px, calc(96vh * 9 / 16))', maxHeight: '96vh', aspectRatio: '9 / 16', display: 'flex', flexDirection: 'column', borderRadius: 16, overflow: 'hidden', background: '#000' }}>
             {/* Top bar */}
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10, padding: '10px 12px 8px', background: 'linear-gradient(to bottom, rgba(0,0,0,0.6), transparent)' }}>
               <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
                 {currentSvUser.stories.map((_, i) => (
                   <div key={i} style={{ flex: 1, height: '2.5px', borderRadius: '9999px', background: i < svStoryIdx ? '#fff' : 'rgba(255,255,255,0.3)', overflow: 'hidden', position: 'relative' }}>
                     {i === svStoryIdx && (
-                      <div style={{ position: 'absolute', inset: 0, background: '#fff', transformOrigin: 'left', animation: `sv-progress ${currentSvStory.mediaType === 'video' ? '15s' : '5s'} linear forwards` }} />
+                      <div key={svDuration} style={{ position: 'absolute', inset: 0, background: '#fff', transformOrigin: 'left', animation: `sv-progress ${svDuration}s linear forwards` }} />
                     )}
                   </div>
                 ))}
@@ -594,15 +617,22 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
             {/* Media */}
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000', overflow: 'hidden' }}>
               {currentSvStory.mediaType === 'video'
-                ? <video key={currentSvStory.mediaUrl} src={currentSvStory.mediaUrl} autoPlay muted playsInline style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
-                : <Img key={currentSvStory.mediaUrl} src={currentSvStory.mediaUrl} alt="" sizes="(max-width:520px) 100vw, 460px" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                ? <video
+                    key={currentSvStory.mediaUrl}
+                    src={currentSvStory.mediaUrl}
+                    autoPlay muted playsInline
+                    onLoadedMetadata={e => { const d = e.currentTarget.duration; if (Number.isFinite(d) && d > 0) setSvDuration(Math.min(d, 15)); }}
+                    onEnded={autoAdvance}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                : <Img key={currentSvStory.mediaUrl} src={currentSvStory.mediaUrl} alt="" sizes="(max-width:520px) 100vw, 460px" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               }
             </div>
             {/* Touch zones — klavye/ekran-okuyucu için <button> + aria-label */}
             <button type="button" aria-label="Önceki hikaye" onClick={() => advanceStory(-1)} style={{ position: 'absolute', top: 60, bottom: 0, left: 0, width: '40%', cursor: 'pointer', zIndex: 5, background: 'none', border: 'none', padding: 0 }} />
             <button type="button" aria-label="Sonraki hikaye" onClick={() => advanceStory(1)} style={{ position: 'absolute', top: 60, bottom: 0, right: 0, width: '40%', cursor: 'pointer', zIndex: 5, background: 'none', border: 'none', padding: 0 }} />
           </div>
-          <style>{`@keyframes sv-progress { to { transform: scaleX(1); } }`}</style>
+          <style>{`@keyframes sv-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }`}</style>
         </div>
       )}
 
@@ -620,12 +650,12 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
               role="button"
               tabIndex={0}
               aria-label="Fotoğraf veya video seç"
-              style={{ border: '2px dashed rgba(255,255,255,0.15)', borderRadius: 16, height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', textAlign: 'center', overflow: 'hidden', position: 'relative', color: '#ccc', transition: 'border-color 0.2s' }}
+              style={{ border: '2px dashed rgba(255,255,255,0.15)', borderRadius: 16, width: '100%', maxWidth: 'calc(50vh * 9 / 16)', aspectRatio: '9 / 16', maxHeight: '50vh', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', textAlign: 'center', overflow: 'hidden', position: 'relative', color: '#ccc', transition: 'border-color 0.2s' }}
               onClick={() => document.getElementById('story-file-input')?.click()}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); document.getElementById('story-file-input')?.click(); } }}
             >
               {storyPreviewUrl ? (
-                storyFile?.type.startsWith('video/') ? <video src={storyPreviewUrl} style={{ width: '100%', height: '100%', objectFit: 'contain' }} controls /> : <img src={storyPreviewUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                storyFile?.type.startsWith('video/') ? <video src={storyPreviewUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} controls /> : <img src={storyPreviewUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
                 <div>
                   <p style={{ fontWeight: 600, marginBottom: 4 }}>Fotoğraf veya video seç</p>

@@ -107,7 +107,7 @@ export default function BookmarksClient({ initialPosts, meId = null }: Props) {
               onClick={() => openLightbox(post)}
               aria-label={post.caption}
               style={{
-                aspectRatio: '1',
+                aspectRatio: '3/4',
                 overflow: 'hidden',
                 background: 'var(--color-border)',
                 border: 'none',

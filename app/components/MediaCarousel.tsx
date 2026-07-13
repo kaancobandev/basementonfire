@@ -7,7 +7,12 @@ import { splitMedia, type MediaItem } from '@/lib/types';
 // Lightbox medya sütunu artık her yüzeyde belirli yükseklikte → %100 ebeveyni doldurur
 // (masaüstünde 90vh'lik sütun = eski görünüm; mobil dikey istifte doğru ölçü).
 const containStyle: React.CSSProperties = { maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' };
-const feedSingleStyle: React.CSSProperties = { width: '100%', maxHeight: 600, objectFit: 'cover', display: 'block' };
+// Feed: tüm slaytların paylaştığı en–boy oranı. Saklanan boyut olmadığından ilk
+// görsel yüklenince ölçülür; ölçülene dek 1:1 yer tutucu (mevcut kare görünümle
+// aynı → ilk boyamada zıplama olmaz; gerçek 4:5 gönderiler yüklenince uzar).
+const FEED_DEFAULT_RATIO = 1;   // 1:1 yer tutucu (ölçülene dek)
+const FEED_MIN_RATIO = 0.8;     // 4:5 dikey (en dar) — Instagram sınırı
+const FEED_MAX_RATIO = 1.91;    // 1.91:1 yatay (en geniş) — Instagram sınırı
 const navBtn = (side: 'left' | 'right'): React.CSSProperties => ({
   position: 'absolute', top: '50%', transform: 'translateY(-50%)',
   ...(side === 'left' ? { left: 8 } : { right: 8 }),
@@ -137,10 +142,41 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
   // Boş/undefined → alt='' kalır ama title/aria-label hiç eklenmez (geçersiz "undefined" önlenir).
   const caption = captionRaw || undefined;
   const [idx, setIdx] = useState(0);
+  // Feed en–boy oranı: ilk görselden ölçülür (SSR'da saklı boyut yok).
+  // null = henüz ölçülmedi → 1:1 yer tutucu.
+  const [feedRatio, setFeedRatio] = useState<number | null>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const { visuals, audio } = splitMedia(media);
+
+  // Feed en–boy oranını İLK görselden ölç (eski gönderilerde saklanan boyut yok).
+  // Ölçülen oran [0.8 .. 1.91]'e kısıtlanır; tüm slaytlar bu tek oranı paylaşır
+  // (object-fit:cover doldurur) — Instagram gibi. Yalnız ilk ölçüm sabitlenir.
+  const feedAspect = String(feedRatio ?? FEED_DEFAULT_RATIO);
+  const measureFeedRatio = (w: number, h: number) => {
+    if (!w || !h) return;
+    const r = Math.min(FEED_MAX_RATIO, Math.max(FEED_MIN_RATIO, w / h));
+    setFeedRatio(prev => (prev === null ? r : prev));
+  };
+  const onFeedImgLoad = (e: React.SyntheticEvent<HTMLImageElement>) =>
+    measureFeedRatio(e.currentTarget.naturalWidth, e.currentTarget.naturalHeight);
+  const onFeedVideoMeta = (e: React.SyntheticEvent<HTMLVideoElement>) =>
+    measureFeedRatio(e.currentTarget.videoWidth, e.currentTarget.videoHeight);
+
+  // Önbellekteki (zaten yüklenmiş) ilk görselin onLoad'u hydration listener eklenmeden
+  // ateşlenip kaçabilir (SSR yarışı) → mount'ta complete ise oranı hemen ölç.
+  // prev===null kilidi (measureFeedRatio) onLoad ile çift ölçümü zaten engeller.
+  useEffect(() => {
+    if (variant !== 'feed') return;
+    const el = containerRef.current?.querySelector('img, video');
+    if (el instanceof HTMLImageElement) {
+      if (el.complete && el.naturalWidth) measureFeedRatio(el.naturalWidth, el.naturalHeight);
+    } else if (el instanceof HTMLVideoElement) {
+      if (el.readyState >= 1 && el.videoWidth) measureFeedRatio(el.videoWidth, el.videoHeight);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Görsel yok → ses-only kart, yoksa null
   if (visuals.length === 0) {
@@ -151,27 +187,28 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
   if (visuals.length === 1) {
     const m = visuals[0];
 
-    // Müzik yoksa → mevcut görünüm (drop-in, hiç değişmez)
-    if (!audio) {
-      const st = variant === 'feed' ? feedSingleStyle : containStyle;
-      return m.type === 'video'
-        ? <video src={m.url} controls playsInline title={caption} aria-label={caption} style={st} />
-        : <Img src={m.url} alt={caption || ''} sizes={sizes} style={st} />;
-    }
-
-    // Tek görsel + müzik → sarmalayıcı + arka plan müziği (sağ alt sustur/aç)
+    // Feed: paylaşılan (ölçülen) oran — kare zorlaması yok; object-fit:cover doldurur.
+    // İlk görsel yüklenince oran gerçek değere oturur (eski gönderilerde de çalışır).
     if (variant === 'feed') {
-      // Feed: kare kapak (çoklu karuselle tutarlı, yükseklik çökmesi olmaz)
       const st: React.CSSProperties = { width: '100%', height: '100%', objectFit: 'cover', display: 'block' };
       return (
-        <div ref={containerRef} style={{ position: 'relative', width: '100%', aspectRatio: '1', overflow: 'hidden', background }}>
+        <div ref={containerRef} style={{ position: 'relative', width: '100%', aspectRatio: feedAspect, maxHeight: '100%', overflow: 'hidden', background }}>
           {m.type === 'video'
-            ? <video src={m.url} controls playsInline title={caption} aria-label={caption} style={st} />
-            : <Img src={m.url} alt={caption || ''} sizes={sizes} style={st} />}
-          <MusicLayer url={audio} targetRef={containerRef} />
+            ? <video src={m.url} controls playsInline title={caption} aria-label={caption} onLoadedMetadata={onFeedVideoMeta} style={st} />
+            : <Img src={m.url} alt={caption || ''} sizes={sizes} onLoad={onFeedImgLoad} style={st} />}
+          {audio && <MusicLayer url={audio} targetRef={containerRef} />}
         </div>
       );
     }
+
+    // Lightbox — müzik yoksa mevcut görünüm (drop-in, hiç değişmez)
+    if (!audio) {
+      return m.type === 'video'
+        ? <video src={m.url} controls playsInline title={caption} aria-label={caption} style={containStyle} />
+        : <Img src={m.url} alt={caption || ''} sizes={sizes} style={containStyle} />;
+    }
+
+    // Lightbox + müzik → sarmalayıcı + arka plan müziği (sağ alt sustur/aç)
     return (
       <div ref={containerRef} style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {m.type === 'video'
@@ -196,7 +233,7 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
   }
 
   const containerStyle: React.CSSProperties = variant === 'feed'
-    ? { position: 'relative', width: '100%', aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', background, overflow: 'hidden' }
+    ? { position: 'relative', width: '100%', aspectRatio: feedAspect, maxHeight: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background, overflow: 'hidden' }
     : { position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background };
   const mediaStyle: React.CSSProperties = variant === 'feed'
     ? { width: '100%', height: '100%', objectFit: 'cover', display: 'block' }
@@ -213,8 +250,8 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
         {visuals.map((m, i) => (
           <div key={i} style={{ flex: '0 0 100%', width: '100%', height: '100%', scrollSnapAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {m.type === 'video'
-              ? <video src={m.url} controls playsInline title={caption} aria-label={caption} style={mediaStyle} />
-              : <Img src={m.url} alt={caption || ''} sizes={sizes} style={mediaStyle} />}
+              ? <video src={m.url} controls playsInline title={caption} aria-label={caption} onLoadedMetadata={variant === 'feed' && i === 0 ? onFeedVideoMeta : undefined} style={mediaStyle} />
+              : <Img src={m.url} alt={caption || ''} sizes={sizes} onLoad={variant === 'feed' && i === 0 ? onFeedImgLoad : undefined} style={mediaStyle} />}
           </div>
         ))}
       </div>
