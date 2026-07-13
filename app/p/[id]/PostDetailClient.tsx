@@ -108,8 +108,8 @@ export default function PostDetailClient({ post, initialComments, initialLiked, 
 
       <div style={{ maxWidth: 600, margin: '0 auto', width: '100%' }}>
         {/* Medya */}
-        <div style={{ width: '100%', height: '70vh', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-          <MediaCarousel media={factMediaList(post)} caption={post.caption} sizes="(max-width:620px) 100vw, 600px" />
+        <div style={{ width: '100%', background: '#000', lineHeight: 0 }}>
+          <MediaCarousel media={factMediaList(post)} variant="feed" caption={post.caption} sizes="(max-width:620px) 100vw, 600px" />
         </div>
 
         {/* Yazar */}
