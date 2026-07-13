@@ -29,6 +29,9 @@ const BADGE_BG: Record<ReportTargetType, string> = {
   post: '#6366f1', comment: '#0ea5e9', user: '#f59e0b', article: '#10b981', article_comment: '#8b5cf6',
 };
 
+// Admin olarak doğrudan silinebilen içerik türleri (kullanıcı/makale hariç).
+const DELETABLE = new Set<ReportTargetType>(['post', 'comment', 'article_comment']);
+
 export default function ReportsClient({ items: initial }: { items: QueueItem[] }) {
   const [items, setItems] = useState(initial);
   const [busy, setBusy] = useState<number | null>(null);
@@ -47,6 +50,19 @@ export default function ReportsClient({ items: initial }: { items: QueueItem[] }
       if (!res.ok) { const d = await res.json().catch(() => ({})); toast(d.error ?? 'İşlem başarısız'); return; }
       setItems((prev) => prev.filter((x) => x.id !== id));
       toast(action === 'reviewed' ? 'İncelendi olarak işaretlendi' : 'Şikayet yoksayıldı');
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function removeContent(id: number) {
+    if (!confirm('Bu içerik kalıcı olarak silinsin mi? İşlem geri alınamaz.')) return;
+    setBusy(id);
+    try {
+      const res = await fetch(`/api/reports/${id}/remove-content`, { method: 'POST' });
+      if (!res.ok) { const d = await res.json().catch(() => ({})); toast(d.error ?? 'İçerik silinemedi'); return; }
+      setItems((prev) => prev.filter((x) => x.id !== id));
+      toast('İçerik silindi ve şikayet kapatıldı');
     } finally {
       setBusy(null);
     }
@@ -105,6 +121,9 @@ export default function ReportsClient({ items: initial }: { items: QueueItem[] }
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {r.target.href && (
               <Link href={r.target.href} target="_blank" style={{ padding: '8px 16px', borderRadius: 10, border: '1px solid var(--color-border)', color: 'var(--color-text)', textDecoration: 'none', fontWeight: 700, fontSize: '0.85rem' }}>👁 İçeriği gör</Link>
+            )}
+            {DELETABLE.has(r.targetType) && !r.target.missing && (
+              <button type="button" disabled={busy === r.id} onClick={() => removeContent(r.id)} style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: '#ef4444', color: '#fff', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer' }}>🗑 İçeriği sil</button>
             )}
             <button type="button" disabled={busy === r.id} onClick={() => moderate(r.id, 'reviewed')} style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: '#16a34a', color: '#fff', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer' }}>✓ İncelendi</button>
             <button type="button" disabled={busy === r.id} onClick={() => moderate(r.id, 'dismissed')} style={{ padding: '8px 16px', borderRadius: 10, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer' }}>✕ Yoksay</button>
