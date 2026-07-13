@@ -217,9 +217,15 @@ export function HorizontalTimeline({ heading, kicker = 'ZAMAN ÇİZELGESİ', ite
   useGSAP(() => {
     const track = trackRef.current!, scroller = scrollerRef.current!;
     // Mobil/dokunmatik + hareket-azaltma: pin+scrub scroll-jack yerine yerel yatay
-    // kaydırma (parmakla sağa-sola kaydır). Scroll'u dondurmaz.
-    if (noScrollJack()) { scroller.style.overflowX = 'auto'; return; }
+    // kaydırma (parmakla sağa-sola). Bölüm de 100vh yerine içeriğe göre büzülür
+    // (boş viewport kalmaz, mobil URL çubuğu taşması olmaz).
+    if (noScrollJack()) {
+      scroller.style.overflowX = 'auto';
+      if (tlRef.current) tlRef.current.style.height = 'auto';
+      return;
+    }
     gsap.registerPlugin(ScrollTrigger);
+    track.style.willChange = 'transform'; // yalnız masaüstünde (transform scrub'lanıyor)
     const amount = () => Math.max(0, track.scrollWidth - scroller.clientWidth);
     gsap.to(track, {
       x: () => -amount(), ease: 'none',
@@ -235,7 +241,7 @@ export function HorizontalTimeline({ heading, kicker = 'ZAMAN ÇİZELGESİ', ite
           <h2 className="text-3xl font-bold text-white sm:text-4xl">{heading} <span className="ml-2 align-middle text-sm font-normal text-slate-500">← kaydır →</span></h2>
         </div>
         <div ref={scrollerRef} className="overflow-hidden">
-          <div ref={trackRef} className="flex w-max gap-5 px-6 will-change-transform">
+          <div ref={trackRef} className="flex w-max gap-5 px-6">
             {items.map((t, i) => (
               <article key={t.year + i} className="flex w-[80vw] max-w-sm shrink-0 flex-col rounded-3xl border border-white/10 bg-white/[0.05] p-7 backdrop-blur">
                 <div className="mb-1 font-mono text-5xl font-black" style={{ color: `color-mix(in srgb, ${accent} 90%, transparent)` }}>{String(i + 1).padStart(2, '0')}</div>

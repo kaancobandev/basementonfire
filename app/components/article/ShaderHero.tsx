@@ -81,8 +81,10 @@ export default function ShaderHero({ colors }: { colors?: [Rgb, Rgb, Rgb, Rgb] }
       };
       window.addEventListener('pointermove', onMove, { passive: true });
 
+      let visible = true;
       const start = performance.now();
       const loop = (now: number) => {
+        if (!visible) { raf = 0; return; } // ekran dışı → dur (tam ekran WebGL shader boşuna kasmasın)
         program.uniforms.uTime.value = (now - start) / 1000;
         renderer.render({ scene: mesh });
         raf = requestAnimationFrame(loop);
@@ -90,8 +92,16 @@ export default function ShaderHero({ colors }: { colors?: [Rgb, Rgb, Rgb, Rgb] }
       if (reduce) { program.uniforms.uTime.value = 7; renderer.render({ scene: mesh }); }
       else raf = requestAnimationFrame(loop);
 
+      // Hero uzun makalede unmount olmaz → ekran dışına kayınca shader'ı durdur.
+      const io = reduce ? null : new IntersectionObserver(([e]) => {
+        visible = e.isIntersecting;
+        if (visible && !raf) raf = requestAnimationFrame(loop);
+      }, { rootMargin: '200px' });
+      io?.observe(canvas.parentElement ?? canvas);
+
       return () => {
         cancelAnimationFrame(raf);
+        io?.disconnect();
         window.removeEventListener('resize', resize);
         window.removeEventListener('pointermove', onMove);
         try { gl.getExtension('WEBGL_lose_context')?.loseContext(); } catch {}
