@@ -110,8 +110,9 @@ export default function GeigerCounter() {
   /* ── döngü: Poisson tıklar + çizim ── */
   useEffect(() => {
     refreshScroll(); // modül mount olup yükseklik değişti → pinli çizelgeyi tazele
-    let raf = 0, last = performance.now(), acc = 0;
+    let raf = 0, last = performance.now(), acc = 0, visible = true;
     const loop = (now: number) => {
+      if (!visible) { raf = 0; return; } // ekran dışı → dur (çizim + tık üretimini durdur)
       const s = w.current;
       const dt = Math.min(0.06, (now - last) / 1000);
       last = now;
@@ -177,7 +178,13 @@ export default function GeigerCounter() {
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
+    const io = new IntersectionObserver(([e]) => {
+      visible = e.isIntersecting;
+      if (visible) { last = performance.now(); if (!raf) raf = requestAnimationFrame(loop); }
+      else { const a = audio.current; if (a) a.noiseGain.gain.value = 0; } // ekran dışında cızırtıyı sustur
+    }, { rootMargin: '200px' });
+    if (canvasRef.current) io.observe(canvasRef.current);
+    return () => { cancelAnimationFrame(raf); io.disconnect(); };
   }, []);
 
   /* ── sökülürken sesi kapat ── */

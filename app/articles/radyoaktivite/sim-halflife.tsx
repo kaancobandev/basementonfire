@@ -96,8 +96,9 @@ export default function HalfLifeSim() {
   /* ── döngü ── */
   useEffect(() => {
     refreshScroll(); // modül mount olup yükseklik değişti → pinli çizelgeyi tazele
-    let raf = 0, last = performance.now(), acc = 0;
+    let raf = 0, last = performance.now(), acc = 0, visible = true;
     const loop = (now: number) => {
+      if (!visible) { raf = 0; return; } // ekran dışı → dur (arka planda 60fps çizim = kasma)
       const s = sim.current;
       const dtms = Math.min(64, now - last);
       last = now;
@@ -127,7 +128,12 @@ export default function HalfLifeSim() {
     raf = requestAnimationFrame(loop);
     const onResize = () => draw();
     window.addEventListener('resize', onResize);
-    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', onResize); };
+    const io = new IntersectionObserver(([e]) => {
+      visible = e.isIntersecting;
+      if (visible) { last = performance.now(); if (!raf) raf = requestAnimationFrame(loop); }
+    }, { rootMargin: '200px' });
+    if (canvasRef.current) io.observe(canvasRef.current);
+    return () => { cancelAnimationFrame(raf); io.disconnect(); window.removeEventListener('resize', onResize); };
   }, [draw]);
 
   /* ── eylemler ── */

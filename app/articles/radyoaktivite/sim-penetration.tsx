@@ -51,8 +51,9 @@ export default function PenetrationBox() {
   /* animasyon */
   useEffect(() => {
     refreshScroll(); // modül mount olup yükseklik değişti → pinli çizelgeyi tazele
-    let raf = 0, last = performance.now(), acc = 0;
+    let raf = 0, last = performance.now(), acc = 0, visible = true;
     const loop = (now: number) => {
+      if (!visible) { raf = 0; return; } // ekran dışı → dur (arka planda 60fps çizim = kasma)
       const canvas = canvasRef.current;
       const w = world.current;
       const dt = Math.min(48, now - last) / 1000;
@@ -142,7 +143,12 @@ export default function PenetrationBox() {
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
+    const io = new IntersectionObserver(([e]) => {
+      visible = e.isIntersecting;
+      if (visible) { last = performance.now(); if (!raf) raf = requestAnimationFrame(loop); }
+    }, { rootMargin: '200px' });
+    if (canvasRef.current) io.observe(canvasRef.current);
+    return () => { cancelAnimationFrame(raf); io.disconnect(); };
   }, []);
 
   /* ── engel ekle/çıkar ── */

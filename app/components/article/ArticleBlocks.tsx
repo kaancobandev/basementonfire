@@ -33,6 +33,16 @@ const ThemeCtx = createContext<{ accent: string }>({ accent: '#34d399' });
 const useAccent = () => useContext(ThemeCtx).accent;
 const prefersReduced = () => typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+// Mobil/dokunmatik veya dar ekran (ya da hareket-azaltma): GSAP pin+scrub scroll-jack YAPMA.
+// Mobil tarayıcının adres çubuğu göster/gizle olayı viewport'u değiştirince pinlenmiş
+// bölümün konumu bozuluyor → scroll "birden takılıp kalıyor" ve kasıyor. Masaüstünde
+// (ince pointer + geniş ekran) efekt korunur.
+const noScrollJack = () =>
+  typeof matchMedia === 'undefined'
+  || matchMedia('(prefers-reduced-motion: reduce)').matches
+  || matchMedia('(pointer: coarse)').matches
+  || matchMedia('(max-width: 768px)').matches;
+
 export { ArticleBibliography, type BibItem };
 
 /* ─── Scroll-reveal (blur ile) ─── */
@@ -88,21 +98,24 @@ export function ArticleHero({ title, fullTitle, eyebrow, subtitle, colors, gradi
     const reduce = prefersReduced();
     gsap.registerPlugin(ScrollTrigger);
     const chars = Array.from(heroRef.current!.querySelectorAll<HTMLElement>('.hero-char'));
-    if (!reduce) {
-      gsap.from(chars, { yPercent: 120, opacity: 0, filter: 'blur(12px)', stagger: 0.045, duration: 0.9, ease: 'power3.out', delay: 0.15 });
-      gsap.from('.hero-eyebrow', { opacity: 0, y: 18, duration: 0.8, delay: 0.1 });
-      gsap.from('.hero-sub', { opacity: 0, y: 24, duration: 0.9, delay: 0.55 });
-      const n = chars.length;
-      const tl = gsap.timeline({ scrollTrigger: { trigger: heroRef.current!, start: 'top top', end: '+=92%', pin: true, scrub: 0.6, anticipatePin: 1 } });
-      chars.forEach((c, i) => {
-        const dir = i - (n - 1) / 2;
-        tl.to(c, { xPercent: dir * 55, yPercent: (i % 2 ? -190 : 190), rotation: dir * 22, opacity: 0, ease: 'power2.in' }, 0);
-      });
-      tl.to('.hero-shader', { scale: 1.25, opacity: 0.12, ease: 'none' }, 0)
-        .to('.hero-sub', { opacity: 0, y: -50, ease: 'power1.in' }, 0)
-        .to('.hero-eyebrow', { opacity: 0, ease: 'power1.in' }, 0)
-        .to('.hero-cue', { opacity: 0, ease: 'power1.in' }, 0);
-    }
+    if (reduce) return;
+    // Giriş (yükleme) animasyonları — her cihazda oynar, scroll'a bağlı değil.
+    gsap.from(chars, { yPercent: 120, opacity: 0, filter: 'blur(12px)', stagger: 0.045, duration: 0.9, ease: 'power3.out', delay: 0.15 });
+    gsap.from('.hero-eyebrow', { opacity: 0, y: 18, duration: 0.8, delay: 0.1 });
+    gsap.from('.hero-sub', { opacity: 0, y: 24, duration: 0.9, delay: 0.55 });
+    // Pin+scrub ile parçalanan başlık: YALNIZCA masaüstü. Mobilde pin, scroll'u
+    // dondurup kasmaya yol açıyor → mobilde hero sadece normal kayar (bkz. noScrollJack).
+    if (noScrollJack()) return;
+    const n = chars.length;
+    const tl = gsap.timeline({ scrollTrigger: { trigger: heroRef.current!, start: 'top top', end: '+=92%', pin: true, scrub: 0.6, anticipatePin: 1 } });
+    chars.forEach((c, i) => {
+      const dir = i - (n - 1) / 2;
+      tl.to(c, { xPercent: dir * 55, yPercent: (i % 2 ? -190 : 190), rotation: dir * 22, opacity: 0, ease: 'power2.in' }, 0);
+    });
+    tl.to('.hero-shader', { scale: 1.25, opacity: 0.12, ease: 'none' }, 0)
+      .to('.hero-sub', { opacity: 0, y: -50, ease: 'power1.in' }, 0)
+      .to('.hero-eyebrow', { opacity: 0, ease: 'power1.in' }, 0)
+      .to('.hero-cue', { opacity: 0, ease: 'power1.in' }, 0);
   }, { scope: heroRef });
 
   return (
@@ -202,9 +215,10 @@ export function HorizontalTimeline({ heading, kicker = 'ZAMAN ÇİZELGESİ', ite
   const scrollerRef = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
-    const reduce = prefersReduced();
     const track = trackRef.current!, scroller = scrollerRef.current!;
-    if (reduce) { scroller.style.overflowX = 'auto'; return; }
+    // Mobil/dokunmatik + hareket-azaltma: pin+scrub scroll-jack yerine yerel yatay
+    // kaydırma (parmakla sağa-sola kaydır). Scroll'u dondurmaz.
+    if (noScrollJack()) { scroller.style.overflowX = 'auto'; return; }
     gsap.registerPlugin(ScrollTrigger);
     const amount = () => Math.max(0, track.scrollWidth - scroller.clientWidth);
     gsap.to(track, {
