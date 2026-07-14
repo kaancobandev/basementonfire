@@ -153,11 +153,19 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
 
   const { visuals, audio } = splitMedia(media);
 
-  // Feed en–boy oranını İLK görselden ölç (eski gönderilerde saklanan boyut yok).
-  // Ölçülen oran [0.8 .. 1.91]'e kısıtlanır; tüm slaytlar bu tek oranı paylaşır
-  // (object-fit:cover doldurur) — Instagram gibi. Yalnız ilk ölçüm sabitlenir.
-  const feedAspect = String(feedRatio ?? FEED_DEFAULT_RATIO);
+  // CLS önlemi: ilk görselin w/h boyutu KAYITLIYSA oran SSR'da hesaplanır ve ilk
+  // boyamadan itibaren doğrudur → kutu hiç zıplamaz, tarayıcı ölçmez.
+  const first = visuals[0];
+  const knownRatio = variant === 'feed' && first && first.w && first.h
+    ? Math.min(FEED_MAX_RATIO, Math.max(FEED_MIN_RATIO, first.w / first.h))
+    : null;
+
+  // Feed en–boy oranı FALLBACK yolu (w/h'si olmayan eski kayıtlar): ilk görselden
+  // ölçülür. Ölçülen oran [0.8 .. 1.91]'e kısıtlanır; tüm slaytlar bu tek oranı
+  // paylaşır (object-fit:cover doldurur) — Instagram gibi. Yalnız ilk ölçüm sabitlenir.
+  const feedAspect = String(knownRatio ?? feedRatio ?? FEED_DEFAULT_RATIO);
   const measureFeedRatio = (w: number, h: number) => {
+    if (knownRatio !== null) return; // oran zaten kayıttan geldi, ölçme
     if (!w || !h) return;
     const r = Math.min(FEED_MAX_RATIO, Math.max(FEED_MIN_RATIO, w / h));
     setFeedRatio(prev => (prev === null ? r : prev));

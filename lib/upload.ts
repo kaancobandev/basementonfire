@@ -34,3 +34,30 @@ export async function uploadToStorage(
 
   return { path: sign.path as string, mediaType: sign.mediaType as 'image' | 'video' | 'audio' };
 }
+
+/**
+ * Görsel/videonun piksel boyutlarını YÜKLEME ÖNCESİ tarayıcıda ölçer (CLS önlemi:
+ * w/h medya kaydına yazılır, feed oranı SSR'da hesaplanır — kutu zıplamaz).
+ * Ölçülemezse (ses, bozuk dosya, desteklenmeyen tür) null döner; kayıt w/h'siz
+ * devam eder (istemcide ölçen eski fallback devrede kalır).
+ */
+export function measureMediaDims(file: File): Promise<{ w: number; h: number } | null> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const done = (r: { w: number; h: number } | null) => { URL.revokeObjectURL(url); resolve(r); };
+    if (file.type.startsWith('image/')) {
+      const img = new Image();
+      img.onload = () => done(img.naturalWidth && img.naturalHeight ? { w: img.naturalWidth, h: img.naturalHeight } : null);
+      img.onerror = () => done(null);
+      img.src = url;
+    } else if (file.type.startsWith('video/')) {
+      const v = document.createElement('video');
+      v.preload = 'metadata';
+      v.onloadedmetadata = () => done(v.videoWidth && v.videoHeight ? { w: v.videoWidth, h: v.videoHeight } : null);
+      v.onerror = () => done(null);
+      v.src = url;
+    } else {
+      done(null);
+    }
+  });
+}

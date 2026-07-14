@@ -13,24 +13,33 @@ export default async function MessagesPage() {
   const { me } = await getMe();
   if (!me) redirect('/login');
 
-  const { data: convs } = await db
-    .from('conversations')
-    .select('id, last_message_at, u1:user1_id(id, username, display_name, avatar), u2:user2_id(id, username, display_name, avatar)')
-    .or(`user1_id.eq.${me.id},user2_id.eq.${me.id}`)
-    .order('last_message_at', { ascending: false });
+  // Son mesaj önizlemesi embed ile konuşma BAŞINA 1 satır gelir (PostgREST
+  // foreignTable limit'i lateral join üretir) — eskiden tüm konuşmaların TÜM
+  // mesaj geçmişi indiriliyordu; mesaj sayısı büyüdükçe lineer ağırlaşıyordu.
+  // Naif global .limit() önizlemeleri bozar (denendi, geri alındı) — bu bozmaz:
+  // her konuşma için en yenisi tam olarak seçilir.
+  // Okunmamışlar layout'taki conversations!inner join deseniyle çekilir →
+  // convIds beklenmez, iki sorgu TEK turda paralel koşar.
+  const [{ data: convs }, { data: unread }] = await Promise.all([
+    db.from('conversations')
+      .select('id, last_message_at, u1:user1_id(id, username, display_name, avatar), u2:user2_id(id, username, display_name, avatar), messages(conversation_id, content, sender_id, created_at)')
+      .or(`user1_id.eq.${me.id},user2_id.eq.${me.id}`)
+      .order('last_message_at', { ascending: false })
+      .order('created_at', { foreignTable: 'messages', ascending: false })
+      .limit(1, { foreignTable: 'messages' }),
+    db.from('messages')
+      .select('conversation_id, conversations!inner(id)')
+      .or(`user1_id.eq.${me.id},user2_id.eq.${me.id}`, { foreignTable: 'conversations' })
+      .neq('sender_id', me.id)
+      .eq('is_read', false),
+  ]);
 
-  const convIds = (convs ?? []).map((c: any) => c.id);
   let lastMsgMap: Record<number, any> = {};
   let unreadMap: Record<number, number> = {};
-
-  if (convIds.length > 0) {
-    const [{ data: allMsgs }, { data: unread }] = await Promise.all([
-      db.from('messages').select('conversation_id, content, sender_id, created_at').in('conversation_id', convIds).order('created_at', { ascending: false }),
-      db.from('messages').select('conversation_id').in('conversation_id', convIds).neq('sender_id', me.id).eq('is_read', false),
-    ]);
-    for (const m of allMsgs ?? []) { if (!lastMsgMap[m.conversation_id]) lastMsgMap[m.conversation_id] = m; }
-    for (const m of unread ?? []) { unreadMap[m.conversation_id] = (unreadMap[m.conversation_id] ?? 0) + 1; }
+  for (const c of (convs ?? []) as any[]) {
+    if (c.messages?.[0]) lastMsgMap[c.id] = c.messages[0];
   }
+  for (const m of (unread ?? []) as any[]) { unreadMap[m.conversation_id] = (unreadMap[m.conversation_id] ?? 0) + 1; }
 
   const conversations = (convs ?? []).map((c: any) => ({
     id: c.id,

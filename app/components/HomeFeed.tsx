@@ -14,7 +14,12 @@ import DailyQuestion from './DailyQuestion';
 import DidYouKnowCard from './DidYouKnowCard';
 import ReportButton from './ReportButton';
 import { uploadToStorage } from '@/lib/upload';
-import { motion, AnimatePresence } from 'framer-motion';
+import { LazyMotion, m, AnimatePresence } from 'framer-motion';
+
+// framer-motion'un animasyon çekirdeği (domAnimation) async chunk olarak iner:
+// senkron bundle'da yalnız minik `m` + LazyMotion kalır (motion importu tüm
+// çekirdeği ana sayfa first-load JS'ine gömüyordu). Davranış birebir aynı.
+const loadMotionFeatures = () => import('./motionFeatures').then(mod => mod.default);
 
 interface StoryItem { id: number; mediaUrl: string; mediaType: string; createdAt: string; }
 interface StoryUser { userId: number; username: string; displayName: string; avatar: string | null; stories: StoryItem[]; }
@@ -285,7 +290,8 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
   }
 
   return (
-    <>
+    // strict: motion.* kaçağı derlemede değil çalışmada hata verir — hepsi m.* olmalı
+    <LazyMotion features={loadMotionFeatures} strict>
       <main className="main-content">
         {/* Hero banner — yalnızca giriş yapmamış ziyaretçiye (onboarding/tanıtım).
             Giriş yapmış kullanıcı için gereksiz dikey alan işgali → gizli. */}
@@ -381,14 +387,14 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
               const isFirstMedia = index === feedItems.findIndex((it: any) => it.kind === 'fact');
               if (item.kind === 'dyk') {
                 return (
-                  <motion.div
+                  <m.div
                     key={`dyk-${item.id}`}
                     initial={{ opacity: 0, y: 28 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: Math.min(index * 0.07, 0.5), ease: 'easeOut' }}
                   >
                     <DidYouKnowCard item={item} />
-                  </motion.div>
+                  </m.div>
                 );
               }
               if (item.kind === 'fact') {
@@ -396,7 +402,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                 const likes = factLikes[item.id] ?? item.likes;
                 const reposted = repostedFacts.has(item.id);
                 return (
-                  <motion.article
+                  <m.article
                     key={`fact-${item.id}`}
                     style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, overflow: 'hidden' }}
                     initial={{ opacity: 0, y: 28 }}
@@ -417,22 +423,22 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                       <MediaCarousel media={factMediaList(item)} variant="feed" caption={item.caption ?? ''} sizes="(max-width:620px) 100vw, 600px" priority={isFirstMedia} />
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 10px 4px' }}>
-                      <motion.button
+                      <m.button
                         onClick={() => likePost(item.id, 'fact')}
                         whileTap={{ scale: 0.80 }}
                         style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', borderRadius: '9999px', color: liked ? 'var(--color-danger)' : 'var(--color-text)', fontWeight: 600, fontFamily: 'inherit', transition: 'color 0.15s', fontSize: '0.9rem' }}
                       >
                         <AnimatePresence mode="wait" initial={false}>
-                          <motion.span key={liked ? 'f' : 'e'} initial={{ scale: 0.5, rotate: -15 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0.5 }} transition={{ type: 'spring', stiffness: 400, damping: 15 }} style={{ display: 'flex' }}>
+                          <m.span key={liked ? 'f' : 'e'} initial={{ scale: 0.5, rotate: -15 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0.5 }} transition={{ type: 'spring', stiffness: 400, damping: 15 }} style={{ display: 'flex' }}>
                             {liked ? <HeartFilled /> : <HeartEmpty />}
-                          </motion.span>
+                          </m.span>
                         </AnimatePresence>
-                        <motion.span className="tnum" key={likes} initial={{ y: -6, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.2 }}>{likes}</motion.span>
-                      </motion.button>
+                        <m.span className="tnum" key={likes} initial={{ y: -6, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.2 }}>{likes}</m.span>
+                      </m.button>
                       <Link href="/akis" style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '6px 8px', borderRadius: '9999px', color: 'var(--color-text)', textDecoration: 'none', transition: 'background 0.12s' }}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                       </Link>
-                      <motion.button
+                      <m.button
                         onClick={() => toggleRepost(item.id)}
                         whileTap={{ scale: 0.80 }}
                         aria-label="Repost"
@@ -440,7 +446,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                         style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '6px 8px', borderRadius: '9999px', color: reposted ? 'var(--color-success)' : 'var(--color-text)', transition: 'color 0.15s' }}
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m17 1 4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="m7 23-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-                      </motion.button>
+                      </m.button>
                     </div>
                     <div style={{ padding: '2px 14px 4px' }}>
                       <span className="tnum" style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-text)' }}>{likes} beğeni</span>
@@ -454,7 +460,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                         />
                       </div>
                     )}
-                  </motion.article>
+                  </m.article>
                 );
               }
 
@@ -463,7 +469,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
               const likes = postLikes[item.id] ?? item.likes;
               const catLabel = item.category === 'science' ? 'Bilim' : item.category === 'history' ? 'Tarih' : 'Genel';
               return (
-                <motion.article
+                <m.article
                   key={`post-${item.id}`}
                   style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, overflow: 'hidden' }}
                   initial={{ opacity: 0, y: 28 }}
@@ -487,20 +493,20 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                     <Caption text={item.content} clamp />
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 10px 12px' }}>
-                    <motion.button
+                    <m.button
                       onClick={() => likePost(item.id, 'post')}
                       whileTap={{ scale: 0.80 }}
                       style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', borderRadius: '9999px', color: liked ? 'var(--color-danger)' : 'var(--color-text)', fontWeight: 600, fontFamily: 'inherit', fontSize: '0.9rem', transition: 'color 0.15s' }}
                     >
                       <AnimatePresence mode="wait" initial={false}>
-                        <motion.span key={liked ? 'f' : 'e'} initial={{ scale: 0.5, rotate: -15 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0.5 }} transition={{ type: 'spring', stiffness: 400, damping: 15 }} style={{ display: 'flex' }}>
+                        <m.span key={liked ? 'f' : 'e'} initial={{ scale: 0.5, rotate: -15 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0.5 }} transition={{ type: 'spring', stiffness: 400, damping: 15 }} style={{ display: 'flex' }}>
                           {liked ? <HeartFilled /> : <HeartEmpty />}
-                        </motion.span>
+                        </m.span>
                       </AnimatePresence>
-                      <motion.span className="tnum" key={likes} initial={{ y: -6, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.2 }}>{likes}</motion.span>
-                    </motion.button>
+                      <m.span className="tnum" key={likes} initial={{ y: -6, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.2 }}>{likes}</m.span>
+                    </m.button>
                   </div>
-                </motion.article>
+                </m.article>
               );
             })}
           </div>
@@ -676,6 +682,6 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
           </div>
         </div>
       )}
-    </>
+    </LazyMotion>
   );
 }

@@ -99,7 +99,9 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
     isHidden
       ? Promise.resolve({ data: [] })
       : db.from('quick_facts')
-          .select('*')
+          // Kolon seçimi (kendi profil sayfasındaki listeyle aynı) — select('*')
+          // gereksiz kolonları taşıyordu. Limit yok: ızgara sayısı (.length) doğru kalsın.
+          .select('id, media_url, media_type, caption, likes, created_at, media')
           .eq('user_id', profileUser.id)
           .order('created_at', { ascending: false }),
     // Yayindaki (onayli) makaleleri — gizli profilde gosterilmez.

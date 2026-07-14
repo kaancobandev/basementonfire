@@ -7,7 +7,12 @@ import { parseHashtags } from '@/lib/caption';
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
 const MAX_MEDIA = 20;
 
-type InMedia = { path?: string; mediaType?: string };
+type InMedia = { path?: string; mediaType?: string; w?: number; h?: number };
+
+// İstemcinin ölçtüğü piksel boyutunu doğrula: pozitif, makul sınırda tam sayı.
+// Geçersizse yok sayılır (kayıt w/h'siz kalır, istemci fallback'i ölçer).
+const dim = (n: unknown): number | null =>
+  typeof n === 'number' && Number.isFinite(n) && n >= 1 && n <= 32768 ? Math.round(n) : null;
 
 /**
  * Commit: dosya(lar) tarayıcıdan doğrudan Supabase Storage'a yüklendikten sonra
@@ -36,10 +41,15 @@ export async function POST(req: Request) {
   if (!rawList.length) return json({ error: 'En az bir medya gerekli.' }, 400);
   if (rawList.length > MAX_MEDIA) return json({ error: `En fazla ${MAX_MEDIA} medya yükleyebilirsin.` }, 400);
 
-  const items = rawList.map(m => ({
-    path: m.path ?? '',
-    type: (m.mediaType === 'video' ? 'video' : m.mediaType === 'audio' ? 'audio' : 'image') as 'image' | 'video' | 'audio',
-  }));
+  const items = rawList.map(m => {
+    const w = dim(m.w), h = dim(m.h);
+    return {
+      path: m.path ?? '',
+      type: (m.mediaType === 'video' ? 'video' : m.mediaType === 'audio' ? 'audio' : 'image') as 'image' | 'video' | 'audio',
+      // w/h yalnızca ikisi de geçerliyse ve görsel/videoysa saklanır (CLS: oran SSR'da)
+      ...(w && h && m.mediaType !== 'audio' ? { w, h } : {}),
+    };
+  });
 
   // Tüm yollar bu kullanıcıya ait olmalı (imza route'u "{me.id}/..." üretir)
   if (items.some(it => !it.path.startsWith(`${me.id}/`))) {
@@ -49,6 +59,7 @@ export async function POST(req: Request) {
   const media = items.map(it => ({
     url: db.storage.from('media').getPublicUrl(it.path).data.publicUrl,
     type: it.type,
+    ...(it.w && it.h ? { w: it.w, h: it.h } : {}),
   }));
 
   // `media` kolonu varsa onunla; yoksa (migration yapılmamışsa) sadece kapakla kaydet.

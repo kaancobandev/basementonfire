@@ -11,7 +11,9 @@ export type Post = {
   avatar: string;
 };
 
-export type MediaItem = { url: string; type: 'image' | 'video' | 'audio' };
+// w/h: yükleme anında ölçülen piksel boyutları (CLS önlemi — oran SSR'da
+// hesaplanır, tarayıcı ölçmez). Eski kayıtlarda olmayabilir → opsiyonel.
+export type MediaItem = { url: string; type: 'image' | 'video' | 'audio'; w?: number; h?: number };
 
 export type QuickFact = {
   id: number;
@@ -93,9 +95,14 @@ export function flattenFacts(rows: any[]): QuickFact[] {
 export function factMediaList(f: { media_url?: string | null; media_type?: string | null; media?: unknown }): MediaItem[] {
   const arr = Array.isArray(f.media) ? f.media : [];
   const norm = (t: unknown): 'image' | 'video' | 'audio' => (t === 'video' ? 'video' : t === 'audio' ? 'audio' : 'image');
+  // w/h varsa GEÇİR (CLS: oran SSR'da basılır); yoksa eski davranış (istemci ölçer).
+  const dims = (m: any): { w?: number; h?: number } =>
+    Number.isFinite(m.w) && Number.isFinite(m.h) && m.w > 0 && m.h > 0
+      ? { w: Math.round(m.w), h: Math.round(m.h) }
+      : {};
   const cleaned: MediaItem[] = arr
     .filter((m: any) => m && typeof m.url === 'string' && m.url)
-    .map((m: any) => ({ url: m.url as string, type: norm(m.type) }));
+    .map((m: any) => ({ url: m.url as string, type: norm(m.type), ...dims(m) }));
   if (cleaned.length) return cleaned;
   return f.media_url ? [{ url: f.media_url, type: norm(f.media_type) }] : [];
 }

@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { uploadToStorage } from '@/lib/upload';
+import { uploadToStorage, measureMediaDims } from '@/lib/upload';
 import dynamic from 'next/dynamic';
 
 const ImageCropper = dynamic(() => import('@/app/components/ImageCropper'), { ssr: false });
@@ -96,10 +96,12 @@ export default function GonderiForm({ error: initialError }: Props) {
     setSubmitting(true);
     setProgress({ done: 0, total: all.length });
     try {
-      const media: { path: string; mediaType: 'image' | 'video' | 'audio' }[] = [];
+      const media: { path: string; mediaType: 'image' | 'video' | 'audio'; w?: number; h?: number }[] = [];
       for (let i = 0; i < all.length; i++) {
+        // Boyutu yüklemeden önce ölç (CLS: w/h kayda yazılır, feed oranı SSR'da basılır)
+        const dims = await measureMediaDims(all[i].file);
         const { path, mediaType } = await uploadToStorage(all[i].file, 'media');
-        media.push({ path, mediaType });
+        media.push({ path, mediaType, ...(dims ?? {}) });
         setProgress({ done: i + 1, total: all.length });
       }
       const res = await fetch('/api/upload', {

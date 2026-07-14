@@ -58,7 +58,10 @@ export async function getPostDetail(postId: number, meId: number | null): Promis
     db.from('comments')
       .select('id, content, created_at, parent_id, user_id, users(username, display_name, avatar)')
       .eq('post_id', postId)
-      .order('created_at', { ascending: true }),
+      .order('created_at', { ascending: true })
+      // Büyüme sigortası: viral bir gönderide tüm yorumların SSR'a girmesini
+      // engeller (ilk 500 kronolojik; sayfalama gerekirse ileride eklenir).
+      .limit(500),
     meId
       ? Promise.all([
           db.from('fact_likes').select('fact_id').eq('user_id', meId).eq('fact_id', postId).maybeSingle(),

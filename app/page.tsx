@@ -23,7 +23,10 @@ const getHomeContent = unstable_cache(
       .from('stories')
       .select('id, media_url, media_type, created_at, user_id, users(id, username, display_name, avatar, is_private)')
       .gt('expires_at', new Date().toISOString())
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      // Büyüme sigortası: şerit zaten en yeni hikâyeleri gösterir; 24 saatte 100+
+      // aktif hikâye olursa en eskiler düşer (limitsiz hali tüm tabloyu çekiyordu).
+      .limit(100);
     logIfError('home stories', storiesErr);
     // Gizli hesapların içeriği küresel ana akışta/story şeridinde gösterilmez (is_private truthy=gizli).
     const pub = (r: any) => !r.users?.is_private;

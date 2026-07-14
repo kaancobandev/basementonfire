@@ -10,7 +10,7 @@ import { MultiBadge, AudioThumb, MusicBadge } from '@/app/components/MediaCarous
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { celebrate } from '@/lib/confetti';
-import { uploadToStorage } from '@/lib/upload';
+import { uploadToStorage, measureMediaDims } from '@/lib/upload';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { useIsMobile } from '@/lib/useIsMobile';
 import dynamic from 'next/dynamic';
@@ -124,10 +124,12 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
     setUploading(true);
     setUploadProgress({ done: 0, total: all.length });
     try {
-      const media: { path: string; mediaType: 'image' | 'video' | 'audio' }[] = [];
+      const media: { path: string; mediaType: 'image' | 'video' | 'audio'; w?: number; h?: number }[] = [];
       for (let i = 0; i < all.length; i++) {
+        // Boyutu yüklemeden önce ölç (CLS: w/h kayda yazılır, feed oranı SSR'da basılır)
+        const dims = await measureMediaDims(all[i].file);
         const up = await uploadToStorage(all[i].file, 'media');
-        media.push({ path: up.path, mediaType: up.mediaType });
+        media.push({ path: up.path, mediaType: up.mediaType, ...(dims ?? {}) });
         setUploadProgress({ done: i + 1, total: all.length });
       }
       const res = await fetch('/api/upload', {
