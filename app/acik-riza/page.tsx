@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import LegalLayout, { h2, p, ul, linkStyle } from '@/app/components/LegalLayout';
 import ConsentReset from '@/app/components/ConsentReset';
+import { VERI_SORUMLUSU } from '@/lib/legal';
 
 export const metadata: Metadata = {
   title: 'Açık Rıza Metni',
@@ -8,7 +9,7 @@ export const metadata: Metadata = {
   alternates: { canonical: '/acik-riza' },
 };
 
-const MAIL = 'info@basementonfire.com';
+const MAIL = VERI_SORUMLUSU.eposta; // tek kaynak: lib/legal.ts
 
 const box: React.CSSProperties = {
   border: '1px solid var(--color-border)',

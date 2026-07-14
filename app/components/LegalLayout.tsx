@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { ReactNode, CSSProperties } from 'react';
+import { VERI_SORUMLUSU } from '@/lib/legal';
 
 /** Hukuki metin sayfaları (gizlilik, aydınlatma, açık rıza, koşullar) için ortak kabuk. */
 
@@ -13,6 +14,34 @@ export const linkStyle: CSSProperties = { color: 'var(--color-primary)', fontWei
 export const table: CSSProperties = { width: '100%', borderCollapse: 'collapse', fontSize: '0.86rem', margin: '0 0 12px' };
 export const th: CSSProperties = { textAlign: 'left', padding: '7px 9px', borderBottom: '2px solid var(--color-border)', fontWeight: 700, verticalAlign: 'top' };
 export const td: CSSProperties = { textAlign: 'left', padding: '7px 9px', borderBottom: '1px solid var(--color-border)', verticalAlign: 'top' };
+
+/**
+ * Veri sorumlusunun kimliği (KVKK m. 10 / GDPR m. 13/1-a).
+ * Tek kaynak `lib/legal.ts` — dört metinde de AYNI bilgi görünsün diye ortak bileşen.
+ */
+export function VeriSorumlusu() {
+  const v = VERI_SORUMLUSU;
+  const satir: CSSProperties = { margin: '0 0 4px', fontSize: '0.92rem' };
+
+  return (
+    <div style={{ border: '1px solid var(--color-border)', background: 'var(--color-surface)', borderRadius: 12, padding: '12px 14px', margin: '0 0 12px' }}>
+      <p style={satir}>
+        <strong>Veri sorumlusu:</strong> {v.unvan} <span style={{ color: 'var(--color-text-muted)' }}>({v.tip})</span>
+      </p>
+      <p style={satir}>
+        <strong>Site:</strong> {v.marka} — {v.alanAdi}
+      </p>
+      {v.adres && <p style={satir}><strong>Adres:</strong> {v.adres}</p>}
+      {v.mersis && <p style={satir}><strong>MERSİS:</strong> {v.mersis}</p>}
+      {v.vergiDairesiNo && <p style={satir}><strong>Vergi dairesi / no:</strong> {v.vergiDairesiNo}</p>}
+      {v.kep && <p style={satir}><strong>KEP:</strong> {v.kep}</p>}
+      <p style={{ ...satir, margin: 0 }}>
+        <strong>İletişim ve başvuru:</strong>{' '}
+        <a href={`mailto:${v.eposta}`} style={linkStyle}>{v.eposta}</a>
+      </p>
+    </div>
+  );
+}
 
 /** Metinler arası gezinme — KVKK aydınlatma ve açık rıza AYRI belgeler olmak zorunda. */
 const DOCS = [

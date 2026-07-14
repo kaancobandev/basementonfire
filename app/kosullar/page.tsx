@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import LegalLayout, { h2, p, ul, linkStyle } from '@/app/components/LegalLayout';
+import LegalLayout, { VeriSorumlusu, h2, p, ul, linkStyle } from '@/app/components/LegalLayout';
+import { VERI_SORUMLUSU } from '@/lib/legal';
 
 export const metadata: Metadata = {
   title: 'Kullanım Koşulları',
@@ -7,7 +8,7 @@ export const metadata: Metadata = {
   alternates: { canonical: '/kosullar' },
 };
 
-const MAIL = 'info@basementonfire.com';
+const MAIL = VERI_SORUMLUSU.eposta; // tek kaynak: lib/legal.ts
 
 export default function KosullarPage() {
   return (
@@ -24,10 +25,12 @@ export default function KosullarPage() {
     >
       <h2 style={h2}>1. Taraflar ve Kabul</h2>
       <p style={p}>
-        Bu koşullar, Basements (basementonfire.com — &quot;Basements&quot;, &quot;biz&quot;) ile siteyi kullanan sen
-        (&quot;kullanıcı&quot;) arasındaki sözleşmedir. Hesap oluşturarak veya siteyi kullanarak bu koşulları kabul
+        Bu koşullar; <strong>{VERI_SORUMLUSU.unvan}</strong> tarafından işletilen{' '}
+        {VERI_SORUMLUSU.marka} ({VERI_SORUMLUSU.alanAdi} — &quot;Basements&quot;, &quot;biz&quot;) ile siteyi kullanan
+        sen (&quot;kullanıcı&quot;) arasındaki sözleşmedir. Hesap oluşturarak veya siteyi kullanarak bu koşulları kabul
         edersin. Kabul etmiyorsan siteyi kullanma.
       </p>
+      <VeriSorumlusu />
 
       <h2 style={h2}>2. Yaş Sınırı — 16+</h2>
       <p style={p}>

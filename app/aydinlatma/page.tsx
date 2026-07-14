@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import LegalLayout, { h2, h3, p, ul, table, th, td, linkStyle } from '@/app/components/LegalLayout';
+import LegalLayout, { VeriSorumlusu, h2, h3, p, ul, table, th, td, linkStyle } from '@/app/components/LegalLayout';
+import { VERI_SORUMLUSU } from '@/lib/legal';
 
 export const metadata: Metadata = {
   title: 'KVKK Aydınlatma Metni',
@@ -7,7 +8,7 @@ export const metadata: Metadata = {
   alternates: { canonical: '/aydinlatma' },
 };
 
-const MAIL = 'info@basementonfire.com';
+const MAIL = VERI_SORUMLUSU.eposta; // tek kaynak: lib/legal.ts
 
 export default function AydinlatmaPage() {
   return (
@@ -24,8 +25,12 @@ export default function AydinlatmaPage() {
     >
       <h2 style={h2}>1. Veri Sorumlusu</h2>
       <p style={p}>
-        Basements (basementonfire.com) veri sorumlusudur. Her türlü soru, talep ve başvuru için:{' '}
-        <a href={`mailto:${MAIL}`} style={linkStyle}>{MAIL}</a>
+        KVKK m. 10 uyarınca veri sorumlusunun kimliği aşağıdadır. &quot;Basements&quot; bir site/marka adıdır;
+        <strong> veri sorumlusu aşağıdaki gerçek kişidir</strong>.
+      </p>
+      <VeriSorumlusu />
+      <p style={p}>
+        Her türlü soru, talep ve başvurunu bu e-posta adresine iletebilirsin (bkz. madde 8).
       </p>
 
       <h2 style={h2}>2. İşlenen Kişisel Veriler, Amaçlar ve Hukuki Sebepler</h2>

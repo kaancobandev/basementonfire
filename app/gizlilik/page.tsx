@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
-import LegalLayout, { h2, p, ul, linkStyle } from '@/app/components/LegalLayout';
+import LegalLayout, { VeriSorumlusu, h2, p, ul, linkStyle } from '@/app/components/LegalLayout';
 import ConsentReset from '@/app/components/ConsentReset';
+import { VERI_SORUMLUSU } from '@/lib/legal';
 
 export const metadata: Metadata = {
   title: 'Gizlilik ve Çerez Politikası',
@@ -8,7 +9,7 @@ export const metadata: Metadata = {
   alternates: { canonical: '/gizlilik' },
 };
 
-const MAIL = 'info@basementonfire.com';
+const MAIL = VERI_SORUMLUSU.eposta; // tek kaynak: lib/legal.ts
 
 export default function GizlilikPage() {
   return (
@@ -30,9 +31,10 @@ export default function GizlilikPage() {
     >
       <h2 style={h2}>1. Veri Sorumlusu</h2>
       <p style={p}>
-        Bu siteyi Basements (basementonfire.com) işletir. Gizlilikle ilgili her konu için:{' '}
-        <a href={`mailto:${MAIL}`} style={linkStyle}>{MAIL}</a>
+        &quot;Basements&quot; bir site/marka adıdır. Siteyi işleten ve verilerinden sorumlu olan
+        <strong> gerçek kişi</strong> aşağıdadır:
       </p>
+      <VeriSorumlusu />
       <p style={p}>
         KVKK kapsamındaki ayrıntılı bilgilendirme (hukuki sebepler, aktarım, haklar) için:{' '}
         <a href="/aydinlatma" style={linkStyle}>KVKK Aydınlatma Metni</a>.
