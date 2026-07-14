@@ -130,14 +130,30 @@ export default function SettingsClient({ user }: Props) {
           </div>
         </section>
 
-        {/* Hakkında / Yasal */}
+        {/* Hakkında / Yasal — mobilde hukuki metinlere tek erişim noktası (sidebar 1200px altında gizli) */}
         <section>
-          <h2 style={{ fontSize: '1rem', fontWeight: 700, margin: '0 0 16px', color: 'var(--color-text)' }}>Hakkında</h2>
+          <h2 style={{ fontSize: '1rem', fontWeight: 700, margin: '0 0 16px', color: 'var(--color-text)' }}>Yasal</h2>
           <div style={{ background: 'var(--color-bg)', borderRadius: 16, border: '1px solid var(--color-border)', overflow: 'hidden' }}>
-            <Link href="/gizlilik" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', textDecoration: 'none', color: 'var(--color-text)', fontWeight: 600, fontSize: '0.95rem' }}>
-              Gizlilik ve Çerez Politikası
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-            </Link>
+            {[
+              { href: '/gizlilik', label: 'Gizlilik ve Çerez Politikası' },
+              { href: '/aydinlatma', label: 'KVKK Aydınlatma Metni' },
+              { href: '/acik-riza', label: 'Açık Rıza Metni' },
+              { href: '/kosullar', label: 'Kullanım Koşulları' },
+            ].map((d, i) => (
+              <Link
+                key={d.href}
+                href={d.href}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '16px 20px', textDecoration: 'none', color: 'var(--color-text)',
+                  fontWeight: 600, fontSize: '0.95rem',
+                  borderTop: i === 0 ? 'none' : '1px solid var(--color-border)',
+                }}
+              >
+                {d.label}
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+              </Link>
+            ))}
           </div>
         </section>
       </div>

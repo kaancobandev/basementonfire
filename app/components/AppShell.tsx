@@ -153,7 +153,12 @@ export default function AppShell({ children, user, unreadCount: initialNotif, un
             </Link>
           )}
 
-          <Link href="/gizlilik" className="sidebar-foot">Gizlilik ve Çerez Politikası</Link>
+          <div className="sidebar-legal">
+            <Link href="/gizlilik">Gizlilik</Link><span aria-hidden>·</span>
+            <Link href="/aydinlatma">KVKK</Link><span aria-hidden>·</span>
+            <Link href="/acik-riza">Açık Rıza</Link><span aria-hidden>·</span>
+            <Link href="/kosullar">Koşullar</Link>
+          </div>
         </aside>
 
         {children}
