@@ -1,4 +1,4 @@
-import { createAuthClientForResponse } from '@/lib/supabase/server';
+import { createAuthClientForResponse, db } from '@/lib/supabase/server';
 import { recordLogin } from '@/lib/login-tracking';
 import { NextResponse, type NextRequest } from 'next/server';
 
@@ -21,7 +21,20 @@ export async function POST(req: NextRequest) {
 
   // Basarili girisi sunucu tarafinda kaydet (cerez onayindan bagimsiz sayim + ulke).
   // signIn sonucundan kullaniciyi aldik -> ekstra auth turu yok. En iyi caba, girisi bozmaz.
-  if (data.user) await recordLogin(req, { authId: data.user.id, method: 'password' });
+  if (data.user) {
+    await recordLogin(req, { authId: data.user.id, method: 'password' });
+
+    // Hesap silme talebi askıda mı? (30 günlük geri alma süresi) → doğrudan geri alma
+    // ekranına yönlendir. Cookie'ler zaten `response`'a yazıldı; sadece hedefi değiştiriyoruz.
+    const { data: u } = await db
+      .from('users')
+      .select('deletion_requested_at, is_deleted')
+      .eq('auth_id', data.user.id)
+      .maybeSingle();
+
+    if (u?.deletion_requested_at && !u.is_deleted)
+      response.headers.set('location', new URL('/hesap-geri-al', req.url).toString());
+  }
 
   return response;
 }

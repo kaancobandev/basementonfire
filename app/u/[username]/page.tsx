@@ -10,12 +10,26 @@ export const dynamic = 'force-dynamic';
 
 // generateMetadata + sayfa gövdesi aynı kullanıcı satırını ister → React cache()
 // ile istek başına TEK sorgu (getMe deseninin aynısı; iki ayrı select birleşti).
+const BASE_COLS = 'id, username, display_name, bio, avatar, is_private, birthdate, location, website, gender, interests';
+
 const getProfileUser = cache(async (username: string) => {
-  const { data } = await db
+  const { data, error } = await db
     .from('users')
-    .select('id, username, display_name, bio, avatar, is_private, birthdate, location, website, gender, interests')
+    .select(`${BASE_COLS}, deletion_requested_at, is_deleted`)
     .eq('username', username)
     .single();
+
+  if (error) {
+    // sql/features-account-delete.sql henüz çalıştırılmadıysa bu kolonlar YOKTUR ve sorgu
+    // komple düşer → TÜM profiller 404 olurdu. Eski kolonlarla tekrar dene (kendi kendine düzelir).
+    const { data: fallback } = await db.from('users').select(BASE_COLS).eq('username', username).single();
+    return fallback ?? null;
+  }
+
+  // Silme talebi askıda (30 gün) VEYA kalıcı silinmiş (anonim künye) → profil YOK say.
+  // null döndürmek yeterli: hem sayfa gövdesi hem generateMetadata zaten notFound()'a düşüyor.
+  if (!data || data.deletion_requested_at || data.is_deleted) return null;
+
   return data;
 });
 

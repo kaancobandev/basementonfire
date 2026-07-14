@@ -12,7 +12,8 @@ export const dynamic = 'force-dynamic';
 const getDiscoverContent = unstable_cache(
   async () => {
     const [{ data: users, error: usersErr }, { data: mediaRaw, error: mediaErr }, { data: uaRaw, error: uaErr }] = await Promise.all([
-      db.from('users').select('id, username, display_name, bio, avatar').order('created_at', { ascending: false }).limit(20),
+      // Askıya alınmış / kalıcı silinmiş hesaplar keşifte ÇIKMAZ.
+      db.from('users').select('id, username, display_name, bio, avatar').is('deletion_requested_at', null).eq('is_deleted', false).order('created_at', { ascending: false }).limit(20),
       db.from('quick_facts').select('id, media_url, media_type, caption, likes, users!quick_facts_user_id_fkey(username, display_name, is_private)').order('created_at', { ascending: false }).limit(24),
       db.from('user_articles').select('id, slug, title, summary, cover_url, category, users!user_articles_user_id_fkey(username, display_name)').eq('status', 'approved').order('published_at', { ascending: false }).limit(12),
     ]);

@@ -13,7 +13,8 @@ export async function GET(req: Request) {
 
   const [usersRes, postsRes, hashtagsRes] = await Promise.all([
     type !== 'posts'
-      ? db.from('users').select('id, username, display_name, avatar, bio').or(`username.ilike.${pattern},display_name.ilike.${pattern}`).limit(15)
+      // Askıya alınmış (silme talebi) + kalıcı silinmiş (anonim künye) hesaplar aramada ÇIKMAZ.
+      ? db.from('users').select('id, username, display_name, avatar, bio').or(`username.ilike.${pattern},display_name.ilike.${pattern}`).is('deletion_requested_at', null).eq('is_deleted', false).limit(15)
       : { data: [] },
     type !== 'users'
       ? db.from('quick_facts').select('id, caption, media_url, media_type, created_at, user:user_id(id, username, display_name, avatar, is_private)').ilike('caption', pattern).order('created_at', { ascending: false }).limit(40)

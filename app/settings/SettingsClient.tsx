@@ -4,10 +4,13 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 interface Props {
-  user: { dm_privacy: string; comment_privacy: string; is_private: boolean; };
+  user: { username: string; dm_privacy: string; comment_privacy: string; is_private: boolean; };
 }
 
 export default function SettingsClient({ user }: Props) {
+  // Hesap silme onayı — kullanıcı adını birebir yazmadan buton açılmaz.
+  const [silOnay, setSilOnay] = useState('');
+  const [silAcik, setSilAcik] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [isPrivate, setIsPrivate] = useState(user.is_private);
   const [dmPrivacy, setDmPrivacy] = useState(user.dm_privacy);
@@ -169,6 +172,69 @@ export default function SettingsClient({ user }: Props) {
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
               </Link>
             ))}
+          </div>
+        </section>
+
+        {/* Tehlikeli bölge — hesap silme (30 gün geri alma süreli) */}
+        <section>
+          <h2 style={{ fontSize: '1rem', fontWeight: 700, margin: '0 0 16px', color: 'var(--color-danger)' }}>Tehlikeli bölge</h2>
+          <div style={{ background: 'var(--color-bg)', borderRadius: 16, border: '1px solid color-mix(in srgb, var(--color-danger) 35%, var(--color-border))', overflow: 'hidden' }}>
+            {!silAcik ? (
+              <button
+                onClick={() => setSilAcik(true)}
+                style={{ width: '100%', padding: '16px 20px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit', fontSize: '0.95rem', fontWeight: 600, color: 'var(--color-danger)', display: 'flex', alignItems: 'center', gap: 12 }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                Hesabımı sil
+              </button>
+            ) : (
+              <div style={{ padding: '18px 20px' }}>
+                <p style={{ margin: '0 0 10px', fontSize: '0.92rem', lineHeight: 1.6, color: 'var(--color-text)' }}>
+                  Hesabın <strong>hemen gizlenecek</strong> ve <strong>30 gün</strong> içinde giriş yaparsan geri
+                  alabileceksin. 30 gün sonra hesabın, gönderilerin, yorumların, hikâyelerin ve gönderdiğin mesajlar
+                  <strong> kalıcı olarak silinir</strong> — geri dönüşü olmaz.
+                </p>
+                <p style={{ margin: '0 0 14px', fontSize: '0.82rem', lineHeight: 1.6, color: 'var(--color-text-muted)' }}>
+                  Verilerini önce indirmek istersen yukarıdaki <strong>Verilerimi indir</strong> seçeneğini kullan.
+                </p>
+
+                <form method="POST" action="/api/account/delete">
+                  <label style={{ display: 'block', fontSize: '0.84rem', fontWeight: 600, marginBottom: 6, color: 'var(--color-text)' }}>
+                    Onaylamak için kullanıcı adını yaz: <code style={{ color: 'var(--color-danger)' }}>{user.username}</code>
+                  </label>
+                  <input
+                    name="confirm"
+                    value={silOnay}
+                    onChange={e => setSilOnay(e.target.value)}
+                    autoComplete="off"
+                    placeholder={user.username}
+                    style={{ width: '100%', padding: '10px 14px', border: '1.5px solid var(--color-border)', borderRadius: 10, fontSize: '0.95rem', outline: 'none', boxSizing: 'border-box', color: 'var(--color-text)', backgroundColor: 'var(--color-bg)', marginBottom: 12 }}
+                  />
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    <button
+                      type="submit"
+                      disabled={silOnay !== user.username}
+                      style={{
+                        flex: 1, padding: '12px', border: 'none', borderRadius: 10, fontFamily: 'inherit',
+                        fontSize: '0.95rem', fontWeight: 700, color: '#fff',
+                        background: 'var(--color-danger)',
+                        cursor: silOnay === user.username ? 'pointer' : 'not-allowed',
+                        opacity: silOnay === user.username ? 1 : 0.45,
+                      }}
+                    >
+                      Hesabımı sil
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setSilAcik(false); setSilOnay(''); }}
+                      style={{ flex: 1, padding: '12px', borderRadius: 10, fontFamily: 'inherit', fontSize: '0.95rem', fontWeight: 600, background: 'none', border: '1px solid var(--color-border)', color: 'var(--color-text)', cursor: 'pointer' }}
+                    >
+                      Vazgeç
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
           </div>
         </section>
       </div>
