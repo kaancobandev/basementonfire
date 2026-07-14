@@ -94,7 +94,33 @@ export default function DailyQuestion() {
     }
   }
 
-  if (st.phase === 'loading' || st.phase === 'hidden') return null;
+  if (st.phase === 'hidden') return null;
+
+  // CLS onlemi: yuklenirken kartla ayni olculerde iskelet render edilir (SSR
+  // dahil) — kart fetch sonrasi YERINE oturur, feed kolonunu asagi ITMEZ.
+  // (Onceden null donuyordu; kart belirince tum feed kayiyordu — home CLS 0.236
+  // olcumunun kaynagi buydu.) 'hidden' nadir (soru yoksa/hata) — o durumda
+  // iskeletin kapanmasi kabul edilen kucuk kayma.
+  if (st.phase === 'loading') {
+    return (
+      <div style={{ maxWidth: 470, margin: '16px auto 0', padding: '0 8px' }} aria-hidden>
+        <article style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 14, overflow: 'hidden' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 15px', background: 'linear-gradient(90deg, rgba(16,185,129,0.14), rgba(79,70,229,0.10))', borderBottom: '1px solid var(--color-border)' }}>
+            <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>🧠</span>
+            <span style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--color-text)' }}>Günün Sorusu</span>
+          </div>
+          <div style={{ padding: '14px 16px 16px' }}>
+            <div style={{ height: 21, width: '75%', borderRadius: 6, background: 'var(--color-border)', opacity: 0.5, marginBottom: 14 }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {[0, 1, 2, 3].map((i) => (
+                <div key={i} style={{ height: 48, borderRadius: 11, border: '1px solid var(--color-border)' }} />
+              ))}
+            </div>
+          </div>
+        </article>
+      </div>
+    );
+  }
 
   const answered = st.phase === 'answered';
   const q = st.q;
