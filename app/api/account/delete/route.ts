@@ -1,13 +1,13 @@
 import { createAuthClientForResponse, getMe } from '@/lib/supabase/server';
-import { requestDeletion, GRACE_DAYS } from '@/lib/accountDeletion';
+import { purgeAccount } from '@/lib/accountDeletion';
 import { NextResponse, type NextRequest } from 'next/server';
 
 const fail = (req: NextRequest, msg: string) =>
   NextResponse.redirect(new URL(`/settings?error=${encodeURIComponent(msg)}`, req.url), { status: 303 });
 
 /**
- * Hesap silme TALEBİ (soft). Veriyi silmez — hesabı gizler ve GRACE_DAYS gün
- * geri alma süresi başlatır. Kalıcı silme cron'da (purgeAccount) yapılır.
+ * Hesabı ANINDA ve KALICI siler. Geri alma süresi YOKTUR.
+ * Yanlışlıkla silmeye karşı tek koruma: kullanıcı adını birebir yazma onayı.
  */
 export async function POST(req: NextRequest) {
   const { me } = await getMe();
@@ -16,19 +16,16 @@ export async function POST(req: NextRequest) {
   const form = await req.formData();
   const confirm = (form.get('confirm') as string)?.trim();
 
-  // Yanlışlıkla silmeyi önle: kullanıcı adını birebir yazmalı.
   if (confirm !== me.username)
     return fail(req, 'Onay için kullanıcı adını birebir yazmalısın.');
 
-  const res = await requestDeletion(me.id);
-  if (!res.ok) return fail(req, res.error ?? 'Silme talebi başarısız.');
+  const res = await purgeAccount(me.id);
+  if (!res.ok) return fail(req, res.error ?? 'Hesap silinemedi.');
 
   // Oturumu kapat — cookie temizliği DÖNEN yanıta yazılmalı.
-  const response = NextResponse.redirect(
-    new URL(`/login?silindi=${GRACE_DAYS}`, req.url),
-    { status: 303 },
-  );
+  // (auth kullanıcısı zaten silindi; bu cookie'leri de temizler.)
+  const response = NextResponse.redirect(new URL('/login?silindi=1', req.url), { status: 303 });
   const client = createAuthClientForResponse(req, response);
-  await client.auth.signOut();
+  await client.auth.signOut().catch(() => {}); // auth user gitti → hata verebilir, önemsiz
   return response;
 }

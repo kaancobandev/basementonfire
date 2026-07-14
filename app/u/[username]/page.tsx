@@ -15,20 +15,20 @@ const BASE_COLS = 'id, username, display_name, bio, avatar, is_private, birthdat
 const getProfileUser = cache(async (username: string) => {
   const { data, error } = await db
     .from('users')
-    .select(`${BASE_COLS}, deletion_requested_at, is_deleted`)
+    .select(`${BASE_COLS}, is_deleted`)
     .eq('username', username)
     .single();
 
   if (error) {
-    // sql/features-account-delete.sql henüz çalıştırılmadıysa bu kolonlar YOKTUR ve sorgu
-    // komple düşer → TÜM profiller 404 olurdu. Eski kolonlarla tekrar dene (kendi kendine düzelir).
+    // sql/features-account-delete.sql henüz çalıştırılmadıysa is_deleted kolonu YOKTUR ve
+    // sorgu komple düşer → TÜM profiller 404 olurdu. Eski kolonlarla tekrar dene.
     const { data: fallback } = await db.from('users').select(BASE_COLS).eq('username', username).single();
     return fallback ?? null;
   }
 
-  // Silme talebi askıda (30 gün) VEYA kalıcı silinmiş (anonim künye) → profil YOK say.
-  // null döndürmek yeterli: hem sayfa gövdesi hem generateMetadata zaten notFound()'a düşüyor.
-  if (!data || data.deletion_requested_at || data.is_deleted) return null;
+  // Kalıcı silinmiş hesap (anonim künye) → profil YOK say. null döndürmek yeterli:
+  // hem sayfa gövdesi hem generateMetadata zaten notFound()'a düşüyor.
+  if (!data || data.is_deleted) return null;
 
   return data;
 });

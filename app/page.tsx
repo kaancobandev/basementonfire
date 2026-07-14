@@ -140,9 +140,9 @@ export default async function HomePage() {
         const countMap = new Map<number, number>();
         for (const f of fofRaw as any[]) countMap.set(f.following_id, (countMap.get(f.following_id) ?? 0) + 1);
         const topIds = [...countMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([id]) => id);
-        // Askıya alınmış / kalıcı silinmiş hesaplar önerilerde ÇIKMAZ.
+        // Silinmiş hesaplar (anonim künye) önerilerde ÇIKMAZ.
         const { data: users } = await db.from('users').select('id, username, display_name, bio, avatar').in('id', topIds)
-          .is('deletion_requested_at', null).eq('is_deleted', false);
+          .eq('is_deleted', false);
         suggestedUsers = (users ?? []).map((u: any) => ({ ...u, mutual_count: countMap.get(u.id) ?? 0 }));
       }
     }
@@ -151,7 +151,7 @@ export default async function HomePage() {
       const existingIds = new Set([...excludeIds, ...suggestedUsers.map(u => u.id)]);
       const { data: recent } = await db.from('users').select('id, username, display_name, bio, avatar')
         .not('id', 'in', `(${[...existingIds].join(',')})`)
-        .is('deletion_requested_at', null).eq('is_deleted', false)
+        .eq('is_deleted', false)
         .order('created_at', { ascending: false }).limit(10);
       for (const u of (recent ?? []) as any[]) {
         if (!existingIds.has(u.id) && suggestedUsers.length < 5) {

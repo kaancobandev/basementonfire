@@ -126,8 +126,18 @@ export default function KosullarPage() {
 
       <h2 style={h2}>12. Hesabın Sonlandırılması</h2>
       <p style={p}>
-        Hesabını dilediğin zaman kapatabilirsin. Kapatma talebini <a href={`mailto:${MAIL}`} style={linkStyle}>{MAIL}</a>{' '}
-        adresine iletebilirsin. Bu koşulların ihlali hâlinde hesabını askıya alabilir veya kapatabiliriz.
+        Hesabını dilediğin zaman <strong>kendin silebilirsin</strong>: <em>Ayarlar → Tehlikeli bölge → Hesabımı sil</em>.
+        Onay için kullanıcı adını yazman istenir. Silme <strong>anında ve kalıcıdır</strong>: hesabın, gönderilerin,
+        hikâyelerin, yorumların, gönderdiğin mesajlar ve yüklediğin dosyalar silinir — <strong>geri alınamaz</strong>,
+        bekleme süresi yoktur. Silmeden önce verilerinin bir kopyasını <em>Ayarlar → Verilerimi indir</em> ile
+        alabilirsin.
+      </p>
+      <p style={p}>
+        Karşılıklı mesajlaşmalarda <strong>yalnızca senin gönderdiğin mesajlar</strong> silinir; karşı tarafın kendi
+        mesajları (onun kişisel verisi olduğu için) kalır ve profilinin yerinde &quot;Silinmiş kullanıcı&quot; görünür.
+      </p>
+      <p style={p}>
+        Bu koşulların ihlali hâlinde hesabını askıya alabilir veya kapatabiliriz.
       </p>
 
       <h2 style={h2}>13. Değişiklikler</h2>

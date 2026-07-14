@@ -190,12 +190,13 @@ export default function SettingsClient({ user }: Props) {
             ) : (
               <div style={{ padding: '18px 20px' }}>
                 <p style={{ margin: '0 0 10px', fontSize: '0.92rem', lineHeight: 1.6, color: 'var(--color-text)' }}>
-                  Hesabın <strong>hemen gizlenecek</strong> ve <strong>30 gün</strong> içinde giriş yaparsan geri
-                  alabileceksin. 30 gün sonra hesabın, gönderilerin, yorumların, hikâyelerin ve gönderdiğin mesajlar
-                  <strong> kalıcı olarak silinir</strong> — geri dönüşü olmaz.
+                  Hesabın, gönderilerin, hikâyelerin, yorumların ve gönderdiğin mesajlar{' '}
+                  <strong style={{ color: 'var(--color-danger)' }}>anında ve kalıcı olarak</strong> silinir.
+                  Fotoğrafların da sunucudan kaldırılır. <strong>Geri alınamaz</strong> — bekleme süresi yoktur.
                 </p>
                 <p style={{ margin: '0 0 14px', fontSize: '0.82rem', lineHeight: 1.6, color: 'var(--color-text-muted)' }}>
-                  Verilerini önce indirmek istersen yukarıdaki <strong>Verilerimi indir</strong> seçeneğini kullan.
+                  Verilerini saklamak istiyorsan <strong>önce</strong> yukarıdaki <strong>Verilerimi indir</strong>
+                  {' '}seçeneğini kullan — sildikten sonra mümkün olmayacak.
                 </p>
 
                 <form method="POST" action="/api/account/delete">
