@@ -121,7 +121,22 @@ export default function SettingsClient({ user }: Props) {
         <section>
           <h2 style={{ fontSize: '1rem', fontWeight: 700, margin: '0 0 16px', color: 'var(--color-text)' }}>Hesap</h2>
           <div style={{ background: 'var(--color-bg)', borderRadius: 16, border: '1px solid var(--color-border)', overflow: 'hidden' }}>
-            <form method="POST" action="/api/auth/logout">
+            {/* Verilerimi indir — KVKK m. 11 / GDPR m. 15 + m. 20 (veri taşınabilirliği) */}
+            <a
+              href="/api/account/export"
+              download
+              style={{ width: '100%', padding: '16px 20px', textDecoration: 'none', fontSize: '0.95rem', fontWeight: 600, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 12, boxSizing: 'border-box' }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+              <span style={{ flex: 1 }}>
+                Verilerimi indir
+                <span style={{ display: 'block', fontSize: '0.78rem', fontWeight: 400, color: 'var(--color-text-muted)', marginTop: 2 }}>
+                  Profilin, gönderilerin, yorumların ve mesajların — JSON olarak
+                </span>
+              </span>
+            </a>
+
+            <form method="POST" action="/api/auth/logout" style={{ borderTop: '1px solid var(--color-border)' }}>
               <button type="submit" style={{ width: '100%', padding: '16px 20px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit', fontSize: '0.95rem', fontWeight: 600, color: 'var(--color-danger)', display: 'flex', alignItems: 'center', gap: 12 }}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
                 Çıkış Yap
