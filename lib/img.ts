@@ -14,6 +14,10 @@ function eligible(src: string): boolean {
   const isAbs = /^https?:\/\//i.test(src);             // uzak (Supabase vb.) — netlify.toml remote_images allowlist gerektirir
   const isLocal = /^\/[^/]/.test(src);                 // site-içi kök-göreli (/articles/x.jpg, /_next/static/media/...) — allowlist gerekmez
   if (!isAbs && !isLocal) return false;                // blob:/data:/relative/'//' protokol-göreli atlanır
+  // Uzak kaynaklardan yalnız Supabase CDN'e girebilir: netlify.toml remote_images
+  // allowlist'i sadece *.supabase.co içerir; başka host (ör. DYK kartındaki dış
+  // görsel) CDN'e sokulursa Netlify 4xx döner ve görsel kırık görünür → orijinali sun.
+  if (isAbs && !/^https?:\/\/[^/?#]+\.supabase\.co\//i.test(src)) return false;
   if (/\.(gif|svg)($|\?)/i.test(src)) return false;    // animasyonlu GIF bozulmasın; SVG'yi CDN dönüştüremez → olduğu gibi sun
   return true;
 }

@@ -1,5 +1,3 @@
-import { getSupa } from '@/lib/supabase/client';
-
 /**
  * Tarayıcıdan doğrudan Supabase Storage'a yükler (Netlify serverless fonksiyon
  * gövde limitini atlar — büyük videolar için gerekli).
@@ -23,6 +21,10 @@ export async function uploadToStorage(
   const sign = await signRes.json();
   if (!signRes.ok) throw new Error(sign.error ?? 'Yükleme hazırlanamadı.');
 
+  // supabase-js'i ancak gerçekten yükleme anında indir: statik import bu
+  // kütüphaneyi ana sayfa/akış/profil first-load bundle'ına taşıyordu; yükleme
+  // yapmayan (anonim dahil) hiçbir ziyaretçi artık bu maliyeti ödemez.
+  const { getSupa } = await import('@/lib/supabase/client');
   const { error } = await getSupa()
     .storage.from('media')
     // Dosya adları benzersiz (üzerine yazılmaz) → 1 yıl önbellek güvenli;

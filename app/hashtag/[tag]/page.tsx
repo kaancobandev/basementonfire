@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { unstable_cache } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { db, getMe, logIfError } from '@/lib/supabase/server';
 import { breadcrumbJsonLd, jsonLdScript } from '@/lib/seo';
@@ -7,6 +8,99 @@ import HashtagClient from './HashtagClient';
 export const dynamic = 'force-dynamic';
 
 const SITE = 'https://basementonfire.com';
+
+type HashtagPost = {
+  id: number; user_id: number; media_url: string; media_type: string;
+  caption: string; likes: number; created_at: string;
+  display_name: string; username: string; avatar: string;
+  is_private: boolean;
+  media?: { url: string; type: 'image' | 'video' }[] | null;
+};
+
+// Etiket içeriği kişiye özel DEĞİL (meId yalnız istemci etkileşimleri için) →
+// ana feed / keşfet / akış desenindeki gibi kısa süreli paylaşılan önbellek.
+// 'feed' tag'i: yeni gönderi yüklenince revalidateTag('feed') bunu da tazeler.
+// Not: unstable_cache anahtara argümanları (tag) otomatik dahil eder.
+const getHashtagContent = unstable_cache(
+  async (normalizedTag: string): Promise<{ posts: HashtagPost[]; related: { tag: string; count: number }[] }> => {
+    // hashtags tablosunda bu tag'i bul
+    const { data: hashtagRow } = await db
+      .from('hashtags')
+      .select('id')
+      .eq('tag', normalizedTag)
+      .maybeSingle();
+
+    let posts: HashtagPost[] = [];
+
+    if (hashtagRow) {
+      const { data: rows, error: rowsErr } = await db
+        .from('post_hashtags')
+        .select(`
+          post:post_id(
+            *,
+            users!quick_facts_user_id_fkey(display_name, username, avatar, is_private)
+          )
+        `)
+        .eq('hashtag_id', hashtagRow.id)
+        .order('post_id', { ascending: false })
+        .limit(60);
+      logIfError('hashtag post_hashtags', rowsErr);
+
+      posts = (rows ?? [])
+        .map((r: any) => {
+          const p = r.post;
+          if (!p) return null;
+          return {
+            id:           p.id           as number,
+            user_id:      p.user_id      as number,
+            media_url:    p.media_url    as string,
+            media_type:   p.media_type   as string,
+            caption:      p.caption      as string,
+            likes:        p.likes        as number,
+            created_at:   p.created_at   as string,
+            media:        (p.media ?? null) as { url: string; type: 'image' | 'video' }[] | null,
+            display_name: (p.users?.display_name ?? '') as string,
+            username:     (p.users?.username ?? '')     as string,
+            avatar:       (p.users?.avatar ?? '')       as string,
+            is_private:   Boolean(p.users?.is_private),
+          };
+        })
+        .filter(Boolean) as HashtagPost[];
+
+      // Gizli hesapların gönderileri küresel etiket listesinde GÖSTERİLMEZ
+      // (is_private truthy = gizli, NULL = herkese açık) — /akis'teki filtrenin
+      // aynısı. service-role RLS'i baypas ettiğinden bu elle filtre zorunlu.
+      posts = posts.filter((p) => !p.is_private);
+    }
+
+    // İlgili etiketler: aynı gönderilerde bu etiketle birlikte geçen diğer hashtag'ler.
+    // İç bağlantı kümesi oluşturur → konu otoritesi (topical authority) sinyali + keşif.
+    let related: { tag: string; count: number }[] = [];
+    if (hashtagRow && posts.length) {
+      const postIds = posts.map((p) => p.id);
+      const { data: co } = await db
+        .from('post_hashtags')
+        .select('hashtag_id')
+        .in('post_id', postIds)
+        .neq('hashtag_id', hashtagRow.id);
+      const counts = new Map<number, number>();
+      for (const r of (co ?? []) as { hashtag_id: number }[]) {
+        counts.set(r.hashtag_id, (counts.get(r.hashtag_id) ?? 0) + 1);
+      }
+      const topIds = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12).map(([id]) => id);
+      if (topIds.length) {
+        const { data: tagRows } = await db.from('hashtags').select('id, tag').in('id', topIds);
+        related = (tagRows ?? [])
+          .map((t: any) => ({ tag: t.tag as string, count: counts.get(t.id) ?? 0 }))
+          .sort((a, b) => b.count - a.count);
+      }
+    }
+
+    return { posts, related };
+  },
+  ['hashtag-content-v1'],
+  { revalidate: 60, tags: ['feed'] },
+);
 
 export async function generateMetadata({ params }: { params: Promise<{ tag: string }> }): Promise<Metadata> {
   const { tag } = await params;
@@ -29,83 +123,11 @@ export default async function HashtagPage({ params }: { params: Promise<{ tag: s
 
   if (!normalizedTag) redirect('/');
 
-  // hashtags tablosunda bu tag'i bul
-  const { data: hashtagRow } = await db
-    .from('hashtags')
-    .select('id')
-    .eq('tag', normalizedTag)
-    .maybeSingle();
-
-  const { me } = await getMe();
-
-  type Post = {
-    id: number; user_id: number; media_url: string; media_type: string;
-    caption: string; likes: number; created_at: string;
-    display_name: string; username: string; avatar: string;
-    is_private: boolean;
-    media?: { url: string; type: 'image' | 'video' }[] | null;
-  };
-
-  let posts: Post[] = [];
-
-  if (hashtagRow) {
-    const { data: rows, error: rowsErr } = await db
-      .from('post_hashtags')
-      .select(`
-        post:post_id(
-          *,
-          users!quick_facts_user_id_fkey(display_name, username, avatar, is_private)
-        )
-      `)
-      .eq('hashtag_id', hashtagRow.id)
-      .order('post_id', { ascending: false })
-      .limit(60);
-    logIfError('hashtag post_hashtags', rowsErr);
-
-    posts = (rows ?? [])
-      .map((r: any) => {
-        const p = r.post;
-        if (!p) return null;
-        return {
-          id:           p.id           as number,
-          user_id:      p.user_id      as number,
-          media_url:    p.media_url    as string,
-          media_type:   p.media_type   as string,
-          caption:      p.caption      as string,
-          likes:        p.likes        as number,
-          created_at:   p.created_at   as string,
-          media:        (p.media ?? null) as { url: string; type: 'image' | 'video' }[] | null,
-          display_name: (p.users?.display_name ?? '') as string,
-          username:     (p.users?.username ?? '')     as string,
-          avatar:       (p.users?.avatar ?? '')       as string,
-          is_private:   Boolean(p.users?.is_private),
-        };
-      })
-      .filter(Boolean) as Post[];
-  }
-
-  // İlgili etiketler: aynı gönderilerde bu etiketle birlikte geçen diğer hashtag'ler.
-  // İç bağlantı kümesi oluşturur → konu otoritesi (topical authority) sinyali + keşif.
-  let related: { tag: string; count: number }[] = [];
-  if (hashtagRow && posts.length) {
-    const postIds = posts.map((p) => p.id);
-    const { data: co } = await db
-      .from('post_hashtags')
-      .select('hashtag_id')
-      .in('post_id', postIds)
-      .neq('hashtag_id', hashtagRow.id);
-    const counts = new Map<number, number>();
-    for (const r of (co ?? []) as { hashtag_id: number }[]) {
-      counts.set(r.hashtag_id, (counts.get(r.hashtag_id) ?? 0) + 1);
-    }
-    const topIds = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12).map(([id]) => id);
-    if (topIds.length) {
-      const { data: tagRows } = await db.from('hashtags').select('id, tag').in('id', topIds);
-      related = (tagRows ?? [])
-        .map((t: any) => ({ tag: t.tag as string, count: counts.get(t.id) ?? 0 }))
-        .sort((a, b) => b.count - a.count);
-    }
-  }
+  // Paylaşılan içerik (60sn cache) ile oturum okuması birbirinden bağımsız → paralel
+  const [{ posts, related }, { me }] = await Promise.all([
+    getHashtagContent(normalizedTag),
+    getMe(),
+  ]);
 
   const breadcrumbLd = breadcrumbJsonLd([
     { name: 'Ana Sayfa', path: '/' },

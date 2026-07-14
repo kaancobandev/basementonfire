@@ -474,7 +474,7 @@ export default function ProfileClient({ user, bg, age, followersCount, following
             </div>
             <div style={{ width: isMobile ? '100%' : 280, maxHeight: isMobile ? '42%' : undefined, flexShrink: 0, borderLeft: isMobile ? 'none' : '1px solid var(--color-border)', borderTop: isMobile ? '1px solid var(--color-border)' : 'none', display: 'flex', flexDirection: 'column', padding: 16, gap: 12, minHeight: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 36, height: 36, borderRadius: '50%', flexShrink: 0, overflow: 'hidden' }}><Img src={avatarSrc(user.username, avatarUrl)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></div>
+                <div style={{ width: 36, height: 36, borderRadius: '50%', flexShrink: 0, overflow: 'hidden' }}><Img src={avatarSrc(user.username, avatarUrl)} alt="" fixedWidth={72} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></div>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{user.display_name}</div>
                   <div style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>@{user.username}</div>

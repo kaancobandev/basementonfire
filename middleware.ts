@@ -3,6 +3,35 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 const PROTECTED = ['/profile', '/settings', '/messages', '/notifications', '/bookmarks', '/gonderi-olustur'];
 
+// Oturum çerezindeki access token'ın süresinin dolmak üzere olup olmadığını AĞ
+// ÇAĞRISI YAPMADAN anlar. @supabase/ssr oturumu "base64-<base64url(JSON)>"
+// biçiminde, gerekirse `sb-…-auth-token.0/.1` diye bölerek saklar. Herhangi bir
+// adım çözülemezse "yenileme gerekli" varsayılır (güvenli taraf: getUser çalışır).
+function tokenNeedsRefresh(request: NextRequest): boolean {
+  try {
+    const chunks = request.cookies
+      .getAll()
+      .filter((c) => /^sb-.+-auth-token(\.\d+)?$/.test(c.name))
+      .sort((a, b) => a.name.localeCompare(b.name, 'en', { numeric: true }));
+    if (!chunks.length) return false; // oturum yok → yenilenecek şey de yok
+    let raw = chunks.map((c) => c.value).join('');
+    if (raw.startsWith('base64-')) {
+      const b64 = raw.slice(7).replace(/-/g, '+').replace(/_/g, '/');
+      const padded = b64 + '='.repeat((4 - (b64.length % 4)) % 4);
+      raw = new TextDecoder().decode(Uint8Array.from(atob(padded), (ch) => ch.charCodeAt(0)));
+    } else {
+      raw = decodeURIComponent(raw);
+    }
+    const session = JSON.parse(raw) as { expires_at?: number };
+    if (!session?.expires_at) return true;
+    // 2 dk pay: bitmek üzereyse middleware yeniler — Set-Cookie YAZABİLEN tek katman
+    // burası (server component'ler cookie yazamaz), yenileme yedeği korunmalı.
+    return session.expires_at * 1000 - Date.now() < 120_000;
+  } catch {
+    return true;
+  }
+}
+
 export async function middleware(request: NextRequest) {
   // Kanonik alan adına zorla: tüm *.netlify.app host'ları (varsayılan subdomain +
   // HER deploy'un dondurulmuş permalink'i, ör. <hash>--basementonfire.netlify.app)
@@ -19,6 +48,21 @@ export async function middleware(request: NextRequest) {
   }
 
   const response = NextResponse.next({ request });
+
+  const path = request.nextUrl.pathname;
+  // auth.getUser() sonucu yalnızca şu kararlar için gerekiyor: korumalı yola
+  // anonim erişimde /login'e, girişliyken /login|/register'da /'a yönlendirme.
+  const needsAuthDecision =
+    PROTECTED.some((p) => path.startsWith(p)) || path === '/login' || path === '/register';
+
+  // Halka açık yol + oturum çerezi taze (veya hiç yok) → Supabase Auth'a ağ
+  // çağrısı gereksiz: gerçek doğrulamayı zaten her sayfada getMe() yapıyor.
+  // Böylece girişli kullanıcı, sayfa başına 1 fazladan auth turu ödemez;
+  // token bitmek üzereyse getUser yine çalışır ve yenilenen oturumu Set-Cookie
+  // ile kalıcılaştırır (aşağıdaki akış).
+  if (!needsAuthDecision && !tokenNeedsRefresh(request)) {
+    return response;
+  }
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -37,7 +81,6 @@ export async function middleware(request: NextRequest) {
   );
 
   const { data: { user } } = await supabase.auth.getUser();
-  const path = request.nextUrl.pathname;
 
   if (!user && PROTECTED.some(p => path.startsWith(p))) {
     return NextResponse.redirect(new URL('/login', request.url));
@@ -51,5 +94,8 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|uploads|logo_basement3).*)'],
+  // `.*\\..*` → uzantılı dosyalar (public/ görselleri, icon.svg, robots.txt vb.)
+  // middleware'e hiç girmez: bu isteklerde ne auth kararı ne kanonik yönlendirme
+  // gerekiyor, edge fonksiyon maliyeti tamamen düşer. Sayfa yollarında nokta yok.
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|uploads|logo_basement3|.*\\..*).*)'],
 };

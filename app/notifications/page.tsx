@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
-import { db, getMe } from '@/lib/supabase/server';
+import { after } from 'next/server';
+import { db, getMe, logIfError } from '@/lib/supabase/server';
 import Link from 'next/link';
 import Img from '@/app/components/Img';
 import { avatarSrc } from '@/lib/avatar';
@@ -25,8 +26,14 @@ export default async function NotificationsPage() {
     .order('created_at', { ascending: false })
     .limit(50);
 
-  // Mark all as read
-  await db.from('notifications').update({ is_read: true }).eq('user_id', me.id).eq('is_read', false);
+  // Okundu işaretle — render'ı bekletmez (TTFB'den bir DB turu düşer). Çıplak
+  // ateşle-unut yerine after(): Netlify yanıt bitince fonksiyonu dondurabilir,
+  // after/waitUntil yazmanın tamamlanmasını garanti eder (upload route emsali).
+  // Liste yukarıda çekildi → "yeni" vurgusu bozulmaz.
+  after(async () => {
+    const { error } = await db.from('notifications').update({ is_read: true }).eq('user_id', me.id).eq('is_read', false);
+    logIfError('notifications mark-read', error);
+  });
 
   return (
     <main className="main-content">

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { cache } from 'react';
 import { redirect } from 'next/navigation';
 import { db, getMe } from '@/lib/supabase/server';
 import { breadcrumbJsonLd, jsonLdScript } from '@/lib/seo';
@@ -7,13 +8,20 @@ import UserProfileClient from './UserProfileClient';
 
 export const dynamic = 'force-dynamic';
 
-export async function generateMetadata({ params }: { params: Promise<{ username: string }> }): Promise<Metadata> {
-  const { username } = await params;
-  const { data: u } = await db
+// generateMetadata + sayfa gövdesi aynı kullanıcı satırını ister → React cache()
+// ile istek başına TEK sorgu (getMe deseninin aynısı; iki ayrı select birleşti).
+const getProfileUser = cache(async (username: string) => {
+  const { data } = await db
     .from('users')
-    .select('username, display_name, bio, is_private')
+    .select('id, username, display_name, bio, avatar, is_private, birthdate, location, website, gender, interests')
     .eq('username', username)
     .single();
+  return data;
+});
+
+export async function generateMetadata({ params }: { params: Promise<{ username: string }> }): Promise<Metadata> {
+  const { username } = await params;
+  const u = await getProfileUser(username);
 
   if (!u) {
     return { title: 'Kullanıcı bulunamadı', robots: { index: false, follow: false } };
@@ -52,11 +60,7 @@ function calcAge(bd: string | null): number | null {
 export default async function UserProfilePage({ params }: { params: Promise<{ username: string }> }) {
   const { username } = await params;
 
-  const { data: profileUser } = await db
-    .from('users')
-    .select('id, username, display_name, bio, avatar, is_private, birthdate, location, website, gender, interests')
-    .eq('username', username)
-    .single();
+  const profileUser = await getProfileUser(username);
 
   if (!profileUser) redirect('/');
 
@@ -65,26 +69,23 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
   // Kendi profili ise /profile'a yönlendir
   if (me?.id === profileUser.id) redirect('/profile');
 
-  // Takip durumu
+  // Takip + engel durumu: birbirinden bağımsız iki sorgu → tek turda paralel.
+  // blocks tablosu yoksa (SQL çalışmadı) sessizce false kalır.
   let isFollowing = false;
-  if (me) {
-    const { data } = await db
-      .from('follows')
-      .select('id')
-      .eq('follower_id', me.id)
-      .eq('following_id', profileUser.id)
-      .single();
-    isFollowing = !!data;
-  }
-
-  // Engel durumu (iki yönlü). blocks tablosu yoksa (SQL çalışmadı) sessizce false kalır.
   let iBlocked = false, blockedMe = false;
   if (me) {
-    const { data: br } = await db
-      .from('blocks')
-      .select('blocker_id')
-      .or(`and(blocker_id.eq.${me.id},blocked_id.eq.${profileUser.id}),and(blocker_id.eq.${profileUser.id},blocked_id.eq.${me.id})`);
-    for (const r of (br ?? []) as { blocker_id: number }[]) {
+    const [followRes, blocksRes] = await Promise.all([
+      db.from('follows')
+        .select('id')
+        .eq('follower_id', me.id)
+        .eq('following_id', profileUser.id)
+        .maybeSingle(),
+      db.from('blocks')
+        .select('blocker_id')
+        .or(`and(blocker_id.eq.${me.id},blocked_id.eq.${profileUser.id}),and(blocker_id.eq.${profileUser.id},blocked_id.eq.${me.id})`),
+    ]);
+    isFollowing = !!followRes.data;
+    for (const r of (blocksRes.data ?? []) as { blocker_id: number }[]) {
       if (r.blocker_id === me.id) iBlocked = true; else blockedMe = true;
     }
   }

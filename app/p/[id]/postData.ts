@@ -1,16 +1,19 @@
+import { cache } from 'react';
 import { db } from '@/lib/supabase/server';
 
 // Tam gönderi sayfası (/p/[id]) ve intercepting-route modalı (@modal/(.)p/[id])
 // aynı veriyi kullanır — tek kaynak.
 
-export async function getPost(id: number) {
+// React cache(): generateMetadata + sayfa gövdesi aynı istekte aynı gönderiyi
+// ister — sorgu bir kez çalışır (getMe deseninin aynısı).
+export const getPost = cache(async (id: number) => {
   const { data } = await db
     .from('quick_facts')
     .select('*, users!quick_facts_user_id_fkey(username, display_name, avatar, is_private)')
     .eq('id', id)
     .single();
   return data as any;
-}
+});
 
 export type DetailComment = {
   id: number; content: string; created_at: string; parent_id: number | null; user_id: number;
@@ -50,12 +53,21 @@ export async function getPostDetail(postId: number, meId: number | null): Promis
     if (!follow) return null;
   }
 
-  const { data: rawComments } = await db
-    .from('comments')
-    .select('id, content, created_at, parent_id, user_id, users(username, display_name, avatar)')
-    .eq('post_id', postId)
-    .order('created_at', { ascending: true });
-  const comments: DetailComment[] = (rawComments ?? []).map((c: any) => ({
+  // Yorumlar ile beğeni/kaydetme/repost durumu birbirinden bağımsız → tek turda paralel
+  const [commentsRes, likesRes] = await Promise.all([
+    db.from('comments')
+      .select('id, content, created_at, parent_id, user_id, users(username, display_name, avatar)')
+      .eq('post_id', postId)
+      .order('created_at', { ascending: true }),
+    meId
+      ? Promise.all([
+          db.from('fact_likes').select('fact_id').eq('user_id', meId).eq('fact_id', postId).maybeSingle(),
+          db.from('bookmarks').select('id').eq('user_id', meId).eq('post_id', postId).maybeSingle(),
+          db.from('fact_reposts').select('fact_id').eq('user_id', meId).eq('fact_id', postId).maybeSingle(),
+        ])
+      : Promise.resolve(null),
+  ]);
+  const comments: DetailComment[] = (commentsRes.data ?? []).map((c: any) => ({
     id: c.id, content: c.content, created_at: c.created_at, parent_id: c.parent_id, user_id: c.user_id,
     username: c.users?.username ?? '', display_name: c.users?.display_name ?? '', avatar: c.users?.avatar ?? null,
   }));
@@ -63,12 +75,8 @@ export async function getPostDetail(postId: number, meId: number | null): Promis
   let initialLiked = false;
   let initialBookmarked = false;
   let initialReposted = false;
-  if (meId) {
-    const [lk, bm, rp] = await Promise.all([
-      db.from('fact_likes').select('fact_id').eq('user_id', meId).eq('fact_id', postId).maybeSingle(),
-      db.from('bookmarks').select('id').eq('user_id', meId).eq('post_id', postId).maybeSingle(),
-      db.from('fact_reposts').select('fact_id').eq('user_id', meId).eq('fact_id', postId).maybeSingle(),
-    ]);
+  if (likesRes) {
+    const [lk, bm, rp] = likesRes;
     initialLiked = !!lk.data;
     initialBookmarked = !!bm.data;
     initialReposted = !!rp.data;

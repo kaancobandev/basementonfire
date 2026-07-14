@@ -4,6 +4,7 @@ import Img from '@/app/components/Img';
 import MediaCarousel from '@/app/components/MediaCarousel';
 import { factMediaList } from '@/lib/types';
 import { avatarSrc } from '@/lib/avatar';
+import { cdnUrl } from '@/lib/img';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
@@ -376,6 +377,8 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
         ) : (
           <div style={{ maxWidth: 470, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24, paddingBottom: 40, paddingTop: 16 }}>
             {feedItems.map((item: any, index: number) => {
+              // İlk medyalı kart = LCP adayı → eager + fetchpriority=high; gerisi lazy.
+              const isFirstMedia = index === feedItems.findIndex((it: any) => it.kind === 'fact');
               if (item.kind === 'dyk') {
                 return (
                   <motion.div
@@ -411,7 +414,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                       <ReportButton targetType="post" targetId={item.id} subtitle={`@${item.username} gönderisi`} size={32} canReport={!!currentUser && currentUser.id !== item.user_id} />
                     </div>
                     <div style={{ width: '100%', background: '#000', lineHeight: 0 }}>
-                      <MediaCarousel media={factMediaList(item)} variant="feed" caption={item.caption ?? ''} sizes="(max-width:620px) 100vw, 600px" />
+                      <MediaCarousel media={factMediaList(item)} variant="feed" caption={item.caption ?? ''} sizes="(max-width:620px) 100vw, 600px" priority={isFirstMedia} />
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 10px 4px' }}>
                       <motion.button
@@ -588,7 +591,9 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
       {/* Story Viewer Modal */}
       {viewerOpen && currentSvUser && currentSvStory && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={e => { if (e.target === e.currentTarget) closeViewer(); }}>
-          <div style={{ position: 'absolute', inset: 0, backgroundImage: currentSvStory.mediaType === 'image' ? `url(${currentSvStory.mediaUrl})` : undefined, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(30px) brightness(0.3)', transform: 'scale(1.1)', transition: 'background-image 0.3s' }} />
+          {/* Bulanık arka plan: blur(30px) altında ezildiğinden ham orijinal yerine
+              küçük CDN türevi yeter — aynı görselin tam boy kopyası ikinci kez inmez. */}
+          <div style={{ position: 'absolute', inset: 0, backgroundImage: currentSvStory.mediaType === 'image' ? `url(${cdnUrl(currentSvStory.mediaUrl, 320, 45)})` : undefined, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(30px) brightness(0.3)', transform: 'scale(1.1)', transition: 'background-image 0.3s' }} />
           <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 'min(440px, calc(96vh * 9 / 16))', maxHeight: '96vh', aspectRatio: '9 / 16', display: 'flex', flexDirection: 'column', borderRadius: 16, overflow: 'hidden', background: '#000' }}>
             {/* Top bar */}
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10, padding: '10px 12px 8px', background: 'linear-gradient(to bottom, rgba(0,0,0,0.6), transparent)' }}>

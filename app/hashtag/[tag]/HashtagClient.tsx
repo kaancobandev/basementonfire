@@ -168,7 +168,7 @@ export default function HashtagClient({ tag, posts, related = [], meId = null }:
                   onClick={closeLb}
                   style={{ width: 36, height: 36, borderRadius: '50%', textDecoration: 'none', overflow: 'hidden', flexShrink: 0 }}
                 >
-                  <Img src={avatarSrc(selected.username, selected.avatar)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <Img src={avatarSrc(selected.username, selected.avatar)} alt="" fixedWidth={72} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </Link>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <Link

@@ -131,13 +131,16 @@ function AudioCard({ url, variant }: { url: string; variant: 'lightbox' | 'feed'
  *    sustur/aç butonu, otomatik sessiz oynatma — Instagram tarzı).
  *  - Yalnızca ses içeren gönderide oynatıcı kartı gösterilir.
  */
-export default function MediaCarousel({ media, sizes, background = '#000', variant = 'lightbox', caption: captionRaw }: {
+export default function MediaCarousel({ media, sizes, background = '#000', variant = 'lightbox', caption: captionRaw, priority = false }: {
   media: MediaItem[];
   sizes?: string;
   background?: string;
   variant?: 'lightbox' | 'feed';
   /** Gönderi açıklaması — görsel alt metni + video title/aria-label (erişilebilirlik + SEO). */
   caption?: string;
+  /** LCP adayı (sayfanın ilk büyük medyası): ilk görsel eager + fetchpriority=high.
+   *  false ise feed görselleri lazy iner → ekran altındaki kartlar açılışta indirilmez. */
+  priority?: boolean;
 }) {
   // Boş/undefined → alt='' kalır ama title/aria-label hiç eklenmez (geçersiz "undefined" önlenir).
   const caption = captionRaw || undefined;
@@ -195,7 +198,7 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
         <div ref={containerRef} style={{ position: 'relative', width: '100%', aspectRatio: feedAspect, maxHeight: '100%', overflow: 'hidden', background }}>
           {m.type === 'video'
             ? <video src={m.url} controls playsInline title={caption} aria-label={caption} onLoadedMetadata={onFeedVideoMeta} style={st} />
-            : <Img src={m.url} alt={caption || ''} sizes={sizes} onLoad={onFeedImgLoad} style={st} />}
+            : <Img src={m.url} alt={caption || ''} sizes={sizes} onLoad={onFeedImgLoad} loading={priority ? undefined : 'lazy'} fetchPriority={priority ? 'high' : undefined} style={st} />}
           {audio && <MusicLayer url={audio} targetRef={containerRef} />}
         </div>
       );
@@ -251,7 +254,7 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
           <div key={i} style={{ flex: '0 0 100%', width: '100%', height: '100%', scrollSnapAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {m.type === 'video'
               ? <video src={m.url} controls playsInline title={caption} aria-label={caption} onLoadedMetadata={variant === 'feed' && i === 0 ? onFeedVideoMeta : undefined} style={mediaStyle} />
-              : <Img src={m.url} alt={caption || ''} sizes={sizes} onLoad={variant === 'feed' && i === 0 ? onFeedImgLoad : undefined} style={mediaStyle} />}
+              : <Img src={m.url} alt={caption || ''} sizes={sizes} onLoad={variant === 'feed' && i === 0 ? onFeedImgLoad : undefined} loading={variant === 'feed' && !(priority && i === 0) ? 'lazy' : undefined} fetchPriority={priority && i === 0 ? 'high' : undefined} style={mediaStyle} />}
           </div>
         ))}
       </div>

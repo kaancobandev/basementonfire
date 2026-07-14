@@ -190,7 +190,7 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
       <div style={cardStyle}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px' }}>
           <Link href={user.username ? `/u/${user.username}` : '#'} style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, textDecoration: 'none', overflow: 'hidden' }}>
-            <Img src={avatarSrc(user.username, user.avatar)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <Img src={avatarSrc(user.username, user.avatar)} alt="" fixedWidth={76} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </Link>
           <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
             {user.username && (
