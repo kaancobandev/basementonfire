@@ -1,4 +1,5 @@
 import { db, getMe } from '@/lib/supabase/server';
+import { MATCH_MIN_AGE, isAtLeast } from '@/lib/age';
 import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -11,6 +12,10 @@ const json = (data: object, status = 200) => NextResponse.json(data, { status })
 export async function POST(req: Request) {
   const { me } = await getMe();
   if (!me) return json({ error: 'Giriş gerekli' }, 401);
+
+  // 18+ KAPISI (kaydıran). Bu route doğrudan çağrılabilir → sayfayı gizlemek yetmez.
+  if (!isAtLeast(me.birthdate, MATCH_MIN_AGE))
+    return json({ error: `Eşleştirme ${MATCH_MIN_AGE} yaş ve üzeri içindir.` }, 403);
 
   let targetId: number;
   let direction: string;
@@ -25,6 +30,17 @@ export async function POST(req: Request) {
   if (!targetId || Number.isNaN(targetId)) return json({ error: 'Hedef gerekli' }, 400);
   if (targetId === me.id) return json({ error: 'Kendinizi kaydıramazsınız' }, 400);
   if (direction !== 'like' && direction !== 'pass') return json({ error: 'Geçersiz yön' }, 400);
+
+  // HEDEF de 18+ olmalı. İstemci desteyi baypas edip rastgele bir targetId yollayabilir →
+  // 17 yaşındaki birine "like" atılmasını burada engelliyoruz (asıl koruma).
+  const { data: target } = await db
+    .from('users')
+    .select('birthdate, is_deleted')
+    .eq('id', targetId)
+    .maybeSingle();
+
+  if (!target || target.is_deleted || !isAtLeast(target.birthdate, MATCH_MIN_AGE))
+    return json({ error: 'Bu kullanıcı eşleştirmeye uygun değil.' }, 403);
 
   // Kaydirmayi yaz (tekrar kaydirma -> yonu gunceller).
   const { error: swErr } = await db

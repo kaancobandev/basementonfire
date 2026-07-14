@@ -32,6 +32,8 @@ interface Props {
   repostedFactIds: number[];
   suggestedUsers: SuggestedUser[];
   currentUser: { id: number; username: string; display_name: string; avatar: string | null } | null;
+  /** Eşleştirme 18+ — sunucuda hesaplanır (ham doğum tarihi istemciye sızmasın). */
+  canMatch: boolean;
   ownStoryUser: StoryUser | null;
   otherStoryUsers: StoryUser[];
 }
@@ -61,7 +63,7 @@ const HeartEmpty = () => (
   </svg>
 );
 
-export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedPostIds, repostedFactIds, suggestedUsers, currentUser, ownStoryUser, otherStoryUsers }: Props) {
+export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedPostIds, repostedFactIds, suggestedUsers, currentUser, canMatch, ownStoryUser, otherStoryUsers }: Props) {
   // Feed items + infinite scroll
   const [feedItems, setFeedItems] = useState<any[]>(initialItems);
   const [nextCursor, setNextCursor] = useState<string | null>(
@@ -359,7 +361,9 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
           ))}
         </div>
 
-        {/* Eşleştir — mobil/tablet girişi (masaüstünde sağ panel kartı var; sağ panel <1200px gizli) */}
+        {/* Eşleştir — mobil/tablet girişi (masaüstünde sağ panel kartı var; sağ panel <1200px gizli).
+            18+ özelliği → yaşı tutmayana hiç gösterilmez (sayfa + API'ler de ayrıca korunuyor). */}
+        {canMatch && (
         <Link href="/eslesme" className="match-feed-card">
           <span className="match-feed-card-icon">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.9-10-9.3C.3 8.4 1.7 5 5 5c2 0 3.2 1.1 4 2.3C9.8 6.1 11 5 13 5c3.3 0 4.7 3.4 3 6.7C19.5 16.1 12 21 12 21z"/></svg>
@@ -370,6 +374,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
           </span>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ flexShrink: 0, opacity: 0.85 }}><path d="m9 18 6-6-6-6"/></svg>
         </Link>
+        )}
 
         {/* Günün Sorusu — eğlence + bilgi füzyonunun etkileşim motoru (herkese görünür) */}
         <DailyQuestion />
@@ -539,7 +544,8 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
           <svg aria-hidden="true" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           <input name="q" type="search" placeholder="İçeriklerde ara" aria-label="İçeriklerde ara" style={{ width: '100%', padding: '11px 14px 11px 40px', borderRadius: 'var(--radius-pill)', border: '1px solid var(--color-border)', background: 'var(--color-bg)', color: 'var(--color-text)', fontSize: '0.9rem', outline: 'none', fontFamily: 'inherit' }} />
         </form>
-        {/* Eşleştir — ilgi alanı bazlı kart kaydırma girişi (navbar yerine burada) */}
+        {/* Eşleştir — ilgi alanı bazlı kart kaydırma girişi (navbar yerine burada). 18+ */}
+        {canMatch && (
         <div className="widget-card">
           <h3>Eşleştir</h3>
           <p style={{ margin: '0 0 12px', fontSize: '0.85rem', color: 'var(--color-text-muted)', lineHeight: 1.45 }}>
@@ -550,6 +556,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
             Eşleşmeye başla
           </Link>
         </div>
+        )}
         {currentUser && suggestedUsers.length > 0 && (
           <div className="widget-card">
             <h3>Tanıyor olabilirsin</h3>

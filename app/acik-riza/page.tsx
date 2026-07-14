@@ -75,10 +75,15 @@ export default function AcikRizaPage() {
 
       {/* 3 */}
       <div style={box}>
-        <h2 style={{ ...h2, margin: '0 0 6px' }}>3. Eşleştirme özelliği</h2>
+        <h2 style={{ ...h2, margin: '0 0 6px' }}>3. Eşleştirme özelliği <span style={{ fontSize: '0.8rem', verticalAlign: 'middle' }}>(18+)</span></h2>
         <p style={p}>
-          <strong>Ne oluyor?</strong> Eşleştirme (&quot;Eşleşme&quot;) özelliğini kullanırsan; ilgi alanların,
-          kaydırma (beğen/geç) kararların ve eşleşmelerin işlenir. Eşleşme olduğunda karşılıklı bir mesajlaşma açılır.
+          <strong>Yaş sınırı:</strong> Bu özellik yalnızca <strong>18 yaşından büyük</strong> kullanıcılara açıktır
+          (siteye kayıt yaşı 16&apos;dır; eşleştirme ayrı ve daha yüksek bir sınıra tabidir). 18 yaşından küçüksen özellik
+          sana gösterilmez ve sen de başkasının karşısına aday olarak çıkmazsın.
+        </p>
+        <p style={p}>
+          <strong>Ne oluyor?</strong> Eşleştirme özelliğini kullanırsan; ilgi alanların, kaydırma (beğen/geç) kararların
+          ve eşleşmelerin işlenir. Eşleşme olduğunda karşılıklı bir mesajlaşma açılır.
         </p>
         <p style={p}>
           <strong>Dikkat — hassas veri uyarısı:</strong> Eşleştirme tercihlerin, bazı durumlarda

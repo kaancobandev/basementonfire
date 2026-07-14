@@ -91,12 +91,19 @@ export default function KosullarPage() {
         kaydetmesini (ekran görüntüsü vb.) teknik olarak engelleyemeyiz — paylaştıklarına dikkat et.
       </p>
 
-      <h2 style={h2}>8. Eşleştirme Özelliği</h2>
+      <h2 style={h2}>8. Eşleştirme Özelliği — 18+</h2>
       <p style={p}>
-        Eşleştirme özelliği <strong>isteğe bağlıdır</strong>. Kullanman hâlinde ilgi alanların ve kaydırma kararların
-        işlenir (bkz. <a href="/acik-riza" style={linkStyle}>Açık Rıza Metni</a>). Eşleştiğin kişilerle yaptığın
-        görüşmelerden ve buluşmalardan doğacak sonuçlardan Basements sorumlu değildir. Tanımadığın kişilerle iletişimde
-        <strong> dikkatli ol</strong>.
+        Eşleştirme (&quot;Eşleştir&quot;) özelliği, siteye kayıt yaşından (16) <strong>ayrı ve daha yüksek</strong> bir
+        sınıra tabidir: yalnızca <strong>18 yaşından büyük</strong> kullanıcılar erişebilir. Bunun sebebi, özelliğin
+        tanımadığın kişilerle karşılıklı özel mesajlaşma açması ve buluşmaya yol açabilmesidir.
+        <strong> 18 yaşından küçüklere hem gösterilmez hem de gösterilmezler</strong> — yani 18 yaşından küçük bir
+        kullanıcı ne eşleştirmeyi kullanabilir ne de başkasının karşısına aday olarak çıkar.
+      </p>
+      <p style={p}>
+        Özellik ayrıca <strong>isteğe bağlıdır</strong>. Kullanman hâlinde ilgi alanların ve kaydırma kararların işlenir
+        (bkz. <a href="/acik-riza" style={linkStyle}>Açık Rıza Metni</a>). Eşleştiğin kişilerle yaptığın görüşmelerden ve
+        buluşmalardan doğacak sonuçlardan Basements sorumlu değildir. Tanımadığın kişilerle iletişimde{' '}
+        <strong>dikkatli ol</strong>.
       </p>
 
       <h2 style={h2}>9. Sitenin Kendi İçeriği</h2>

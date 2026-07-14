@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { unstable_cache } from 'next/cache';
 import { db, getMe, logIfError } from '@/lib/supabase/server';
 import { flattenFacts, flattenPosts, type QuickFact, type Post, type DidYouKnow } from '@/lib/types';
+import { MATCH_MIN_AGE, isAtLeast } from '@/lib/age';
 import HomeFeed from './components/HomeFeed';
 import { jsonLdScript } from '@/lib/seo';
 
@@ -189,6 +190,7 @@ export default async function HomePage() {
         repostedFactIds={repostedFactIds}
         suggestedUsers={suggestedUsers}
         currentUser={me ? { id: me.id, username: me.username, display_name: me.display_name, avatar: me.avatar ?? null } : null}
+        canMatch={isAtLeast(me?.birthdate, MATCH_MIN_AGE)}
         ownStoryUser={ownStoryUser}
         otherStoryUsers={otherStoryUsers}
       />

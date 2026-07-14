@@ -1,4 +1,5 @@
 import { db, getMe } from '@/lib/supabase/server';
+import { MATCH_MIN_AGE, isAtLeast, birthdateCutoff } from '@/lib/age';
 import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -26,7 +27,16 @@ export async function GET() {
   const { me } = await getMe();
   if (!me) return json({ error: 'Giriş gerekli' }, 401);
 
+  // 18+ KAPISI — sayfayı gizlemek yetmez, bu route doğrudan çağrılabilir.
+  // Doğum tarihi olmayan (yaş kapısından önce kayıt olmuş) eski kullanıcılar da geçemez.
+  if (!isAtLeast(me.birthdate, MATCH_MIN_AGE))
+    return json({ error: `Eşleştirme ${MATCH_MIN_AGE} yaş ve üzeri içindir.` }, 403);
+
   const myInterests: string[] = Array.isArray(me.interests) ? me.interests : [];
+
+  // HAVUZ da 18+ ile sınırlı: 18 yaşındaki birine 16-17 yaşında biri GÖSTERİLMEZ.
+  // Asıl korunmak istenen şey bu. `birthdate <= cutoff` → NULL olanlar da elenir.
+  const cutoff = birthdateCutoff(MATCH_MIN_AGE);
 
   // Daha once kaydirdiklarim — tekrar gosterme.
   const { data: swipedRows } = await db.from('swipes').select('target_id').eq('swiper_id', me.id);
@@ -37,9 +47,9 @@ export async function GET() {
   // .not('is_private','is',true): gizli hesaplar deste'ye girmez (yalnız true olan; NULL/false açık).
   const queries: PromiseLike<{ data: unknown[] | null }>[] = [];
   if (myInterests.length) {
-    queries.push(db.from('users').select(SELECT).neq('id', me.id).not('is_private', 'is', true).overlaps('interests', myInterests).limit(80));
+    queries.push(db.from('users').select(SELECT).neq('id', me.id).not('is_private', 'is', true).eq('is_deleted', false).lte('birthdate', cutoff).overlaps('interests', myInterests).limit(80));
   }
-  queries.push(db.from('users').select(SELECT).neq('id', me.id).not('is_private', 'is', true).order('created_at', { ascending: false }).limit(40));
+  queries.push(db.from('users').select(SELECT).neq('id', me.id).not('is_private', 'is', true).eq('is_deleted', false).lte('birthdate', cutoff).order('created_at', { ascending: false }).limit(40));
 
   const results = await Promise.all(queries);
 

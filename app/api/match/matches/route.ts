@@ -1,4 +1,5 @@
 import { db, getMe } from '@/lib/supabase/server';
+import { MATCH_MIN_AGE, isAtLeast } from '@/lib/age';
 import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -17,6 +18,10 @@ type MatchRow = {
 export async function GET() {
   const { me } = await getMe();
   if (!me) return json({ error: 'Giriş gerekli' }, 401);
+
+  // 18+ KAPISI — doğrudan çağrılabilir.
+  if (!isAtLeast(me.birthdate, MATCH_MIN_AGE))
+    return json({ error: `Eşleştirme ${MATCH_MIN_AGE} yaş ve üzeri içindir.` }, 403);
 
   const { data, error } = await db
     .from('matches')

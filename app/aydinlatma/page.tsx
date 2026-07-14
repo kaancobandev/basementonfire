@@ -56,7 +56,10 @@ export default function AydinlatmaPage() {
             </tr>
             <tr>
               <td style={td}>Doğum tarihi</td>
-              <td style={td}><strong>Yaş sınırının (16+) doğrulanması</strong> ve çocukların korunması</td>
+              <td style={td}>
+                <strong>Yaş sınırlarının doğrulanması</strong> ve çocukların korunması: siteye kayıt için <strong>16+</strong>,
+                eşleştirme özelliği için ayrıca <strong>18+</strong>.
+              </td>
               <td style={td}>m. 5/2-f — meşru menfaat (çocuk koruması)</td>
             </tr>
             <tr>
@@ -85,8 +88,11 @@ export default function AydinlatmaPage() {
               <td style={td}>m. 5/1 — <a href="/acik-riza" style={linkStyle}>açık rıza</a></td>
             </tr>
             <tr>
-              <td style={td}>Eşleştirme kararları ve eşleşmeler <em>(opsiyonel)</em></td>
-              <td style={td}>Eşleştirme özelliğini kullanırsan çalışması için</td>
+              <td style={td}>Eşleştirme kararları ve eşleşmeler <em>(opsiyonel, 18+)</em></td>
+              <td style={td}>
+                Eşleştirme özelliğini kullanırsan çalışması için. Bu özellik yalnızca <strong>18 yaşından
+                büyüklere</strong> açıktır; 18 altındaki kullanıcılar ne kullanabilir ne de aday olarak gösterilir.
+              </td>
               <td style={td}>m. 5/1 — <a href="/acik-riza" style={linkStyle}>açık rıza</a></td>
             </tr>
             <tr>
@@ -146,12 +152,16 @@ export default function AydinlatmaPage() {
         <li>Hukuken saklamamız gereken bir durum varsa (örn. yasal talep), ilgili süre boyunca sınırlı olarak saklanabilir.</li>
       </ul>
 
-      <h2 style={h2}>6. Yaş Sınırı (16+)</h2>
+      <h2 style={h2}>6. Yaş Sınırları (16+ / eşleştirme 18+)</h2>
       <p style={p}>
         Basements <strong>16 yaşından küçüklere yönelik değildir</strong> ve 16 yaşından küçükler üye olamaz. Kayıt
         sırasında yaşını doğruluyoruz. 16 yaşından küçük birinin hesabı olduğunu tespit edersek hesabı kapatır ve
         verilerini sileriz. Böyle bir durumu fark edersen{' '}
         <a href={`mailto:${MAIL}`} style={linkStyle}>{MAIL}</a> adresine bildir.
+      </p>
+      <p style={p}>
+        <strong>Eşleştirme özelliği ayrıca 18+&apos;dır.</strong> Tanımadığın kişilerle özel mesajlaşma açtığı için,
+        bu özellik 18 yaşından küçüklere <strong>hem gösterilmez hem de onları başkalarına aday olarak göstermez</strong>.
       </p>
 
       <h2 style={h2}>7. KVKK m. 11 Kapsamındaki Haklarınız</h2>
