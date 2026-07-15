@@ -29,8 +29,12 @@ import type { Rgb } from './ShaderHero';
 
 const ShaderHero = dynamic(() => import('./ShaderHero'), { ssr: false, loading: () => null });
 
-const ThemeCtx = createContext<{ accent: string }>({ accent: '#34d399' });
+// Zemin de temaya dahil: koyu-yeşil varsayılan korunur (mevcut makaleler değişmesin),
+// ama bir makale kendi zeminini verebilir (ör. Sezar'ın obsidyen-kan siyahı).
+const DEFAULT_BG = '#04120c';
+const ThemeCtx = createContext<{ accent: string; bg: string }>({ accent: '#34d399', bg: DEFAULT_BG });
 const useAccent = () => useContext(ThemeCtx).accent;
+const useBg = () => useContext(ThemeCtx).bg;
 const prefersReduced = () => typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // Mobil tarayıcının adres çubuğu göster/gizle olayı viewport yüksekliğini değiştirip
@@ -60,13 +64,13 @@ export function Reveal({ children, className = '' }: { children: ReactNode; clas
 }
 
 /* ─── Dış kabuk: tema + ambient zemin + üst çubuk ─── */
-export function ArticleShell({ accent = '#34d399', title, backHref = '/', children }: { accent?: string; title: string; backHref?: string; children: ReactNode }) {
+export function ArticleShell({ accent = '#34d399', bg = DEFAULT_BG, title, backHref = '/', children }: { accent?: string; bg?: string; title: string; backHref?: string; children: ReactNode }) {
   return (
-    <ThemeCtx.Provider value={{ accent }}>
+    <ThemeCtx.Provider value={{ accent, bg }}>
       <main className="main-content">
-        <div className="relative min-h-screen overflow-clip bg-[#04120c] text-slate-300" style={{ ['--art-accent' as string]: accent } as CSSProperties}>
+        <div className="relative min-h-screen overflow-clip text-slate-300" style={{ ['--art-accent' as string]: accent, ['--art-bg' as string]: bg, background: bg } as CSSProperties}>
           <div className="art-ambient" aria-hidden />
-          <div className="sticky top-0 z-40 flex items-center gap-3 border-b border-white/10 bg-[#04120c]/70 px-5 py-2.5 backdrop-blur">
+          <div className="sticky top-0 z-40 flex items-center gap-3 border-b border-white/10 px-5 py-2.5 backdrop-blur" style={{ background: `color-mix(in srgb, ${bg} 70%, transparent)` }}>
             <Link href={backHref} aria-label="Geri" className="grid h-8 w-8 place-items-center rounded-lg border border-white/10 bg-white/5 transition hover:bg-white/10" style={{ color: accent }}>
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6" /></svg>
             </Link>
@@ -78,7 +82,7 @@ export function ArticleShell({ accent = '#34d399', title, backHref = '/', childr
               radial-gradient(55% 45% at 18% 12%, color-mix(in srgb, var(--art-accent) 15%, transparent), transparent 70%),
               radial-gradient(45% 40% at 85% 28%, color-mix(in srgb, var(--art-accent) 10%, transparent), transparent 70%),
               radial-gradient(60% 50% at 60% 90%, color-mix(in srgb, var(--art-accent) 8%, transparent), transparent 70%),
-              #04120c; }
+              var(--art-bg); }
             @media (prefers-reduced-motion: reduce) { .art-anim-bounce { animation: none !important; } }
           `}</style>
         </div>
@@ -92,6 +96,7 @@ export function ArticleHero({ title, fullTitle, eyebrow, subtitle, colors, gradi
   title: string; fullTitle?: string; eyebrow?: string; subtitle?: ReactNode; colors?: [Rgb, Rgb, Rgb, Rgb]; gradientText?: string;
 }) {
   const accent = useAccent();
+  const bg = useBg();
   const heroRef = useRef<HTMLElement>(null);
 
   useGSAP(() => {
@@ -118,9 +123,9 @@ export function ArticleHero({ title, fullTitle, eyebrow, subtitle, colors, gradi
 
   return (
     <header ref={heroRef} className="relative flex h-[100svh] items-center justify-center overflow-hidden">
-      <div className="absolute inset-0" style={{ background: `radial-gradient(120% 120% at 50% 30%, color-mix(in srgb, ${accent} 22%, #04120c), #04120c)` }} aria-hidden />
+      <div className="absolute inset-0" style={{ background: `radial-gradient(120% 120% at 50% 30%, color-mix(in srgb, ${accent} 22%, ${bg}), ${bg})` }} aria-hidden />
       <div className="hero-shader absolute inset-0"><ShaderHero colors={colors} /></div>
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#04120c]" aria-hidden />
+      <div className="pointer-events-none absolute inset-0" style={{ background: `linear-gradient(to bottom, transparent, transparent, ${bg})` }} aria-hidden />
 
       <div className="relative z-10 px-6 text-center">
         {/* SEO/erişilebilirlik: gerçek (zengin) başlık görünmez ama taranabilir <h1>;
@@ -255,6 +260,7 @@ export function HorizontalTimeline({ heading, kicker = 'ZAMAN ÇİZELGESİ', ite
 export type QuizQuestion = { text: string; opts: string[]; a: number; exp?: string };
 export function ArticleQuiz({ questions }: { questions: QuizQuestion[] }) {
   const accent = useAccent();
+  const bg = useBg();
   const [qi, setQi] = useState(0);
   const [score, setScore] = useState(0);
   const [pick, setPick] = useState<number | null>(null);
@@ -293,7 +299,7 @@ export function ArticleQuiz({ questions }: { questions: QuizQuestion[] }) {
           {answered && (
             <div className="mt-4">
               {q.exp && <div className="rounded-xl border p-4 text-sm leading-relaxed text-slate-200" style={{ borderColor: pick === q.a ? `color-mix(in srgb, ${accent} 30%, transparent)` : 'rgba(251,191,36,0.3)', background: pick === q.a ? `color-mix(in srgb, ${accent} 6%, transparent)` : 'rgba(251,191,36,0.06)' }}><span className="font-bold">{pick === q.a ? 'Doğru! ' : 'Doğru cevap: ' + q.opts[q.a] + '. '}</span>{q.exp}</div>}
-              <button onClick={next} className="mt-3 w-full rounded-xl px-4 py-3 text-sm font-bold text-[#04120c]" style={{ background: accent }}>{qi + 1 < questions.length ? 'Sonraki soru →' : 'Sonucu gör 🎉'}</button>
+              <button onClick={next} className="mt-3 w-full rounded-xl px-4 py-3 text-sm font-bold" style={{ background: accent, color: bg }}>{qi + 1 < questions.length ? 'Sonraki soru →' : 'Sonucu gör 🎉'}</button>
             </div>
           )}
         </>
@@ -302,7 +308,7 @@ export function ArticleQuiz({ questions }: { questions: QuizQuestion[] }) {
           <div className="mb-2 text-5xl">{score === questions.length ? '🏆' : score >= questions.length / 2 ? '🌿' : '🌱'}</div>
           <p className="mb-1 text-2xl font-bold text-slate-100">{score} / {questions.length}</p>
           <p className="mb-5 text-slate-400">{score === questions.length ? 'Kusursuz!' : score >= questions.length / 2 ? 'Güzel iş!' : 'Bir kez daha dene.'}</p>
-          <button onClick={restart} className="rounded-full px-6 py-2.5 text-sm font-bold text-[#04120c]" style={{ background: accent }}>↻ Tekrar dene</button>
+          <button onClick={restart} className="rounded-full px-6 py-2.5 text-sm font-bold" style={{ background: accent, color: bg }}>↻ Tekrar dene</button>
         </div>
       )}
     </div>

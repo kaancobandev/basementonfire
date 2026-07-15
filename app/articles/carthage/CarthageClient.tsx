@@ -78,6 +78,7 @@ const chapters = [
       'İkinci Pön Savaşı\'nın sonunda Kartaca askeri olarak çökmüştü. Ancak Kartacalılar en iyi bildikleri şeye, ticarete geri döndüler. Birkaç on yıl içinde tarım ve deniz ticareti sayesinde inanılmaz hızda toparlandılar.',
       'Bu barışçıl diriliş onları yeniden Roma\'nın hedefi yaptı. Roma senatörü Cato her konuşmasını şu cümleyle bitirdi: "Carthago delenda est!" ("Kartaca yıkılmalıdır!").',
       'Üçüncü Pön Savaşı\'nı tetikleyen şey askeri bir tehdit değil, Roma\'nın ekonomik rekabetten duyduğu korku ve kıskançlıktı.',
+      'Hikâyenin en tuhaf sonu ise yüz yıl sonra geldi: Kartaca\'yı küle çeviren Roma, aynı yere yeni bir şehir kurmaya karar verdi. Bunu emreden kişi, gazilerini yerleştirecek toprak arayan <a href="/articles/sezar" class="article-ilink">Julius Caesar</a>\'dı; kolonisi onun ölümünden sonra, Augustus döneminde tamamlandı ve Kartaca Roma Afrikası\'nın en zengin şehri olarak yeniden doğdu.',
     ],
     quote: null,
   },

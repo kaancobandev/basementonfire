@@ -283,6 +283,7 @@ export default function RomePage() {
             <p className="ro-p">Roma Krallığı'nın son imparatoru <strong className="ro-gold">Lucius Tarquinius Superbus</strong>'un tahttan indirilmesiyle MÖ 509'da cumhuriyete geçildi. Romalılar barbarları dışarıda tutmak için mükemmele yakın duvarlar inşa etti, dümdüz yollar yaptı; cumhuriyet, savaşta cesur davranan askerlerine arazi kazandırıyordu. Cumhuriyetin Akdeniz'e açılmasının önündeki en büyük engel ise, üç kanlı <Link href="/articles/carthage" className="article-ilink">Pön Savaşları'nda karşı karşıya geldiği Kartaca</Link> oldu.</p>
 
             <h3 className="ro-h3">Jül Sezar'ın Yükselişi</h3>
+            <p className="ro-p">Cumhuriyet'i bitiren şey bir ordu değil, bir adamdı: Galya'yı kanla Roma'ya katan, Rubicon'u tek lejyonla geçen ve sonunda kendisini öldürecek adamların neredeyse hepsini bizzat affetmiş olan <Link href="/articles/sezar" className="article-ilink">Julius Caesar</Link>.</p>
             <div className="ro-caesar-tl">
               {caesarSteps.map((s, i) => (
                 <div key={i} className="ro-cstep">

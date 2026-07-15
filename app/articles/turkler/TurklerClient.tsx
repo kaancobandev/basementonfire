@@ -202,6 +202,9 @@ export default function TurklerPage() {
             </div>
           ))}
         </div>
+        <p className="tp-tab-p" style={{ maxWidth: 760, margin: '22px auto 0', padding: '0 20px', textAlign: 'center' }}>
+          Fatih, 1453'te Konstantinopolis'i aldıktan sonra unvanlarına bir tane daha ekledi: <strong>Kayser-i Rûm</strong> — <Link href="/articles/sezar" className="article-ilink">Roma'nın Sezar'ı</Link>. On beş asır önce Roma'da bıçaklanarak öldürülen bir adamın aile adı, artık bir Osmanlı padişahının unvanıydı.
+        </p>
       </section>
 
       {/* ── Bozkurt ── */}
