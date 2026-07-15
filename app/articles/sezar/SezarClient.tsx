@@ -315,6 +315,10 @@ export default function SezarClient() {
         <p className="mt-8 leading-relaxed text-slate-400">
           O adın son durağı, bu toprakların tam ortasındadır: Konstantiniyye’yi alan Fatih Sultan Mehmed’in seçtiği unvan, <Link href="/articles/turkler" className="article-ilink">Türklerin tarihinde</Link> Kayser-i Rûm olarak geçer — Roma’nın Sezar’ı. Onu 15 Mart’ta, bir salonun zemininde, togasının altında bıçaklayan adamlar bunu bilse muhtemelen anlamazlardı. O gülerdi.
         </p>
+        <Link href="/articles/augustus" className="mt-6 flex items-center gap-3 rounded-xl border p-3.5 text-sm transition hover:bg-white/[0.04]" style={{ borderColor: 'color-mix(in srgb, #d9a441 30%, transparent)', background: 'color-mix(in srgb, #d9a441 6%, transparent)' }}>
+          <span className="text-lg">🏛️</span>
+          <span className="text-slate-300">Peki Caesar’ın adını alan o 18 yaşındaki hasta çocuk ne yaptı? <span className="font-semibold" style={{ color: 'color-mix(in srgb, #d9a441 88%, white)' }}>→ Augustus’u oku</span></span>
+        </Link>
       </ArticleSection>
 
       <ArticleSection kicker="MİNİ TEST" title="Anladın mı? Bakalım.">

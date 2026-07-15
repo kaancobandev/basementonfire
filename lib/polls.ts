@@ -4,6 +4,7 @@
 // hesaplanır. Yeni bir karar noktası eklemek = buraya bir satır.
 export const POLLS: Record<string, readonly string[]> = {
   'sezar-rubicon': ['dagit', 'gec'], // Orduyu dağıt / Rubicon'u geç
+  'augustus-restore': ['kabul', 'yalvar'], // Cumhuriyet dönsün (kabul et) / Geri vermesi için yalvar
 };
 
 export const isPollKey = (key: string): boolean =>
