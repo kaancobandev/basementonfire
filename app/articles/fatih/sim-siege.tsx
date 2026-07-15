@@ -38,10 +38,15 @@ export default function SiegeRace() {
   const [head, setHead] = useState(0); // oynatım başı: 0..days
   const [running, setRunning] = useState(false);
   const [done, setDone] = useState(false);
+  const [attempts, setAttempts] = useState(0);   // kaç kez çalıştırıldı
+  const [record, setRecord] = useState(100);     // denemeler arası en dibe indirilen bütünlük
   const rootRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef(0);
 
   const { E, days } = useMemo(() => simulate(shots, crew), [shots, crew]);
+  // Bu ayarın açtığı en derin gedik (gündüz dibi) — "yine de düşmedi"nin sayısı.
+  const minLow = useMemo(() => days.reduce((m, d) => Math.min(m, d.dayLow), 100), [days]);
+  const minIdx = useMemo(() => days.reduce((mi, d, i) => (d.dayLow < days[mi].dayLow ? i : mi), 0), [days]);
 
   // Aktif değerler (oynatım başına göre)
   const idx = Math.min(SIEGE.days - 1, Math.max(0, Math.ceil(head) - 1));
@@ -53,6 +58,8 @@ export default function SiegeRace() {
   function run() {
     cancelAnimationFrame(rafRef.current);
     setDone(false);
+    setAttempts((a) => a + 1);
+    setRecord((r) => Math.min(r, minLow)); // bu denemenin dibi rekoru zorlar
     if (prefersReduced()) { setHead(SIEGE.days); setRunning(false); setDone(true); return; }
     setRunning(true);
     setHead(0);
@@ -80,7 +87,7 @@ export default function SiegeRace() {
       <figcaption className="mb-4">
         <div className="mb-1 text-[0.62rem] font-bold tracking-[0.2em]" style={{ color: ACCENT }}>İNTERAKTİF · YILDIZ MODÜL · KUŞATMA YARIŞI</div>
         <h3 className="text-base font-bold leading-snug text-white sm:text-lg">Suru düşür. Deneyebildiğin kadar dene.</h3>
-        <p className="mt-1.5 text-xs leading-relaxed text-slate-400">İki ayarı değiştir, “Çalıştır”a bas. Gündüz top gediği açar, gece savunma doldurur. 54 gün.</p>
+        <p className="mt-1.5 text-xs leading-relaxed text-slate-400">İki ayarı değiştir, “Çalıştır”a bas. Gündüz top gediği açar, gece savunma doldurur. 54 gün — her ayarı dene, en dibe indirmeye çalış.</p>
       </figcaption>
 
       {/* Sur bütünlüğü barı */}
@@ -107,8 +114,15 @@ export default function SiegeRace() {
             }).join(' ')}
             fill="none" stroke={barColor(shownIntegrity)} strokeWidth="1.4" strokeLinejoin="round"
           />
+          {/* En derin gedik işareti — oynatım bitince: "en dibe indiğin an" */}
+          {done && (
+            <g>
+              <circle cx={(minIdx / (SIEGE.days - 1)) * 216} cy={44 - (minLow / 100) * 40} r="4.5" fill="none" stroke={CRIMSON} strokeWidth="0.8" opacity="0.5" />
+              <circle cx={(minIdx / (SIEGE.days - 1)) * 216} cy={44 - (minLow / 100) * 40} r="2.2" fill={CRIMSON} />
+            </g>
+          )}
         </svg>
-        <div className="text-right text-[0.55rem] text-slate-400">denge çizgisi · %{E}</div>
+        <div className="text-right text-[0.55rem] text-slate-400">denge çizgisi · %{E}{done && ` · dip %${minLow}`}</div>
       </div>
 
       {/* Sliderlar */}
@@ -132,7 +146,10 @@ export default function SiegeRace() {
       {/* Sonuç — sur her zaman ayakta kalır */}
       {done && (
         <div className="mt-4 rounded-xl border p-4" style={{ borderColor: `color-mix(in srgb, ${CRIMSON} 32%, transparent)`, background: `color-mix(in srgb, ${CRIMSON} 6%, transparent)`, animation: prefersReduced() ? 'none' : 'fatih-fade 0.5s ease' }}>
-          <div className="mb-1 font-mono text-sm font-bold" style={{ color: barColor(E) }}>Sur bütünlüğü: %{E} · Düşmedi.</div>
+          <div className="mb-1 font-mono text-sm font-bold" style={{ color: barColor(E) }}>Denge %{E} · en derin gedik %{minLow} · düşmedi.</div>
+          <div className="mb-2 text-xs text-slate-400">
+            {tr(attempts)}. deneme · en dibe indirdiğin: <span className="font-mono font-bold" style={{ color: CRIMSON }}>%{record}</span> — o da ayakta kaldı.
+          </div>
           <p className="text-sm font-semibold leading-relaxed text-slate-100">{SIEGE.closer}</p>
           <a href="#perde-4" className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold" style={{ color: ACCENT }}>
             {SIEGE.next}

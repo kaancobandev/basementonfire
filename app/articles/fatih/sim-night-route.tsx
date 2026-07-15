@@ -9,13 +9,9 @@
 // kendine oynar + elle sürüklenir. Aynı "rota çiziliyor" etkisi, kırılganlık yok.
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ACCENT, GOLD, MARBLE, WATER, ASH, BG, prefersReduced, clamp, tr, clock } from './ui';
+import { ACCENT, GOLD, MARBLE, WATER, ASH, prefersReduced, clamp, tr, clock } from './ui';
 import { NIGHT } from './data';
-
-// Rota: Boğaz kıyısından (sağ) Galata sırtından (üst) Haliç'e (sol, zincirin ardı).
-const ROUTE: [number, number][] = [
-  [268, 158], [244, 132], [214, 96], [178, 70], [150, 62], [120, 74], [98, 104], [82, 140], [72, 162],
-];
+import { NightBackdrop, ROUTE, NIGHT_VIEW } from './night-map';
 
 function cumulative(pts: [number, number][]) {
   const segLen: number[] = [];
@@ -82,6 +78,7 @@ export default function NightRoute() {
   useEffect(() => { if (p >= 1 && playing) setPlaying(false); }, [p, playing]);
 
   const dist = Math.round(p * NIGHT.distanceM);
+  const shipsHauled = Math.round(p * NIGHT.ships);
   const hour = NIGHT.fromHour + p * (NIGHT.toHour - NIGHT.fromHour);
   const dashOffset = (1 - p) * total;
   const chainDead = p >= 0.995;
@@ -99,40 +96,27 @@ export default function NightRoute() {
         <p className="mt-1.5 text-xs leading-relaxed text-slate-400">Kendi kendine oynar; sürgüyü çekip elle de gezebilirsin. Rotayı bitir — hikâye de biter.</p>
       </figcaption>
 
-      {/* Sayaçlar */}
-      <div className="mb-2 grid grid-cols-2 gap-2">
-        <div className="rounded-xl border border-white/10 bg-black/25 px-3 py-2 text-center">
-          <div className="font-mono text-lg font-black" style={{ color: WATER }}>{tr(dist)}<span className="ml-1 text-xs text-slate-500">/ {tr(NIGHT.distanceM)} m</span></div>
-          <div className="text-[0.6rem] text-slate-500">karada alınan yol</div>
+      {/* Sayaçlar (kompakt 3'lü) */}
+      <div className="mb-2 grid grid-cols-3 gap-2">
+        <div className="rounded-lg border border-white/10 bg-black/25 px-2 py-1.5 text-center">
+          <div className="font-mono text-base font-black" style={{ color: WATER }}>{tr(dist)}<span className="ml-0.5 text-[0.58rem] text-slate-500">/{tr(NIGHT.distanceM)}m</span></div>
+          <div className="text-[0.56rem] text-slate-500">karada yol</div>
         </div>
-        <div className="rounded-xl border border-white/10 bg-black/25 px-3 py-2 text-center">
-          <div className="font-mono text-lg font-black" style={{ color: GOLD }}>{clock(hour)}</div>
-          <div className="text-[0.6rem] text-slate-500">gece saati</div>
+        <div className="rounded-lg border border-white/10 bg-black/25 px-2 py-1.5 text-center">
+          <div className="font-mono text-base font-black" style={{ color: GOLD }}>{shipsHauled}<span className="ml-0.5 text-[0.58rem] text-slate-500">/{NIGHT.ships}</span></div>
+          <div className="text-[0.56rem] text-slate-500">gemi aşırıldı</div>
+        </div>
+        <div className="rounded-lg border border-white/10 bg-black/25 px-2 py-1.5 text-center">
+          <div className="font-mono text-base font-black" style={{ color: GOLD }}>{clock(hour)}</div>
+          <div className="text-[0.56rem] text-slate-500">gece saati</div>
         </div>
       </div>
 
       {/* Harita */}
       <div className="rounded-xl border border-white/10 bg-black/30 p-2">
-        <svg viewBox="0 0 320 220" className="w-full" role="img" aria-label={`Gece rotası: ${Math.round(p * 100)}% tamamlandı, ${tr(dist)} m, saat ${clock(hour)}`}>
-          {/* Su */}
-          <rect x="0" y="0" width="320" height="220" fill={`color-mix(in srgb, ${WATER} 12%, ${BG})`} />
-          {/* Şehir kütlesi (alt) */}
-          <path d="M0 175 Q90 165 150 178 T320 172 L320 220 L0 220 Z" fill={`color-mix(in srgb, ${MARBLE} 7%, ${BG})`} />
-          <text x="150" y="205" textAnchor="middle" style={{ fontSize: 8, fill: 'rgba(255,255,255,0.45)' }}>Konstantinopolis (surlar)</text>
-          {/* Galata kütlesi (üst orta) */}
-          <path d="M96 40 Q160 24 224 44 Q210 92 150 100 Q104 90 96 40 Z" fill={`color-mix(in srgb, ${MARBLE} 6%, ${BG})`} stroke="rgba(255,255,255,0.08)" />
-          <text x="160" y="62" textAnchor="middle" style={{ fontSize: 8, fill: 'rgba(255,255,255,0.4)' }}>Galata sırtı</text>
-          {/* Etiketler: Boğaz / Haliç */}
-          <text x="286" y="150" textAnchor="middle" style={{ fontSize: 8, fill: `color-mix(in srgb, ${WATER} 80%, white)` }}>Boğaz</text>
-          <text x="44" y="150" textAnchor="middle" style={{ fontSize: 8, fill: `color-mix(in srgb, ${WATER} 80%, white)` }}>Haliç</text>
-
-          {/* Zincir — Haliç ağzında */}
-          <g style={{ transition: prefersReduced() ? 'none' : 'all 0.6s ease' }}>
-            <line x1="60" y1="176" x2="96" y2="120" stroke={chainDead ? ASH : MARBLE} strokeWidth={chainDead ? 1.5 : 2.5} strokeDasharray="2 5" style={{ opacity: chainDead ? 0.4 : 1 }} />
-            {[0, 1, 2, 3].map((k) => (
-              <circle key={k} cx={60 + k * 9} cy={176 - k * 14} r="2.4" fill={chainDead ? ASH : MARBLE} style={{ opacity: chainDead ? 0.4 : 1 }} />
-            ))}
-          </g>
+        <svg viewBox={`0 0 ${NIGHT_VIEW.w} ${NIGHT_VIEW.h}`} className="w-full" role="img" aria-label={`Gece rotası: ${Math.round(p * 100)}% tamamlandı, ${tr(dist)} m, saat ${clock(hour)}`}>
+          {/* Statik zemin (su, şehir, Galata, etiketler, zincir) — poster ile ortak */}
+          <NightBackdrop chainDead={chainDead} />
 
           {/* Rota (çizilen) */}
           <polyline
@@ -158,7 +142,7 @@ export default function NightRoute() {
       </div>
 
       {/* Sahne metni */}
-      <div className="mt-3 min-h-[62px]">
+      <div className="mt-3 min-h-[52px]">
         <div className="mb-0.5 text-sm font-bold" style={{ color: GOLD }}>{stage.title}</div>
         <p className="text-sm leading-relaxed text-slate-300" aria-live="polite">{stage.text}</p>
       </div>

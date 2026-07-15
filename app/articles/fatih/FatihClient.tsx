@@ -18,7 +18,7 @@ import {
 import { refs } from './refs';
 
 const SiegeRace = dynamic(() => import('./sim-siege'), { ssr: false, loading: () => <WidgetSkeleton height={480} /> });
-const NightRoute = dynamic(() => import('./sim-night-route'), { ssr: false, loading: () => <WidgetSkeleton height={440} /> });
+const NightRoute = dynamic(() => import('./sim-night-route'), { ssr: false, loading: () => <WidgetSkeleton height={360} /> });
 
 // Soğuk, gece-mavisi shader + tek altın kıvılcım (takıntının parladığı yer).
 const HERO_COLORS: [[number, number, number], [number, number, number], [number, number, number], [number, number, number]] = [
@@ -65,7 +65,6 @@ export default function FatihClient() {
         points={[
           'Merkez soru: bir fikir bir insanı ne kadar ele geçirebilir?',
           '12\'sinde tahta çıkarılıp indirilen, 21\'inde şehri alan, 49\'unda Roma\'ya yürürken çayırda ölen bir adam',
-          'Kural: sıfat kullanma, sayı kullan. Yorumu okur yapsın — burada kimse haklı ilan edilmiyor.',
         ]}
       >
         Bu sayfada Fatih'i bir bayrak olarak değil, bir <strong>vaka</strong> olarak okuyacaksın. Ne destan ne yergi — bir teşhis. Çünkü asıl hikâye zafer değil: bir fikrin bir insanı nasıl ve ne kadar ele geçirdiği.
@@ -83,9 +82,6 @@ export default function FatihClient() {
           <p className="mt-4 text-lg font-semibold leading-relaxed text-slate-100">
             Bu adamı anlamak istiyorsanız önce şunu kabul edin: o kendini bizim gördüğümüz gibi görmüyordu.
           </p>
-          <SourceNote>
-            Kritovulos'a göre Fatih klasik Yunan ve Roma tarihine büyük ilgi duyuyor, kendini İskender ve Sezar'la kıyaslıyordu; bir noktada Truva'ya gidip Akhilleus ile Aias'ın mezarlarını gördü. 1453'le açmak klişe olurdu — herkes sonunu biliyor. Hikâye bir mezar başında başlıyor.
-          </SourceNote>
         </ArticleSection>
       </div>
 
@@ -174,7 +170,7 @@ export default function FatihClient() {
             İki gün sonra sabah, savunmacılar Haliç'e baktı. İçeride yaklaşık otuz Osmanlı gemisi vardı. Gece, {NIGHT.ridge} Gemiler karadan yürütülmüştü — yaklaşık 1,5 km, tepeler üzerinden, tek gecede.
           </p>
           <div className="mt-8">
-            <InView poster={<NightRoutePoster />} minHeight={440}>
+            <InView poster={<NightRoutePoster />} minHeight={360}>
               <NightRoute />
             </InView>
           </div>
