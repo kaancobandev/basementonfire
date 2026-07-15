@@ -5,6 +5,8 @@
 export const POLLS: Record<string, readonly string[]> = {
   'sezar-rubicon': ['dagit', 'gec'], // Orduyu dağıt / Rubicon'u geç
   'augustus-restore': ['kabul', 'yalvar'], // Cumhuriyet dönsün (kabul et) / Geri vermesi için yalvar
+  'fatih-son-karar': ['bekle', 'harac', 'savun'], // XI. Konstantin: Batı'dan yardım bekle / Haraç öner / Sur başında savun
+  'fatih-zehir': ['zehir', 'hastalik'], // Hünkâr Çayırı: zehirlendi / hastalıktan öldü
 };
 
 export const isPollKey = (key: string): boolean =>

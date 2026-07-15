@@ -334,6 +334,12 @@ export default function AugustusClient() {
         </div>
         <p className="leading-relaxed text-slate-300">{TWO_LINES.legacy}</p>
         <p className="mt-4 leading-relaxed text-slate-300">{TWO_LINES.system}</p>
+        <div className="relative z-10 mt-6">
+          <Link href="/articles/fatih" className="flex items-center gap-3 rounded-xl border p-3.5 text-sm transition hover:bg-white/[0.04]" style={{ borderColor: `color-mix(in srgb, ${ACCENT} 28%, transparent)`, background: `color-mix(in srgb, ${ACCENT} 5%, transparent)` }}>
+            <span className="text-lg">🏰</span>
+            <span className="text-slate-300">O boşalan koltuğa oturup Roma unvanını alan adam. <span className="font-semibold" style={{ color: ACCENT }}>→ Fatih Sultan Mehmed</span></span>
+          </Link>
+        </div>
         <div className="mt-8">
           <ApplauseFinale />
         </div>
