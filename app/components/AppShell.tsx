@@ -14,11 +14,6 @@ const MobileCreateSheet = dynamic(() => import('./MobileCreateSheet'), { ssr: fa
 
 interface AppShellProps {
   children: React.ReactNode;
-  user: { id: number; username: string; display_name: string } | null;
-  unreadCount: number;
-  unreadMsgCount: number;
-  myId: number | null;
-  convIds: number[];
 }
 
 const navItems = [
@@ -49,15 +44,42 @@ const NOTIF_TEXT: Record<string, string> = {
   mention: 'Biri seni bir gönderide etiketledi',
 };
 
-export default function AppShell({ children, user, unreadCount: initialNotif, unreadMsgCount: initialMsg, myId, convIds }: AppShellProps) {
+export default function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const activeId = getActiveId(pathname);
   const sheetRef = useRef<HTMLDivElement>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
 
-  // ── Badge sayaçları (başlangıç değeri server'dan, realtime ile artar)
-  const [notifCount, setNotifCount] = useState(initialNotif);
-  const [msgCount, setMsgCount] = useState(initialMsg);
+  // ── Kişiye özel nav durumu — root layout artık auth OKUMADIĞI için (statik
+  // sayfa hedefi) istemci mount'ta /api/nav-state'ten çekilir. Auth-hint (inline
+  // script, data-auth) ilk boyamada nav'ı doğru gösterir; bu fetch ismi/sayaçları
+  // doldurur ve hint'i kesinleştirir. user=undefined → henüz bilinmiyor.
+  const [user, setUser] = useState<{ id: number; username: string; display_name: string } | null | undefined>(undefined);
+  const [myId, setMyId] = useState<number | null>(null);
+  const [convIds, setConvIds] = useState<number[]>([]);
+
+  // ── Badge sayaçları (başlangıç 0, nav-state doldurur, realtime ile artar)
+  const [notifCount, setNotifCount] = useState(0);
+  const [msgCount, setMsgCount] = useState(0);
+
+  useEffect(() => {
+    let alive = true;
+    fetch('/api/nav-state', { credentials: 'same-origin' })
+      .then(r => r.json())
+      .then((d: { user?: { id: number; username: string; display_name: string } | null; unreadCount?: number; unreadMsgCount?: number; myId?: number | null; convIds?: number[] }) => {
+        if (!alive) return;
+        setUser(d.user ?? null);
+        setNotifCount(d.unreadCount ?? 0);
+        setMsgCount(d.unreadMsgCount ?? 0);
+        setMyId(d.myId ?? null);
+        setConvIds(d.convIds ?? []);
+        // Auth-hint'i kesin sonuçla düzelt (ör. çerez vardı ama oturum düşmüş):
+        // nav'ın CSS-toggle'ı bu attribute'a bağlı.
+        try { document.documentElement.setAttribute('data-auth', d.user ? 'in' : 'out'); } catch {}
+      })
+      .catch(() => { if (alive) setUser(null); });
+    return () => { alive = false; };
+  }, []);
 
   // ── Tema durumu (sonner Toaster'ını uygulama temasıyla eşleştirmek için)
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
@@ -130,28 +152,29 @@ export default function AppShell({ children, user, unreadCount: initialNotif, un
             ))}
           </nav>
 
-          {user ? (
-            <>
-              <DesktopCreateMenu />
-              <Link href="/settings" className={`nav-link${activeId === 'settings' ? ' active' : ''}`}>
-                <span className="nav-icon-wrap">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-                </span>
-                <span>Ayarlar</span>
-              </Link>
-              <form action="/api/auth/logout" method="POST" style={{ margin: 0 }}>
-                <button type="submit" className="nav-link" style={{ color: 'var(--color-danger)' }}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
-                  <span>Çıkış Yap</span>
-                </button>
-              </form>
-            </>
-          ) : (
-            <Link href="/login" className="post-btn">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>
-              <span>Giriş Yap</span>
+          {/* Giriş yapmış menüsü: oluştur + ayarlar + çıkış. `.auth-in` (globals.css)
+              yalnız data-auth="in"'de görünür → inline auth-hint sayesinde ilk
+              boyamada doğru, flash yok; kesin durumu /api/nav-state doldurur. */}
+          <div className="auth-in">
+            <DesktopCreateMenu />
+            <Link href="/settings" className={`nav-link${activeId === 'settings' ? ' active' : ''}`}>
+              <span className="nav-icon-wrap">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+              </span>
+              <span>Ayarlar</span>
             </Link>
-          )}
+            <form action="/api/auth/logout" method="POST" style={{ margin: 0 }}>
+              <button type="submit" className="nav-link" style={{ color: 'var(--color-danger)' }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+                <span>Çıkış Yap</span>
+              </button>
+            </form>
+          </div>
+          {/* Giriş yapmamış: giriş butonu. `.auth-out` yalnız data-auth="in" DEĞİLken görünür. */}
+          <Link href="/login" className="post-btn auth-out">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>
+            <span>Giriş Yap</span>
+          </Link>
 
           <div className="sidebar-legal">
             <Link href="/gizlilik">Gizlilik</Link><span aria-hidden>·</span>

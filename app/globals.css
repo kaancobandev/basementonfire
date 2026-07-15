@@ -338,6 +338,18 @@ body {
 }
 .post-btn:hover { background: var(--color-primary-hover); }
 
+/* ── Nav auth-durumu geçişi (flash-free) ──────────────────────────────────
+   Root layout artık auth OKUMUYOR (statik sayfa hedefi) → nav'ın giriş/çıkış
+   hâli ilk boyamada inline auth-hint script'inin koyduğu <html data-auth="in">
+   ile belirlenir; /api/nav-state gelince kesinleşir. `.auth-in` yalnız girişte,
+   `.auth-out` yalnız çıkışta görünür. `.auth-in` bir sarmalayıcı div olduğundan
+   display:contents ile şeffaftır (çocukları sidebar akışında doğrudan yerleşir).
+   data-auth HİÇ yoksa (JS kapalı / hint okunamadı) çıkışlı varsayılır — güvenli
+   taraf; giriş yapmış kullanıcıyı fetch birkaç ms içinde düzeltir. */
+.auth-in { display: contents; }
+:root:not([data-auth="in"]) .auth-in { display: none; }
+:root[data-auth="in"] .auth-out { display: none; }
+
 /* Main content */
 .main-content {
   flex: 1;
