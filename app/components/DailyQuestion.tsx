@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 
@@ -36,8 +36,27 @@ function ProgressChips({ p }: { p: Progress | null }) {
 export default function DailyQuestion() {
   const [st, setSt] = useState<State>({ phase: 'loading' });
   const [submitting, setSubmitting] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(false);
+
+  // Tembel yukleme: widget gorunure yaklasana kadar /api/daily-question'a
+  // GIDILMEZ. Boylece ilk sayfa yuku + feed, arkada auth+DB isi olan bu istekle
+  // yarismaz. Iskelet yerini tuttugundan (asagida) kart inince kayma olmaz (CLS).
+  // rootMargin ile viewport'a ~300px kala cekilir → kullanici ulastiginda kart
+  // cogu zaman hazir (iskelet flas'i olmaz).
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting) { setInView(true); io.disconnect(); } },
+      { rootMargin: '300px' },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   useEffect(() => {
+    if (!inView) return;
     let alive = true;
     (async () => {
       try {
@@ -62,7 +81,7 @@ export default function DailyQuestion() {
       }
     })();
     return () => { alive = false; };
-  }, []);
+  }, [inView]);
 
   async function answer(idx: number) {
     if (st.phase !== 'ready' || submitting) return;
@@ -103,7 +122,7 @@ export default function DailyQuestion() {
   // iskeletin kapanmasi kabul edilen kucuk kayma.
   if (st.phase === 'loading') {
     return (
-      <div style={{ maxWidth: 470, margin: '16px auto 0', padding: '0 8px' }} aria-hidden>
+      <div ref={rootRef} style={{ maxWidth: 470, margin: '16px auto 0', padding: '0 8px' }} aria-hidden>
         <article style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 14, overflow: 'hidden' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 15px', background: 'linear-gradient(90deg, rgba(16,185,129,0.14), rgba(79,70,229,0.10))', borderBottom: '1px solid var(--color-border)' }}>
             <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>🧠</span>

@@ -6,7 +6,7 @@ import { factMediaList } from '@/lib/types';
 import { avatarSrc } from '@/lib/avatar';
 import { cdnUrl } from '@/lib/img';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, Fragment } from 'react';
 import Link from 'next/link';
 import Caption from './Caption';
 import Logo from './Logo';
@@ -286,6 +286,10 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
   const currentSvUser = allStoryUsers[svUserIdx];
   const currentSvStory = currentSvUser?.stories[svStoryIdx];
 
+  // "Günün Sorusu" artık en üstte değil, feed'in içinde (4. kartın ardında) —
+  // sayfanın daha altında + tembel yüklenir. Feed 4'ten kısaysa son karta düşer.
+  const dqSlot = Math.min(3, feedItems.length - 1);
+
   function svTimeAgo(iso: string) {
     const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
     if (s < 60) return `${s}sn`; if (s < 3600) return `${Math.floor(s / 60)}dk`; return `${Math.floor(s / 3600)}sa`;
@@ -376,18 +380,20 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
         </Link>
         )}
 
-        {/* Günün Sorusu — eğlence + bilgi füzyonunun etkileşim motoru (herkese görünür) */}
-        <DailyQuestion />
-
         {/* Feed */}
         {feedItems.length === 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', padding: '64px 0', color: 'var(--color-text-muted)' }}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-            <p>Henüz paylaşım yok.</p>
-          </div>
+          <>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', padding: '64px 0', color: 'var(--color-text-muted)' }}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+              <p>Henüz paylaşım yok.</p>
+            </div>
+            {/* Feed boşsa da Günün Sorusu kaybolmasın */}
+            <DailyQuestion />
+          </>
         ) : (
           <div style={{ maxWidth: 470, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24, paddingBottom: 40, paddingTop: 16 }}>
             {feedItems.map((item: any, index: number) => {
+              const node = (() => {
               // İlk medyalı kart = LCP adayı → eager + fetchpriority=high; gerisi lazy.
               const isFirstMedia = index === feedItems.findIndex((it: any) => it.kind === 'fact');
               if (item.kind === 'dyk') {
@@ -512,6 +518,14 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                     </m.button>
                   </div>
                 </m.article>
+              );
+              })();
+              return (
+                <Fragment key={`${item.kind}-${item.id}`}>
+                  {node}
+                  {/* Günün Sorusu feed'in içinde (4. kartın ardında) — tembel yüklenir */}
+                  {index === dqSlot && <DailyQuestion />}
+                </Fragment>
               );
             })}
           </div>
