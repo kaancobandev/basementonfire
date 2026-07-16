@@ -145,6 +145,12 @@ export default function FatihClient() {
             <Stat value={`${tr(WALLS.lengthKm, 1)} km`} label="sur uzunluğu" color={MARBLE} />
             <Stat value={`${WALLS.layers} katman`} label="hendek + dış + iç" color={MARBLE} />
           </div>
+          <ArticleImage
+            src="/articles/fatih/theodosius-surlari.jpg"
+            ratio="679 / 451"
+            alt="Konstantinopolis'in taş ve tuğla kuşaklı çok katmanlı kara surları ve burçları, altın ışıkta."
+            caption="Teodosius Surları: 1123 yıl boyunca yirmiden fazla kuşatmaya dayandı. Hendek, dış sur, iç sur — sırayla ve her biri bir öncekinden yüksek."
+          />
           <p className="leading-relaxed text-slate-300">
             Sultanın çözümü bir mühendisti. <strong>{URBAN.name}</strong> — {URBAN.origin}. {URBAN.firstWent} {URBAN.sultanPaid}
           </p>
@@ -162,6 +168,12 @@ export default function FatihClient() {
             </table>
           </div>
 
+          <ArticleImage
+            src="/articles/fatih/sahi-top.png"
+            ratio="567 / 381"
+            alt="Halkalı gövdeli, dev bir bronz kuşatma topu (şahi) çimenlikte sergileniyor."
+            caption="Urban'ın döktüğü türden bir şahi topu: ~8 metre namlu, ~540 kg gülle — ama günde ancak 3–7 atış."
+          />
           <p className="mt-5 leading-relaxed text-slate-300">
             Son satıra tekrar bakın. Günde üç ila yedi atış. {RACE.point}
           </p>
@@ -184,6 +196,13 @@ export default function FatihClient() {
           <p className="mt-4 leading-relaxed text-slate-300">
             İki gün sonra sabah, savunmacılar Haliç'e baktı. İçeride yaklaşık otuz Osmanlı gemisi vardı. Gece, {NIGHT.ridge} Gemiler karadan yürütülmüştü — yaklaşık 1,5 km, tepeler üzerinden, tek gecede.
           </p>
+          <ArticleImage
+            src="/articles/fatih/gemileri-karadan-yurutmek.jpg"
+            ratio="640 / 429"
+            alt="Gece, kızaklar üzerindeki bir savaş gemisini öküz ve insan gücüyle yokuş yukarı çeken kalabalık."
+            caption="Gemilerin karadan yürütülmesi: yağlanmış kütükler üzerinde, tek gecede yaklaşık 1,5 km."
+            credit="Temsilî tablo"
+          />
           <div className="mt-8">
             <InView poster={<NightRoutePoster />} minHeight={360}>
               <NightRoute />
@@ -268,6 +287,12 @@ export default function FatihClient() {
           </div>
           <p className="leading-relaxed text-slate-300">{NUMBERS.giovanni}</p>
 
+          <ArticleImage
+            src="/articles/fatih/sahni-seman.webp"
+            ratio="1024 / 540"
+            alt="Fatih Camii ve Sahn-ı Seman medreselerinin havadan görünümü; arkada Haliç ve şehir."
+            caption="Fatih Külliyesi ve Sahn-ı Seman: 1470'te sekiz medrese, 216 oda, ücretsiz barınma — İstanbul'un ilk yükseköğretim kurumu."
+          />
           <div className="mt-8">
             <Library />
           </div>
@@ -300,6 +325,12 @@ export default function FatihClient() {
         <ArticleSection kicker="PERDE 7 · 3 MAYIS 1481" title="Hünkâr Çayırı">
           <p className="leading-relaxed text-slate-300">{OTRANTO.landing} {OTRANTO.fell}</p>
           <p className="mt-4 leading-relaxed text-slate-300">{OTRANTO.target}</p>
+          <ArticleImage
+            src="/articles/fatih/otranto-map-image.jpg"
+            ratio="395 / 506"
+            alt="İtalya haritası; güneydoğu ucunda, topukta Otranto işaretli."
+            caption="1480: donanma İtalya'nın topuğuna çıktı, Otranto düştü. Hedef Otranto değil, Roma'ydı."
+          />
           <SourceNote>{OTRANTO.dateConflict}</SourceNote>
           <p className="mt-6 leading-relaxed text-slate-300">{LAST_CAMPAIGN.april}</p>
           <p className="mt-4 leading-relaxed text-slate-300">{LAST_CAMPAIGN.place} Birkaç gün sonra, 3 Mayıs 1481'de ölüyor. {LAST_CAMPAIGN.death}</p>

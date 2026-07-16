@@ -12,24 +12,19 @@ WebP + responsive) gösterilir.
 - **Kredi:** yapay zekâ ile üretilen görsellerde `credit="Temsilî görsel · yapay zekâ"`
   kullanılması önerilir (makalenin doğrulama teziyle tutarlı; okur yanılmasın).
 
-## Manifest (yerleşim)
+## Manifest (yerleşim) — 10/10 CANLI
 
-**Kodda bağlandı (dosya bekleniyor):**
-
-| Dosya | Perde | İçerik | Durum |
+| Dosya | Perde | İçerik | Kredi |
 |-------|-------|--------|-------|
-| `truva-akhilleus.jpg` | 0 | Fatih, Akhilleus mezarı başında (AI, temsilî) | ⏳ dosya bekleniyor |
-| `rumeli-hisari.jpg` | 2 | Rumeli Hisarı / Boğazkesen | ⏳ |
-| `istanbulun-fethi.jpg` | 5 | Zonaro — şehre giriş tablosu | ⏳ |
-| `ayasofya.jpg` | 6 | Ayasofya iç mekân | ⏳ |
-| `bellini-portre.jpg` | 6 | Gentile Bellini portresi (1480) | ⏳ |
+| `truva-akhilleus.png` | 0 | Fatih, Akhilleus mezarı başında | Temsilî · yapay zekâ |
+| `rumeli-hisari.jpg` | 2 | Rumeli Hisarı / Boğazkesen | — |
+| `theodosius-surlari.jpg` | 3 | Teodosius Surları | — |
+| `sahi-top.png` | 3 | Urban / şahi topu | — |
+| `gemileri-karadan-yurutmek.jpg` | 4 | Gemilerin karadan yürütülmesi | Temsilî tablo |
+| `istanbulun-fethi.jpg` | 5 | Zonaro — şehre giriş tablosu | Fausto Zonaro |
+| `ayasofya.jpg` | 6 | Ayasofya iç mekân | — |
+| `bellini-portre.jpg` | 6 | Gentile Bellini portresi | Gentile Bellini, 1480 |
+| `sahni-seman.webp` | 6 | Fatih Külliyesi / Sahn-ı Seman | — |
+| `otranto-map-image.jpg` | 7 | Otranto seferi haritası | — |
 
-**Henüz kodda bağlanmadı (dosya gelince bağlanacak):**
-
-| Dosya | Perde | İçerik |
-|-------|-------|--------|
-| `theodosius-surlari` | 3 | Teodosius Surları |
-| `sahi-top` | 3 | Urban / şahi topu |
-| `gemileri-karadan-yurutmek` | 4 | Gemilerin karadan yürütülmesi |
-| `sahni-seman` | 6 | Sahn-ı Seman medreseleri |
-| `otranto-map-image` | 7 | Otranto seferi haritası |
+Not: `.jfif` olarak gelen iki dosya (surlar, otranto) CDN/MIME uyumu için `.jpg`'ye taşındı.
