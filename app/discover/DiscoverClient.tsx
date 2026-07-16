@@ -3,6 +3,9 @@
 import Img from '@/app/components/Img';
 import { AudioThumb } from '@/app/components/MediaCarousel';
 import { avatarSrc } from '@/lib/avatar';
+// Makale imza gradyanları ORTAK registry'den — ana sayfa landing'i (sunucu
+// bileşeni) de aynı haritayı kullanıyor, o yüzden lib'e çıkarıldı.
+import { ARTICLE_GRADIENTS, FALLBACK_GRADIENT } from '@/lib/article-gradients';
 
 import { useEffect, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
@@ -21,38 +24,6 @@ interface Props {
   initialQuery?: string;
 }
 
-// Her makaleye içeriğiyle ilişkili bir hover gradyanı: kart üstüne gelince beliren temalı arka plan.
-const ARTICLE_GRADIENTS: Record<string, string> = {
-  'black-hole': 'linear-gradient(135deg,#1e1b4b,#4c1d95)',
-  'turkler': 'linear-gradient(135deg,#7f1d1d,#b45309)',
-  'rome': 'linear-gradient(135deg,#7f1d1d,#9a3412)',
-  'greece': 'linear-gradient(135deg,#1e3a8a,#0369a1)',
-  'carthage': 'linear-gradient(135deg,#0f766e,#6d28d9)',
-  'ekonomi': 'linear-gradient(135deg,#065f46,#15803d)',
-  'einstein-rosen': 'linear-gradient(135deg,#4c1d95,#0e7490)',
-  'arcade': 'linear-gradient(135deg,#be185d,#7c3aed)',
-  'tibbi': 'linear-gradient(135deg,#0e7490,#1d4ed8)',
-  'internet': 'linear-gradient(135deg,#1e40af,#0e7490)',
-  'pirus': 'linear-gradient(135deg,#78350f,#991b1b)',
-  'takyon': 'linear-gradient(135deg,#6d28d9,#2563eb)',
-  'tardigrad': 'linear-gradient(135deg,#0e7490,#15803d)',
-  'bagirsak': 'linear-gradient(135deg,#be123c,#0f766e)',
-  'bakteriyofaj': 'linear-gradient(135deg,#15803d,#0d9488)',
-  'endosimbiyoz': 'linear-gradient(135deg,#b45309,#6d28d9)',
-  'kaligrafi': 'linear-gradient(135deg,#92400e,#57534e)',
-  'doppler': 'linear-gradient(135deg,#2563eb,#b91c1c)',
-  'dogal-secilim': 'linear-gradient(135deg,#059669,#65a30d)',
-  'dunya': 'linear-gradient(135deg,#0c4a6e,#0891b2)',
-  'newton': 'linear-gradient(135deg,#312e81,#b45309)',
-  'bilgisayar': 'linear-gradient(135deg,#0e3a4a,#6d28d9)',
-  'cift-yarik': 'linear-gradient(135deg,#3b0764,#0e7490)',
-  'kuantum-olumsuzlugu': 'linear-gradient(135deg,#1e1b4b,#0f766e)',
-  'mol': 'linear-gradient(135deg,#78350f,#f59e0b)',
-  'fizik-101': 'linear-gradient(135deg,#2563eb,#f59e0b)',
-  'sanat-akimlari': 'linear-gradient(135deg,#6b0f2a,#e11d48)',
-  'radyoaktivite': 'linear-gradient(135deg,#1a2e05,#65a30d)',
-};
-const FALLBACK_GRADIENT = 'linear-gradient(135deg,#6366f1,#8b5cf6)';
 
 export default function DiscoverClient({ users, media, articles, communityArticles = [], isLoggedIn, initialQuery = '' }: Props) {
   const [query, setQuery] = useState(initialQuery);

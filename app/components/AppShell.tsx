@@ -26,7 +26,9 @@ const navItems = [
 ];
 
 function getActiveId(pathname: string) {
-  if (pathname === '/') return 'home';
+  // Ana sayfa artık STATİK LANDING (çıkışlı ziyaretçi için); girişli kullanıcının
+  // zengin akışı /feed'de. İkisi de nav'da "Ana Sayfa" olarak işaretlenir.
+  if (pathname === '/' || pathname.startsWith('/feed')) return 'home';
   if (pathname.startsWith('/discover')) return 'discover';
   if (pathname.startsWith('/akis')) return 'akis';
   if (pathname.startsWith('/muzik')) return 'muzik';
@@ -140,7 +142,9 @@ export default function AppShell({ children }: AppShellProps) {
 
           <nav className="sidebar-nav">
             {navItems.map(item => (
-              <Link key={item.id} href={item.href} aria-label={item.label} className={`nav-link${activeId === item.id ? ' active' : ''}`}>
+              // Girişliyse "Ana Sayfa" akışa (/feed) gider; çıkışlıysa landing'e (/).
+              // user=undefined (henüz bilinmiyor) → landing: soğuk ziyaretçi için doğru taraf.
+              <Link key={item.id} href={item.id === 'home' ? (user ? '/feed' : '/') : item.href} aria-label={item.label} className={`nav-link${activeId === item.id ? ' active' : ''}`}>
                 <span className="nav-icon-wrap">
                   {item.icon}
                   {item.id === 'messages' && msgCount > 0 && (
@@ -206,7 +210,7 @@ export default function AppShell({ children }: AppShellProps) {
             { href: '/akis', id: 'akis', label: 'Akış', icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg> },
             { href: '/muzik', id: 'muzik', label: 'Müzik', icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> },
           ].map(item => (
-            <Link key={item.id} href={item.href} aria-label={item.label} className={`mobile-nav-btn${activeId === item.id ? ' active' : ''}`}>
+            <Link key={item.id} href={item.id === 'home' ? (user ? '/feed' : '/') : item.href} aria-label={item.label} className={`mobile-nav-btn${activeId === item.id ? ' active' : ''}`}>
               {item.icon}
               <span className="mobile-nav-label">{item.label}</span>
             </Link>

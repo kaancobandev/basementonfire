@@ -1,0 +1,253 @@
+/* Ana sayfa landing'i — "Merak Kapısı".
+   Sıfır yeni token, sıfır yeni kimlik: her renk globals.css'ten.
+   DİKKAT: sınıf adlarında "-page"/"-root" YOK — globals.css:108
+   (.main-content[class*="-page"] h1,h2,h3 { font-family: inherit }) Bricolage
+   başlıkları sessizce DM Sans'a düşürüyor.
+   Reduced-motion: globals.css:125 global kuralı zaten tüm transition/animation'ı
+   kesiyor → burada ek kod YOK. */
+
+.lp { --lp-glow: var(--gradient-brand); }
+
+/* ─────────────── HERO ─────────────── */
+.hero {
+  position: relative;
+  background: var(--gradient-hero);
+  min-height: 78svh; /* svh: mobil URL çubuğu daralınca hero zıplamaz */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 26px 20px 32px;
+  overflow: hidden;
+}
+.glow {
+  position: absolute;
+  inset: -20%;
+  background: var(--lp-glow);
+  filter: blur(48px); /* 60 değil: mobil GPU'da pahalı */
+  opacity: 0.5;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+.heroInner { position: relative; z-index: 1; }
+.authbar { margin-bottom: 14px; font-size: 0.72rem; color: rgba(255, 255, 255, 0.5); }
+.authbar a { color: rgba(255, 255, 255, 0.82); text-decoration: none; border-bottom: 1px solid rgba(255, 255, 255, 0.28); }
+.h1 {
+  margin: 0 0 22px;
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.55);
+}
+.meta {
+  margin-bottom: 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  transition: color 0.4s ease;
+}
+.q {
+  margin: 0 0 20px;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.85rem, 7.2vw, 3.4rem);
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  color: #fff;
+  text-wrap: balance;
+  /* CLS/parmak güvenliği: ↻ ile soru uzunluğu değişince CTA parmağın altından
+     kaymasın. Destedeki en uzun soru 390px'te 3 satır. */
+  min-height: 3.6em;
+}
+.ctas { display: flex; flex-direction: column; gap: 10px; }
+.heroSub { margin: 16px 0 0; max-width: 34ch; font-size: 0.82rem; line-height: 1.55; color: rgba(255, 255, 255, 0.6); }
+
+@media (min-width: 700px) {
+  .q { min-height: 2.4em; }
+  .ctas { flex-direction: row; }
+  .ctas > * { flex: 0 1 auto; min-width: 200px; }
+}
+
+/* ─────────────── Butonlar ─────────────── */
+/* Birincil CTA SOLID: --gradient-brand'in magenta ucunda beyaz 16px bold ≈3.9:1
+   → AA'yı geçmez. Solid --color-primary 6.8:1. */
+.ctaPrimary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font: 700 0.95rem/1 var(--font-body), system-ui, sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.ctaPrimary:hover { background: var(--color-primary-hover); }
+.ctaGhost {
+  min-height: 44px;
+  padding: 0 20px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  background: transparent;
+  color: #fff;
+  font: 600 0.9rem/1 var(--font-body), system-ui, sans-serif;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.ctaGhost:hover { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.4); }
+.ctaQuiet {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 0 20px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: 700 0.9rem/1 var(--font-body), system-ui, sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.ctaQuiet:hover { border-color: var(--color-primary); background: var(--color-hover); }
+
+/* ─────────────── Bölüm iskeleti ─────────────── */
+.sec { padding: 34px 20px; }
+.secAlt { background: var(--color-surface); }
+.kicker { margin-bottom: 7px; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em; color: var(--color-primary); }
+.h2 { margin: 0 0 4px; font-size: 1.4rem; font-weight: 800; letter-spacing: -0.02em; text-wrap: balance; }
+.sub { margin: 0 0 16px; font-size: 0.86rem; color: var(--color-text-muted); }
+
+.inner { max-width: 1100px; margin: 0 auto; }
+
+/* ─────────────── Üç kapı ─────────────── */
+.gates { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.gate {
+  display: flex;
+  flex-direction: column;
+  min-height: 140px;
+  padding: 15px;
+  border-radius: 18px;
+  color: #fff;
+  text-decoration: none;
+  box-shadow: var(--shadow-md);
+  transition: transform 0.15s;
+}
+.gate:hover { transform: translateY(-3px); }
+.gateLabel { font-size: 0.64rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; opacity: 0.85; }
+.gateTitle { margin: 7px 0 5px; font-family: var(--font-display), system-ui, sans-serif; font-size: 1.05rem; font-weight: 800; }
+.gateBlurb { font-size: 0.78rem; line-height: 1.45; opacity: 0.9; }
+
+/* ─────────────── Soru duvarı (SIRT) ─────────────── */
+.wall { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.wcard {
+  display: block;
+  padding: 13px;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: var(--color-surface);
+  color: inherit;
+  text-decoration: none;
+  transition: transform 0.15s, border-color 0.15s;
+}
+.wcard:hover { transform: translateY(-2px); border-color: var(--color-primary); }
+.wtop { display: flex; align-items: center; justify-content: space-between; margin-bottom: 9px; }
+/* Gradyan karo HER ZAMAN açık — hover'da DEĞİL. Dokunmatikte hover yok:
+   hover'a bağlansa mobilde bütün kartlar gri açılırdı. */
+.tile { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; font-size: 1.5rem; }
+.chev { color: var(--color-text-muted); }
+.wcat { margin: 0 0 3px; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-muted); font-family: var(--font-body), system-ui, sans-serif; }
+.wq { margin: 0; font-family: var(--font-display), system-ui, sans-serif; font-size: 1.02rem; font-weight: 800; line-height: 1.3; }
+
+/* ─────────────── Dört fiil ─────────────── */
+.verbs { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.verb { padding: 16px; border-radius: 18px; color: #fff; box-shadow: var(--shadow-md); }
+.vLabel { font-size: 0.64rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.85; }
+.vTitle { margin: 7px 0 5px; font-family: var(--font-display), system-ui, sans-serif; font-size: 1.05rem; font-weight: 800; }
+.vDesc { margin: 0 0 9px; font-size: 0.8rem; line-height: 1.45; opacity: 0.9; }
+.vLink { font-size: 0.78rem; font-weight: 700; color: #fff; text-decoration: none; border-bottom: 1px solid rgba(255, 255, 255, 0.35); }
+
+/* ─────────────── Kural (sayfadaki tek gradyansız bölge — kasıtlı) ─────────────── */
+.kural { padding: 30px 20px; background: var(--color-primary-soft); }
+.rule { padding: 12px 0; border-bottom: 1px solid var(--color-border); }
+.rule:last-child { border-bottom: 0; }
+.ruleClaim { display: block; margin-bottom: 3px; font-family: var(--font-display), system-ui, sans-serif; font-size: 1.02rem; font-weight: 800; }
+.ruleProof { font-size: 0.84rem; color: var(--color-text-muted); }
+.narrow { max-width: 46ch; margin: 0 auto; }
+
+/* ─────────────── Arşiv ─────────────── */
+.strip { display: flex; gap: 7px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; margin-bottom: 14px; }
+.strip::-webkit-scrollbar { display: none; }
+.pill {
+  flex: 0 0 auto;
+  padding: 6px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: inherit;
+  font-size: 0.74rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.pill span { margin-left: 4px; color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
+.shelfHead { display: flex; align-items: center; gap: 8px; margin: 18px 0 6px; }
+.shelfHead h3 { margin: 0; font-family: var(--font-display), system-ui, sans-serif; font-size: 1rem; font-weight: 800; }
+.shelfHead em { font-style: normal; font-size: 0.74rem; color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
+.shelfHead hr { flex: 1; border: 0; border-top: 1px solid var(--color-border); }
+.rows { display: grid; grid-template-columns: 1fr; gap: 0; }
+.row { display: flex; align-items: center; gap: 10px; padding: 9px 0; color: inherit; text-decoration: none; }
+.row:hover .rowTitle { color: var(--color-primary); }
+.rowTile { flex: 0 0 auto; width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; font-size: 1.05rem; }
+.rowBody { min-width: 0; }
+.rowTitle { display: block; font-size: 0.9rem; font-weight: 700; transition: color 0.15s; }
+.rowDesc {
+  margin: 1px 0 0;
+  font-size: 0.74rem;
+  color: var(--color-text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.anchor { scroll-margin-top: 12px; }
+
+/* ─────────────── Footer ─────────────── */
+/* .sidebar-legal mobilde display:none → hedef kitlenin TAMAMI hukuki linkleri
+   hiçbir yerden göremiyordu. Buradaki alt bilgi o boşluğu kapatıyor.
+   padding-bottom: mobil alt nav (56px) + çerez banner'ı → alt bölge yasak. */
+.foot { padding: 26px 20px 96px; border-top: 1px solid var(--color-border); font-size: 0.78rem; color: var(--color-text-muted); }
+.foot a { color: var(--color-text-muted); text-decoration: none; border-bottom: 1px solid var(--color-border); }
+.foot a:hover { color: var(--color-text); }
+.footRow { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* ─────────────── Radyoaktivite modülü (canlı kanıt) ─────────────── */
+.meterRow { display: flex; align-items: center; gap: 10px; margin: 12px 0 8px; }
+.meterRow label { font-size: 0.74rem; opacity: 0.85; white-space: nowrap; }
+.meterRow input[type='range'] { flex: 1; accent-color: #b6f36a; }
+.meterKg { min-width: 46px; text-align: right; font-size: 0.82rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.meterBq { font-family: var(--font-display), system-ui, sans-serif; font-size: 1.9rem; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.meterCap { margin: 5px 0 10px; font-size: 0.7rem; line-height: 1.45; opacity: 0.82; }
+/* Kart yüksekliği sabit → sürgü çekilirken kutu büyümez, CLS 0. */
+.meterBox { min-height: 118px; }
+
+/* ─────────────── Izgara kırılımları ─────────────── */
+@media (min-width: 700px) {
+  .sec { padding: 44px 24px; }
+  .gates { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .wall { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .verbs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .rows { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 20px; }
+  .h2 { font-size: 1.7rem; }
+}
+@media (min-width: 1100px) {
+  .wall { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .rows { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}

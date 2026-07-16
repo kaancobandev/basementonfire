@@ -1,69 +1,41 @@
 import type { Metadata } from 'next';
-import { unstable_cache } from 'next/cache';
-import { db, getMe, logIfError } from '@/lib/supabase/server';
-import { flattenFacts, flattenPosts, type QuickFact, type Post, type DidYouKnow } from '@/lib/types';
-import { MATCH_MIN_AGE, isAtLeast } from '@/lib/age';
-import HomeFeed from './components/HomeFeed';
+import Link from 'next/link';
 import { jsonLdScript } from '@/lib/seo';
+import { ARTICLES, ARTICLE_MAP } from '@/lib/articles';
+import { gradientFor } from '@/lib/article-gradients';
+import {
+  HERO_DECK, WALL, GATES, VERBS, RULES,
+  ARTICLE_COUNT, CATEGORY_COUNT, categoryCounts, cardFor,
+} from '@/lib/landing';
+import HeroDeck from './components/landing/HeroDeck';
+import RadioMeter from './components/landing/RadioMeter';
+import RandomArticle from './components/landing/RandomArticle';
+import s from './landing.module.css';
 
-export const dynamic = 'force-dynamic';
+// ════════════════════════════════════════════════════════════════════════
+// ANA SAYFA — çıkışlı ziyaretçinin landing'i ("Merak Kapısı" tasarımı).
+//
+// 2026-07-16: Burası ESKİDEN zengin sosyal akıştı; akış app/feed/page.tsx'e
+// TAŞINDI (hiçbir özellik kaybı yok, /akis'e de dokunulmadı). Sebep: ana sayfa
+// force-dynamic'ti → her ziyaretçi soğuk fonksiyona düşüyordu (2,4-3,7s) ve
+// sitenin en yetkili sayfası 32 makalenin HİÇBİRİNE link vermiyordu.
+//
+// STATİK: getMe/cookies/db YOK → build'de ön-üretilir, Netlify edge'inden gelir,
+// soğuk start yok. Girişli/çıkışlı ayrımı SUNUCU okuması olmadan, aynı statik
+// HTML'de CSS ile yapılır (.auth-in/.auth-out, globals.css:349-351 — ilk
+// boyamadan önce çerezden, flash yok). data-auth hiç yoksa çıkışlı varsayılır:
+// soğuk ziyaretçi için doğru taraf.
+// ════════════════════════════════════════════════════════════════════════
+export const dynamic = 'force-static';
 
-// Ana feed'in PAYLAŞILAN kısmı (en yeni quick_facts + posts + aktif stories) —
-// herkes için aynı, kişiye özel değil → 30sn önbellek. Kişiye özel veriler
-// (beğeni/repost durumu, önerilen kullanıcılar, kendi story'n) bunun DIŞINDA,
-// canlı kalır. Kendi yeni gönderin akış istemcisinde optimistik görünür.
-const getHomeContent = unstable_cache(
-  async () => {
-    const [{ data: rawFacts, error: factsErr }, { data: rawPosts, error: postsErr }] = await Promise.all([
-      db.from('quick_facts').select('*, users!quick_facts_user_id_fkey(display_name, username, avatar, is_private)').order('created_at', { ascending: false }).limit(60),
-      db.from('posts').select('*, users!posts_user_id_fkey(display_name, username, avatar, is_private)').order('created_at', { ascending: false }).limit(60),
-    ]);
-    logIfError('home quick_facts', factsErr);
-    logIfError('home posts', postsErr);
-    const { data: storiesRaw, error: storiesErr } = await db
-      .from('stories')
-      .select('id, media_url, media_type, created_at, user_id, users(id, username, display_name, avatar, is_private)')
-      .gt('expires_at', new Date().toISOString())
-      .order('created_at', { ascending: false })
-      // Büyüme sigortası: şerit zaten en yeni hikâyeleri gösterir; 24 saatte 100+
-      // aktif hikâye olursa en eskiler düşer (limitsiz hali tüm tabloyu çekiyordu).
-      .limit(100);
-    logIfError('home stories', storiesErr);
-    // Gizli hesapların içeriği küresel ana akışta/story şeridinde gösterilmez (is_private truthy=gizli).
-    const pub = (r: any) => !r.users?.is_private;
-    return {
-      rawFacts: (rawFacts ?? []).filter(pub).slice(0, 30),
-      rawPosts: (rawPosts ?? []).filter(pub).slice(0, 30),
-      storiesRaw: (storiesRaw ?? []).filter(pub),
-    };
-  },
-  ['home-content-v1'],
-  { revalidate: 30, tags: ['feed'] },
-);
-
-// "Bunu biliyor muydun?" bilgi kartlari — paylasilan, kisiye ozel degil.
-// Tablo henuz yoksa (SQL calismadiysa) sessizce bos doner -> sayfa kirilmaz.
-const getDidYouKnow = unstable_cache(
-  async (): Promise<DidYouKnow[]> => {
-    try {
-      const { data, error } = await db
-        .from('did_you_know')
-        .select('id, title, body, source_url, source_label, article_slug, image_url, created_at')
-        .eq('active', true)
-        .order('created_at', { ascending: false })
-        .limit(8);
-      if (error) return [];
-      return (data ?? []) as DidYouKnow[];
-    } catch {
-      return [];
-    }
-  },
-  ['did-you-know-v1'],
-  { revalidate: 60, tags: ['feed'] },
-);
+const title = `Basements — ${ARTICLE_COUNT} interaktif bilim, tarih ve kültür makalesi`;
+const description = `Bilim, tarih ve kültürde ${ARTICLE_COUNT} interaktif Türkçe makale. Simülasyonu çalıştır, kararı sen ver, kaynağı gör. Ücretsiz, üyeliksiz.`;
 
 export const metadata: Metadata = {
+  title: { absolute: title },
+  description,
   alternates: { canonical: '/' },
+  openGraph: { title, description, url: '/' },
 };
 
 const websiteJsonLd = {
@@ -84,116 +56,227 @@ const websiteJsonLd = {
   },
 };
 
-export default async function HomePage() {
-  const { me } = await getMe();
+// Ana sayfa artık 32 makaleye derinlik-1 link veriyor → ItemList ile bunu
+// Google'a açıkça bildir.
+const itemListJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: 'Basements makaleleri',
+  numberOfItems: ARTICLES.length,
+  itemListElement: ARTICLES.map((a, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    url: `https://basementonfire.com/articles/${a.slug}`,
+    name: a.title,
+  })),
+};
 
-  // Paylaşılan feed içeriği önbellekten (30sn); kişiye özel değil.
-  const [{ rawFacts, rawPosts, storiesRaw }, dyks] = await Promise.all([
-    getHomeContent(),
-    getDidYouKnow(),
-  ]);
-
-  const facts: QuickFact[] = flattenFacts(rawFacts ?? []);
-  const posts: Post[] = flattenPosts(rawPosts ?? []);
-
-  type FeedItem = (QuickFact & { kind: 'fact' }) | (Post & { kind: 'post' }) | (DidYouKnow & { kind: 'dyk' });
-  const baseItems: FeedItem[] = [
-    ...facts.map(f => ({ ...f, kind: 'fact' as const })),
-    ...posts.map(p => ({ ...p, kind: 'post' as const })),
-  ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 50);
-
-  // Bilgi kartlarini her 4 gönderide bir serpiştir. SON öğeyi DEĞİŞTİRME:
-  // sonsuz kaydırma imleci son fact/post'un created_at'ine bağlı (dyk imleç bozar).
-  const feedItems: FeedItem[] = [];
-  let dykIdx = 0;
-  for (let i = 0; i < baseItems.length; i++) {
-    feedItems.push(baseItems[i]);
-    if ((i + 1) % 4 === 0 && i < baseItems.length - 1 && dykIdx < dyks.length) {
-      feedItems.push({ ...dyks[dykIdx++], kind: 'dyk' as const });
-    }
-  }
-
-  let likedFactIds: number[] = [];
-  let likedPostIds: number[] = [];
-  let repostedFactIds: number[] = [];
-  if (me) {
-    const [fr, pr, rr] = await Promise.all([
-      facts.length ? db.from('fact_likes').select('fact_id').eq('user_id', me.id).in('fact_id', facts.map(f => f.id)) : { data: [] },
-      posts.length ? db.from('post_likes').select('post_id').eq('user_id', me.id).in('post_id', posts.map(p => p.id)) : { data: [] },
-      facts.length ? db.from('fact_reposts').select('fact_id').eq('user_id', me.id).in('fact_id', facts.map(f => f.id)) : { data: [] },
-    ]);
-    likedFactIds = (fr.data ?? []).map((r: any) => r.fact_id);
-    likedPostIds = (pr.data ?? []).map((r: any) => r.post_id);
-    repostedFactIds = (rr.data ?? []).map((r: any) => r.fact_id);
-  }
-
-  // Suggested users
-  let suggestedUsers: Array<{ id: number; username: string; display_name: string; bio: string | null; avatar: string | null; mutual_count: number }> = [];
-  if (me) {
-    const { data: myFollows } = await db.from('follows').select('following_id').eq('follower_id', me.id);
-    const myFollowIds: number[] = (myFollows ?? []).map((f: any) => f.following_id);
-    const excludeIds = [me.id, ...myFollowIds];
-    const excludeStr = `(${excludeIds.join(',')})`;
-
-    if (myFollowIds.length > 0) {
-      const { data: fofRaw } = await db.from('follows').select('following_id').in('follower_id', myFollowIds).not('following_id', 'in', excludeStr);
-      if (fofRaw?.length) {
-        const countMap = new Map<number, number>();
-        for (const f of fofRaw as any[]) countMap.set(f.following_id, (countMap.get(f.following_id) ?? 0) + 1);
-        const topIds = [...countMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([id]) => id);
-        // Silinmiş hesaplar (anonim künye) önerilerde ÇIKMAZ.
-        const { data: users } = await db.from('users').select('id, username, display_name, bio, avatar').in('id', topIds)
-          .eq('is_deleted', false);
-        suggestedUsers = (users ?? []).map((u: any) => ({ ...u, mutual_count: countMap.get(u.id) ?? 0 }));
-      }
-    }
-
-    if (suggestedUsers.length < 3) {
-      const existingIds = new Set([...excludeIds, ...suggestedUsers.map(u => u.id)]);
-      const { data: recent } = await db.from('users').select('id, username, display_name, bio, avatar')
-        .not('id', 'in', `(${[...existingIds].join(',')})`)
-        .eq('is_deleted', false)
-        .order('created_at', { ascending: false }).limit(10);
-      for (const u of (recent ?? []) as any[]) {
-        if (!existingIds.has(u.id) && suggestedUsers.length < 5) {
-          suggestedUsers.push({ ...u, mutual_count: 0 });
-          existingIds.add(u.id);
-        }
-      }
-    }
-  }
-
-  // Stories
-  interface StoryItem { id: number; mediaUrl: string; mediaType: string; createdAt: string; }
-  interface StoryUser { userId: number; username: string; displayName: string; avatar: string | null; stories: StoryItem[]; }
-
-  // storiesRaw yukarıda getHomeContent()'ten (önbellekli) geldi.
-  const storyMap = new Map<number, StoryUser>();
-  for (const s of (storiesRaw ?? []) as any[]) {
-    const u = s.users;
-    const uid: number = s.user_id;
-    if (!storyMap.has(uid)) storyMap.set(uid, { userId: uid, username: u.username, displayName: u.display_name, avatar: u.avatar ?? null, stories: [] });
-    storyMap.get(uid)!.stories.push({ id: s.id, mediaUrl: s.media_url, mediaType: s.media_type, createdAt: s.created_at });
-  }
-
-  const ownStoryUser = me ? (storyMap.get(me.id) ?? null) : null;
-  if (me) storyMap.delete(me.id);
-  const otherStoryUsers = [...storyMap.values()];
+export default function HomePage() {
+  const counts = categoryCounts();
+  const heroSub = `${ARTICLE_COUNT} uzun makale, ${CATEGORY_COUNT} konu. Oynanabilir simülasyonlar ve kaynakça. Okumak için üye olmana gerek yok.`;
 
   return (
-    <>
+    <div className={s.lp}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(websiteJsonLd) }} />
-      <HomeFeed
-        feedItems={feedItems as any}
-        likedFactIds={likedFactIds}
-        likedPostIds={likedPostIds}
-        repostedFactIds={repostedFactIds}
-        suggestedUsers={suggestedUsers}
-        currentUser={me ? { id: me.id, username: me.username, display_name: me.display_name, avatar: me.avatar ?? null } : null}
-        canMatch={isAtLeast(me?.birthdate, MATCH_MIN_AGE)}
-        ownStoryUser={ownStoryUser}
-        otherStoryUsers={otherStoryUsers}
-      />
-    </>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(itemListJsonLd) }} />
+
+      {/* ══════════ 1 · HERO — Soru Kapısı ══════════ */}
+      <HeroDeck subline={heroSub} />
+
+      {/* ══════════ 2 · ÜÇ KAPI — konuya göre değil, niyete göre ══════════ */}
+      <section className={s.sec}>
+        <div className={s.inner}>
+          <div className={s.kicker}>Nereden başlamalı</div>
+          <h2 className={s.h2}>Üç kapı.</h2>
+          <p className={s.sub}>{ARTICLE_COUNT} makaleyi önüne yığmayalım. Ne istediğine göre seç.</p>
+          <div className={s.gates}>
+            {GATES.map((g) => {
+              const a = ARTICLE_MAP[g.slug];
+              if (!a) return null;
+              return (
+                <Link key={g.slug} className={s.gate} href={`/articles/${g.slug}`} style={{ background: gradientFor(g.slug) }}>
+                  <span className={s.gateLabel}>{g.label}</span>
+                  <span className={s.gateTitle}>{a.emoji} {a.title}</span>
+                  <span className={s.gateBlurb}>{g.blurb}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════ 3 · SORU DUVARI — 6 kategorinin tamamı ══════════ */}
+      <section className={`${s.sec} ${s.secAlt}`}>
+        <div className={s.inner}>
+          <h2 className={s.h2}>Cevabı olan sorular</h2>
+          <p className={s.sub}>Her kart bir makale. Kısa değiller.</p>
+          <div className={s.wall}>
+            {WALL.map((w) => {
+              const c = cardFor(w.slug);
+              if (!c) return null;
+              return (
+                <Link key={w.slug} className={s.wcard} href={`/articles/${w.slug}`}>
+                  <span className={s.wtop}>
+                    {/* Gradyan karo HER ZAMAN açık — hover'da değil: dokunmatikte
+                        hover yok, mobilde kartlar gri açılırdı. */}
+                    <span className={s.tile} style={{ background: gradientFor(w.slug) }} aria-hidden>{c.emoji}</span>
+                    <span className={s.chev} aria-hidden>→</span>
+                  </span>
+                  {/* SEO: makale başlığı h3'te (link metni). Göz ise soruya gider. */}
+                  <h3 className={s.wcat}>{c.category} · {c.title}</h3>
+                  <p className={s.wq}>{w.q}</p>
+                </Link>
+              );
+            })}
+          </div>
+          <div style={{ marginTop: 16 }}>
+            <a className={s.ctaQuiet} href="#arsiv">↓ Tüm arşiv</a>
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════ 4 · DÖRT FİİL — vaat değil, meydan okuma ══════════ */}
+      <section className={s.sec}>
+        <div className={s.inner}>
+          <h2 className={s.h2}>Makalede ne var?</h2>
+          <p className={s.sub}>Yazı var. Ama sadece yazı değil.</p>
+          <div className={s.verbs}>
+            {VERBS.map((v) => {
+              const a = ARTICLE_MAP[v.slug];
+              if (!a) return null;
+              return (
+                <div key={v.label} className={s.verb} style={{ background: gradientFor(v.slug) }}>
+                  <div className={s.vLabel}>── {v.label} ──</div>
+                  <div className={s.vTitle}>{v.title}</div>
+                  {v.live === 'radio' ? <RadioMeter /> : <p className={s.vDesc}>{v.desc}</p>}
+                  <Link className={s.vLink} href={`/articles/${v.slug}`}>→ {a.title}</Link>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════ 5 · KURAL — sessiz manifesto ══════════ */}
+      {/* "Apolitik" kelimesi BİLİNÇLİ yazılmaz: o kelime kendisi bir iddia ve
+          tartışma davetiyesidir. Yerine apolitikliği ÜRETEN mekanizma yazılır.
+          Üçü de sitede doğrulanabilir → kontrol edilebilir söz, reklam değil. */}
+      <section className={s.kural}>
+        <div className={s.narrow}>
+          <div className={s.kicker}>Kural</div>
+          {RULES.map((r) => (
+            <div key={r.claim} className={s.rule}>
+              <b className={s.ruleClaim}>{r.claim}</b>
+              <span className={s.ruleProof}>{r.proof}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ══════════ 6 · TOPLULUK — boş odayı saklamak yerine adını koymak ══════════ */}
+      {/* Sahte kalabalık (5 avatar) hem işe yaramaz hem 5. bölümdeki kuralı ilk
+          paragrafta çürütür. SAYI YOK: "5 üye" kaçırır, "binlerce" yalan olur. */}
+      <section className={`${s.sec} ${s.secAlt}`}>
+        <div className={s.narrow}>
+          <h2 className={s.h2}>Bir de topluluk var</h2>
+          <p className={s.sub} style={{ color: 'var(--color-text)' }}>
+            Makalelerin altında yorum, akışta gönderi, günün sorusu, okuma listesi.
+          </p>
+          <p className={s.sub}>
+            Basements yeni: şu an topluluk küçük. Sayfayı doldurmak için sahte kalabalık koymuyoruz. Erken gelen burayı şekillendirir.
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
+            <Link className={s.ctaQuiet} href="/akis">Akışa göz at →</Link>
+            <div className="auth-out">
+              <Link className={s.ctaQuiet} href="/register">Üye ol</Link>
+            </div>
+            {/* .auth-in display:contents → stil İÇ elemanda (globals.css:349) */}
+            <div className="auth-in">
+              <Link className={s.ctaQuiet} href="/okuma-listesi">Okuma listene git →</Link>
+            </div>
+          </div>
+          <p className={s.sub} style={{ marginTop: 14, marginBottom: 0 }}>
+            Okumak için üyelik gerekmez. Üye olursan: okuma listesi, yorum, karar noktalarında oy.
+          </p>
+        </div>
+      </section>
+
+      {/* ══════════ 7 · RASTGELE — çıkış rampası ══════════ */}
+      <section className={s.sec} style={{ textAlign: 'center' }}>
+        <div className={s.narrow}>
+          <p className={s.sub}>Karar veremedin mi?</p>
+          <RandomArticle fallbackSlug={HERO_DECK[0].slug} />
+        </div>
+      </section>
+
+      {/* ══════════ 8 · ARŞİV — 32 makale, kategoriye gruplu, sıfır JS ══════════ */}
+      {/* FİLTRE DEĞİL, GRUP (pazarlıksız): istemci filtresi koşullu render ile
+          iç linkleri DOM'dan siler → crawler göremez. Gruplama + çapa: sıfır JS,
+          tüm linkler her zaman DOM'da, no-JS'te çalışır. */}
+      <section id="arsiv" className={`${s.sec} ${s.secAlt} ${s.anchor}`}>
+        <div className={s.inner}>
+          <h2 className={s.h2}>{ARTICLE_COUNT} makale, {CATEGORY_COUNT} konu</h2>
+          <p className={s.sub}>Kategoriye göre.</p>
+
+          <nav className={s.strip} aria-label="Kategoriler">
+            {counts.map((c) => (
+              <a key={c.cat} className={s.pill} href={`#raf-${c.cat.toLocaleLowerCase('tr-TR')}`}>
+                {c.cat}<span>{c.n}</span>
+              </a>
+            ))}
+          </nav>
+
+          {counts.map((c) => (
+            <div key={c.cat} id={`raf-${c.cat.toLocaleLowerCase('tr-TR')}`} className={s.anchor}>
+              <div className={s.shelfHead}>
+                <h3>{c.cat}</h3>
+                <em>{c.n}</em>
+                <hr />
+              </div>
+              <div className={s.rows}>
+                {ARTICLES.filter((a) => a.category === c.cat).map((a) => (
+                  <Link key={a.slug} className={s.row} href={`/articles/${a.slug}`}>
+                    <span className={s.rowTile} style={{ background: gradientFor(a.slug) }} aria-hidden>{a.emoji}</span>
+                    <span className={s.rowBody}>
+                      <span className={s.rowTitle}>{a.title}</span>
+                      {/* Açıklama registry'den birebir — landing'de yeniden
+                          yazılmaz, içerik büyüdükçe kendini günceller. */}
+                      <p className={s.rowDesc}>{a.desc}</p>
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          {counts.some((c) => c.n === 1) && (
+            <p className={s.sub} style={{ marginTop: 16, marginBottom: 0 }}>
+              Bazı raflarda şimdilik tek makale var. Doluyor.
+            </p>
+          )}
+        </div>
+      </section>
+
+      {/* ══════════ FOOTER ══════════ */}
+      {/* .sidebar-legal mobilde display:none → hedef kitlenin tamamı hukuki
+          linkleri hiçbir yerden göremiyordu. Bu satır o boşluğu kapatıyor. */}
+      <footer className={s.foot}>
+        <div className={s.inner}>
+          Basements — bilim, tarih ve kültür.
+          <div className={s.footRow}>
+            <Link href="/discover">İçerikler</Link>
+            <Link href="/akis">Akış</Link>
+            <Link href="/rastgele">Rastgele makale</Link>
+          </div>
+          <div className={s.footRow}>
+            <Link href="/gizlilik">Gizlilik</Link>
+            <Link href="/aydinlatma">KVKK Aydınlatma</Link>
+            <Link href="/acik-riza">Açık Rıza</Link>
+            <Link href="/kosullar">Koşullar</Link>
+          </div>
+          <div style={{ marginTop: 12 }}>© 2026 Basements · basementonfire.com</div>
+        </div>
+      </footer>
+    </div>
   );
 }
