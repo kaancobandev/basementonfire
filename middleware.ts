@@ -32,6 +32,13 @@ function tokenNeedsRefresh(request: NextRequest): boolean {
   }
 }
 
+/** Oturum çerezi VAR mı? Ağ çağrısı YOK — layout'taki inline auth-hint
+ *  script'iyle (data-auth) birebir aynı sezgi, o yüzden ikisi tutarlı.
+ *  Çerez bayat olabilir; o hâlde /feed getMe() ile çıkışlı render eder (kırılmaz). */
+function hasSessionCookie(request: NextRequest): boolean {
+  return request.cookies.getAll().some((c) => /^sb-.+-auth-token(\.\d+)?$/.test(c.name));
+}
+
 export async function middleware(request: NextRequest) {
   // Kanonik alan adına zorla: tüm *.netlify.app host'ları (varsayılan subdomain +
   // HER deploy'un dondurulmuş permalink'i, ör. <hash>--basementonfire.netlify.app)
@@ -50,6 +57,25 @@ export async function middleware(request: NextRequest) {
   const response = NextResponse.next({ request });
 
   const path = request.nextUrl.pathname;
+
+  // Ana sayfa (/) çıkışlı ziyaretçinin STATİK landing'i — Googlebot ve soğuk
+  // ziyaretçi için. Giriş yapmış birinin orada işi yok → akışına gönder.
+  // MALİYET ~0: yalnız çerez okunur, ağ çağrısı yok, Netlify bunu Edge Function
+  // olarak (Lambda değil) koşturur. Soğuk start /feed'in force-dynamic olmasından
+  // gelir, bu satırdan değil — nav'dan tıklasa da aynı bedel ödenirdi.
+  //
+  // 307 (geçici) + no-store, iki ayrı sebeple ZORUNLU:
+  //  · KALICI (301/308) olsaydı tarayıcı sonsuza dek cache'ler → çıkış yapınca
+  //    kullanıcı /feed'e kilitlenir, landing'i bir daha göremezdi.
+  //  · no-store olmasaydı CDN bu ÇEREZE BAĞLI yanıtı cache'leyip anonim
+  //    ziyaretçiyi de /feed'e atabilirdi (landing ölür, SEO ölür).
+  // Cache'lenen / her zaman landing kalır; kişisel içerik kendi URL'inde.
+  if (path === '/' && hasSessionCookie(request)) {
+    const res = NextResponse.redirect(new URL('/feed', request.url), 307);
+    res.headers.set('cache-control', 'private, no-store');
+    return res;
+  }
+
   // auth.getUser() sonucu yalnızca şu kararlar için gerekiyor: korumalı yola
   // anonim erişimde /login'e, girişliyken /login|/register'da /'a yönlendirme.
   const needsAuthDecision =
@@ -86,8 +112,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
+  // Girişli kullanıcı /login|/register'a düşerse akışına gönder. ESKİDEN '/' idi
+  // ve doğruydu (ana sayfa akıştı); ana sayfa landing olunca giriş yapmış
+  // kullanıcıyı pazarlama sayfasına atmaya başlamıştı → /feed.
   if (user && (path === '/login' || path === '/register')) {
-    return NextResponse.redirect(new URL('/', request.url));
+    return NextResponse.redirect(new URL('/feed', request.url));
   }
 
   return response;
