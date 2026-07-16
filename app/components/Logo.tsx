@@ -1,50 +1,41 @@
-// Basements logo — recreated as a scalable SVG.
-// Two overlapping red circles (heart lobes) above three cyan-outlined
-// black 8-pointed stars (octagrams) that taper into the heart's point.
+'use client';
 
-/** Build an 8-pointed star (octagram / Rub el Hizb) path centered at (cx,cy). */
-function octagram(cx: number, cy: number, R: number): string {
-  const r = R * 0.765; // inner radius ratio of two overlapping squares
-  const pts: string[] = [];
-  for (let i = 0; i < 16; i++) {
-    const rad = i % 2 === 0 ? R : r;
-    const a = ((-90 + i * 22.5) * Math.PI) / 180;
-    pts.push(`${(cx + rad * Math.cos(a)).toFixed(1)},${(cy + rad * Math.sin(a)).toFixed(1)}`);
-  }
-  return `M${pts.join('L')}Z`;
-}
+import Img from './Img';
 
-const STARS = [
-  { cx: 180, cy: 322 },
-  { cx: 340, cy: 312 },
-  { cx: 261, cy: 408 },
-];
-
+// Basements işareti — sekiz köşeli ateş yıldızı.
+//
+// 2026-07-16: elle çizilmiş SVG (iki kırmızı daire + 3 camgöbeği octagram) yerine
+// kullanıcının ürettiği gerçek logo geldi. Eskisi orijinalin koddaki taklidiydi
+// ("recreated as a scalable SVG") ve app/icon.svg'de ikinci bir kopyası daha vardı;
+// ikisi de silindi → tek kaynak artık public/brand/.
+//
+// ⚠ KAYNAK 512, 2048 DEĞİL: lib/img.ts:27 `if (!isProd() || !eligible(src)) return src`
+// → GELİŞTİRMEDE Netlify CDN devre dışı ve orijinal servis edilir. 2048 master
+// verilseydi dev'de HER sayfa 1,46 MB indirirdi. Üretimde CDN 72px'e ~2,8 KB'a indirir.
+//
+// ⚠ width/height NİTELİK olarak veriliyor, CSS'e bırakılmıyor: globals.css:236
+// `.sidebar-logo-img` yalnız AppShell'i kapsıyor; HomeFeed.tsx:308 `<Logo size={54} />`
+// className'SİZ çağırıyor → ölçü nitelikte olmazsa orada CLS patlar.
+//
+// ⚠ fixedWidth={size*2}: 2x DPR. srcSet üretmeye gerek yok, ölçü sabit.
+//
+// BİLİNEN KUSUR (kabul edildi, ölçüldü): işaretin gövdesi koyu kırmızı (rgb(95,11,16));
+// kontrastı parlak turuncu UÇLAR taşıyor. Koyu temada (--color-bg #0f1419) 36px'te
+// ≥3:1 geçen mürekkep piksel oranı %5,9 (eski işaret %27,9 idi) → gerçek bir gerileme.
+// WCAG 1.4.11 logotype'ları kontrast şartından MUAF tutar → uyum ihlali değil, estetik.
+// Sidebar'da yanında `<span>Basements</span>` var (AppShell.tsx:140) → kimliği metin
+// taşıyor, logo refakatçi. Glow/halo ÖNERİLMEZ: %25 mürekkep kaplamasında 36px'te
+// bulanık leke yapar. Gerekirse çözüm ayrı bir koyu-tema varyantıdır.
 export default function Logo({ size = 36, className }: { size?: number; className?: string }) {
   return (
-    <svg
+    <Img
+      src="/brand/logo-512.png"
+      fixedWidth={size * 2}
       width={size}
       height={size}
-      viewBox="0 0 512 512"
       className={className}
-      role="img"
-      aria-label="Basements"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      {/* Heart lobes — bright red left, darker red right (overlapping) */}
-      <circle cx="166" cy="152" r="120" fill="#ff1212" />
-      <circle cx="338" cy="152" r="120" fill="#c10000" />
-
-      {/* Three octagram stars: dark outer edge + cyan stroke + black fill */}
-      {STARS.map((s, i) => {
-        const d = octagram(s.cx, s.cy, 74);
-        return (
-          <g key={i}>
-            <path d={d} fill="none" stroke="#0b2742" strokeWidth="14" strokeLinejoin="round" />
-            <path d={d} fill="#070707" stroke="#18b6d6" strokeWidth="7" strokeLinejoin="round" />
-          </g>
-        );
-      })}
-    </svg>
+      alt="Basements"
+      style={{ objectFit: 'contain' }}
+    />
   );
 }

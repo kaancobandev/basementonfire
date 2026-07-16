@@ -20,7 +20,7 @@ export function jsonLdScript(obj: unknown): string {
 
 /**
  * Makale (Article) JSON-LD'yi tek yerden, tutarlı ve zengin üretir:
- *  - publisher.logo (ImageObject) → Article zengin sonuç uygunluğu
+ *  - publisher.logo (ImageObject) → SEO KAZANCI YOK, bkz. aşağıdaki not (satır 48)
  *  - about.sameAs (Wikidata/Vikipedi) → AI motorları için varlık (entity) sabitleme
  *  - citation[] → Kaynakça'yı yapılandırılmış veriye yansıtır (kaynak yoğunluğu sinyali)
  *  - image → makaleye özel OG görseli (/articles/<slug>/opengraph-image)
@@ -45,7 +45,19 @@ export function articleJsonLd(o: {
     url: `${SITE}${o.path}`,
     image: `${SITE}${o.path}/opengraph-image`,
     author: { '@type': 'Organization', name: 'Basements', url: SITE },
-    publisher: { '@type': 'Organization', name: 'Basements', logo: { '@type': 'ImageObject', url: `${SITE}/icon.svg` } },
+    // 2026-07-16: /icon.svg → /icons/icon-512.png. Sebep MEKANİK, SEO DEĞİL: icon.svg
+    // silindi, bu MUTLAK URL sessizce 404 olurdu (build de typecheck de string doğrulamaz).
+    //
+    // ⚠ Bunu "Article zengin sonucunu iyileştirdim" diye işaretleme — ölçülebilir kazanç YOK.
+    // Google'ın Article dokümanı "There are no required properties" diyor ve önerdikleri
+    // author / dateModified / datePublished / headline / image — publisher HİÇ geçmiyor.
+    // Repo kendi kendini kanıtlıyor: 32 makalenin 19'u bu yolu kullanmıyor ve bugüne dek
+    // bir fark gözlenmedi (canlı kontrol grubu).
+    //
+    // Google'ın logo için BELGELEDİĞİ tek yüzey, ana sayfadaki bağımsız Organization
+    // işaretlemesidir — repoda o YOK. 112x112 minimumu ancak orada bağlayıcı olur
+    // (512 fazlasıyla geçer). Eklenirse jsonLdScript() ile [[jsonld-script-xss-escaping]].
+    publisher: { '@type': 'Organization', name: 'Basements', logo: { '@type': 'ImageObject', url: `${SITE}/icons/icon-512.png` } },
     ...(o.about ? { about: { '@type': o.about.type ?? 'Thing', name: o.about.name, ...(o.about.sameAs ? { sameAs: o.about.sameAs } : {}) } } : {}),
     ...(o.citation && o.citation.length ? { citation: o.citation.map((c) => ({ '@type': 'CreativeWork', name: c.title, ...(c.url ? { url: c.url } : {}) })) } : {}),
   };

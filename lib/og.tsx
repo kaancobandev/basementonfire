@@ -150,10 +150,39 @@ export async function rootOgImage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
           <div style={{ width: 14, height: 58, borderRadius: 6, background: ROOT_ACCENT }} />
           <div style={{ display: 'flex', fontSize: 30, letterSpacing: 5, color: ROOT_ACCENT, fontWeight: 700 }}>BASEMENTS</div>
-          {/* LOGO BURAYA GELECEK (sağ üst) — şeffaf PNG geldiğinde:
-              <img src={LOGO_DATA_URI} width={104} height={104} style={{ marginLeft: 'auto' }} />
-              Mevcut public/brand/basementonfire_logo.png KULLANILAMAZ: alfa kanalı yok,
-              koyu zemini gömülü → bu indigo gradyanın üstünde siyah kutu olur. */}
+          {/* ── LOGO BİLEREK YOK. Hüküm geçerli ama SEBEP DEĞİŞTİ (2026-07-16) ──
+              Eski gerekçe ("alfa kanalı yok") ARTIK GEÇERSİZ: logo RGBA ve gerçek
+              şeffaflığı var. Gerçek engel KONTRAST:
+
+              Ham logo ROOT_GRADIENT üzerinde ÖLÇÜLDÜ → ~1,05-1,40:1 = fiilen görünmez.
+              Gradyanın üç durağı da koyu (#3a1e9e/#1e1440/#120e26), logonun gövdesi ise
+              koyu kırmızı (rgb(95,11,16)). Üstelik radial odak `at 72% 25%` TAM sağ üst
+              köşede, yani logonun geleceği yer gradyanın EN PARLAK yeri: rgb(51,27,133).
+
+              ÖLÇÜLEREK ELENEN İKİ ÇÖZÜM — tekrar deneme:
+              · `filter: drop-shadow()` ile glow: Satori'de tarayıcı gibi davranmaz,
+                elemanın KUTUSUNA kırpılır (index.node.js:17100 → filter ile birlikte
+                `clip-path: url(#satori_cp-…)`) → şekli saran glow değil, kare bir pus.
+                Üstelik medyanı 1,40 → 1,20'ye DÜŞÜRÜYOR.
+              · Büyütmek: 140px'te medyan 1,43:1 — piksel başına kontrast değişmez,
+                sadece leke büyür.
+
+              ÖLÇÜLEN TEK ETKİLİ ÇÖZÜM: açık "çip" — 104x104, borderRadius 24,
+              rgba(255,255,255,0.92) zemin, içinde 76px logo → medyan 11,06:1,
+              piksellerin %87'si ≥3:1. Yarım önlem işe yaramaz (beyaz %8 → 1,23:1;
+              %14 → 1,47:1): ya tam çip ya hiç. Bu bir MARKA kararı, bekliyor.
+
+              Kart logosuz da eksik değil: üstte amber şerit + "BASEMENTS" wordmark var.
+
+              UYGULANIRSA İKİ TUZAK:
+              · src olarak SADECE http(s) URL, `data:` URI veya ArrayBuffer kabul edilir
+                (index.node.js:16042). fs.readFileSync bir Buffer döner ve DOĞRUDAN
+                VERİLEMEZ ("First argument to DataView constructor must be an ArrayBuffer").
+              · HTTP URL build'de çalışır (repo zaten Google Fonts'u böyle çekiyor) AMA
+                kendi asset'in için tavuk-yumurta (ilk build'de henüz deploy değil → 404)
+                ve fetch hatası SESSİZ: index.node.js:16085 `console.error` basıp kartı
+                LOGOSUZ üretir, build yemyeşil kalır. → data URI kullan, 208px'e küçült
+                (2048'i motora vermek kart başına ~208ms; 208px ~35ms, çıktı PNG aynı). */}
         </div>
 
         {/* Orta — makale kartında başlık+soru neredeyse, burada da o */}

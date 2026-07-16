@@ -57,7 +57,37 @@ export const metadata: Metadata = {
     follow: true,
     googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 },
   },
-  icons: { icon: '/icon.svg' },
+  // ⚠⚠ BURAYA `icons:` YAZMA — GERİ EKLEME. (2026-07-16'da SİLİNDİ, sebebi:)
+  //
+  // Açık `icons` metadata'sı, dosya tabanlı app/icon.png + app/apple-icon.png
+  // konvansiyonunu TAMAMEN yutar. Bekçi alan-bazlı DEĞİL, TÜM `icons` nesnesi
+  // üzerinde — yani `icons: { icon: ... }` yazmak apple-touch-icon'u DA öldürür:
+  //   node_modules/next/dist/lib/metadata/resolve-metadata.js:703-716
+  //   if (leafSegmentStaticIcons.icon.length > 0 || ...apple.length > 0) {
+  //     if (!resolvedMetadata.icons) {          // <-- BEKÇİ
+  //       ...icons.icon.unshift(...)            // <-- ikisi de İÇERİDE
+  //       ...icons.apple.unshift(...)
+  //     }
+  //   }
+  //
+  // Burada `icons: { icon: '/icon.svg' }` vardı ve zarar SESSİZDİ, çünkü iki yol da
+  // aynı '/icon.svg' adını söylüyordu → hata maskeliydi. Ölçülen bedeli:
+  //   · HTML'de `<link rel="icon" href="/icon.svg"/>` — ÇIPLAK: type/sizes/?hash YOK
+  //   · apple-touch-icon SIFIR (iOS ana ekranda ikon yoktu; SVG'yi Apple zaten desteklemez)
+  //   · .next/server/app/icon.svg.body ÜRETİLİYOR ama yok sayılıyor
+  //
+  // Silince konvansiyon devreye girer ve `/icon.png?<contenthash>` + type + sizes basar.
+  // ?hash ÖNEMLİ: favicon tarayıcıda en agresif cache'lenen kaynaktır ve rota 1 yıl
+  // `immutable` servis edilir — açık metadata hash'i siler, o zaman aynı dosya adının
+  // içeriğini değiştirmek geri dönen ziyaretçide 1 YILA KADAR eski ikonu bırakır.
+  // (Deploy cache süpürgesi bunu ÇÖZMEZ: o CDN'i ısıtır, tarayıcı cache'ini değil.)
+  //
+  // TEK İSTİSNA: koyu-tema favicon varyantı (`media: '(prefers-color-scheme: dark)'`)
+  // yalnız AÇIK IconDescriptor ile mümkün — konvansiyon `media` basamaz. Bir gün o
+  // gerekirse, hash cache-bust'ını ELLE yönetmen ve apple-icon'u da elle yazman gerekir.
+  //
+  // Aynı sınıf hata: 19 makalenin openGraph.images'ı (bkz. lib/og.tsx, 9647856).
+
   // Google Search Console site sahipliği doğrulaması (SEO)
   verification: { google: 'TxJYB9Iwy1fdeqw2kUCJXWg1DjDxa3eTRS11P3we60Y' },
 };
