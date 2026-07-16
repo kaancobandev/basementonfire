@@ -112,6 +112,69 @@ const FALLBACK_ACCENT = '#c7b3ff';
  *             ile sitede görülen kart aynı kimliği taşır)
  * Bilinmeyen slug'da atmaz: kart yine üretilir, jenerik kimlikle.
  */
+// ════════════════════════════════════════════════════════════════════════
+// KÖK KART — ana sayfanın paylaşım görseli (app/opengraph-image.tsx).
+//
+// NEDEN SAYI YOK: "32 interaktif makale" yazmak cazipti ve build'de registry'den
+// türetilebilirdi (ARTICLE_COUNT), ama scraper'lar kartı URL başına BİR KERE çekip
+// haftalarca saklar → 3 ay önceki Instagram gönderisi, sen 180 makaledeyken hâlâ
+// "32" gösterir ve BAŞKASININ gönderisini yeniden taratamazsın. Yani sayı,
+// düzeltemeyeceğin bir yalan olarak donar. Onun yerine hiç eskimeyen şey yazıyor:
+// sitenin ne YAPTIĞI.
+//
+// DÖRT FİİL UYDURMA DEĞİL — dördü de sitede çalışan gerçek modül (lib/landing.ts
+// VERBS ile aynı kaynak fikir): Oyna = fatih kuşatma simülasyonu · Karar ver =
+// sezar Rubicon · Ölç = radyoaktivite ölçer · Kuşkulan = augustus Res Gestae.
+// Modül silinirse buradaki fiil de gitmeli, yoksa kart yalan söyler.
+//
+// PALET: marka gradyanı (globals.css --gradient-hero) + amber accent
+// (--color-accent #ff9d0a). Amber seçildi çünkü hem marka tokeni hem de ateş
+// logosuyla aynı aile; indigo zeminde tümleyen renk olarak patlıyor.
+// (Eskisi #0f0e0d→#2a1840 idi: 2026-07-11 kimlik yenilemesinden ÖNCEki palet →
+// linki paylaşan mor bir kart görüp bambaşka görünen bir siteye düşüyordu.)
+const ROOT_GRADIENT = 'radial-gradient(120% 130% at 72% 25%, #3a1e9e 0%, #1e1440 55%, #120e26 100%)';
+const ROOT_ACCENT = '#ff9d0a';
+
+export async function rootOgImage() {
+  const fonts = await loadFonts();
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+          padding: '72px 84px', background: ROOT_GRADIENT, color: '#ffffff',
+          fontFamily: fonts.length ? 'Inter' : 'sans-serif',
+        }}
+      >
+        {/* Üst şerit — 32 makale kartıyla BİREBİR aynı (aile benzerliği kasıtlı) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+          <div style={{ width: 14, height: 58, borderRadius: 6, background: ROOT_ACCENT }} />
+          <div style={{ display: 'flex', fontSize: 30, letterSpacing: 5, color: ROOT_ACCENT, fontWeight: 700 }}>BASEMENTS</div>
+          {/* LOGO BURAYA GELECEK (sağ üst) — şeffaf PNG geldiğinde:
+              <img src={LOGO_DATA_URI} width={104} height={104} style={{ marginLeft: 'auto' }} />
+              Mevcut public/brand/basementonfire_logo.png KULLANILAMAZ: alfa kanalı yok,
+              koyu zemini gömülü → bu indigo gradyanın üstünde siyah kutu olur. */}
+        </div>
+
+        {/* Orta — makale kartında başlık+soru neredeyse, burada da o */}
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', fontSize: 116, fontWeight: 700, lineHeight: 1.04, letterSpacing: -3 }}>
+            Okumak yetmez.
+          </div>
+          <div style={{ display: 'flex', fontSize: 44, marginTop: 22, color: ROOT_ACCENT, fontWeight: 700 }}>
+            Oyna · Karar ver · Ölç · Kuşkulan
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', fontSize: 27, color: 'rgba(255,255,255,0.6)' }}>
+          basementonfire.com · interaktif makale
+        </div>
+      </div>
+    ),
+    { ...OG_SIZE, fonts: fonts.length ? fonts : undefined },
+  );
+}
+
 /**
  * Kartın alt metni (og:image:alt) — ekran okuyucu ve görselin yüklenmediği
  * istemciler için. Başlık + soru: kartın üstünde YAZAN neyse o.

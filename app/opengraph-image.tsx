@@ -1,33 +1,19 @@
-import { ImageResponse } from 'next/og';
+// Ana sayfanın paylaşım görseli (og:image + twitter:image).
+//
+// 2026-07-16: kart lib/og.tsx'e taşındı. Öncesinde bu dosya, fabrikayı KULLANMAYAN
+// tek OG'ydi ve iki bedelini birden ödüyordu: (1) 2026-07-11 kimlik yenilemesinden
+// önceki paleti taşıyordu, (2) Inter yüklenmediği için Türkçe glifler düşüyordu →
+// kartta "BILIM · TARIH · KULTUR" yazıyordu. İkisi de taşınmayla çözüldü.
+//
+// Artık yalnız ANA SAYFAYI temsil ediyor: 32 makalenin 19'u da buraya düşüyordu,
+// hepsine kendi kartı verildi (app/articles/<slug>/opengraph-image.tsx).
+// Kartın metnini/paletini değiştirmek istiyorsan lib/og.tsx → rootOgImage().
+import { rootOgImage, OG_SIZE } from '@/lib/og';
 
-// Paylaşım önizleme görseli (og:image + twitter:image) — tüm sayfalar için varsayılan.
-export const alt = 'Basements — Bilim, Tarih ve Kültür';
-export const size = { width: 1200, height: 630 };
+export const alt = 'Basements — Okumak yetmez. Oyna, karar ver, ölç, kuşkulan.';
+export const size = OG_SIZE;
 export const contentType = 'image/png';
 
 export default function Image() {
-  return new ImageResponse(
-    (
-      <div
-        style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'linear-gradient(135deg, #0f0e0d 0%, #1b1733 60%, #2a1840 100%)',
-          color: '#ffffff',
-          fontFamily: 'sans-serif',
-        }}
-      >
-        <div style={{ display: 'flex', fontSize: 132, fontWeight: 800, letterSpacing: -3 }}>Basements</div>
-        <div style={{ display: 'flex', fontSize: 40, marginTop: 18, color: '#c7b3ff', letterSpacing: 2 }}>
-          BILIM &middot; TARIH &middot; KULTUR
-        </div>
-        <div style={{ display: 'flex', fontSize: 26, marginTop: 44, color: '#8b909b' }}>basementonfire.com</div>
-      </div>
-    ),
-    { ...size },
-  );
+  return rootOgImage();
 }
