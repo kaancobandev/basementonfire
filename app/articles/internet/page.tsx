@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   description,
   keywords: ['internet nasıl çalışır', 'OSI modeli', 'TCP/IP', 'DNS', 'HTTP', 'HTTPS', 'SSL', 'TLS', 'router', 'switch', 'paket', 'protokol', 'IP adresi', 'MAC adresi', 'UDP', 'ISP', 'DSL'],
   alternates: { canonical: path },
-  openGraph: { type: 'article', title: `${title} · Basements`, description, url: path, images: ['/opengraph-image'] },
+  openGraph: { type: 'article', title: `${title} · Basements`, description, url: path },
   twitter: { card: 'summary_large_image', title: `${title} · Basements`, description },
 };
 

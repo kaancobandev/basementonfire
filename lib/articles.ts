@@ -20,7 +20,9 @@ export const ARTICLES: ArticleMeta[] = [
   { slug: 'ekonomi', title: 'Ekonominin Dili', emoji: '📈', desc: 'Faiz, parite, borsa — interaktif sözlük', category: 'Kültür' },
   { slug: 'einstein-rosen', title: 'Einstein–Rosen Köprüsü', emoji: '🌀', desc: 'İnteraktif solucan deliği rehberi', category: 'Fizik' },
   { slug: 'arcade', title: 'Arcade', emoji: '🕹️', desc: 'Oyun salonu tarihi + oynanabilir klasikler', category: 'Teknoloji' },
-  { slug: 'tibbi', title: '15 Tuhaf Tıbbi Olgu', emoji: '🧬', desc: 'Doğrulanmış akıl almaz tıp gerçekleri', category: 'Biyoloji' },
+  // 15 → 25 (2026-07-16): makalede 25 olgu var; 25 <article>, 25 "Kaynak ·" atfı ve
+  // gövdedeki "yirmi beş olgu" ile doğrulandı. Bkz. app/articles/tibbi/page.tsx.
+  { slug: 'tibbi', title: '25 Tuhaf Tıbbi Olgu', emoji: '🧬', desc: 'Doğrulanmış akıl almaz tıp gerçekleri', category: 'Biyoloji' },
   { slug: 'internet', title: 'İnternet Nasıl Çalışır?', emoji: '🌐', desc: 'OSI, TCP/IP, DNS, paketler — diyagramlarla', category: 'Teknoloji' },
   { slug: 'pirus', title: 'Kral Pirus', emoji: '🐘', desc: 'Filler, Pirus zaferi ve destansı savaşlar', category: 'Tarih' },
   { slug: 'takyon', title: 'Takyonlar', emoji: '⚡', desc: 'Işıktan hızlı parçacıklar — benzetmelerle', category: 'Fizik' },

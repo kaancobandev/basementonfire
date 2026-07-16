@@ -11,8 +11,14 @@ const refs: BibItem[] = [
   { title: 'Scientific American — Health', source: 'Scientific American', url: 'https://www.scientificamerican.com/health/' },
 ];
 
-const title = 'Gerçek Olamayacak Kadar Tuhaf — 15 Tıbbi Olgu';
-const description = 'Doğrulanmış ama akıl almaz 15 tıbbi olgu: insan vücudunun ve tıbbın en tuhaf gerçekleri, animasyonlu ve interaktif bir anlatımla.';
+// 2026-07-16: 15 → 25. Makale 25 olgu içeriyor, başlık 15 diyordu — yani sitenin
+// kendi kuralının ("sıfat değil, sayı") sayısı yanlıştı ve bu yanlış sayı paylaşım
+// kartına basılıyordu. Sayım tek yorum değil, dört bağımsız kanıt: content.ts'te
+// 25 <article> etiketi, 25 "Kaynak ·" atfı, gövdede iki kez "yirmi beş olgu",
+// kaynakça başlığı "Yeni Olgular İçin Kaynaklar (16–25)". Olgu eklersen BURAYI,
+// aşağıdaki description'ı ve lib/articles.ts'teki registry başlığını da güncelle.
+const title = 'Gerçek Olamayacak Kadar Tuhaf — 25 Tıbbi Olgu';
+const description = 'Doğrulanmış ama akıl almaz 25 tıbbi olgu: insan vücudunun ve tıbbın en tuhaf gerçekleri, animasyonlu ve interaktif bir anlatımla.';
 const path = '/articles/tibbi';
 const FONT_URL = 'https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,900&family=Manrope:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap';
 const CDNS = [
@@ -25,7 +31,7 @@ export const metadata: Metadata = {
   title,
   description,
   alternates: { canonical: path },
-  openGraph: { type: 'article', title: `${title} · Basements`, description, url: path, images: ['/opengraph-image'] },
+  openGraph: { type: 'article', title: `${title} · Basements`, description, url: path },
   twitter: { card: 'summary_large_image', title: `${title} · Basements`, description },
 };
 

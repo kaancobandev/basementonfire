@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   description,
   keywords: ['tardigrad', 'su ayısı', 'water bear', 'kriptobiyoz', 'tun hali', 'anhidrobiyoz', 'Dsup', 'ekstremofil', 'uzayda hayatta kalma', 'trehaloz', 'mini oyun'],
   alternates: { canonical: path },
-  openGraph: { type: 'article', title: `${title} · Basements`, description, url: path, images: ['/opengraph-image'] },
+  openGraph: { type: 'article', title: `${title} · Basements`, description, url: path },
   twitter: { card: 'summary_large_image', title: `${title} · Basements`, description },
 };
 

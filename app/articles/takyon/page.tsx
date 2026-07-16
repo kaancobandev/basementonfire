@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   description,
   keywords: ['takyon', 'tachyon', 'ışıktan hızlı', 'sanal kütle', 'görelilik', 'nedensellik', 'takyon anti-telefonu', 'Feinberg', 'OPERA nötrino', 'Cherenkov ışıması', 'takyon yoğunlaşması', 'fizik'],
   alternates: { canonical: path },
-  openGraph: { type: 'article', title: `${title} · Basements`, description, url: path, images: ['/opengraph-image'] },
+  openGraph: { type: 'article', title: `${title} · Basements`, description, url: path },
   twitter: { card: 'summary_large_image', title: `${title} · Basements`, description },
 };
 

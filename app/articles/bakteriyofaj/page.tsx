@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   description,
   keywords: ['bakteriyofaj', 'faj', 'faj terapisi', 'bacteriophage', 'antibiyotik direnci', 'CRISPR', 'litik döngü', 'lizojenik döngü', 'T4 faj', 'mikrobiyom', 'd Herelle', 'Eliava Enstitüsü', 'süper bakteri'],
   alternates: { canonical: path },
-  openGraph: { type: 'article', title: `${title} · Basements`, description, url: path, images: ['/opengraph-image'] },
+  openGraph: { type: 'article', title: `${title} · Basements`, description, url: path },
   twitter: { card: 'summary_large_image', title: `${title} · Basements`, description },
 };
 

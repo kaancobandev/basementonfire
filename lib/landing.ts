@@ -1,13 +1,17 @@
 // Ana sayfa landing'inin KÜRATÖRLÜK verisi (tasarım: "Merak Kapısı").
 // Düz modül → sunucu bileşeni build'de okur, sıfır istemci maliyeti.
 //
-// SORU YAZIM KURALI (standing rule): soru makalenin İÇİNDEN çıkar, pazarlama
-// için uydurulmaz. Test: makale o soruyu gerçekten cevaplıyor mu? Cevaplamıyorsa
-// clickbait'tir, kullanılmaz. Sitenin kendi kuralı: sıfat değil, sayı.
+// SORULAR ARTIK BURADA YAZILMIYOR → lib/questions.ts (2026-07-16).
+// Sebep: aynı soru paylaşım kartında da lazım (lib/og.tsx). İki kopya vardı ve
+// sessizce ayrışabilirdi — landing'de bir soru, Instagram'da başka bir soru.
+// Bu dosya artık KÜRATÖRLÜK yapıyor: HANGİ makale, HANGİ sırada, HANGİ accent'le.
+// Soru metnini değiştirmek istiyorsan lib/questions.ts'i düzenle.
+// (Yazım kuralı — "soru makalenin içinden çıkar, uydurulmaz" — oraya taşındı.)
 //
 // Not: string'ler backtick — içindeki düz kesme (') kaçış istemez.
 
 import { ARTICLES, ARTICLE_MAP, type ArticleCategory } from './articles';
+import { QUESTIONS } from './questions';
 
 /* ══════════ HERO DESTESİ (8 kart, sırayla, kategori dönüşümlü) ══════════ */
 // İlk basış menzili anında kanıtlasın diye kategoriler dönüşümlü.
@@ -17,14 +21,14 @@ import { ARTICLES, ARTICLE_MAP, type ArticleCategory } from './articles';
 export type DeckCard = { slug: string; q: string; accent: string };
 
 export const HERO_DECK: DeckCard[] = [
-  { slug: `fatih`, q: `Bir fikir bir insanı ne kadar ele geçirebilir?`, accent: `#8fa9ff` },
-  { slug: `radyoaktivite`, q: `Sen ne kadar radyoaktifsin?`, accent: `#b6f36a` },
-  { slug: `bagirsak`, q: `Kararlarını gerçekten beynin mi veriyor?`, accent: `#ff9ab0` },
-  { slug: `internet`, q: `Bu sayfa sana nasıl ulaştı?`, accent: `#7fd4f0` },
-  { slug: `newton`, q: `Ay neden Dünya'ya düşmüyor?`, accent: `#ffc078` },
-  { slug: `sezar`, q: `Seni öldürecek adamları affeder miydin?`, accent: `#ff8fa8` },
-  { slug: `tardigrad`, q: `Uzayın boşluğunda hayatta kalan bir hayvan var. Nasıl?`, accent: `#7ef0c0` },
-  { slug: `cift-yarik`, q: `Elektron, ona baktığını nereden biliyor?`, accent: `#c9a0ff` },
+  { slug: `fatih`, q: QUESTIONS.fatih, accent: `#8fa9ff` },
+  { slug: `radyoaktivite`, q: QUESTIONS.radyoaktivite, accent: `#b6f36a` },
+  { slug: `bagirsak`, q: QUESTIONS.bagirsak, accent: `#ff9ab0` },
+  { slug: `internet`, q: QUESTIONS.internet, accent: `#7fd4f0` },
+  { slug: `newton`, q: QUESTIONS.newton, accent: `#ffc078` },
+  { slug: `sezar`, q: QUESTIONS.sezar, accent: `#ff8fa8` },
+  { slug: `tardigrad`, q: QUESTIONS.tardigrad, accent: `#7ef0c0` },
+  { slug: `cift-yarik`, q: QUESTIONS[`cift-yarik`], accent: `#c9a0ff` },
 ];
 
 /* ══════════ SORU DUVARI (6 kart = 6 kategorinin TAMAMI) ══════════ */
@@ -33,12 +37,12 @@ export const HERO_DECK: DeckCard[] = [
 export type WallCard = { slug: string; q: string };
 
 export const WALL: WallCard[] = [
-  { slug: `black-hole`, q: `Bir kara deliğe düşsen ne hissederdin?` },
-  { slug: `mol`, q: `Bir bardak suda kaç tane su var?` },
-  { slug: `pirus`, q: `Kazandığın bir savaş seni nasıl bitirir?` },
-  { slug: `dogal-secilim`, q: `Bir avcı kadar iyi görebiliyor musun?` },
-  { slug: `bilgisayar`, q: `Şu an baktığın ekranda tam olarak ne oluyor?` },
-  { slug: `sanat-akimlari`, q: `Bir akım neden doğar, neden ölür?` },
+  { slug: `black-hole`, q: QUESTIONS[`black-hole`] },
+  { slug: `mol`, q: QUESTIONS.mol },
+  { slug: `pirus`, q: QUESTIONS.pirus },
+  { slug: `dogal-secilim`, q: QUESTIONS[`dogal-secilim`] },
+  { slug: `bilgisayar`, q: QUESTIONS.bilgisayar },
+  { slug: `sanat-akimlari`, q: QUESTIONS[`sanat-akimlari`] },
 ];
 
 /* ══════════ ÜÇ KAPI (konuya göre değil, NİYETE göre) ══════════ */

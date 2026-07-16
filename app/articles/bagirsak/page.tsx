@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   description,
   keywords: ['bağırsak', 'bağırsak beyin ekseni', 'ikinci beyin', 'enterik sinir sistemi', 'vagus siniri', 'serotonin', 'mikrobiyom', 'ruh hali', 'içgüdüsel karar', 'gut feeling', 'psikobiyotik', 'interosepsiyon'],
   alternates: { canonical: path },
-  openGraph: { type: 'article', title: `${title} · Basements`, description, url: path, images: ['/opengraph-image'] },
+  openGraph: { type: 'article', title: `${title} · Basements`, description, url: path },
   twitter: { card: 'summary_large_image', title: `${title} · Basements`, description },
 };
 
