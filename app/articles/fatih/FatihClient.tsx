@@ -6,6 +6,7 @@ import {
   ArticleShell, ArticleHero, ArticleLede, ArticleSection, HorizontalTimeline, ArticleQuiz, ArticleBibliography, ArticleFooter,
 } from '@/app/components/article/ArticleBlocks';
 import SourceCompare, { type CompareSource } from '@/app/components/article/SourceCompare';
+import ArticleImage from '@/app/components/article/ArticleImage';
 import { ACCENT, BG, GOLD, CRIMSON, MARBLE, WATER, InView, WidgetSkeleton, SourceNote, MythNote, Stat, tr } from './ui';
 import { ReadingProgress, PerdeNav } from './chrome';
 import { DividedCourt, BosphorusLock, Library, EmperorDecision, PoisonJury } from './widgets';
@@ -76,6 +77,14 @@ export default function FatihClient() {
           <p className="leading-relaxed text-slate-300">
             {TROY.place}, {TROY.year}. Sultan otuz yaşında. Ordusuyla birlikte, harabelerin arasında, Akhilleus'un mezarı olduğuna inanılan yerde duruyor. Tarihçisi Kritovulos anlatıyor: sultan taşları inceliyor, kahramanların isimlerini soruyor, sonra konuşuyor. Diyor ki — bu şehri, bu insanları, bu toprağı Yunanlılar bir zamanlar almıştı. Ben onların torunlarından hesabını sordum.
           </p>
+          <ArticleImage
+            src="/articles/fatih/truva-akhilleus.png"
+            ratio="1376 / 768"
+            priority
+            alt="Kürklü kırmızı kaftanlı, beyaz sarıklı bir sultan harabeler arasında bir mezar taşına eğilmiş; arkada mızraklı süvariler, uzakta deniz ve gemiler."
+            caption="1462, Truva: sultan, Akhilleus'un mezarı olduğuna inanılan taşın başında. Kritovulos'a göre kahramanların adını sorup tarihin devamını yazdığını söyledi."
+            credit="Temsilî görsel · yapay zekâ"
+          />
           <p className="mt-4 leading-relaxed text-slate-300">
             Bir düşünün. Ölmüş bir Yunan kahramanının mezarı başında, Homeros'un dizelerini ezberden bilen bir Osmanlı padişahı, İlyada'nın devam filmini çektiğini söylüyor. Kendini tarihin dışından bakan biri olarak değil, içindeki bir karakter olarak görüyor.
           </p>
@@ -113,6 +122,12 @@ export default function FatihClient() {
           <p className="mt-4 leading-relaxed text-slate-300">
             Nisan 1452. Sultan Boğaz'ın en dar noktasına, Bizans toprağına kale kurmaya başlıyor. Karşı kıyıda dedesinin kalesi zaten var. Yeni kalenin adı: <strong>Boğazkesen</strong>. Dört buçuk ay. Bir kale. Boğaz kapandı.
           </p>
+          <ArticleImage
+            src="/articles/fatih/rumeli-hisari.jpg"
+            ratio="550 / 364"
+            alt="Boğaz kıyısında, yeşil tepe üzerinde kuleli taş kale; önünde mavi su."
+            caption="Rumeli Hisarı (Boğazkesen): Boğaz'ın en dar noktasına dört buçuk ayda kuruldu ve geçişi kapattı."
+          />
           <div className="mt-8">
             <BosphorusLock />
           </div>
@@ -187,6 +202,13 @@ export default function FatihClient() {
           <MythNote title="Kerkoporta gerçekten açık mı unutuldu?">{ASSAULT.kerkoportaMyth}</MythNote>
           <p className="mt-5 leading-relaxed text-slate-300">{ASSAULT.constantine}</p>
           <p className="mt-4 leading-relaxed text-slate-300">{ASSAULT.entry}</p>
+          <ArticleImage
+            src="/articles/fatih/istanbulun-fethi.jpg"
+            ratio="903 / 1224"
+            alt="Beyaz at üstünde zırhlı bir sultan, taş bir kemerin altından kızıl sancaklarla şehre giriyor."
+            caption="Fatih'in şehre girişi — Fausto Zonaro tablosu. 29 Mayıs 1453 öğleden sonra: yirmi bir yaşında, beş yıldır düşündüğü kapıdan."
+            credit="Fausto Zonaro"
+          />
 
           <div className="mt-8">
             <EmperorDecision />
@@ -216,6 +238,12 @@ export default function FatihClient() {
             </div>
           </div>
 
+          <ArticleImage
+            src="/articles/fatih/ayasofya.jpg"
+            ratio="694 / 943"
+            alt="Ayasofya kubbesinin içi: dev hat levhaları, avizeler, mavi halı."
+            caption="Ayasofya'nın içi: 330'dan beri imparatorluğun merkezindeki yapı. Fatih, Kayser-i Rûm unvanını da bu şehirle aldı."
+          />
           <p className="leading-relaxed text-slate-300">Devamı bir liste gibi görünüyor ama bir stratejinin parçası:</p>
           <div className="mt-4 space-y-2.5">
             {SECOND_LIFE.map((s) => (
@@ -226,6 +254,13 @@ export default function FatihClient() {
             ))}
           </div>
 
+          <ArticleImage
+            src="/articles/fatih/bellini-portre.jpg"
+            ratio="1566 / 2113"
+            alt="Profilden, beyaz sarıklı ve kürklü bir sultan; kemerli mimari çerçeve içinde portre."
+            caption="Gentile Bellini'nin 1480 portresi: bir Osmanlı padişahı yüzünü bir Venedik ressamına, Rönesans üslubunda yaptırdı; çerçevede dünyanın fatihi yazıyor."
+            credit="Gentile Bellini, 1480"
+          />
           <div className="my-6 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
             <Stat value={`${tr(NUMBERS.land0)} km²`} label="devraldığı topraklar" color={MARBLE} />
             <Stat value={`${tr(NUMBERS.land1)} km²`} label="bıraktığı topraklar" color={GOLD} />
