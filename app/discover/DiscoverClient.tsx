@@ -20,22 +20,26 @@ interface Props {
   media: MediaPost[];
   articles: Article[];
   communityArticles?: CommunityArticle[];
-  isLoggedIn: boolean;
-  initialQuery?: string;
 }
 
 
-export default function DiscoverClient({ users, media, articles, communityArticles = [], isLoggedIn, initialQuery = '' }: Props) {
-  const [query, setQuery] = useState(initialQuery);
+export default function DiscoverClient({ users, media, articles, communityArticles = [] }: Props) {
+  const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState<{ users: User[]; posts: MediaPost[] } | null>(null);
   const [searching, setSearching] = useState(false);
   const [followed, setFollowed] = useState<Set<string>>(new Set());
 
-  // URL'de ?q=... ile gelindiğinde (örn. Google sitelinks arama kutusu) otomatik ara.
+  // ?q=... ile gelindiğinde (Google sitelinks arama kutusu) otomatik ara.
+  // useSearchParams KULLANILMIYOR — sayfa artık ISR (bkz. page.tsx): o hook,
+  // Next'i bu client component'i Suspense'e alıp İSTEMCİYE kaydırmaya zorlar ve
+  // 32 makale linki prerender HTML'inden çıkardı (SEO yüzeyi ölürdü).
+  // Mount'ta window.location okumak prerender'ı hiç etkilemez; ?q= zaten nadir
+  // bir giriş yolu ve arama sonucu sayfası zaten indekslenmiyor.
   useEffect(() => {
-    if (initialQuery.trim()) doSearch(initialQuery);
+    const q = new URLSearchParams(window.location.search).get('q') ?? '';
+    if (q.trim()) { setQuery(q); doSearch(q); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialQuery]);
+  }, []);
 
   async function doSearch(q: string) {
     if (!q.trim()) { setSearchResults(null); return; }
@@ -56,8 +60,24 @@ export default function DiscoverClient({ users, media, articles, communityArticl
     setFollowed(prev => { const n = new Set(prev); data.following ? n.add(username) : n.delete(username); return n; });
   }
 
-  function UserRow({ u, showFollow }: { u: User; showFollow: boolean }) {
+  // showFollow:
+  //  'always' → butonu herkese göster (arama sonuçları — mevcut davranış;
+  //             çıkışlı tıklarsa followUser 401 alıp /login'e atar, dönüşüm yolu).
+  //  'auth'   → yalnız girişli kullanıcıya göster. Sayfa artık ISR olduğu için
+  //             sunucu "girişli mi" bilmiyor → .auth-in CSS'i (globals.css:349-351)
+  //             ilk boyamadan ÖNCE çerezden karar veriyor, flash yok.
+  //             .auth-in display:contents → sarmalayıcı şeffaf, buton yine
+  //             .dc-user-row'un flex çocuğu gibi yerleşir (ona stil VERME).
+  function UserRow({ u, showFollow }: { u: User; showFollow: 'always' | 'auth' }) {
     const isFollowed = followed.has(u.username);
+    const followBtn = (
+      <button
+        onClick={() => followUser(u.username)}
+        className={`dc-follow-btn${isFollowed ? ' following' : ''}`}
+      >
+        {isFollowed ? 'Takip Ediliyor' : 'Takip Et'}
+      </button>
+    );
     return (
       <div className="dc-user-row">
         <Link href={`/u/${u.username}`} className="dc-avatar">
@@ -68,14 +88,7 @@ export default function DiscoverClient({ users, media, articles, communityArticl
           <div className="dc-user-handle">@{u.username}</div>
           {u.bio && <div className="dc-user-bio">{u.bio}</div>}
         </div>
-        {showFollow && (
-          <button
-            onClick={() => followUser(u.username)}
-            className={`dc-follow-btn${isFollowed ? ' following' : ''}`}
-          >
-            {isFollowed ? 'Takip Ediliyor' : 'Takip Et'}
-          </button>
-        )}
+        {showFollow === 'always' ? followBtn : <span className="auth-in">{followBtn}</span>}
       </div>
     );
   }
@@ -114,7 +127,7 @@ export default function DiscoverClient({ users, media, articles, communityArticl
           {searchResults.users.length > 0 && (
             <div className="dc-section">
               <h3 className="dc-section-label">Kullanıcılar</h3>
-              {searchResults.users.map(u => <UserRow key={u.id} u={u} showFollow={true} />)}
+              {searchResults.users.map(u => <UserRow key={u.id} u={u} showFollow="always" />)}
             </div>
           )}
 
@@ -218,7 +231,7 @@ export default function DiscoverClient({ users, media, articles, communityArticl
             <div className="dc-section dc-section--last">
               <h2 className="dc-section-title">Kullanıcılar</h2>
               <div className="dc-users-list">
-                {users.map(u => <UserRow key={u.id} u={u} showFollow={isLoggedIn} />)}
+                {users.map(u => <UserRow key={u.id} u={u} showFollow="auth" />)}
               </div>
             </div>
           )}

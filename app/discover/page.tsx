@@ -1,14 +1,32 @@
 import type { Metadata } from 'next';
 import { unstable_cache } from 'next/cache';
-import { db, getMe, logIfError } from '@/lib/supabase/server';
+import { db, logIfError } from '@/lib/supabase/server';
 import { ARTICLES } from '@/lib/articles';
 import DiscoverClient from './DiscoverClient';
 
-export const dynamic = 'force-dynamic';
+// ════════════════════════════════════════════════════════════════════════
+// 2026-07-16: force-dynamic → ISR. Ölçüldü: eskiden `Cache-Status: Durable;
+// fwd=bypass, Edge; fwd=miss` → her istek fonksiyon → 3,9 sn. Oysa sayfanın
+// KİŞİYE ÖZEL tek verisi bir boolean'dı (isLoggedIn, yalnız takip butonunu
+// gösteriyordu) ve paylaşılan içerik zaten 60 sn önbellekliydi.
+//
+// Artık HTML'in kendisi 60 sn önbellekli → ziyaretçi edge'den alır, fonksiyon
+// çalışmaz. YENİ BAYATLIK YOK: getDiscoverContent zaten revalidate 60 idi;
+// aynı 60 saniye sorgudan sayfanın tamamına genişledi. revalidateTag('feed')
+// (gönderi/hikâye oluşturma) yine bu sayfayı tazeler → yeni içerik anında.
+//
+// Kaldırılanlar ve nereye gitti:
+//  · getMe()      → isLoggedIn artık istemcide, .auth-in CSS'iyle (globals.css:349-351)
+//  · searchParams → ?q= istemcide window.location.search'ten (DiscoverClient)
+//    (useSearchParams KULLANILMADI: Next tüm client component'i Suspense'e alıp
+//     istemciye kaydırırdı → 32 makale linki HTML'den çıkar, SEO yüzeyi ölürdü.)
+// ════════════════════════════════════════════════════════════════════════
+export const revalidate = 60;
 
-// PAYLAŞILAN içerik (son kullanıcılar + son medya) — herkes için aynı, kişiye özel
-// değil → güvenle önbelleğe alınır. 60sn boyunca tekrar DB'ye gidilmez (revalidate).
-// getMe/isLoggedIn gibi kişiye özel veri bunun DIŞINDA, canlı kalır.
+// PAYLAŞILAN içerik (son kullanıcılar + son medya + topluluk makaleleri) —
+// herkes için aynı, kişiye özel değil. ISR ile birlikte ikinci bir katman:
+// sayfa 60 sn'de bir yeniden üretilirken bu sorgular da önbellekten gelir,
+// ve tags:['feed'] sayesinde yeni içerik yayınlanınca ikisi birden tazelenir.
 const getDiscoverContent = unstable_cache(
   async () => {
     const [{ data: users, error: usersErr }, { data: mediaRaw, error: mediaErr }, { data: uaRaw, error: uaErr }] = await Promise.all([
@@ -40,12 +58,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function DiscoverPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
-  const { me } = await getMe();
-  const sp = await searchParams;
-  const initialQuery = typeof sp.q === 'string' ? sp.q : '';
-
-  // Paylaşılan içerik önbellekten gelir (60sn); kişiye özel değildir.
+export default async function DiscoverPage() {
+  // Paylaşılan içerik önbellekten gelir (60sn); kişiye özel veri YOK → sayfa ISR.
   const { users, mediaRaw, uaRaw } = await getDiscoverContent();
   const media = (mediaRaw ?? []).map((m: any) => ({ ...m, username: m.users?.username ?? '', display_name: m.users?.display_name ?? '' }));
   const communityArticles = (uaRaw ?? []).map((a: any) => ({
@@ -60,8 +74,6 @@ export default async function DiscoverPage({ searchParams }: { searchParams: Pro
       media={media}
       articles={ARTICLES}
       communityArticles={communityArticles}
-      isLoggedIn={!!me}
-      initialQuery={initialQuery}
     />
   );
 }
