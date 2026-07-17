@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
+import ArticleImage from '@/app/components/article/ArticleImage';
 
 const refs: BibItem[] = [
   { title: 'Carthage Must Be Destroyed', authors: 'Richard Miles', year: '2010', source: 'Allen Lane' },
@@ -84,6 +85,63 @@ const chapters = [
   },
 ];
 
+// Bölüm görselleri — chapters ile index hizalı. Wikimedia Commons'tan lisans
+// doğrulanmış (scripts/source-images.mjs); atıf + "temsilî" künyeleri manifest'te.
+const chapterImages = [
+  [ // ⚓ Liman
+    {
+      src: '/articles/carthage/ports-punik.webp', ratio: '1600 / 1063',
+      alt: 'Havadan görünüm: iç içe geçmiş, yarım daire biçiminde iki su havuzu; çevresi modern evlerle sarılı, dairesel havuzun ortasında küçük bir ada.',
+      caption: 'Kartaca limanlarının bugünkü hâli (Salammbô, Tunus). O dairesel havuz doğal değil — anakara oyularak açıldı; ortasındaki adada tersane ve amiralin kulesi vardı, 220 savaş gemisi gizlenebiliyordu.',
+      credit: 'Citizen59 · CC BY 3.0',
+    },
+  ],
+  [ // ⚔️ Savaşın nedeni
+    {
+      src: '/articles/carthage/deniz-mahmuzu.webp', ratio: '1600 / 1200',
+      alt: 'Cam vitrinde, yeşil patina kaplı tunç bir gemi mahmuzu; öne doğru sivrilen üç yatay bıçak, yan yüzeyinde kabartma bir yazıt.',
+      caption: 'Egad Adaları açıklarında 80 metre derinden çıkarılan bir savaş gemisi mahmuzu (MÖ 241, I. Pön Savaşı\'nın son çarpışması). Üzerindeki Punik yazıt Baal\'e adanmış. Replika değil; savaşın kendisinden kalma.',
+      credit: 'Sb2s3 · CC BY-SA 4.0',
+    },
+  ],
+  [ // 🐘 Filler
+    {
+      src: '/articles/carthage/hannibal-fil-alpler.webp', ratio: '1600 / 1187',
+      alt: 'Barok tablo: karlı bir dağ geçidinde sırtında ahşap kule taşıyan bir fil, çevresinde zırhlı askerler ve atlılar; koyu bulutlu gökyüzü.',
+      caption: 'Hannibal\'ın Alpler\'i fillerle aşışı — Nicolas Poussin\'e atfedilen ~1625 tablosu. Temsilî: olaydan yaklaşık 1.800 yıl sonra hayal edildi. Gerçek çok daha acı — 37 filin neredeyse tamamı ilk kışta dondu.',
+      credit: 'Poussin\'e atfedilen · kamu malı',
+    },
+  ],
+  [ // 🏺 Tophet
+    {
+      src: '/articles/carthage/tophet-alani.webp', ratio: '1600 / 969',
+      alt: 'Açık hava kazı alanı: toprağa dik saplanmış yüzlerce küçük taş stel ve dikili taş, sıra sıra dizili.',
+      caption: 'Kartaca Tophet\'i: binlerce adak küpü ve stelin bulunduğu kutsal alan. Küplerin çoğundan yeni doğmuş bebeklere ait yanmış kemikler çıktı — uzun süre Roma iftirası sanılan şey.',
+      credit: 'IssamBarhoumi · CC BY-SA 4.0',
+    },
+    {
+      src: '/articles/carthage/tanit-steli.webp', ratio: '1600 / 2400',
+      alt: 'Dikey taş stel: en üstte hilal ve disk, ortada kollarını yana açmış üçgen gövdeli soyut bir figür, en altta palmiye kabartması.',
+      caption: 'Tanrıça Tanit\'in işaretini taşıyan adak steli (MÖ 3. yy, Kartaca Tophet\'inden; bugün Lyon Güzel Sanatlar Müzesi). Üçgen gövde, açık kollar ve yuvarlak baş — Kartaca\'nın en yaygın kutsal simgesi.',
+      credit: 'Rama · CC BY-SA 2.0 fr',
+    },
+  ],
+  [ // 🏛️ Kartaca'nın sonu ve yeniden doğuşu
+    {
+      src: '/articles/carthage/byrsa-tepesi.webp', ratio: '1600 / 1200',
+      alt: 'Tepe yamacında düzenli taş temellerden oluşan kalıntılar; aralarında patikalar, geride serviler ve modern binalar.',
+      caption: 'Byrsa tepesindeki Punik mahallenin kalıntıları — MÖ 146\'daki kuşatmada son direniş noktası. Roma şehri yerle bir etti; yanan mahalle bu temellerin altında korundu.',
+      credit: 'BishkekRocks · kamu malı',
+    },
+    {
+      src: '/articles/carthage/antonine-hamamlari.webp', ratio: '1600 / 1066',
+      alt: 'Deniz kıyısında geniş harabe: ayakta kalmış tek bir yüksek granit sütun ve yayılan taş temeller; arkada mavi Akdeniz.',
+      caption: 'Antonine Hamamları — Kartaca\'nın ikinci hayatından. Caesar\'ın planlayıp Augustus\'un tamamladığı Roma kolonisi, şehri Afrika\'nın en zengin kentlerinden biri yaptı.',
+      credit: 'Silar · CC BY-SA 4.0',
+    },
+  ],
+];
+
 const chronology = [
   { date: 'MÖ 814', title: 'Kartaca\'nın Kuruluşu', desc: 'Fenikeli yerleşimciler tarafından Kuzey Afrika\'da kuruldu' },
   { date: 'MÖ 264–241', title: 'I. Pön Savaşı', desc: 'Sicilya üzerinde Roma ile ilk büyük çatışma (23 yıl)' },
@@ -116,7 +174,17 @@ export default function CarthagePage() {
       </header>
 
       {/* Ana konteyner */}
-      <div className="ca-container">
+      <div
+        className="ca-container"
+        style={{
+          // ArticleImage varsayılanları koyu-tema; carthage AÇIK (#fdfbf6) →
+          // altyazı/atıf/kenar koyu-metin ve altın tonlara bağlanır.
+          '--ai-caption': '#4a4038',
+          '--ai-credit': '#8a7f6f',
+          '--ai-border': 'rgba(26,38,52,0.15)',
+          '--ai-fill': 'rgba(197,160,89,0.08)',
+        } as React.CSSProperties}
+      >
 
         {/* Giriş paragrafı */}
         <article className="ca-intro">
@@ -169,6 +237,9 @@ export default function CarthagePage() {
               {ch.quote && (
                 <blockquote className="ca-highlight">{ch.quote}</blockquote>
               )}
+              {chapterImages[i]?.map((img, k) => (
+                <ArticleImage key={img.src} priority={i === 0 && k === 0} {...img} />
+              ))}
             </div>
           </section>
         ))}

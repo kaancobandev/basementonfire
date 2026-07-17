@@ -29,7 +29,9 @@ const WEBP_QUALITY = 82;
 const OK_LICENSE = /^(cc0|cc[ -]by([ -]sa)?[ -]\d|public domain|pd[ -]|no restrictions|attribution)/i;
 const BAD_LICENSE = /(\bnc\b|noncommercial|non-commercial|\bnd\b|noderiv|fair use|non-free)/i;
 
-const strip = (html) => (html ?? '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+// Etiketleri BOŞLUKLA değiştir, boşlukla değil: `Rama<br>Own work` → "Rama Own work"
+// ("RamaOwn work" değil). `<a>Name</a>` → " Name " → trim → "Name", güvenli.
+const strip = (html) => (html ?? '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 
 async function api(params) {
   const url = `${API}?${new URLSearchParams({ ...params, format: 'json', origin: '*' })}`;
@@ -44,7 +46,7 @@ async function lookup(titles) {
     titles: titles.join('|'),
     prop: 'imageinfo',
     iiprop: 'url|size|extmetadata',
-    iiextmetadatafilter: 'LicenseShortName|Artist|Credit|LicenseUrl|UsageTerms|DateTimeOriginal',
+    iiextmetadatafilter: 'LicenseShortName|Artist|Credit|Attribution|AttributionRequired|LicenseUrl|UsageTerms|DateTimeOriginal',
   });
   const pages = data?.query?.pages ?? {};
   // normalized: API başlığı düzeltirse (alt çizgi/boşluk) eşleşmeyi koru.
@@ -65,6 +67,10 @@ async function lookup(titles) {
       licenseUrl: strip(em.LicenseUrl?.value),
       artist: strip(em.Artist?.value) || '',
       credit: strip(em.Credit?.value) || '',
+      // Attribution = Commons'ın "böyle atıf ver" kanonik metni (varsa yazar+lisans içinde).
+      // AttributionRequired='true' → PD etiketli olsa bile foto telifi atıf ister.
+      attribution: strip(em.Attribution?.value) || '',
+      attribReq: /^true$/i.test(strip(em.AttributionRequired?.value)),
       date: strip(em.DateTimeOriginal?.value) || '',
     });
   }
@@ -78,10 +84,23 @@ function judge(info) {
   return { ok: true };
 }
 
-/** ArticleImage `credit` prop'u için atıf satırı. CC BY/BY-SA'da ZORUNLU. */
+/** Atıf sahibi. artist BOŞ OLABİLİR — Commons'ta atıf bazen yalnızca Credit'te durur.
+ *
+ *  Ölçüldü: Marcus Agrippa Louvre Ma3554.jpg → Artist YOK, AttributionRequired=true,
+ *  Credit="Marie-Lan Nguyen (User:Jastrow), 2009". Fallback olmadan bu dosya çıplak
+ *  "CC BY 2.5" üretiyordu = lisansın BY şartının İHLALİ (reklam/sponsorluk planı var,
+ *  yani teorik risk değil). SIRA ÖNEMLİ, ters çevirme: Credit çoğu dosyada atıf değil
+ *  çöp taşır — Castro'da kaynak URL'si, Kalkriese'de dosya adı. Bu yüzden yalnızca
+ *  artist boşken devreye girer. */
+const attrib = (info) => info.artist || info.credit;
+
+/** ArticleImage `credit` prop'u için atıf satırı. CC BY/BY-SA'da ZORUNLU.
+ *  Attribution alanı varsa onu kullan — foto-vs-eser lisans karmaşasını atlar
+ *  (doğru yazar+lisans zaten o metnin içinde). */
 function creditLine(info) {
+  if (info.attribution) return info.attribution.slice(0, 90);
   const l = info.license;
-  const who = info.artist.slice(0, 60);
+  const who = attrib(info).slice(0, 60);
   if (/^cc0/i.test(l)) return who ? `${who} · CC0` : 'CC0';
   if (/public domain|^pd/i.test(l)) return who ? `${who} · kamu malı` : 'Kamu malı';
   return who ? `${who} · ${l}` : l;
@@ -108,6 +127,12 @@ async function main() {
     const verdict = judge(info);
     if (!verdict.ok) { console.log(`✗ ${f.as}: ${verdict.why}`); failed++; continue; }
 
+    // MAYIN: PD etiketli ama atıf zorunlu → foto telifi eserinkinden AYRI (Commons
+    // LicenseShortName en müsamahakâr etiketi verir). creditLine Attribution'a düşer.
+    if (info.attribReq && /public domain|^pd/i.test(info.license)) {
+      console.log(`  ⚠ ${f.as}: lisans "${info.license}" ama ATIF ZORUNLU → ${creditLine(info)}`);
+    }
+
     const name = `${f.as}.webp`;
     let w = info.width, h = info.height;
 
@@ -122,10 +147,12 @@ async function main() {
       await writeFile(path.join(outDir, name), out);
       console.log(`✓ ${name}  ${w}×${h}  ${(out.length / 1024).toFixed(0)}KB  ${info.license}`);
     } else {
-      console.log(`· ${name}  ${w}×${h}  ${info.license}  — ${strip(info.artist).slice(0, 40)}`);
+      // --dry, YAZILACAK credit'i göster (creditLine) — ham artist'i değil; dalga
+      // sırasında her görselin atıf satırını indirmeden doğrulayabilmek için.
+      console.log(`· ${name}  ${w}×${h}  [${info.license}]  → ${creditLine(info)}`);
     }
 
-    rows.push(`| \`${name}\` | ${f.note ?? '—'} | ${info.license} | ${info.artist.slice(0, 40) || '—'} | [Commons](${info.descUrl}) |`);
+    rows.push(`| \`${name}\` | ${f.note ?? '—'} | ${info.license} | ${attrib(info).slice(0, 40) || '—'} | [Commons](${info.descUrl}) |`);
     snippets.push(
       `<ArticleImage\n` +
       `  src="/articles/${slug}/${name}"\n` +
