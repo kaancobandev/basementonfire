@@ -1,0 +1,15 @@
+{
+  "slug": "rome",
+  "note": "Makalenin akışına göre: Krallık → Cumhuriyet → Caesar → İmparatorluk → miras (achievements). CC0 varsa CC0 tercih edildi (atıf yükü yok); portreler/tablolar kamu malı.",
+  "files": [
+    { "title": "File:Lupa Capitolina, Rome.jpg", "as": "kapitol-kurdu", "note": "Krallık · kuruluş efsanesi" },
+    { "title": "File:Forum romanum 6k (5760x2097).jpg", "as": "forum-romanum", "note": "Cumhuriyet · şehrin kalbi" },
+    { "title": "File:Cicero Denounces Catiline in the Roman Senate by Cesare Maccari.png", "as": "senato-cicero", "note": "Cumhuriyet · Senato" },
+    { "title": "File:Retrato de Julio César (3x4 close cropped).jpg", "as": "caesar-portre", "note": "Caesar · Tusculum portresi" },
+    { "title": "File:Statue-Augustus.jpg", "as": "augustus-prima-porta", "note": "İmparatorluk · ilk imparator" },
+    { "title": "File:Colosseum of Rome and Roman forum.jpg", "as": "kolezyum", "note": "İmparatorluk · zirve" },
+    { "title": "File:Pantheon (Rome), Dome interior.jpg", "as": "pantheon-kubbe", "note": "Miras · beton & mimari" },
+    { "title": "File:Pont du Gard BLS.jpg", "as": "pont-du-gard", "note": "Miras · su kemerleri" },
+    { "title": "File:Appian Way, Rome (6681676803).jpg", "as": "via-appia", "note": "Miras · yollar" }
+  ]
+}

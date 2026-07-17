@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
+import ArticleImage from '@/app/components/article/ArticleImage';
 
 const refs: BibItem[] = [
   { title: 'SPQR: A History of Ancient Rome', authors: 'Mary Beard', year: '2015', source: 'Profile Books' },
@@ -179,7 +180,17 @@ export default function RomePage() {
         ))}
       </div>
 
-      <div className="ro-body">
+      {/* ArticleImage'ın slate varsayılanları bu sıcak paletle çakışır → altın/krem'e bağla. */}
+      <div
+        className="ro-body"
+        style={{
+          '--ai-caption': 'var(--ro-text)',
+          '--ai-credit': 'var(--ro-muted)',
+          '--ai-border': 'var(--ro-border)',
+          '--ai-fill': 'rgba(197,160,40,0.06)',
+          '--ai-mark': 'rgba(197,160,40,0.3)',
+        } as React.CSSProperties}
+      >
 
         {/* ══ BÖLÜM 1: Roma KRALLIĞI ══ */}
         <section className="ro-section">
@@ -194,14 +205,15 @@ export default function RomePage() {
                 <p className="ro-p">Romalılar pratik ve disiplinli bir kültüre sahipti. Krallığın yükselişi civar kabileleri bünyeye katmaları ve kanlı savaşları sayesinde oldu. Augustus döneminin tarihçisi Varro'nun hesaplamalarına göre kuruluş tarihi <strong className="ro-gold">MÖ 753</strong>'e karşılık gelmektedir.</p>
               </div>
               <div className="ro-founding-card">
-                <div className="ro-wolf-scene">
-                  <span style={{ fontSize: '3rem' }}>🐺</span>
-                  <span style={{ fontSize: '1.5rem', marginLeft: 12 }}>👶</span>
-                  <span style={{ fontSize: '1.5rem', marginLeft: 8 }}>👶</span>
-                </div>
-                <p style={{ textAlign: 'center', fontSize: '0.85rem', color: '#c5a028', marginTop: 16, fontStyle: 'italic' }}>
-                  "Kurt tarafından emzirilen iki kardeş — Roma'nın kökeni"
-                </p>
+                <ArticleImage
+                  className="!my-0"
+                  src="/articles/rome/kapitol-kurdu.webp"
+                  ratio="1600 / 1042"
+                  priority
+                  alt="Bronz dişi kurt heykeli, yandan; dişlerini göstererek geriliyor. Altında ona doğru uzanan, emmek üzere olan iki çıplak bebek figürü."
+                  caption="Kapitol Kurdu. Uzun süre Etrüsk işi sanıldı; 2007'de yapılan radyokarbon tarihlemesi Orta Çağ'ı işaret edince tartışma açıldı. İkizlerse zaten sonradan: 15. yüzyılda eklendiler."
+                  credit="Kamu malı · CC0"
+                />
                 <details style={{ marginTop: 12 }}>
                   <summary style={{ cursor: 'pointer', fontSize: '0.82rem', color: '#c5a028', fontWeight: 700 }}>Latinler hakkında</summary>
                   <p style={{ fontSize: '0.8rem', color: '#9a8c70', marginTop: 8, lineHeight: 1.6 }}>Lazio bölgesinde iskan eden, ortak dili Latince olan halktır. İlerleyen yüzyıllarda Roma'nın en büyük düşmanları bile bu nüfusa katılacaktı.</p>
@@ -282,8 +294,23 @@ export default function RomePage() {
 
             <p className="ro-p">Roma Krallığı'nın son imparatoru <strong className="ro-gold">Lucius Tarquinius Superbus</strong>'un tahttan indirilmesiyle MÖ 509'da cumhuriyete geçildi. Romalılar barbarları dışarıda tutmak için mükemmele yakın duvarlar inşa etti, dümdüz yollar yaptı; cumhuriyet, savaşta cesur davranan askerlerine arazi kazandırıyordu. Cumhuriyetin Akdeniz'e açılmasının önündeki en büyük engel ise, üç kanlı <Link href="/articles/carthage" className="article-ilink">Pön Savaşları'nda karşı karşıya geldiği Kartaca</Link> oldu.</p>
 
+            <ArticleImage
+              src="/articles/rome/senato-cicero.webp"
+              ratio="1600 / 1042"
+              alt="Fresk: yarım daire hâlinde oturan togalı senatörler; ayakta duran Cicero elini uzatarak konuşuyor, karşısında tek başına oturan Catilina kimsenin oturmadığı sıraya çekilmiş."
+              caption="Cumhuriyet'in kalbi Senato'ydu. Cesare Maccari 1880'de Cicero'nun Catilina'yı suçlayışını böyle hayal etti — 1900 yıl sonra, tek bir görgü tanığı olmadan."
+              credit="Cesare Maccari · kamu malı"
+            />
+
             <h3 className="ro-h3">Jül Sezar'ın Yükselişi</h3>
             <p className="ro-p">Cumhuriyet'i bitiren şey bir ordu değil, bir adamdı: Galya'yı kanla Roma'ya katan, Rubicon'u tek lejyonla geçen ve sonunda kendisini öldürecek adamların neredeyse hepsini bizzat affetmiş olan <Link href="/articles/sezar" className="article-ilink">Julius Caesar</Link>.</p>
+            <ArticleImage
+              src="/articles/rome/caesar-portre.webp"
+              ratio="1600 / 2132"
+              alt="Gri taştan bir büst: kısa saçlı, çökük yanaklı, uzun boyunlu, kırışık alınlı yaşlıca bir adam; bakışları yana dönük."
+              caption="Tusculum portresi — Caesar'ın bilinen tek çağdaş büstü, yani onu görmüş birinin elinden. Filmlerdeki muzaffer çeneyi değil, yorgun ve zayıf bir adamı gösteriyor."
+              credit="Ángel M. Felicísimo · kamu malı"
+            />
             <div className="ro-caesar-tl">
               {caesarSteps.map((s, i) => (
                 <div key={i} className="ro-cstep">
@@ -322,8 +349,14 @@ export default function RomePage() {
                 <p className="ro-p">Roma İmparatorluğu, Akdeniz bölgesinin en güçlü devletiydi. Adalet sistemi ve güçlü iaşe düzeniyle çevre devletlere örnek oldu.</p>
               </div>
               <div className="ro-colosseum">
-                <div style={{ fontSize: '4rem', textAlign: 'center' }}>🏟️</div>
-                <p style={{ textAlign: 'center', fontSize: '0.85rem', color: '#c5a028', marginTop: 8 }}>Colosseum — MS 72</p>
+                <ArticleImage
+                  className="!mt-0 !mb-4"
+                  src="/articles/rome/kolezyum.webp"
+                  ratio="1600 / 947"
+                  alt="Havadan çekilmiş fotoğraf: dört katlı kemerlerden oluşan devasa eliptik amfitiyatro; üst kısmı yer yer yıkık, arkasında Forum harabeleri ve modern şehir."
+                  caption="Colosseum — MS 72'de başlandı. Arkasındaki harabeler Forum: Roma'nın kalbi."
+                  credit="Wilfredor · CC0"
+                />
                 <div className="ro-col-facts">
                   <span>50,000 seyirci kapasitesi</span>
                   <span>80 kapı girişi</span>
@@ -337,6 +370,13 @@ export default function RomePage() {
             <div className="ro-intro-card">
               <p className="ro-p" style={{ margin: 0 }}>Augustus ile başlayan yaklaşık <strong className="ro-gold">200 yıllık</strong> bu dönem, Akdeniz dünyasının görece barış, istikrar ve refah yaşadığı çağdır. Akdeniz artık tümüyle Roma'nın iç denizi — <em className="ro-gold">Mare Nostrum</em> (Bizim Deniz) — olmuştu. Güvenli yollar ve ortak para birimi sayesinde <Link href="/articles/ekonomi" className="article-ilink">ticaret ve para ekonomisi</Link> patladı, şehirler büyüdü ve Roma'nın nüfusu bir milyonu aştı.</p>
             </div>
+            <ArticleImage
+              src="/articles/rome/augustus-prima-porta.webp"
+              ratio="1500 / 2250"
+              alt="Beyaz mermer heykel: zırhlı bir adam ayakta, sağ kolunu ileri kaldırmış konuşur gibi; zırhında kabartma sahneler, ayağının dibinde yunus üstünde küçük bir çocuk figürü, çıplak ayak."
+              caption={<><Link href="/articles/augustus" className="article-ilink">Augustus</Link>, Prima Porta heykeli. Kırk yaşını geçmişken kendini böyle, hiç yaşlanmayan bir genç olarak yontturdu — ve çıplak ayakla: Romalılar bunu tanrılar için yapardı.</>}
+              credit="Till Niermann · kamu malı"
+            />
 
             {/* İmparatorlar galerisi */}
             <h3 className="ro-h3" style={{ marginTop: 40 }}>İmparatorlar Galerisi</h3>
@@ -363,6 +403,27 @@ export default function RomePage() {
                 </div>
               ))}
             </div>
+            <ArticleImage
+              src="/articles/rome/pont-du-gard.webp"
+              ratio="1600 / 617"
+              alt="Nehir üzerinde üç kat kemerden oluşan devasa taş köprü; alt katta geniş kemerler, en üstte küçük ve sık kemerlerden oluşan sıra. Kireçtaşı sarımsı, gökyüzü açık."
+              caption="Pont du Gard (Fransa). Üst sıradaki o küçük kemerler bir su kanalı taşır: 50 kilometre boyunca metrede sadece 1 santim alçalır. Harç yok — taşlar kendi ağırlığıyla duruyor."
+              credit="Benh Lieu Song · CC BY-SA 3.0"
+            />
+            <ArticleImage
+              src="/articles/rome/pantheon-kubbe.webp"
+              ratio="1600 / 1369"
+              alt="Aşağıdan yukarı bakış: kaset denen kare girintilerle bezeli yarım küre kubbe, tepesinde açık yuvarlak bir delikten gökyüzü ve gün ışığı giriyor."
+              caption="Pantheon'un kubbesi: 2000 yıl sonra hâlâ dünyanın en büyük donatısız beton kubbesi. Tepedeki delik (oculus) açıktır — yağmur içeri yağar, zemindeki gizli kanallar akıtır."
+              credit="Wilfredor · CC0"
+            />
+            <ArticleImage
+              src="/articles/rome/via-appia.webp"
+              ratio="1600 / 1200"
+              alt="İki yanı çam ağaçlarıyla çevrili, düzensiz büyük bazalt taşlarla döşenmiş dar antik yol; taşlar aşınmış ve yer yer çukurlaşmış."
+              caption="Via Appia, MÖ 312'de döşendi. Bu taşların üzerinde hâlâ yürünüyor — 2300 yıldır."
+              credit="Larry (Charlottetown) · CC BY 2.0"
+            />
 
             {/* Bölünme ve Çöküş */}
             <h3 className="ro-h3" style={{ marginTop: 48 }}>Bölünme ve Çöküş <span className="ro-chip">MS 395 – 476</span></h3>
@@ -373,8 +434,14 @@ export default function RomePage() {
                 <p className="ro-p">Ancak <Link href="/articles/turkler" className="article-ilink"><strong className="ro-gold">Doğu Roma (Bizans)</strong></Link> İmparatorluğu, başkenti Konstantinopolis'te bin yıl daha yaşadı ve nihayet MS <strong className="ro-gold">1453</strong>'te İstanbul'un fethiyle tarihe karıştı.</p>
               </div>
               <div className="ro-colosseum">
-                <div style={{ fontSize: '3.5rem', textAlign: 'center' }}>💀</div>
-                <p style={{ textAlign: 'center', fontSize: '0.85rem', color: '#c5a028', marginTop: 8 }}>Batı Roma'nın Çöküşü</p>
+                <ArticleImage
+                  className="!mt-0 !mb-4"
+                  src="/articles/rome/forum-romanum.webp"
+                  ratio="1600 / 582"
+                  alt="Geniş panorama: harabe hâlinde tapınak kalıntıları, ayakta kalmış tek tek sütunlar, temel taşları ve patikalar; arkada kubbeli kiliseler ve şehir."
+                  caption="Forum Romanum bugün. Cicero'nun konuştuğu, Caesar'ın yakıldığı meydan."
+                  credit="BeBo86 · CC BY-SA 3.0"
+                />
                 <div className="ro-col-facts">
                   <span>MS 395 — Doğu-Batı bölünmesi</span>
                   <span>MS 410 — Roma'nın yağmalanması</span>
@@ -537,7 +604,6 @@ export default function RomePage() {
           background: var(--ro-surf); border: 1px solid var(--ro-border); border-radius: 16px;
           padding: 24px; text-align: center;
         }
-        .ro-wolf-scene { display: flex; align-items: center; justify-content: center; gap: 4px; }
 
         /* Pyramid */
         .ro-pyramid-wrap { margin: 20px 0 28px; }
