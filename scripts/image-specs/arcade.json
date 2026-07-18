@@ -1,0 +1,14 @@
+{
+  "slug": "arcade",
+  "note": "Makalenin akışına göre: Tarihçe (osiloskop → PDP-1) → Oyun 01 Pong → Oyun 02 Pac-Man (+ Iwatani) → Oyun 03 Mario/Donkey Kong (+ Miyamoto) → Şöhretler Galerisi (salon). Makalede fotoğraf YOK, tüm görseller elle çizilmiş piksel SVG ikon — bu set onların yanına gerçek kabin/portre koyar. Emoji yer-tutucu yok (♪ ve 😉 dekoratif). Kamu malı > CC BY > CC BY-SA sırası gözetildi; NC/ND yok.",
+  "files": [
+    { "title": "File:Tennis For Two on a DuMont Lab Oscilloscope Type 304-A.jpg", "as": "tennis-for-two-osiloskop", "note": "Tarihçe · açılış: 'Her şey bir osiloskopla başladı' — Higinbotham'ın 1958 ekranı (Brookhaven, kamu malı)" },
+    { "title": "File:Spacewar!-PDP-1-20070512.jpg", "as": "spacewar-pdp1", "note": "Tarihçe/zaman çizelgesi 1962 · MIT'de PDP-1 üzerinde Spacewar!" },
+    { "title": "File:Atari Pong arcade game cabinet.jpg", "as": "pong-kabin", "note": "Oyun 01 · oynanabilir Pong'un yanına gerçek 1972 Atari kabini" },
+    { "title": "File:Pac-Man, Nagoya City Museum 2020-08-29.jpg", "as": "pacman-kabin", "note": "Oyun 02 · oynanabilir Pac-Man'in yanına gerçek Namco kabini (1980)" },
+    { "title": "File:Toru Iwatani, creator of Pac-Man, at GDC 2011 (cropped to upper body).jpg", "as": "toru-iwatani-portre", "note": "Oyun 02 · metinde adı geçen Pac-Man'in yaratıcısı" },
+    { "title": "File:Donkey Kong arcade - zapwizard 34102189.jpg", "as": "donkey-kong-kabin", "note": "Oyun 03 · 'Jumpman'e selam — Mario'nun doğduğu 1981 Donkey Kong kabini" },
+    { "title": "File:Shigeru Miyamoto 20150610 (cropped).jpg", "as": "miyamoto-portre", "note": "Oyun 03 · metinde adı geçen Donkey Kong/Mario'nun yaratıcısı" },
+    { "title": "File:MAGFest2025-Arcade-HighAngle.jpg", "as": "oyun-salonu", "note": "Şöhretler Galerisi · 'salonları dolduran' — başlıktaki oyun salonunun kendisi, kabin sıraları" }
+  ]
+}

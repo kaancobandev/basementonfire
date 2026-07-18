@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
+import ArticleImage from '@/app/components/article/ArticleImage';
 
 const refs: BibItem[] = [
   { title: 'Orhun Yazıtları', year: '8. yüzyıl', source: 'Göktürk anıtları' },
@@ -207,12 +208,93 @@ export default function TurklerPage() {
         </p>
       </section>
 
+      {/* ── Tarihin yüzleri (galeri) ──
+          BİLEREK sekmelerin ve katlanan dönem kartlarının DIŞINDA: bu makalede
+          sekme içeriği ve "Detaylar" paneli SSR'a girmiyor (activeTab/openEra
+          state'e bağlı), oraya konan görsel arama motorunca görülmezdi. Galeri
+          her zaman render edilir → taranabilir. Sıra kronolojik. */}
+      <section className="tp-gal-sect">
+        <div className="tp-divider">
+          <div className="tp-divider-line" />
+          <h2 className="tp-divider-title">Tarihin Yüzleri</h2>
+          <div className="tp-divider-line" />
+        </div>
+        <div className="tp-gal-grid">
+          <ArticleImage
+            className="tp-img"
+            src="/articles/turkler/cin-seddi.webp"
+            ratio="1600 / 1197"
+            alt="Yeşil tepelerin sırtı boyunca kıvrılan taş sur ve aralıklı kuleler; ufka kadar uzanıyor."
+            caption="Çin Seddi’nin Mutianyu kesiti. Dikkat: bugün görülen duvar 16. yüzyıl Ming yapımıdır ve Moğollara karşı örülmüştür; Hunlara (Xiongnu) karşı yapılan Qin–Han surları çok daha eski ve çoğu yerde toprak yığınından ibarettir."
+            credit="Wikimedia Commons · CC BY-SA 3.0"
+          />
+          <ArticleImage
+            className="tp-img"
+            src="/articles/turkler/attila-hunlar.webp"
+            ratio="1600 / 1276"
+            alt="Romantik tablo: sütunlu bir Roma villasının içinde atlılar ve savaşçılar, yerde devrilmiş eşyalar, arkada duman ve alev."
+            caption="Hunların Galya’da bir Roma villasını yağmalayışı — Georges-Antoine Rochegrosse. Temsilî: olaydan yaklaşık 1450 yıl sonra çizilmiş romantik bir kurgu ve Attila’nın portresi değil; çağdaş bir Attila resmi elimizde yok."
+            credit="Georges-Antoine Rochegrosse · kamu malı"
+          />
+          <ArticleImage
+            className="tp-img"
+            src="/articles/turkler/kultigin-basi.webp"
+            ratio="1600 / 2370"
+            alt="Taçlı bir başlık takan erkeğe ait mermer baş heykeli; burun ucu kırık, yüz hatları sade ve simetrik."
+            caption="Khöshöö Tsaidam’da bulunan 8. yüzyıl mermer baş — Kültigin’e ait olduğu kabul edilir. Orijinal, Moğolistan Millî Müzesi’nde; buluntu yerindekiler kopyadır."
+            credit="Gary Todd · CC0"
+          />
+          <ArticleImage
+            className="tp-img"
+            src="/articles/turkler/bilge-kagan-yaziti.webp"
+            ratio="900 / 1200"
+            alt="Dört yüzü de runik harflerle satır satır kazınmış, üstü kalın başlıklı yüksek taş dikilitaş."
+            caption="Orhun yazıtlarından biri: Türkçenin bilinen en eski yazılı anıtları. Kaynak sayfası taşın buluntu yerinde mi yoksa müzedeki karşılığı mı olduğu konusunda kendi içinde çelişiyor — bu yüzden “dikili taşın kendisi” demiyoruz."
+            credit="Wikimedia Commons · CC BY-SA 4.0"
+          />
+          <ArticleImage
+            className="tp-img"
+            src="/articles/turkler/malazgirt.webp"
+            ratio="1600 / 1566"
+            alt="Ortaçağ el yazması tezhibi: zırhlı atlılar karşılıklı çarpışıyor, altın yaldızlı zemin ve süslü çerçeve."
+            caption="Malazgirt (1071) sahnesi — 15. yüzyılda Paris’te yapılmış bir el yazması tezhibi. Olaydan yaklaşık 350 yıl sonra, Fransa’da, Fransız şövalye giysileriyle hayal edilmiş: Anadolu’nun kaderini belirleyen savaşın çağdaş bir resmi yok."
+            credit="BnF Français 226 · kamu malı"
+          />
+          <ArticleImage
+            className="tp-img"
+            src="/articles/turkler/fatih-portre.webp"
+            ratio="1600 / 2163"
+            alt="Kavuklu ve kürk yakalı kaftanlı bir sultanın yandan üç çeyrek portresi; kemerli bir çerçeve içinde, elinde mendil."
+            caption="II. Mehmed portresi, Gentile Bellini’ye atfedilir — “kesin Bellini” denemiyor. Ayrıca National Gallery’nin kendi notuna göre tablo, özellikle figür kısmında neredeyse baştan boyanmış: gördüğünüz yüzün ne kadarı 1480, ne kadarı sonraki eller, belirsiz."
+            credit="Gentile Bellini’ye atfedilir · kamu malı"
+          />
+          <ArticleImage
+            className="tp-img"
+            src="/articles/turkler/ataturk-harf-devrimi.webp"
+            ratio="1440 / 1972"
+            alt="Takım elbiseli bir adam, kara tahtaya tebeşirle harfler yazarken kalabalığa dönüp anlatıyor; çevresinde şapkalı dinleyiciler."
+            caption="20 Eylül 1928, Kayseri: Atatürk yeni harfleri tahtada halka öğretiyor. Latin alfabesine geçiş üç ayda tamamlandı — bu fotoğraf, o üç ayın nasıl geçtiğinin belgesi."
+            credit="Cumhurbaşkanlığı arşivi · kamu malı"
+          />
+        </div>
+      </section>
+
       {/* ── Bozkurt ── */}
       <section className="tp-bz-sect">
         <div className="tp-divider">
           <div className="tp-divider-line" />
           <h2 className="tp-divider-title">🐺 Bozkurt: Kutsal Ata</h2>
           <div className="tp-divider-line" />
+        </div>
+        <div style={{ maxWidth: 560, margin: '0 auto 20px', padding: '0 20px' }}>
+          <ArticleImage
+            className="tp-img"
+            src="/articles/turkler/bozkurt.webp"
+            ratio="1600 / 1997"
+            alt="Boz renkli bir kurt, karla kaplı zeminde doğrudan objektife bakıyor; kalın kış tüyleri ve dikilmiş kulakları."
+            caption="Bozkurt. Türk destanlarında Asena ve Kök Böri adlarıyla anılan hayvan, kökeni bir kurda bağlayan anlatının merkezindedir."
+            credit="Gary Kramer · US Fish &amp; Wildlife Service"
+          />
         </div>
         <div className="tp-bz-grid">
           {bzCards.map(c => (
@@ -431,6 +513,22 @@ export default function TurklerPage() {
 
         /* ── Bozkurt ── */
         .tp-bz-sect { padding: 48px 16px; background: #0a0604; }
+        /* ── Tarihin Yüzleri galerisi ──
+           ArticleImage'ın soğuk slate varsayılanları bu sıcak kızıl-krem
+           zeminde yamalı duruyor → makalenin paletine bağlanıyor. */
+        .tp-gal-sect { padding: 40px 0 10px; }
+        .tp-gal-grid {
+          display: grid; grid-template-columns: repeat(2, 1fr);
+          gap: 20px 22px; max-width: 900px; margin: 0 auto; padding: 0 20px;
+          align-items: start;
+        }
+        .tp-img {
+          --ai-caption: #cfc2b2;
+          --ai-credit: #9a7b6a;
+          --ai-border: rgba(192,57,43,0.28);
+          --ai-fill: rgba(192,57,43,0.06);
+          --ai-mark: rgba(232,221,208,0.28);
+        }
         .tp-bz-grid {
           display: grid; grid-template-columns: repeat(2, 1fr);
           gap: 16px; max-width: 860px; margin: 0 auto;
@@ -527,6 +625,7 @@ export default function TurklerPage() {
           .tp-hero { padding: 48px 16px 40px; }
           .tp-stats { grid-template-columns: repeat(2, 1fr); }
           .tp-stat { border-bottom: 1px solid rgba(192,57,43,0.15); }
+          .tp-gal-grid { grid-template-columns: 1fr; }
           .tp-bz-grid { grid-template-columns: 1fr; }
           .tp-two-col { grid-template-columns: 1fr; gap: 20px; }
           .tp-rune-grid { grid-template-columns: repeat(3, 1fr); }

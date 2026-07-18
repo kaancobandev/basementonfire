@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode, type CSSProperties } from 'react';
 import Link from 'next/link';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
+import ArticleImage from '@/app/components/article/ArticleImage';
 
 const refs: BibItem[] = [
   { title: 'Paralel Yaşamlar — Pyrrhus', authors: 'Plutarkhos', year: 'MS ~100', source: 'Antik biyografi' },
@@ -239,6 +240,26 @@ export default function PyrrhusClient() {
           uzaktan akrabasıydı</strong>. Çağdaşları onu İskender'in yeniden doğuşu gibi gördü: aynı cüret,
           aynı karizma, aynı doymak bilmez fetih arzusu.
         </p>
+        <div className="pyr-img-pair">
+          <ArticleImage
+            className="pyr-img"
+            src="/articles/pirus/pirus-portre.webp"
+            ratio="1600 / 2133"
+            priority
+            alt="Miğferli bir erkeğin mermer büstü; miğfer alnın üstünde yükseliyor, sakallı yüz hafifçe yana dönük."
+            caption="Geleneksel olarak Pirus’a atfedilen büst. Roma dönemi mermer kopyası — yaşarken yapılmış bir portre değil ve kimlik teşhisi kesin sayılmıyor."
+            credit="Napoli MANN · CC BY"
+          />
+          <ArticleImage
+            className="pyr-img"
+            src="/articles/pirus/iskender-bust.webp"
+            ratio="1600 / 1785"
+            alt="Genç, sakalsız bir erkeğin mermer başı; dalgalı saçları alnından geriye savrulmuş, başı hafifçe yukarı ve yana dönük."
+            caption="İdolü ve uzaktan akrabası: Büyük İskender. Bu portre de ölümünden yüz elli-iki yüz yıl sonra yapılmış idealize bir Hellenistik çalışma; çağdaşlarının onu nasıl gördüğünü değil, sonrakilerin nasıl hatırlamak istediğini gösteriyor."
+            credit="British Museum · CC BY-SA"
+          />
+        </div>
+
         <p className="pyr-p">
           Bir asker, bir taktik dehası ve bir maceraperestti. Ama trajedisi de buradaydı: savaş kazanmakta
           eşsizdi, <strong>kazandığını korumakta</strong> ise beceriksiz. Sürekli yeni bir parıltının peşinden
@@ -277,6 +298,15 @@ export default function PyrrhusClient() {
           dizisi sordu. Bu diyalog, hırsın sonsuz döngüsüne dair antik çağın en güçlü derslerinden biridir.
           Adım adım ilerlet:
         </p>
+        <ArticleImage
+          className="pyr-img"
+          src="/articles/pirus/appius-kineas.webp"
+          ratio="1600 / 746"
+          alt="Tarihî tablo: mermer bir salonda oturan senatörlerin önünde, yaşlı ve kör bir adam iki kişinin koluna girmiş, ayakta konuşuyor."
+          caption="Kineas Roma Senatosu’nda barış teklifini sunarken, kör Appius Claudius reddi savunuyor. Temsilî: sahneden yaklaşık iki bin yıl sonra, 19. yüzyıl sonunda İtalya’da resmedildi."
+          credit="Giuseppe Sciuti · kamu malı"
+        />
+
         <Stepper steps={cineas} accent="#e0b34a">
           {(i) => (
             <svg viewBox="0 0 300 190" className="pyr-svg">
@@ -304,6 +334,25 @@ export default function PyrrhusClient() {
       <section className="pyr-section reveal">
         <div className="pyr-kicker">IV — Sefer</div>
         <h2 className="pyr-h2">İtalya Macerası — Sefer Haritası</h2>
+
+        <div className="pyr-img-pair">
+          <ArticleImage
+            className="pyr-img"
+            src="/articles/pirus/dodona-tiyatro.webp"
+            ratio="1600 / 669"
+            alt="Dik yamaca kurulmuş çok basamaklı antik tiyatronun geniş açı görüntüsü; arkada dağlar ve yeşil vadi."
+            caption="Dodona tiyatrosu — Pirus’un kendi yaptırdığı yapı (MÖ 297–272). Bugün görülen hâli katmanlı: Roma tahribatı, arenaya dönüştürülme ve modern restorasyon üst üste binmiş durumda."
+            credit="Wikimedia Commons · CC BY-SA"
+          />
+          <ArticleImage
+            className="pyr-img"
+            src="/articles/pirus/ambracia-apollon.webp"
+            ratio="1600 / 505"
+            alt="Şehir içinde, alçak duvarlarla çevrili arkeolojik alanda sıra sıra kırık sütun kaideleri ve temel taşları."
+            caption="Pirus’un başkenti Ambracia’dan (bugünkü Arta) kalan Apollon Pythios tapınağı. Tapınak Pirus’un eseri değil: ondan yaklaşık iki yüzyıl önce, Arkaik dönemde yapılmıştı — kral hazır bir şehri başkent seçti."
+            credit="Wikimedia Commons · CC BY-SA"
+          />
+        </div>
         <p className="pyr-p">
           MÖ 280'de Pirus, Yunan kenti Tarentum'un çağrısıyla Adriyatik'i geçip İtalya'ya ayak
           bastı. Altı yıl sürecek bu destansı sefer onu Roma kapılarına, oradan Sicilya'ya taşıyacaktı. Adımları izle:
@@ -345,6 +394,16 @@ export default function PyrrhusClient() {
       <section className="pyr-section reveal">
         <div className="pyr-kicker">V — Kan ve Çelik</div>
         <h2 className="pyr-h2">Savaşları</h2>
+
+        <ArticleImage
+          className="pyr-img"
+          src="/articles/pirus/savas-filleri.webp"
+          ratio="1600 / 1234"
+          alt="Kabartma benzeri sahne: zırhlı askerlerin arasında savaş filleri, hortumları havada, çevrelerinde mızraklı piyadeler."
+          caption="Savaş filleri lejyonların karşısında. İki çekince: bu sahne Zama’yı (MÖ 202, Hannibal’a karşı) betimler, Pirus’un Herakleia’sını değil; ve olaydan çok sonra hayal edilmiş bir eserdir. Yine de Roma piyadesinin ilk kez fille karşılaştığında ne gördüğünü anlatır."
+          credit="Wikimedia Commons · kamu malı"
+        />
+
         <p className="pyr-p">Bir savaşa dokun, detaylarını aç — kuvvetler, kayıplar ve o günün hikâyesi:</p>
         <div className="pyr-battles">
           {battles.map((b) => (
@@ -429,6 +488,15 @@ export default function PyrrhusClient() {
           bozguna uğratan, <Link href="/articles/rome" className="article-ilink">Roma</Link>'yı titreten efsanevi savaşçı, sıradan bir kiremitle tarihe karıştı —
           kaderin acı bir cilvesi.
         </p>
+        <ArticleImage
+          className="pyr-img"
+          src="/articles/pirus/argos-tiyatro.webp"
+          ratio="1600 / 900"
+          alt="Yamaca oyulmuş yarım daire biçimli antik tiyatronun taş basamakları; arkada zeytinlikler ve ova."
+          caption="Argos: Pirus’un öldüğü kent. Ölüm tiyatroda değil, kentin dar sokaklarındaki gece çarpışmasında oldu — bu, o kentten geriye kalanların en görkemlisi."
+          credit="Wikimedia Commons · CC BY-SA"
+        />
+
         <div className="pyr-callout pyr-callout-red">
           <span className="pyr-callout-icon">🧱</span>
           <p>“Tanrılar bir insanı yok etmek isterlerse, önce onu gururlandırırlar.” Pirus'un sonu, antik
@@ -559,6 +627,16 @@ export default function PyrrhusClient() {
 
         /* Section */
         .pyr-section { max-width: 820px; margin: 0 auto; padding: 42px 16px; border-top: 1px solid rgba(224,179,74,0.08); }
+        /* ArticleImage'ın slate varsayılanları bu altın-bronz paletle çakışıyor. */
+        .pyr-img {
+          --ai-caption: #cbbfa8;
+          --ai-credit: #a89478;
+          --ai-border: rgba(224,179,74,0.24);
+          --ai-fill: rgba(224,179,74,0.05);
+          --ai-mark: rgba(224,179,74,0.28);
+        }
+        .pyr-img-pair { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; align-items: start; }
+        @media (max-width: 700px) { .pyr-img-pair { grid-template-columns: 1fr; } }
         .pyr-kicker { font-size: .7rem; font-weight: 700; letter-spacing: .2em; color: var(--crimson); margin-bottom: 8px; text-transform: uppercase; font-family: system-ui, sans-serif; }
         .pyr-h2 { font-size: clamp(1.5rem, 4.5vw, 2.2rem); font-weight: 800; margin: 0 0 16px; letter-spacing: .01em; color: var(--gold-bright); }
         .pyr-h3 { font-size: 1.1rem; font-weight: 700; margin: 32px 0 14px; color: var(--gold); }

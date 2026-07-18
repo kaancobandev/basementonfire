@@ -1,0 +1,46 @@
+{
+  "slug": "bakteriyofaj",
+  "note": "Makalede emoji yer-tutucu YOK (tum emojiler dekoratif kart/not/quiz ikonu; T4 fajinin kendisi zaten elle cizilmis SVG). Gorseller anlatinin fotograflanabilir capalari icin: fajin gercek elektron mikrograf goruntusu, unutulmus tarihin dort yuzu (Twort, d'Herelle, Eliava, Tiflis enstitusu), antibiyotik oncesi ticari faj cagi, CRISPR ikilisi ve Tom Patterson'i komaya sokan gercek super bakteri.",
+  "files": [
+    {
+      "title": "File:Bacteriophage.jpg",
+      "as": "t4-elektron-mikrograf",
+      "note": "II. Nano-Makine — metin T4'u 'ay modulu'ne benzetiyor; okur once gercek elektron mikrograf goruntusunu gormeli, Stepper SVG'sinin hemen ustu. ALTYAZI: sadece 'elektron mikrograf' de — dosya aciklamasi 'transmission electron micrograph (shadowed)' diyor ama Commons kategorisi SEM diyor, celiski var; TEM/SEM'e commit etme. Atif: AFADadcADSasd, CC BY 4.0. [ONCEKI SECIM REDDEDILDI: File:Viruses-07-02932-g002B-T4.png panel B'nin TAMAMI — icinde B.1=T4 ile B.2=VpaE1 (Felixounavirus, Andersonviridae) YAN YANA; okur iki parcacik gorup ikisini de T4 sanardi. Kanit: (a) dosyanin kendi aciklamasi ikisini de listeler, kardes kirpimlar (g002A/C/D) sadece VpaE1 der -> boilerplate degil; (b) 896+893+881+1003=3673 = tam figur genisligi, hepsi 1214 boyunda -> kirpim tam panel sutunu; (c) Commons 'Files with bad file names' ile isaretlemis; (d) tek kullanimi de.wikipedia 'Andersonviridae' = VpaE1'in familyasi, T4'un DEGIL.]"
+    },
+    {
+      "title": "File:Twort.jpg",
+      "as": "twort-portre",
+      "note": "IV. Tarih — 1915 'Ilk ipucu' zaman cizelgesi maddesi (bakteri kolonilerinin camsi erimesini goren adam)"
+    },
+    {
+      "title": "File:Félix d'Hérelle.jpg",
+      "as": "dherelle-portre",
+      "note": "IV. Tarih — 1917 'Bir ad doguyor' + 1919 ilk tedavi; 'bakteriyofaj' adini veren kisi"
+    },
+    {
+      "title": "File:George Eliava 1892–1937.jpg",
+      "as": "eliava-portre",
+      "note": "IV. Tarih — 1937 'Trajik bir kayip'; Beria tarafindan idam edilen enstitu kurucusu, basliktaki tarihler kaderini ozetliyor"
+    },
+    {
+      "title": "File:Eliava-Institut für Bakteriophagen, Tiflis.jpg",
+      "as": "eliava-enstitusu",
+      "note": "IV. Tarih — 1923 'Tiflis: ilk enstitu'; metindeki 'bugun hala ayakta' iddiasinin gorsel kaniti (2019 fotografi, tarihi ana bina). DIKKAT: dosyanin kendi aciklamasi 'enstitu 1936'da kuruldu, Eliava'nin 1923'te kurdugu bakteriyoloji LABORATUVARINDAN dogdu' diyor -> altyazi binayi 1923'e TARIHLEME; makale metnindeki '1923 = ilk enstitu' ifadesi de kaynakla celisiyor, kontrol edilmeli. Atif: Ejw0851, CC BY-SA 4.0 (ShareAlike)."
+    },
+    {
+      "title": "File:ADVERTISEMENT; Antivirus and bacteriophages Wellcome L0032605.jpg",
+      "as": "faj-ilani",
+      "note": "IV. Tarih — 1928-40 'Antibiyotik cagi' maddesi; Bati'nin terk ettigi ticari faj caginin belgesi (fajlar bir zamanlar reklami yapilan bir urundu). DIKKAT: belge TARIHSIZ — ne Commons'ta ne Wellcome kaydinda (v9edtxaa) tarih VAR; ilan veren firma da belirtilmemis. Altyazida '1928' / '1930'lar' gibi bir tarih UYDURMA; 'tarihsiz, Frederick William Twort Koleksiyonu (GC/176/B1)' de. Atif: Wellcome Collection, CC BY 4.0."
+    },
+    {
+      "title": "File:Emmanuelle Charpentier and Jennifer Doudna.jpg",
+      "as": "doudna-charpentier",
+      "note": "V. CRISPR — 2020 Nobel Kimya Odulu'nu getiren ikili (solda Charpentier, sagda Doudna); 🏅 rozetli not kutusunun yaninda. DIKKAT: bu bir MONTAJ — ikisi birlikte cekilmis bir fotograf DEGIL, iki AYRI portreden birlestirilmis; portreler 2015 (Charpentier) ve ~2014 (Doudna), yani Nobel'den YILLAR ONCE. Dosyadaki 2020-10-07 tarihi montajin yapildigi gun. Altyazi 'Nobel toreninde/odul aninda' ima ETMEMELI, 'montaj' demeli. Turev lisans: CC BY-SA 4.0 (ShareAlike) ve atif TEK kisiye degil IKISINE: Charpentier portresi Bianca Fioretti (Hallbauer & Fioretti), Doudna portresi Duncan.Hull + The Royal Society."
+    },
+    {
+      "title": "File:Acinetobacter baumannii, SEM, 9330 lores.JPG",
+      "as": "acinetobacter-sem",
+      "note": "IX. Gercek Vakalar — Tom Patterson'i komaya sokan turun ta kendisi (VI. Sessiz Pandemi'deki 'super bakteri' soyutlamasina yuz verir)"
+    }
+  ]
+}

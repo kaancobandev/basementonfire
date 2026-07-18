@@ -1,0 +1,14 @@
+{
+  "slug": "tibbi",
+  "note": "25 olgunun hepsi fotoğraflanamaz (terminal lucidity, plasebo, gıdıklanma, biyolüminesans → soyut/olgusal). Fotoğraflanabilir 8 olguya görsel: 02 trepanasyon, 04 İmhotep, 05 Fleming, 07 Jenner, 09 Leeuwenhoek, 10 John Snow, 12 eter, 18 Phineas Gage. Makalede emoji yer-tutucu YOK. Lisans sırası CC0 > kamu malı > CC BY > CC BY-SA gözetildi; Wellcome Collection taramaları CC BY 4.0 ve yüksek çözünürlüklü.",
+  "files": [
+    { "title": "File:Trepaned skull, prehistoric times, City of Prague Museum, 175924.jpg", "as": "trepanasyon-kafatasi", "note": "Vaka 02 · 7.000 yıllık kafatası ameliyatı — delik kenarında kemik yeniden büyümüş" },
+    { "title": "File:Statue of Seated Imhotep MET DP240480.jpg", "as": "imhotep-heykeli", "note": "Vaka 04 · adı bilinen ilk hekim, sonradan tanrı ilan edildi" },
+    { "title": "File:Alexander Fleming at his desk in a white lab coat with penicillin mold in petrie dishes around him.jpg", "as": "fleming-penisilin", "note": "Vaka 05 · Fleming, küflü Petri kaplarının başında — penisilin kazası" },
+    { "title": "File:Edward Jenner vaccinating a boy. Oil painting by E.-E. Hille Wellcome L0029093.jpg", "as": "jenner-ilk-asi", "note": "Vaka 07 · Jenner ilk aşıyı yaparken (inek çiçeği gözlemi)" },
+    { "title": "File:Facsimile of the Leeuwenhoek microscope in Utrecht University Wellcome M0005632.jpg", "as": "leeuwenhoek-mikroskop", "note": "Vaka 09 · kumaş tüccarının kendi elleriyle yaptığı basit mikroskop" },
+    { "title": "File:Map showing deaths from Cholera in Broad Street... Wellcome L0063431.jpg", "as": "snow-kolera-haritasi", "note": "Vaka 10 · John Snow'un ölümleri işlediği harita — epidemiyolojinin doğuşu" },
+    { "title": "File:Southworth & Hawes - First etherized operation (re-enactment).jpg", "as": "eter-ilk-ameliyat", "note": "Vaka 12 · 1846 Boston, eter anestezisi — ameliyat artık saniyelerle yarışmıyor" },
+    { "title": "File:Phineas Gage GageMillerPhoto2010-02-17 Unretouched Color Cropped.jpg", "as": "phineas-gage", "note": "Vaka 18 · Gage, beyninden geçen demir çubuğu elinde tutarken" }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "slug": "kaligrafi",
+  "note": "Makalenin akışına göre: II. İslam/Osmanlı hattı (kûfî → Şeyh Hamdullah → Hâfız Osman → tuğra) · III. Doğu Asya (Wang Xizhi + Dört Hazine) · IV. Batı (Insular → gotik). Dördü doğrudan emoji yer-tutucuların yerine geçer (📖 murakka, 📜 hilye, 👑 tuğra). CC0 varsa CC0 tercih edildi; kalanı kamu malı — hiçbiri CC BY-SA değil. Trajan Sütunu kitabesi ve hat aletleri (kamış kalem/makta/divit) Commons'ta bulunamadı, bkz. notes.",
+  "files": [
+    { "title": "File:Folio from a Koran (8th-9th century).jpg", "as": "kufi-kuran", "note": "II · zaman çizelgesi '7. yy Kûfî ve Kur'an' — köşeli anıtsal kûfî" },
+    { "title": "File:Containing calligraphies ascribed to Şeyh Hamdullah - Murakka (calligraphic album) - Google Art Project (602085).jpg", "as": "seyh-hamdullah-murakka", "note": "II · hem '1436–1520 Şeyh Hamdullah' çizelge maddesi hem de 📖 Murakka kartının yer-tutucusu" },
+    { "title": "File:Hilye by Hafiz Osman from Sadberk Hanim Museum.jpg", "as": "hafiz-osman-hilye", "note": "II · '1642–1698 Hâfız Osman — standartlaştırdığı hilye düzeni' + 📜 Hilye-i Şerif kartının yer-tutucusu (levha formu da burada görünür)" },
+    { "title": "File:Tughra (Official Signature) of Sultan Süleiman the Magnificent (r. 1520–66) MET 116663.jpg", "as": "suleyman-tugra", "note": "II · 👑 Tuğra kartının yer-tutucusu; 'Mustafa Râkım tuğrayı şaheserine dönüştürdü' maddesini de karşılar" },
+    { "title": "File:LantingXu.jpg", "as": "lantingji-xu", "note": "III · Wang Xizhi'nin Lantingji Xu'su (Orkide Köşkü Önsözü) — Feng Chengsu'nun Tang kopyası" },
+    { "title": "File:Anhui Four Treasures of the Study (9974352754).jpg", "as": "dort-hazine", "note": "III · 🍵 notundaki 'Çalışma Odasının Dört Hazinesi' (fırça, mürekkep çubuğu, kâğıt, mürekkep taşı)" },
+    { "title": "File:Book of Kells Miniatuur Chi Rho monogram (fol. 34r.), GD017031.jpg", "as": "kells-chi-rho", "note": "IV · '7.–9. yy Insular' maddesi — Kells Kitabı'nın Chi-Rho sayfası" },
+    { "title": "File:Gutenberg Bible B42 Genesis cropped.jpg", "as": "gutenberg-incil", "note": "IV · '12.–15. yy Gotik/blackletter — Gutenberg ilk matbu İncil'ini (~1455) gotikle bastı'" }
+  ]
+}

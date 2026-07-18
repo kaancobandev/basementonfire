@@ -1,0 +1,13 @@
+{
+  "slug": "internet",
+  "note": "Soyut bir konu (protokol/katman/paket fotoğraflanamaz) → görseller internetin FİZİKSEL gerçekliğini gösteren donanıma bağlandı: makalenin 'ağların ağı', MAC, router/switch ve ISP/son-kilometre bölümlerine. Emoji yer-tutucular (💡 fiber, 📡 mobil, 🖥️ sunucu) gerçek fotoğrafla karşılanabilir. CC0/kamu malı öncelikli; SVG/TIF alınmadı.\n\n10 DNS bölümü GÖRSELSİZ — kasıtlı. Ams-ix.k.root-servers.net.jpg ÇIKARILDI (3 gerekçe): (1) Commons açıklaması birebir 'The AMS-IX MIRROR of the K root-server' diyor — yani 13 kök sunucudan biri DEĞİL, K kimliğinin onlarca anycast kopyasından biri; '13 kök sunucudan biri' altyazısı makalenin düzeltmesi gereken YAYGIN YANILGININ ta kendisiydi. (2) EXIF 12 Nisan 2006, Casio EX-Z30 kompakt — 20 yıllık donanım, bugünün K-root'u değil. (3) LİSANS: Artist VE Credit extmetadata BOŞ (Commons gizli kategorisi: 'Files with no machine-readable author') → creditLine() çıplak 'CC BY-SA 3.0' üretiyor, atıf YOK = BY şartının ihlali (script'teki Marcus Agrippa dersinin aynısı; judge() bunu yakalamıyor). Bu üçüncüsü spec'ten düzeltilemez — script atıfı yalnız API'den türetir. Yeni aday ararsan: --dry çıktısında yazar sütunu BOŞ çıkan hiçbir CC BY/BY-SA dosyasını alma.",
+  "files": [
+    { "title": "File:Rear of rack at NERSC data center - closeup.jpg", "as": "veri-merkezi", "note": "02 Ağların Ağı · diyagramdaki 'Veri Merkezi' kümesinin gerçeği (CC0)" },
+    { "title": "File:NIC on RTL8139B.JPG", "as": "ag-karti", "note": "07 MAC & ARP · MAC'in 'üreticide kazındığı' ağ kartının kendisi (kamu malı)" },
+    { "title": "File:Ethernet switch Atlantis A02-F5P 5 ports frontend.jpg", "as": "ethernet-switch", "note": "08 Yönlendirici & Anahtar · diyagramdaki SWITCH kutusunun gerçeği (kamu malı)" },
+    { "title": "File:TP-Link TL-WR740N router HS5.jpg", "as": "ev-router", "note": "08 Yönlendirici & Anahtar · hero'daki 📶 Router düğümünün gerçeği" },
+    { "title": "File:DE-CIX GERMANY - Switch Rack (6218137120).jpg", "as": "ixp-anahtar-rafi", "note": "14 ISP & Son Kilometre · zincirdeki 🔀 IXP / 🌐 Omurga düğümünün gerçeği — DE-CIX markalı anahtar rafı (Commons ŞEHRİ belirtmiyor: 'Frankfurt' YAZMA; 2011'de DE-CIX yalnız Frankfurt'taydı ama bu çıkarım, kayıt değil)" },
+    { "title": "File:Optical-patch-fiber-FC-APC-connectors.jpg", "as": "fiber-optik-kablo", "note": "14 Bağlantı türleri · 'Fiber 💡 — veriyi ışık olarak taşır' kartının fotoğrafı" },
+    { "title": "File:Cell site tower (Central Mindanao University) 02.jpg", "as": "baz-istasyonu", "note": "14 Bağlantı türleri · 'Mobil 📡 — 4G/5G baz istasyonları' kartının fotoğrafı (CC0)" }
+  ]
+}

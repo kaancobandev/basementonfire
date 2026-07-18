@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import {
   ArticleShell, ArticleHero, ArticleLede, ArticleSection, HorizontalTimeline, ArticleQuiz, ArticleBibliography, ArticleFooter,
 } from '@/app/components/article/ArticleBlocks';
+import ArticleImage from '@/app/components/article/ArticleImage';
 import { ACCENT, BG, CRIMSON, MARBLE, InView, WidgetSkeleton, SourceNote } from './ui';
 import {
   SaidVsReal, NameSwitch, Tollendum, ProscriptioList, PropagandaToggle, RestoreDecision, JanusCounter, LegionGrid, ApplauseFinale,
@@ -29,6 +30,15 @@ export default function AugustusClient() {
       <style>{`
         @keyframes aug-fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
         @keyframes aug-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+        /* ArticleImage'ın slate varsayılanları porfir-indigo zeminde yamalı
+           duruyor → imparatorluk altınına bağla (sezar'daki desenin aynısı). */
+        .aug-img {
+          --ai-caption: #d6d3cd;
+          --ai-credit: #9a8a5f;
+          --ai-border: rgba(201,164,78,0.22);
+          --ai-fill: rgba(201,164,78,0.05);
+          --ai-mark: rgba(201,164,78,0.28);
+        }
       `}</style>
 
       <ArticleHero
@@ -62,6 +72,26 @@ export default function AugustusClient() {
         <p className="leading-relaxed text-slate-300">
           Ankara’da, Ulus’ta, Hacı Bayram Camii’nin hemen yanında bir duvar var. Üstünde, iki bin yıldır, bir adamın kendi hayatını kendi ağzından anlattığı metin yazılı — Latince ve Yunanca. Bugün dünyada bu metnin en eksiksiz kopyası orada, Roma’da bile değil. Adı <em>Res Gestae Divi Augusti</em>: “Tanrısal Augustus’un Yaptıkları”. Ölmeden önce yazdı ve imparatorluğun her yerinde kopyalanmasını emretti.
         </p>
+
+        <ArticleImage
+          className="aug-img"
+          src="/articles/augustus/ankara-augustus-tapinagi.webp"
+          ratio="1600 / 1067"
+          priority
+          alt="Ankara Ulus’ta, camiye bitişik antik tapınak kalıntısı: yüksek sarımsı taş duvarlar, üstü açık, önünde yeşil alan ve ziyaretçiler."
+          caption="Ankara, Ulus: Augustus Tapınağı’nın kalıntıları, Hacı Bayram Camii’nin hemen yanında. Metnin dünyadaki en eksiksiz kopyası bu duvarlarda — Roma’da bile bu kadarı yok."
+          credit="Diego Delso · CC BY-SA 4.0"
+        />
+
+        <ArticleImage
+          className="aug-img"
+          src="/articles/augustus/res-gestae-yaziti.webp"
+          ratio="1600 / 1222"
+          alt="Latince büyük harflerle sütunlar hâlinde dizilmiş yazıtın çizimi; satırlarda kırıklar ve eksik harfler noktalarla gösterilmiş."
+          caption="Res Gestae’nin Latince metni. Bu, duvarın fotoğrafı değil: 1872 tarihli arkeolojik yayından bir levha — aşınmış taş fotoğrafta okunmuyor, çizim okunuyor. Kendi anlatısını doğrulamayı öneren bir yazıda, gördüğünüz şeyin ne olduğunu söylememek olmazdı."
+          credit="Perrot, Guillaume & Delbet, 1872 · CC0"
+        />
+
         <div className="mt-8">
           <SaidVsReal />
         </div>
@@ -120,6 +150,15 @@ export default function AugustusClient() {
         <p className="leading-relaxed text-slate-300">
           Cicero — Roma’nın en büyük hatibi, Cumhuriyet’in son gerçek savunucusu — bir plan yaptı: çocuğu Antonius’a karşı kullan, sonra at. Antonius’a karşı hayatının konuşmalarını yaptı (Philippica’lar). Aynı anda Octavianus’u Senato’da destekledi. Ve bir mektupta bir espri yaptı.
         </p>
+        <ArticleImage
+          className="aug-img mx-auto max-w-sm"
+          src="/articles/augustus/cicero-portre.webp"
+          ratio="1600 / 1559"
+          alt="Yaşlı bir adamın mermer büstü: geniş kel alın, derin göz çukurları, sarkmış yanaklar, sıkılmış ince dudaklar."
+          caption="Cicero’nun büstü — yüzü değil: bu mermer onun ölümünden yaklaşık bir yüzyıl sonra yapılmış bir Roma kopyası. Kelime oyununu yapan adam, esprinin öznesini yanlış seçtiğini birkaç ay içinde öğrenecekti."
+          credit="Wilfredor · CC0"
+        />
+
         <div className="mt-8">
           <Tollendum />
         </div>
@@ -148,6 +187,15 @@ export default function AugustusClient() {
         <p className="mt-4 leading-relaxed text-slate-300">
           Ve asıl mesele: Agrippa hiçbir zaman ihanet etmedi. Bir kez bile. Ordu onu seviyordu; istese herhangi bir an gücü alabilirdi, kimse durduramazdı. Almadı. Çünkü Octavianus onu asla tehdit görmedi, kıskanmadı, küçültmedi. Tam tersi: kızını ona verdi, vârisi ilan etti, ağır hastalandığında yüzüğünü ona uzattı — yani “ben ölürsem devlet senin.” Roma tarihi üstünü kıskanan generallerle dolu, ve bir tane bile Agrippa yok.
         </p>
+        <ArticleImage
+          className="aug-img mx-auto max-w-sm"
+          src="/articles/augustus/agrippa-portre.webp"
+          ratio="1600 / 1708"
+          alt="Genç bir erkeğin mermer büstü: düz kesilmiş kâkül, güçlü çene, sert ve dümdüz bakan gözler; yüz hatları köşeli."
+          caption="Agrippa. Bu portre de ölümünden sonra, torunu Claudius döneminde yontuldu — hayattan çalışılmış bir yüz değil. Roma tarihi üstünü kıskanan generallerle dolu; bu adam bir kez bile denemedi."
+          credit="Marie-Lan Nguyen (User:Jastrow) · CC BY 2.5"
+        />
+
         <p className="mt-4 leading-relaxed text-slate-200">
           Augustus’un dehası savaş kazanmak değildi. Agrippa’yı bulmak ve elli yıl boyunca onu kaybetmemekti. Bunu yapabilmek için bir şeye ihtiyacınız var ve o zekâ değil: <strong>kendi hakkındaki gerçeği kaldırabilmek.</strong> Caesar bunu yapamazdı; her şeyin merkezi olmak zorundaydı. Augustus, merkezde olmayı değil, merkezi kurmayı istiyordu.
         </p>
@@ -180,6 +228,15 @@ export default function AugustusClient() {
         <div className="mt-8">
           <PropagandaToggle />
         </div>
+
+        <ArticleImage
+          className="aug-img"
+          src="/articles/augustus/actium-savasi.webp"
+          ratio="1600 / 1125"
+          alt="Barok deniz savaşı tablosu: dumanlar arasında yan yatmış yelkenli gemiler, yanan bir tekne, denizde parçalar ve figürler."
+          caption="Actium Deniz Savaşı — Laureys a Castro, 1672. Temsilî: olaydan yaklaşık 1700 yıl sonra hayal edilmiş. Gemiler bile yanlış; Actium kürekli savaş gemileriyle yapıldı, tablodakiler 17. yüzyıl yelkenlileri. Savaşı kazanan da Octavianus değil, Agrippa’ydı."
+          credit="Laureys a Castro · kamu malı"
+        />
       </ArticleSection>
 
       <ArticleSection kicker="SAHNE 4.3" title="İskenderiye: aynı mezar, iki adam">
@@ -219,6 +276,15 @@ export default function AugustusClient() {
         <div className="mt-8">
           <RestoreDecision />
         </div>
+        <ArticleImage
+          className="aug-img mx-auto max-w-sm"
+          src="/articles/augustus/augustus-pontifex.webp"
+          ratio="1600 / 1067"
+          alt="Togasının bir ucunu başına örtmüş, ayakta duran genç bir erkeğin beyaz mermer heykeli; yüzü sakin, bakışları ileride."
+          caption="Augustus, başrahip (Pontifex Maximus) kıyafetiyle: başı togasıyla örtülü, kurban sunmaya hazır. Kostümün kendisi tezdir — kral tacı değil, dindar bir vatandaşın örtüsü. Aynı adam, aynı yıllarda, dünyanın en büyük ordusunu yönetiyordu."
+          credit="Fabrizio Garrisi · CC0"
+        />
+
         <p className="mt-8 leading-relaxed text-slate-300">
           Ona yeni bir isim verdiler: <strong>Augustus</strong> — “yüce, kutsanmış”, o güne kadar yalnız tapınaklar için kullanılan bir kelime. Ama dikkat: yaptığı şey numara değildi. Yetkileri gerçekten bıraktı, yasalar gerçekti, Senato toplanıyordu, konsüller seçiliyordu. Adam Cumhuriyet’i yıkmadı — <strong>içine yerleşti.</strong> Kendine kral demedi (<em>rex</em> Caesar’ı öldüren kelimeydi), diktatör demedi (MÖ 22’de teklif edilince dizlerinin üstüne çöküp togasını yırtarak reddetti). Kendine <em>princeps</em> — “birinci vatandaş” — dedi.
         </p>
@@ -247,6 +313,15 @@ export default function AugustusClient() {
         <p className="leading-relaxed text-slate-300">
           Şimdi dürüst olalım: işe yaradı. <em>Pax Romana</em> onunla başladı ve iki yüzyıl sürdü. Akdeniz havzası tarihinde ilk kez tek bir hukuk ve tek bir para altında yaşadı; insanlar İspanya’dan Suriye’ye korsan korkusu olmadan seyahat etti.
         </p>
+        <ArticleImage
+          className="aug-img"
+          src="/articles/augustus/ara-pacis.webp"
+          ratio="1600 / 901"
+          alt="Mermer kabartma: togalı ve başı örtülü figürlerden oluşan bir alay, yan yana yürüyor; bazı yüzler ve gövde parçaları kırık."
+          caption="Ara Pacis — Augustus Barışı Sunağı’nın güney frizi: sunuya giden alayda Augustus ve Agrippa. Gerçek antik mermer, ama sunak 1938’de parçalardan yeniden kuruldu; gördüğünüz bütünlük kısmen modern tamamlamadır. “Tuğla bir şehir bulup mermer bıraktım” cümlesinin somut hâli — ve o mermerin bugüne nasıl geldiği."
+          credit="Luciano Tronati · CC BY-SA 4.0"
+        />
+
         <div className="mt-8">
           <JanusCounter />
         </div>
@@ -292,6 +367,16 @@ export default function AugustusClient() {
           <div className="mt-1 text-sm italic text-slate-400">“{TEUTOBURG.cryTr}”</div>
         </div>
         <p className="leading-relaxed text-slate-300">{TEUTOBURG.grief}</p>
+
+        <ArticleImage
+          className="aug-img mx-auto max-w-sm"
+          src="/articles/augustus/kalkriese-maskesi.webp"
+          ratio="1600 / 1226"
+          alt="Paslanmış demirden bir yüz maskesi: göz ve ağız boşlukları oyuk, yüzey yer yer delinmiş ve aşınmış; müze vitrininde sergileniyor."
+          caption="Kalkriese’de, Teutoburg savaş alanında bulunan bir Roma süvari miğferinin yüz maskesi. Üç lejyonun geriye bıraktığı şeylerden biri: üç boşluk."
+          credit="Carole Raddato · CC BY-SA 2.0"
+        />
+
         <div className="mt-8">
           <LegionGrid />
         </div>

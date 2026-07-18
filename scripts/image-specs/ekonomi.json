@@ -1,0 +1,14 @@
+{
+  "slug": "ekonomi",
+  "note": "Soyut bir sözlük makalesi: terimlerin çoğu (likidite, arbitraj, F/K, IBAN) fotoğraflanamaz. Görseller metnin ADIYLA andığı somut çapalara bağlandı — emtia için altın, stagflasyon için 1970'ler petrol krizi, resesyon için 1929 çöküşü, boğa/ayı için Frankfurt heykeli. Bölüm 3 (SWIFT/EFT/IBAN) görselsiz: Commons'ta SWIFT merkezinin lisanslı fotoğrafı yok, uydurma yerine boş bırakıldı. CC0 > kamu malı > CC BY > CC BY-SA sırası gözetildi.",
+  "files": [
+    { "title": "File:Marriner S. Eccles Federal Reserve Board Building.jpg", "as": "merkez-banka-fed", "note": "Bölüm 1 · Faiz — faizi belirleyen kurum (ABD Merkez Bankası, Eccles binası)" },
+    { "title": "File:Gold bullion bars.jpg", "as": "altin-kulce", "note": "Bölüm 2 · Emtia — metnin ilk saydığı sert emtia: altın" },
+    { "title": "File:Crowds gathering outside New York Stock Exchange.jpg", "as": "borsa-cokusu-1929", "note": "Bölüm 2 · Resesyon — 1929 çöküşünde borsa önünde toplanan kalabalık" },
+    { "title": "File:Oregon Still Had Scattered Gasoline Problems in May, 1974. A Downtown Station in Portland Shows a Sign Saying the Day's Allocation Is Sold Out. A Bicycler Uses an Alternate Method of Transportation 05-1974 (4271799411).jpg", "as": "benzin-krizi-1974", "note": "Bölüm 2 · Stagflasyon — metnin andığı 1970'ler petrol krizi: benzini biten istasyon" },
+    { "title": "File:German Railways Banknote 5 Billionen Mark 1923 Hyperinflation Notgeld Stuttgart, obverse.jpg", "as": "enflasyon-banknot-1923", "note": "Bölüm 2 · Enflasyon — 5 trilyon marklık 1923 banknotu, paranın değer kaybı" },
+    { "title": "File:Bulle und Bär Frankfurt.jpg", "as": "boga-ayi-heykeli", "note": "Bölüm 2 · Boğa & Ayı Piyasası — metindeki 'boğa yukarı, ayı aşağı' Frankfurt borsası önünde heykel" },
+    { "title": "File:No Known Restrictions Trading Floor, New York Stock Exchange (Highsmith LOC) (6718386525).jpg", "as": "borsa-salonu", "note": "Bölüm 4 · Borsa — işlem salonu (BIST'in lisanslı fotoğrafı Commons'ta yok)" },
+    { "title": "File:Forex Money for Exchange in Currency Bank.jpg", "as": "doviz-banknot", "note": "Bölüm 5 · Parite & Devalüasyon — döviz bankosu, farklı para birimleri" }
+  ]
+}

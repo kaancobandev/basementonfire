@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
+import ArticleImage from '@/app/components/article/ArticleImage';
 
 const refs: BibItem[] = [
   { title: 'Tarihler (Historíai)', authors: 'Herodotos', year: 'MÖ ~430', source: 'Antik kaynak' },
@@ -70,6 +71,19 @@ export default function GreecePage() {
         </div>
       </header>
 
+      {/* ── Akropolis panoraması: hero'nun hemen altında, açılış görseli ── */}
+      <section className="gr-section">
+        <ArticleImage
+          className="gr-img"
+          src="/articles/greece/akropolis-panorama.webp"
+          ratio="1600 / 686"
+          priority
+          alt="Kayalık bir tepenin üstünde sütunlu antik mermer tapınak; çevresinde çalılık yamaçlar, arkada açık gökyüzü."
+          caption="Atina Akropolisi ve Parthenon. İki bin beş yüz yıl önce burada, dünyanın ilk doğrudan demokrasisini deneyen bir şehir vardı."
+          credit="Jebulon · CC0"
+        />
+      </section>
+
       {/* ── Kuruluş: Atina vs Sparta ── */}
       <section className="gr-section">
           <h2 className="gr-section-title">Atina vs Sparta — İki Şehir, İki Dünya</h2>
@@ -105,6 +119,25 @@ export default function GreecePage() {
               ))}
             </div>
           </div>
+          <div className="gr-img-pair">
+            <ArticleImage
+              className="gr-img"
+              src="/articles/greece/parthenon-atina.webp"
+              ratio="1600 / 1065"
+              alt="Parthenon’un batı kolonadı: yivli mermer sütunlar sıralanmış, üstünde kırık alınlık, arkada mavi gökyüzü."
+              caption="Atina’nın yüzü: Parthenon. (Fotoğrafçı, karedeki restorasyon vinçlerini dijital olarak silmiş — yapının kendisi gerçek, sahnedeki modern ekipman değil.)"
+              credit="Wikimedia Commons · CC BY-SA"
+            />
+            <ArticleImage
+              className="gr-img"
+              src="/articles/greece/sparta-hoplit.webp"
+              ratio="1600 / 2129"
+              alt="Miğferli bir savaşçının bronz büstü; miğferin yanaklıkları yüzü çerçeveliyor, gözler boş ve sert."
+              caption="Sparta’nın yüzü: miğferli bir hoplit büstü. Buna uzun süre “Leonidas” dendi ama bu isim 1925 kazı ekibinin taktığı bir lakaptan ibaret; kimin olduğunu bilmiyoruz."
+              credit="Wikimedia Commons · CC BY-SA"
+            />
+          </div>
+
           <p className="gr-god-desc" style={{ marginTop: 20 }}>
             Bu iki şehrin ortak mirası olan Yunan alfabesi, yalnızca felsefeyi ve edebiyatı taşımakla kalmadı; harflerin dengeli oranları ve zarif çizgileri, sonraki çağlarda güzel yazı sanatının, yani <Link href="/articles/kaligrafi" className="article-ilink">kaligrafinin</Link>, temel esin kaynaklarından biri oldu. Yunan heykelinin ideal oranları ve “asil sadelik” anlayışı ise Rönesans'tan Neoklasizme kadar Batı'daki <Link href="/articles/sanat-akimlari" className="article-ilink">sanat akımlarını</Link> doğrudan besledi.
           </p>
@@ -126,6 +159,25 @@ export default function GreecePage() {
             </div>
           ))}
         </div>
+
+        <div className="gr-img-pair" style={{ marginTop: 22 }}>
+          <ArticleImage
+            className="gr-img"
+            src="/articles/greece/zeus-artemision.webp"
+            ratio="1600 / 1600"
+            alt="Kolları iki yana açık, sakallı bir erkeğin bronz heykeli; sağ kolunu fırlatmaya hazır geriye atmış, adım atar pozisyonda."
+            caption="Artemision Bronzu. Fırlatmaya hazırlandığı şey elinde kalmadığı için kimliği tartışmalı: yıldırımsa Zeus, üç dişli mızraksa Poseidon. Çoğunluk Zeus diyor, ama kesin değil."
+            credit="Wikimedia Commons · CC BY-SA"
+          />
+          <ArticleImage
+            className="gr-img"
+            src="/articles/greece/athena-varvakeion.webp"
+            ratio="1600 / 1067"
+            alt="Miğferli, uzun elbiseli bir tanrıça heykelciği; bir elinde kanatlı küçük figür, yanında kalkan ve yılan."
+            caption="Varvakeion Athenası: Phidias’ın Parthenon’daki dev altın-fildişi Athena’sının küçük Roma kopyası. Orijinali kayıp; bu heykelcik onun neye benzediğine dair en güvenilir tanığımız."
+            credit="Gary Todd · CC0"
+          />
+        </div>
       </section>
 
       {/* ── İskender ── */}
@@ -142,6 +194,15 @@ export default function GreecePage() {
               </div>
             ))}
           </div>
+          <ArticleImage
+            className="gr-img"
+            src="/articles/greece/iskender-mozaik.webp"
+            ratio="1600 / 995"
+            alt="Renkli taş mozaik: solda atının üstünde mızrakla saldıran genç komutan, sağda savaş arabasındaki kral geri dönmüş bakıyor; aralarında mızrak ormanı."
+            caption="İssus Savaşı (MÖ 333): İskender solda, III. Darius sağda. Mozaiğin kendisi olaydan yaklaşık iki yüzyıl sonra, Pompeii’de yapıldı — kayıp bir Hellenistik tabloyu kopyaladığı düşünülüyor."
+            credit="Wikimedia Commons · kamu malı"
+          />
+
           <p className="gr-tl-desc" style={{ marginTop: 20 }}>
             İskender'in ardından açılan Helenistik dönemin en çarpıcı krallarından biri, Roma'ya karşı kazandığı ama ordusunu tüketen zaferlerle anılan <Link href="/articles/pirus" className="article-ilink">Epiros kralı Pirus</Link> olmuştur.
           </p>
@@ -159,6 +220,25 @@ export default function GreecePage() {
               <p className="gr-sport-desc">{s.desc}</p>
             </div>
           ))}
+        </div>
+
+        <div className="gr-img-pair" style={{ marginTop: 22 }}>
+          <ArticleImage
+            className="gr-img"
+            src="/articles/greece/olimpiya-stadyum.webp"
+            ratio="1600 / 1067"
+            alt="Havadan çekim: iki yanı çimenli toprak setlerle çevrili uzun dikdörtgen antik koşu pisti, çevresi ağaçlık."
+            caption="Olympia’daki stadyumun kendisi: iki ucundaki taş çizgiler arasında tam 192 metre. Yazının başında geçen mesafe burada, hâlâ ölçülebilir hâlde duruyor."
+            credit="dronepicr · CC BY 2.0"
+          />
+          <ArticleImage
+            className="gr-img"
+            src="/articles/greece/panathenaia-kosu.webp"
+            ratio="1600 / 2421"
+            alt="Siyah figürlü antik vazo: birbiri ardına koşan çıplak atletler, uzun adımlarla, kolları savrulmuş hâlde."
+            caption="Koşu sahneli ödül amforası. Bu kap Atina’daki Panathenaia oyunlarına ait — Olympia’nın değil; iki ayrı festival. Yine de antik atletizmin nasıl göründüğüne dair en canlı tanıklardan biri."
+            credit="Wikimedia Commons · kamu malı"
+          />
         </div>
       </section>
 
@@ -260,6 +340,19 @@ export default function GreecePage() {
           margin: 0 auto;
           padding: 36px 16px 60px;
         }
+        /* ArticleImage'ın slate varsayılanları bu krem-mavi paletle çakışıyor. */
+        .gr-img {
+          --ai-caption: #cfc7bd;
+          --ai-credit: #8ba0aa;
+          --ai-border: rgba(126,200,227,0.24);
+          --ai-fill: rgba(126,200,227,0.05);
+          --ai-mark: rgba(232,224,216,0.26);
+        }
+        .gr-img-pair {
+          display: grid; grid-template-columns: repeat(2, 1fr);
+          gap: 18px; align-items: start;
+        }
+        @media (max-width: 700px) { .gr-img-pair { grid-template-columns: 1fr; } }
         .gr-section--narrow { max-width: 680px; }
         .gr-section-title {
           font-size: clamp(1.1rem, 3vw, 1.5rem);

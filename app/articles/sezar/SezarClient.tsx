@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import {
   ArticleShell, ArticleHero, ArticleLede, ArticleSection, CardGrid, HorizontalTimeline, ArticleQuiz, ArticleBibliography, ArticleFooter,
 } from '@/app/components/article/ArticleBlocks';
+import ArticleImage from '@/app/components/article/ArticleImage';
 import { ACCENT, BG, GOLD, InView, WidgetSkeleton, SourceNote } from './ui';
 import {
   RansomSlider, TriumvirateBalance, GaulTollMap, RubiconDecision, RhineBridge, PharsalusLine, NameTree,
@@ -31,6 +32,16 @@ export default function SezarClient() {
       <style>{`
         @keyframes sezar-fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
         @keyframes sezar-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+        /* ArticleImage'ın soğuk slate varsayılanları bu kan+altın paletinde
+           yamalı duruyor → altına bağla (rome'un ro-body'de yaptığının aynısı,
+           burada sınıfla: sarmalayıcı div yerleşimi bozmasın). */
+        .sezar-img {
+          --ai-caption: #cbd5e1;
+          --ai-credit: #9a8558;
+          --ai-border: rgba(217,164,65,0.22);
+          --ai-fill: rgba(217,164,65,0.05);
+          --ai-mark: rgba(217,164,65,0.28);
+        }
       `}</style>
 
       <ArticleHero
@@ -60,6 +71,17 @@ export default function SezarClient() {
         <p className="mt-4 leading-relaxed text-slate-400">
           Sonraki 38 gün, esaret tarihinin en tuhaf günleridir. Genç adam korsanların arasında şiir yazdı, yazdıklarını onlara zorla okudu, beğenmeyenlere “cahil barbar” dedi, uyumak istediğinde susmalarını emretti — ve sustular. Ve neredeyse her gün gülümseyerek aynı şeyi söyledi: serbest kaldığımda geri gelip hepinizi çarmıha gereceğim. Korsanlar kahkahayı bastı. Ne tatlı çocuk.
         </p>
+
+        <ArticleImage
+          className="sezar-img mx-auto max-w-xs"
+          src="/articles/sezar/caesar-tusculum.webp"
+          ratio="1600 / 2466"
+          priority
+          alt="Yaşlı bir adamın gri mermer büstü, dörtte üç profilden: geniş ve çizgili alın, çökük yanaklar, ince dudaklar, geriye taranmış seyrek saç. Yüz idealize edilmemiş, yorgun."
+          caption="Tusculum portresi. Caesar’ın sağlığında yapılmış bir orijinali kopyaladığı düşünülen tek büst — ama “kesin onun yüzü” diyemiyoruz: uzmanlar “olabilir” diyor, elimizdeki de bronz bir aslın mermer kopyası. İki bin yıl sonra, en çok konuşulan adamın suratından bile emin değiliz."
+          credit="Following Hadrian · CC BY-SA 2.0"
+        />
+
         <div className="mt-8">
           <RansomSlider />
         </div>
@@ -110,6 +132,15 @@ export default function SezarClient() {
         <p className="leading-relaxed text-slate-300">
           MÖ 60’ta Caesar, Roma tarihinin en pahalı el sıkışmasını yaptı. Bir masaya üç adam oturdu; üçünün de ihtiyacı olan şeye yalnızca biri sahipti. Anlaşma basitti: üçü birlikte Cumhuriyet’i yönetecekti. Senato’nun haberi bile olmadı.
         </p>
+        <ArticleImage
+          className="sezar-img"
+          src="/articles/sezar/pompeius-bust.webp"
+          ratio="1600 / 1066"
+          alt="Orta yaşlı bir adamın beyaz mermer büstü: yuvarlak dolgun yüz, alnına düşen kısa dalgalı kâkül, küçük gözler, hafifçe yukarı bakıyor."
+          caption="Pompeius Magnus: Caesar’ın ortağı, damadı ve sonunda düşmanı. Bu mermer onun ölümünden yaklaşık yüz yıl sonra, Claudius döneminde yontulmuş bir kopya — yani Tusculum büstünün aksine çağdaş bir portre değil. İkisini yan yana koyarken bunu akılda tutun."
+          credit="Richard Mortel · CC BY 2.0"
+        />
+
         <div className="mt-8">
           <TriumvirateBalance />
         </div>
@@ -126,6 +157,15 @@ export default function SezarClient() {
         <p className="mt-8 leading-relaxed text-slate-400">
           Bu, Roma’nın yükselişindeki en karanlık bölümlerden biridir — ve Cumhuriyet’in kendi generalini denetleyemez hâle geldiğinin ilk açık kanıtı. <Link href="/articles/rome" className="article-ilink">Roma’nın bütün hikâyesini</Link> okursanız, bu sekiz yılın nasıl bir dönüm noktası olduğunu görürsünüz.
         </p>
+
+        <ArticleImage
+          className="sezar-img"
+          src="/articles/sezar/vercingetorix-teslim.webp"
+          ratio="1600 / 1066"
+          alt="Yağlı boya tablo: uzun saçlı, bıyıklı bir savaşçı beyaz atın üstünde, oturan Romalı komutanın önünde silahlarını yere fırlatıyor; arkada Roma askerleri sıralanmış."
+          caption="Vercingetorix silahlarını Caesar’ın ayaklarına bırakıyor — Lionel Royer, 1899. Bu sahne bir belge değil, 19. yüzyıl Fransız millî mitolojisi: attan (o çağda Galya’da bulunmayan bir Percheron) kalkanın biçimine kadar ayrıntılar yanlış, ve Caesar kendi anlatısında bu teatral jestten hiç söz etmez."
+          credit="Lionel Royer · kamu malı"
+        />
       </ArticleSection>
 
       <ArticleSection kicker="SAHNE 3.2" title="Ren Nehri: gereksiz olduğu için etkileyici">
@@ -165,6 +205,15 @@ export default function SezarClient() {
         <p className="leading-relaxed text-slate-300">
           MÖ 49, Ocak. Senato Caesar’a bir ültimatom gönderdi: ordunu dağıt ve tek başına Roma’ya dön. Önündeki matematik acımasızdı. Rubicon, İtalya’nın kuzeyinde önemsiz bir dereydi; üzerinden atlayabilirdiniz. Ama yasal olarak bir çizgiydi: bir general ordusuyla o dereyi geçemezdi. Geçerse artık general değil, düşmandı.
         </p>
+        <ArticleImage
+          className="sezar-img"
+          src="/articles/sezar/rubicon-deresi.webp"
+          ratio="1600 / 1200"
+          alt="Sığ, durgun bir dere; iki yakası yeşil otlar ve ağaçlarla kaplı, arkada alçak bir köprü ve yerleşim görünüyor."
+          caption="Savignano sul Rubicone’de bugün “Rubicone” adını taşıyan dere. “Caesar’ın geçtiği dere” demiyoruz — hangisi olduğu hâlâ tartışmalı ve bu ad buraya 1932’de bir kararnameyle verildi. Makalenin tezine yakışan bir ayrıntı: sahnenin adı bile sonradan konmuş."
+          credit="Sergio Bellavista · CC BY-SA 4.0"
+        />
+
         <div className="mt-8">
           <RubiconDecision />
         </div>
@@ -236,6 +285,15 @@ export default function SezarClient() {
         <p className="leading-relaxed text-slate-300">
           MÖ 44, Şubat. Senato Caesar’a yeni bir unvan verdi: <strong>{LUPERCALIA.title}</strong> — ömür boyu diktatör. {LUPERCALIA.titleNote}
         </p>
+
+        <ArticleImage
+          className="sezar-img"
+          src="/articles/sezar/dictator-perpetuo-sikke.webp"
+          ratio="1600 / 800"
+          alt="Gümüş bir Roma sikkesinin iki yüzü yan yana: solda defne çelenkli yaşlı bir profil ve çevresinde harfler, sağda birbirine dolanmış asa, balta ve el figürleri."
+          caption="Unvan sikkeye vuruldu: CAESAR DICT PERPETVO. Roma’da o güne dek yaşayan hiç kimsenin yüzü paraya basılmamıştı; tanrılar ve ölüler basılırdı. Senato için asıl mesele tacın kendisi değil, herkesin cebinde dolaşan bu yüzdü."
+          credit="Andrew McCabe · CC BY 2.0"
+        />
         <p className="mt-4 leading-relaxed text-slate-300">
           15 Şubat, Lupercalia bayramı. Forum tıklım tıklım. Marcus Antonius elinde bir diadem — kraliyet tacı — ile Caesar’a yaklaştı ve sundu. Caesar reddetti; kalabalık coştu. Kesin olan bu kadar. Ama gerisinde, kaynaklar birbirini hiç tutmuyor:
         </p>
@@ -287,6 +345,25 @@ export default function SezarClient() {
         <p className="mt-4 leading-relaxed text-slate-400">
           {IDES.plutarch}
         </p>
+
+        {/* İki görsel KASITLI olarak yan yana: aynı sahnenin miti ve bugünü. */}
+        <ArticleImage
+          className="sezar-img"
+          src="/articles/sezar/sezarin-olumu.webp"
+          ratio="1600 / 941"
+          alt="Yağlı boya tablo: geniş mermer bir salonun zemininde, sütunun dibinde beyaz togasıyla yatan bir ceset; sağda toga giymiş bir grup adam ellerini kaldırarak salondan çıkıyor."
+          caption="Caesar’ın Ölümü — Jean-Léon Gérôme, 1867. Sinemanın da bildiği versiyon bu: sakin kompozisyon, tek başına yatan kurban, zafer çığlığıyla uzaklaşan suikastçılar. Yukarıdaki yara diyagramı bunun ne kadarının doğru olduğunu gösteriyor."
+          credit="Jean-Léon Gérôme · kamu malı"
+        />
+
+        <ArticleImage
+          className="sezar-img"
+          src="/articles/sezar/cinayet-yeri.webp"
+          ratio="1600 / 901"
+          alt="Modern bir şehrin ortasında, çevresi korkuluklarla ayrılmış arkeolojik alanda alçak taş temel kalıntıları ve otlar."
+          caption="Aynı yer, bugün: Pompeius kuryasının kalıntıları — Caesar’ın öldürüldüğü salonun temeli. Gérôme’un mermer ihtişamının gerçekte geriye bıraktığı şey bu."
+          credit="Luciano Tronati · CC BY-SA 4.0"
+        />
       </ArticleSection>
 
       {/* ══════════ PERDE 7 ══════════ */}
@@ -297,6 +374,15 @@ export default function SezarClient() {
         <div className="mt-6">
           <CardGrid cols={2} items={AFTERMATH.map((a) => ({ icon: a.icon, title: a.title, text: a.text }))} />
         </div>
+        <ArticleImage
+          className="sezar-img mx-auto max-w-md"
+          src="/articles/sezar/eid-mar-sikkesi.webp"
+          ratio="1026 / 963"
+          alt="Gümüş sikkenin iki yüzü: solda sakalsız bir erkek profili, sağda iki hançer arasında konik bir başlık ve altında EID MAR yazısı."
+          caption="Brutus cinayeti parasının üstüne bastırdı: iki hançer, arada azat edilen kölelerin taktığı özgürlük başlığı ve tarih — EID MAR, Mart’ın İdus’u. Cumhuriyeti kurtardıklarına o kadar emindiler ki olayı reklama çevirdiler."
+          credit="Mark Landon · CC BY 4.0"
+        />
+
         <SourceNote>{SUETONIUS_THREE_YEARS}</SourceNote>
         <p className="mt-6 leading-relaxed text-slate-300">
           İç savaş on üç yıl daha sürdü; Actium’da bitti. Kazanan Octavianus, <strong>Augustus</strong> adını aldı ve Roma’nın ilk imparatoru oldu. Cumhuriyet, geri gelmemek üzere gitti.

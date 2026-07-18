@@ -1,0 +1,14 @@
+{
+  "slug": "bagirsak",
+  "note": "Makalenin akışına göre: ikinci beyin (ENS) → vagus → serotonin → mikrobiyom → ilk günler → fare deneyleri → Damasio/sezgi → beslenme. Makalede HİÇ fotoğraf yok; her şey emoji + SVG çizgi sanatı. Soyut bir konu olduğu için mikrograf/molekül/portre karışımı seçildi. PD tercih edildi; ENS, vagus ve Damasio için PD karşılığı yok → CC BY-SA kabul edildi (atıf ArticleImage credit'ine düşer). Reddedilen: Michael Gershon portresi (Commons'ta yok), germ-free/gnotobiyotik izolatör fotoğrafı (yok → jenerik laboratuvar faresi), Gray793 vagus plakası (432×1000, aşırı dar/uzun → şemalı VNS görseli yeğlendi).",
+  "files": [
+    { "title": "File:Myenteric plexus.jpg", "as": "miyenterik-pleksus", "note": "I. İkinci Beyin · enterik sinir sistemi mikrografı (~500 milyon nöronluk ağın kendisi)" },
+    { "title": "File:Vagus nerve stimulation.jpg", "as": "vagus-uyarimi", "note": "III. Vagus Siniri · VNS'in İŞLEYİŞ ŞEMASI — ÇİZİM, cihaz fotoğrafı DEĞİL (Scientific Animations, 2018). Altyazı 'şema/temsilî' demeli; '2005'te onaylanan cihaz' diye yazma — bu görsel o ürünü göstermiyor" },
+    { "title": "File:Serotonin-Spartan-HF-based-on-xtal-3D-balls-web.png", "as": "serotonin-molekul", "note": "IV. Mutluluk Fabrikası · serotoninin %90'ı bağırsakta üretilir" },
+    { "title": "File:E coli at 10000x, original.jpg", "as": "e-coli-mikrograf", "note": "V. Mikrobiyom · ~38 trilyon bakteri; düşük-sıcaklık SEM, SONRADAN renklendirilmiş (gerçek renk değil). Kredi İKİ kişi: fotoğraf Eric Erbe, renklendirme Christopher Pooley (USDA ARS K11077-1) — sadece Erbe yazma. Büyütme ÇELİŞKİLİ: Commons 10.000x diyor, USDA'nın kendi galerisi aynı K-numarası için '~7.000x' diyor → altyazıda sayı vermemek en güvenlisi" },
+    { "title": "File:Illustration of the developmental colonization of gut bacteria.jpg", "as": "bagirsak-kolonizasyon", "note": "VI. Hayatın İlk Günleri · doğumdan itibaren mikrobiyomun yerleşmesi. ÇİZİM (ders kitabı Şekil 3), veri grafiği değil; etiketleri İNGİLİZCE. Kapsam doğum→ilk ~6 AY: '~1000 gün' diye altyazılama, şekil o aralığı göstermiyor" },
+    { "title": "File:Researcher holding a lab mouse - Crimean Federal University - ANDY7392.jpg", "as": "laboratuvar-faresi", "note": "VII. Mikroplar ve Ruh Hali · TEMSİLÎ/jenerik laboratuvar faresi. Commons açıklaması: Kırım Federal Üniversitesi ÖĞRENCİLERİ fare deneyi yapıyor — steril (germ-free) fare DEĞİL, izolatör yok, FMT ile ilgisi yok. Altyazı 'temsilî' demeli" },
+    { "title": "File:Antonio Damasio at Copernicus Festival.jpg", "as": "damasio-portre", "note": "VIII. İçime Doğdu · somatik işaretleyici kuramının mimarı" },
+    { "title": "File:Kefir-insieme.jpg", "as": "kefir-fermente", "note": "XII. İkinci Beynini Beslemek · fermente besin (yoğurt/kefir/turşu) kartı" }
+  ]
+}

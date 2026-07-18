@@ -1,0 +1,14 @@
+{
+  "slug": "sanat-akimlari",
+  "note": "Üçü doğrudan emoji yer-tutucu kapatır (surprises kartları: 🖼️ Monet, 🚽 Duchamp, ⬛ Maleviç); kalan beşi makalenin ADIYLA andığı yapıtlar. Hepsi kamu malı (atıf yükü yok). Maleviç için düz Siyah Kare yerine 0,10 sergisi fotoğrafı seçildi: hem kartın 'kutsal köşeye astı' iddiasını KANITLAR (köşede, tavan hizasında asılı görünüyor), hem de düz siyah kare bu makalenin koyu temasında bozuk görsel gibi okunurdu. Prado/Google Earth'ün 26–30 bin px taramaları elendi (script zaten 1600px'e indiriyor); Horatii'nin Google Art Project sürümü de elendi — 'After Jacques-Louis David' (Girodet kopyası), makale David'in kendi tablosundan söz ediyor.",
+  "files": [
+    { "title": "File:Monet - Impression, Sunrise.jpg", "as": "monet-izlenim", "note": "Şaşırtıcı hikâyeler · 🖼️ 'İzlenimcilik bir hakaretti' kartı — Leroy'un alay ettiği tablonun ta kendisi" },
+    { "title": "File:Marcel Duchamp, 1917, Fountain, photograph by Alfred Stieglitz.jpg", "as": "duchamp-cesme", "note": "Şaşırtıcı hikâyeler · 🚽 'Bir pisuar soruyu değiştirdi' kartı — orijinal kayıp, geriye Stieglitz'in 1917 fotoğrafı kaldı" },
+    { "title": "File:0.10 exhibition, Malevich paintings.jpg", "as": "malevic-siyah-kare", "note": "Şaşırtıcı hikâyeler · ⬛ 'Siyah Kare bir ikonaydı' kartı — 0,10 sergisi (Petrograd 1915); Siyah Kare köşede, ikonanın asıldığı yerde" },
+    { "title": "File:Las Meninas 01.jpg", "as": "las-meninas", "note": "Kâşif · İspanyol Baroğu — 'resmin kendi üzerine düşünmesi'" },
+    { "title": "File:Jacques-Louis David, Le Serment des Horaces.jpg", "as": "horatiuslar-yemini", "note": "Kâşif · Neoklasizm — Devrim'in görsel programını beş yıl önceden yazan tablo (Louvre aslı)" },
+    { "title": "File:El tres de mayo de 1808 en Madrid.jpg", "as": "goya-3-mayis", "note": "Kâşif · Romantizm — 'kahraman yok, kurban var': modern savaş resmi" },
+    { "title": "File:Tsunami by hokusai 19th century.jpg", "as": "hokusai-buyuk-dalga", "note": "Batı-dışı bölümü · ukiyo-e — 1854'te açılınca Avrupa'yı sarsan baskı geleneği" },
+    { "title": "File:Osman Hamdi Bey - The Tortoise Trainer.jpg", "as": "kaplumbaga-terbiyecisi", "note": "Türkiye paragrafı · asker ressamlar / Osman Hamdi Bey" }
+  ]
+}

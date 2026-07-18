@@ -1,0 +1,14 @@
+{
+  "slug": "dunya",
+  "note": "Makalenin akışına göre: güneş bulutsusu → yığışma/demir felaketi → manyetik kalkan → gezegen karşılaştırması → Ay/Theia. Ağırlıklı NASA/ESO kaynağı; 6/8 kamu malı, 2 CC BY / CC BY-SA. PlanetCompare'daki 🟠/🔴 emoji yer-tutucuları için Venüs + Mars küre görselleri.",
+  "files": [
+    { "title": "File:The Blue Marble, AS17-148-22727.jpg", "as": "mavi-bilye", "note": "Giriş · Apollo 17'nin çektiği tam aydınlık Dünya (6750×6750)" },
+    { "title": "File:HL Tau protoplanetary disk.jpg", "as": "gezegenimsi-disk", "note": "Güneş Bulutsusu · ALMA'nın HL Tauri diski — gerçekten gözlenmiş bir gezegen doğumhanesi" },
+    { "title": "File:Hadean.png", "as": "hadeyan-erimis-dunya", "note": "Demir felaketi / Hadeyan · erimiş kaya okyanuslu genç Dünya canlandırması" },
+    { "title": "File:The aurora borealis blankets the Earth (iss072e159172).jpg", "as": "kutup-isiklari", "note": "Manyetik kalkan · ISS'ten kutup ışıkları (kalkanın görünür kanıtı)" },
+    { "title": "File:Venus globe.jpg", "as": "venus-kuresi", "note": "PlanetCompare · Venüs sekmesi (🟠 emojisinin yerine)" },
+    { "title": "File:Mars Valles Marineris EDIT.jpg", "as": "mars-kuresi", "note": "PlanetCompare · Mars sekmesi (🔴 emojisinin yerine)" },
+    { "title": "File:Moon nearside LRO 5000.jpg", "as": "ay-yakin-yuz", "note": "Ay'ın doğuşu · LRO mozaiği, Ay'ın Dünya'ya bakan yüzü" },
+    { "title": "File:Big Bertha sample 14321.jpg", "as": "apollo-ay-kayasi", "note": "Ay kanıtı · Apollo'nun getirdiği Ay kayası (izotopik benzerlik kartı)" }
+  ]
+}

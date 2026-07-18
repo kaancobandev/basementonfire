@@ -1,0 +1,14 @@
+{
+  "slug": "bilgisayar",
+  "note": "Makalenin akışına göre: transistör → CPU → GPU → kristal → DDR → depolama → anakart → kapanış. Makalede HİÇ fotoğraf yok; iki FunFact'te (🕰️ ilk transistör, 🐛 ilk bug) emoji, ünlü fotoğrafın yerine geçiyor — ikisi de kamu malı/CC. CC0 ve kamu malı önceliklendirildi; parça fotoğraflarında yüksek çözünürlük için CC BY/BY-SA kabul edildi (atıf ArticleImage credit ile). .tif/.svg alınmadı.",
+  "files": [
+    { "title": "File:A replica of the first working transistor 02.jpg", "as": "ilk-transistor-replika", "note": "1. CPU · FunFact 🕰️ “İlk transistör 1947'de doğdu” — emoji yer-tutucusunun yerine" },
+    { "title": "File:AMD Ryzen 9 9950X.jpg", "as": "cpu-islemci", "note": "1. CPU · bölüm açılışı: “milyarlarca transistör” tek çipte" },
+    { "title": "File:Gigabyte GeForce RTX 3090 Eagle OC 24G, 24576 MiB GDDR6X Front 20201114 DSC5880.jpg", "as": "gpu-ekran-karti", "note": "2. GPU · “paralel işlem canavarı” — modern ekran kartı" },
+    { "title": "File:ITT Crystal resonator opened.jpg", "as": "kuvars-kristali", "note": "3. Sistem kristali · açılmış kuvars rezonatör; metal kutunun içindeki titreşen disk" },
+    { "title": "File:SK Hynix DDR5 form factors.jpg", "as": "ddr5-bellek", "note": "6. DDR · 3️⃣4️⃣5️⃣ rakam emojilerinin yerine gerçek bellek çubuğu" },
+    { "title": "File:Open hard-drive.jpg", "as": "hdd-ic-yapisi", "note": "7. SSD/HDD · açılmış disk: dönen manyetik plak + okuma kafası (metinde birebir anlatılan)" },
+    { "title": "File:Computer motherboard 6.jpg", "as": "anakart", "note": "8. Anakart · CPU soketi, DIMM ve PCIe yuvaları tek karede (kart ızgarasındaki 🔲📊🎮 emojilerinin karşılığı)" },
+    { "title": "File:First Computer Bug, 1947.jpg", "as": "ilk-bug-guve", "note": "Özet · FunFact 🐛 “Bug neden böcek demek?” — deftere yapıştırılmış gerçek güve; emoji yer-tutucusunun yerine" }
+  ]
+}
