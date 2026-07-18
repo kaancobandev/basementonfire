@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 export default async function EpostaOnayiPage({
   searchParams,
 }: {
-  searchParams: Promise<{ gonderildi?: string; hata?: string }>;
+  searchParams: Promise<{ gonderildi?: string; hata?: string; suresi_doldu?: string }>;
 }) {
   // Onaylayıp giriş yaptıysa burada işi yok.
   const { me } = await getMe();
@@ -30,7 +30,7 @@ export default async function EpostaOnayiPage({
 
   const jar = await cookies();
   const email = jar.get(PENDING_EMAIL_COOKIE)?.value ?? '';
-  const { gonderildi, hata } = await searchParams;
+  const { gonderildi, hata, suresi_doldu } = await searchParams;
 
   return (
     <main
@@ -55,6 +55,14 @@ export default async function EpostaOnayiPage({
           </p>
         </div>
 
+        {/* /auth/confirm doğrulayamadıysa (süresi dolmuş veya kullanılmış
+            bağlantı) kullanıcıyı boş bir hata ekranında bırakmıyoruz —
+            buraya gönderiyoruz, aşağıdaki butonla yenisini isteyebilir. */}
+        {suresi_doldu && (
+          <div role="alert" style={{ background: 'var(--color-danger-soft)', color: 'var(--color-danger)', padding: '10px 14px', borderRadius: '10px', fontSize: '0.85rem', marginBottom: '16px', textAlign: 'center' }}>
+            Onay bağlantısının süresi dolmuş veya daha önce kullanılmış. Aşağıdan yenisini isteyebilirsin.
+          </div>
+        )}
         {gonderildi && (
           <div role="status" style={{ background: 'var(--color-success-soft, rgba(34,197,94,0.12))', color: 'var(--color-success, #16a34a)', padding: '10px 14px', borderRadius: '10px', fontSize: '0.85rem', marginBottom: '16px', textAlign: 'center' }}>
             Onay e-postası yeniden gönderildi.

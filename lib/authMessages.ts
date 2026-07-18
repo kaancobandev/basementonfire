@@ -39,6 +39,9 @@ export const AUTH_MESSAGES: Record<string, string> = {
   eposta_gerekli:  'E-posta gerekli.',
   sifirlama_gonderildi: 'Şifre sıfırlama bağlantısı gönderildi. E-postanı kontrol et.',
 
+  // E-posta onayı
+  onay_gecersiz: 'Onay bağlantısı geçersiz. E-postandaki bağlantıya tekrar tıkla.',
+
   // Genel
   bilinmeyen:   'Bir şeyler ters gitti. Lütfen tekrar dene.',
 };

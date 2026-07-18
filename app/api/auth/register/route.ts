@@ -61,10 +61,18 @@ export async function POST(req: NextRequest) {
 
   // birthdate'i auth metadata'ya DA yaz: public.users satırı trigger ile oluşuyor;
   // aşağıdaki update'i (yarış nedeniyle) yakalayamazsak bile yaş beyanı auth tarafında kalır.
+  // emailRedirectTo → onay bağlantısı /auth/confirm'e insin (sunucu tarafı
+  // doğrulama). Varsayılanda token'lar URL fragment'ında geliyor, fragment
+  // sunucuya ulaşmadığı için oturum HİÇ kurulmuyordu. Bkz. app/auth/confirm.
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || new URL(req.url).origin).replace(/\/$/, '');
+
   const { data, error } = await client.auth.signUp({
     email,
     password,
-    options: { data: { username: uname, birthdate } },
+    options: {
+      data: { username: uname, birthdate },
+      emailRedirectTo: `${siteUrl}/auth/confirm`,
+    },
   });
 
   // Supabase hatası HAM geçirilmez: İngilizce olurdu ve /register?error= içeriği
