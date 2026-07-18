@@ -82,11 +82,20 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
   const [followedUsers, setFollowedUsers] = useState<Set<string>>(new Set());
 
   // Sonsuz kaydırma — birleşik feed
+  // ── Akış sekmesi: Herkes | Takip Ettiklerin.
+  // follows tablosu baştan beri vardı ama akışta hiç kullanılmıyordu → "takip et"
+  // butonunun akışa etkisi yoktu. SSR ilk içerik HER ZAMAN küresel (paylaşımlı
+  // önbellek bozulmasın); 'following' seçiliyse istemci mount'ta değiştirir.
+  const [tab, setTab] = useState<'all' | 'following'>('all');
+  const [tabEmpty, setTabEmpty] = useState<string | null>(null);
+  const [tabLoading, setTabLoading] = useState(false);
+  const allSnapshot = useRef<{ items: any[]; cursor: string | null; hasMore: boolean } | null>(null);
+
   const loadMore = useCallback(async () => {
     if (loadingMore || !hasMore || !nextCursor) return;
     setLoadingMore(true);
     try {
-      const res = await fetch(`/api/feed?type=mixed&cursor=${encodeURIComponent(nextCursor)}&limit=10`);
+      const res = await fetch(`/api/feed?type=${tab === 'following' ? 'following' : 'mixed'}&cursor=${encodeURIComponent(nextCursor)}&limit=10`);
       const data = await res.json();
       if (data.posts?.length) {
         setFeedItems(prev => {
@@ -105,7 +114,44 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
     } finally {
       setLoadingMore(false);
     }
-  }, [loadingMore, hasMore, nextCursor]);
+  }, [loadingMore, hasMore, nextCursor, tab]);
+
+  // Sekme değişimi: 'all' anlık geri döner (SSR anlık görüntüsü saklanır),
+  // 'following' ilk açılışta API'den çekilir. Boş sonuçta ŞEFFAF davranış:
+  // küresel akışa sessizce düşmek yerine durumu söyleyip seçenek sunuyoruz.
+  const switchTab = useCallback(async (next: 'all' | 'following') => {
+    if (next === tab) return;
+    if (next === 'all') {
+      const snap = allSnapshot.current;
+      setTab('all'); setTabEmpty(null);
+      if (snap) { setFeedItems(snap.items); setNextCursor(snap.cursor); setHasMore(snap.hasMore); }
+      try { localStorage.setItem('feedTab', 'all'); } catch {}
+      return;
+    }
+    allSnapshot.current = { items: feedItems, cursor: nextCursor, hasMore };
+    setTab('following'); setTabLoading(true); setTabEmpty(null);
+    try { localStorage.setItem('feedTab', 'following'); } catch {}
+    try {
+      const res = await fetch('/api/feed?type=following&limit=10');
+      const data = await res.json();
+      setFeedItems(data.posts ?? []);
+      setNextCursor(data.nextCursor ?? null);
+      setHasMore(!!data.hasMore);
+      setTabEmpty((data.posts ?? []).length === 0 ? (data.empty ?? 'none') : null);
+    } catch {
+      setTabEmpty('none');
+    } finally {
+      setTabLoading(false);
+    }
+  }, [tab, feedItems, nextCursor, hasMore]);
+
+  // Son seçilen sekmeyi hatırla (girişli kullanıcı için).
+  useEffect(() => {
+    if (!currentUser) return;
+    try { if (localStorage.getItem('feedTab') === 'following') switchTab('following'); } catch {}
+    // yalnız mount'ta: switchTab bağımlılığı kasten dışarıda (tek seferlik geri yükleme)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -322,6 +368,28 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
             Giriş yapmışta hero yok, standart sayfa başlığı görünür. */}
         {currentUser && <div className="feed-header">Ana Sayfa</div>}
 
+        {/* Akış sekmeleri — yalnız girişli kullanıcıya (takip grafiği olmayanda anlamsız) */}
+        {currentUser && (
+          <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)' }}>
+            {([['all', 'Herkes'], ['following', 'Takip Ettiklerin']] as const).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => switchTab(key)}
+                style={{
+                  flex: 1, padding: '11px 8px', background: 'none', border: 'none', cursor: 'pointer',
+                  fontFamily: 'inherit', fontSize: '0.88rem',
+                  fontWeight: tab === key ? 800 : 600,
+                  color: tab === key ? 'var(--color-text)' : 'var(--color-text-muted)',
+                  borderBottom: tab === key ? '2px solid var(--color-primary)' : '2px solid transparent',
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Story bar */}
         <div className="story-bar" style={{ display: 'flex', gap: '12px', overflowX: 'auto', padding: '12px 16px', borderBottom: '1px solid var(--color-border)', scrollbarWidth: 'none' }}>
           {currentUser && (
@@ -382,7 +450,31 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
         )}
 
         {/* Feed */}
-        {feedItems.length === 0 ? (
+        {tabLoading ? (
+          <div style={{ textAlign: 'center', padding: '64px 0', color: 'var(--color-text-muted)' }}>Yükleniyor…</div>
+        ) : tabEmpty ? (
+          // Takip akışı boş — ŞEFFAF geri düşüş: küresel akışa sessizce dönmek
+          // yerine durumu söyleyip seçeneği kullanıcıya bırakıyoruz.
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: '56px 24px', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+            <span style={{ fontSize: '2.2rem' }}>👋</span>
+            <p style={{ margin: 0, fontWeight: 700, color: 'var(--color-text)' }}>
+              {tabEmpty === 'no-follows' ? 'Henüz kimseyi takip etmiyorsun' : 'Takip ettiklerinden yeni içerik yok'}
+            </p>
+            <p style={{ margin: 0, fontSize: '0.86rem', maxWidth: 320, lineHeight: 1.5 }}>
+              {tabEmpty === 'no-follows'
+                ? 'Birilerini takip et, akışın onların paylaşımlarıyla dolsun.'
+                : 'Takip ettiklerin bir süredir paylaşmamış. Herkes sekmesinde yeni içerikler var.'}
+            </p>
+            <div style={{ display: 'flex', gap: 10, marginTop: 4, flexWrap: 'wrap', justifyContent: 'center' }}>
+              <button type="button" onClick={() => switchTab('all')} style={{ padding: '8px 16px', borderRadius: 9999, border: 'none', background: 'var(--color-primary)', color: '#fff', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'inherit' }}>
+                Herkes akışına dön
+              </button>
+              <Link href="/discover" style={{ padding: '8px 16px', borderRadius: 9999, border: '1px solid var(--color-border)', color: 'var(--color-text)', fontWeight: 700, fontSize: '0.85rem', textDecoration: 'none' }}>
+                Kullanıcı keşfet
+              </Link>
+            </div>
+          </div>
+        ) : feedItems.length === 0 ? (
           <>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', padding: '64px 0', color: 'var(--color-text-muted)' }}>
               <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>

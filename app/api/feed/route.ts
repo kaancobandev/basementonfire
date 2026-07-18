@@ -30,9 +30,22 @@ export async function GET(req: Request) {
     return !u?.is_private && !blocked.has(r.user_id);
   };
 
-  if (type === 'mixed') {
+  if (type === 'mixed' || type === 'following') {
     // Ana sayfa: quick_facts + text posts birleşik
     const since = cursor ?? null;
+
+    // 'following' dalı: yalnız takip edilenlerin içeriği. follows tablosu
+    // baştan beri vardı ama akışta HİÇ kullanılmıyordu — "takip et" butonunun
+    // akışa etkisi yoktu. Takip yoksa boş liste döner (empty:'no-follows' ile
+    // istemci şeffaf geri düşüş kartını gösterir), küresel akışa SESSİZCE
+    // düşülmez: kullanıcı hangi akışı gördüğünü bilmeli.
+    let followingIds: number[] = [];
+    if (type === 'following') {
+      if (!me) return NextResponse.json({ posts: [], nextCursor: null, hasMore: false, empty: 'anon' });
+      const { data: fl } = await db.from('follows').select('following_id').eq('follower_id', me.id);
+      followingIds = (fl ?? []).map((f: any) => f.following_id);
+      if (!followingIds.length) return NextResponse.json({ posts: [], nextCursor: null, hasMore: false, empty: 'no-follows' });
+    }
 
     // Cursor'ı DB'ye it. Eskiden yalnızca bellekte filtreleniyordu: her istek
     // en yeni 2×limit satırı çekip cursor'dan yenilerini eliyordu → sonuç hep
@@ -46,6 +59,14 @@ export async function GET(req: Request) {
       .select('*, users!posts_user_id_fkey(display_name, username, avatar, is_private)')
       .order('created_at', { ascending: false })
       .limit(limit * 2);
+
+    // NOT: gizli hesap filtresi ('following' dalında da) AYNEN uygulanır —
+    // gizli hesabı takip etmek zaten 403 (follow route: onay akışı gelene kadar
+    // reddediliyor), dolayısıyla eski/artık kayıtlar dışında kayıp içerik yok.
+    if (followingIds.length) {
+      factsQ = factsQ.in('user_id', followingIds);
+      postsQ = postsQ.in('user_id', followingIds);
+    }
 
     if (since) {
       factsQ = factsQ.lt('created_at', since);
