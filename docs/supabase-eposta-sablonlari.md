@@ -43,8 +43,28 @@ Hazır şablon (konu: `Basements hesabını onayla`):
 </p>
 ```
 
-**Kontrol:** Authentication → URL Configuration → Site URL
-`https://basementonfire.com` olmalı. (`{{ .SiteURL }}` oradan gelir.)
+## ⚠️ Site URL — en sık yapılan hata burada
+
+Authentication → **URL Configuration → Site URL** kutusunda **yalnızca** şu
+olmalı, başka hiçbir karakter olmadan:
+
+```
+https://basementonfire.com
+```
+
+Parantez, açıklama, sondaki `/` — hiçbiri olmayacak.
+
+**Neden bu kadar önemli:** şablondaki `{{ .SiteURL }}` bu kutunun değerini
+aynen alır. Kutuya fazladan bir şey karışırsa bağlantının TAMAMI bozulur ve
+kullanıcı "geçersiz url" uyarısı görür. Belirtisi şudur: mailin bağlantısında
+`{{ .SiteURL }}` yazısı düz metin olarak görünür, ama `token_hash` doğru gelir.
+O tabloyu görürsen şablonu değil, BU KUTUYU düzelt.
+
+(2026-07-18'de tam olarak bu yaşandı: kutuya bu dokümandan kopyalanan bir
+açıklama satırı yapışmıştı.)
+
+**Redirect URLs** listesinde de `https://basementonfire.com/**` bulunmalı;
+bu tüm yolları kapsar, ayrıca `/auth/confirm` eklemeye gerek yoktur.
 
 **Test:** Yeni hesapla kayıt ol → maildeki butona tıkla → doğrudan akışa
 girişli düşmelisin. Adres çubuğunda `#access_token=` görürsen şablon
