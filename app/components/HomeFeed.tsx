@@ -30,6 +30,7 @@ interface Props {
   likedFactIds: number[];
   likedPostIds: number[];
   repostedFactIds: number[];
+  likedDykIds?: number[];
   suggestedUsers: SuggestedUser[];
   currentUser: { id: number; username: string; display_name: string; avatar: string | null } | null;
   /** Eşleştirme 18+ — sunucuda hesaplanır (ham doğum tarihi istemciye sızmasın). */
@@ -63,7 +64,7 @@ const HeartEmpty = () => (
   </svg>
 );
 
-export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedPostIds, repostedFactIds, suggestedUsers, currentUser, canMatch, ownStoryUser, otherStoryUsers }: Props) {
+export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedPostIds, repostedFactIds, likedDykIds = [], suggestedUsers, currentUser, canMatch, ownStoryUser, otherStoryUsers }: Props) {
   // Feed items + infinite scroll
   const [feedItems, setFeedItems] = useState<any[]>(initialItems);
   const [nextCursor, setNextCursor] = useState<string | null>(
@@ -404,7 +405,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: Math.min(index * 0.07, 0.5), ease: 'easeOut' }}
                   >
-                    <DidYouKnowCard item={item} />
+                    <DidYouKnowCard item={item} initialLiked={likedDykIds.includes(item.id)} loggedIn={!!currentUser} />
                   </m.div>
                 );
               }

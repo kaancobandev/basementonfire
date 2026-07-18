@@ -8,6 +8,8 @@ interface NotifPayload {
   type: NotifType;
   postId?: number;
   commentId?: number;
+  /** Bilgi kartı beğenisi — notifications.dyk_id (migration 2026-07-19). */
+  dykId?: number;
 }
 
 export async function createNotification(p: NotifPayload) {
@@ -47,6 +49,36 @@ export async function createNotification(p: NotifPayload) {
         actor_id: p.actorId,
         type: 'like',
         post_id: p.postId,
+        is_read: false,
+      });
+    }
+    return;
+  }
+
+  // Bilgi kartı beğenisi — post_id'li beğeniyle aynı tazeleme deseni
+  // (tekrar beğeni yeni satır değil, mevcut satırı okunmadıya döndürür).
+  // dyk_id kolonu henüz yoksa insert sessizce düşer (özellik SQL'e kadar uykuda).
+  if (p.type === 'like' && p.dykId) {
+    const { data: existing } = await db
+      .from('notifications')
+      .select('id')
+      .eq('user_id', p.userId)
+      .eq('actor_id', p.actorId)
+      .eq('dyk_id', p.dykId)
+      .eq('type', 'like')
+      .maybeSingle();
+
+    if (existing) {
+      await db
+        .from('notifications')
+        .update({ is_read: false, created_at: new Date().toISOString() })
+        .eq('id', existing.id);
+    } else {
+      await db.from('notifications').insert({
+        user_id: p.userId,
+        actor_id: p.actorId,
+        type: 'like',
+        dyk_id: p.dykId,
         is_read: false,
       });
     }

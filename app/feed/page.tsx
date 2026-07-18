@@ -51,19 +51,41 @@ const getHomeContent = unstable_cache(
 const getDidYouKnow = unstable_cache(
   async (): Promise<DidYouKnow[]> => {
     try {
-      const { data, error } = await db
+      // Zengin seçim: yazar imzası (FK canlıda mevcut) + beğeni sayısı.
+      // dyk_likes tablosu henüz yoksa (SQL çalışmadıysa) embed hata verir →
+      // beğenisiz seçime geri düş (upload route'unun media fallback deseni).
+      const COLS = 'id, title, body, source_url, source_label, article_slug, image_url, created_at, user_id, users!did_you_know_user_id_fkey(username, display_name, avatar, is_private, is_deleted)';
+      let res: { data: any[] | null; error: unknown } = await db
         .from('did_you_know')
-        .select('id, title, body, source_url, source_label, article_slug, image_url, created_at')
+        .select(`${COLS}, dyk_likes(count)`)
         .eq('active', true)
         .order('created_at', { ascending: false })
         .limit(8);
-      if (error) return [];
-      return (data ?? []) as DidYouKnow[];
+      if (res.error) {
+        res = await db
+          .from('did_you_know')
+          .select(COLS)
+          .eq('active', true)
+          .order('created_at', { ascending: false })
+          .limit(8);
+      }
+      if (res.error) return [];
+      return ((res.data ?? []) as any[]).map((r) => {
+        const u = r.users;
+        // Gizli/silinmiş hesabın kimliği küresel yüzeyde gösterilmez — kart
+        // (baştan beri olduğu gibi) kalır, imza anonimleşir.
+        const author = u && !u.is_private && !u.is_deleted
+          ? { username: u.username as string, display_name: u.display_name as string, avatar: (u.avatar ?? null) as string | null }
+          : null;
+        const likes = Array.isArray(r.dyk_likes) && r.dyk_likes[0] ? Number(r.dyk_likes[0].count) || 0 : 0;
+        const { users: _u, dyk_likes: _l, user_id: _uid, ...rest } = r;
+        return { ...rest, author, likes } as DidYouKnow;
+      });
     } catch {
       return [];
     }
   },
-  ['did-you-know-v1'],
+  ['did-you-know-v2'],
   { revalidate: 60, tags: ['feed'] },
 );
 
@@ -151,22 +173,27 @@ export default async function FeedPage() {
   let likedFactIds: number[] = [];
   let likedPostIds: number[] = [];
   let repostedFactIds: number[] = [];
+  let likedDykIds: number[] = [];
   let suggestedUsers: SuggestedUser[] = [];
   if (me) {
     // Beğeni/repost durumu (içerik listesine bağlı) ile önerilen kullanıcılar
     // (yalnız me.id'ye bağlı) birbirinden BAĞIMSIZ — eskiden ardışıktı, artık
     // paralel; öneriler ayrıca 5 dk önbellekli (cache-hit'te 0 sorgu).
-    const [[fr, pr, rr], suggested] = await Promise.all([
+    const dykIds = dyks.map(d => d.id);
+    const [[fr, pr, rr, dl], suggested] = await Promise.all([
       Promise.all([
         facts.length ? db.from('fact_likes').select('fact_id').eq('user_id', me.id).in('fact_id', facts.map(f => f.id)) : { data: [] },
         posts.length ? db.from('post_likes').select('post_id').eq('user_id', me.id).in('post_id', posts.map(p => p.id)) : { data: [] },
         facts.length ? db.from('fact_reposts').select('fact_id').eq('user_id', me.id).in('fact_id', facts.map(f => f.id)) : { data: [] },
+        // dyk_likes tablosu yoksa error döner, data null kalır → boş liste (defansif).
+        dykIds.length ? db.from('dyk_likes').select('dyk_id').eq('user_id', me.id).in('dyk_id', dykIds) : { data: [] },
       ]),
       getSuggestedUsers(me.id),
     ]);
     likedFactIds = (fr.data ?? []).map((r: any) => r.fact_id);
     likedPostIds = (pr.data ?? []).map((r: any) => r.post_id);
     repostedFactIds = (rr.data ?? []).map((r: any) => r.fact_id);
+    likedDykIds = ((dl as any).data ?? []).map((r: any) => r.dyk_id);
     suggestedUsers = suggested;
   }
 
@@ -193,6 +220,7 @@ export default async function FeedPage() {
       likedFactIds={likedFactIds}
       likedPostIds={likedPostIds}
       repostedFactIds={repostedFactIds}
+      likedDykIds={likedDykIds}
       suggestedUsers={suggestedUsers}
       currentUser={me ? { id: me.id, username: me.username, display_name: me.display_name, avatar: me.avatar ?? null } : null}
       canMatch={isAtLeast(me?.birthdate, MATCH_MIN_AGE)}

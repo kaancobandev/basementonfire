@@ -60,6 +60,10 @@ export type DidYouKnow = {
   article_slug: string | null;
   image_url: string | null;
   created_at: string;
+  // İmza + beğeni (2026-07-19): yazar gizli/silinmiş hesapsa null gelir
+  // (küresel yüzeyde kimlik sızdırma yok); likes dyk_likes tablosu yokken 0.
+  author?: { username: string; display_name: string; avatar: string | null } | null;
+  likes?: number;
 };
 
 // Gunun sorusu / XP / seri ilerlemesi (user_progress tablosu)
