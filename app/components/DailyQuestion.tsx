@@ -210,7 +210,10 @@ export default function DailyQuestion() {
                     Konuyu oku →
                   </Link>
                 )}
-                <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginLeft: st.articleSlug ? 0 : 'auto' }}>Yarın yeni bir soru 🔁</span>
+                <Link href="/lig" prefetch={false} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-primary)', textDecoration: 'none' }}>
+                  🏆 Ligde yerini gör →
+                </Link>
+                <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginLeft: 'auto' }}>Yarın yeni bir soru 🔁</span>
               </div>
 
               {progress && (
