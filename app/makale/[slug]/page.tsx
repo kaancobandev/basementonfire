@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { db, getMe, isAdmin } from '@/lib/supabase/server';
 import { breadcrumbJsonLd, jsonLdScript } from '@/lib/seo';
 import { sanitizeArticleHtml } from '@/lib/articleSanitize';
-import { type ArticleBlock, ARTICLE_GOOGLE_FONTS_HREF } from '@/lib/userArticles';
+import { type ArticleBlock, articleGoogleFontsHref } from '@/lib/userArticles';
 import Img from '@/app/components/Img';
 import ArticleEmbed from '@/app/components/ArticleEmbed';
 
@@ -64,6 +64,8 @@ export default async function UserArticlePage({ params }: { params: Promise<{ sl
   const author = a.users;
   const authorName = author?.display_name || author?.username || 'Kullanıcı';
   const blocks = Array.isArray(a.doc) ? a.doc : [];
+  // Yalnızca bu makalede geçen font aileleri (yoksa null → hiç istek atılmaz).
+  const fontsHref = articleGoogleFontsHref(a.doc);
   const sources = Array.isArray(a.sources) ? a.sources : [];
 
   const jsonLd = a.status === 'approved' ? {
@@ -88,8 +90,10 @@ export default async function UserArticlePage({ params }: { params: Promise<{ sl
 
   return (
     <main className="main-content ua-view">
-      {/* Yazarın seçtiği fontlar (yalnızca kullanılanlar indirilir, display=swap) */}
-      <link rel="stylesheet" href={ARTICLE_GOOGLE_FONTS_HREF} />
+      {/* Yalnızca BU makalenin kullandığı font aileleri. Eskiden 18 ailenin
+          tamamını isteyen stylesheet yükleniyordu; hiç web fontu kullanmayan
+          makalelerde artık hiç istek atılmıyor (fontsHref null döner). */}
+      {fontsHref && <link rel="stylesheet" href={fontsHref} />}
       {jsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />}
       {breadcrumbLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbLd) }} />}
 

@@ -73,28 +73,59 @@ export const FONT_OPTIONS: { label: string; value: string }[] = [
 ];
 
 // Yukaridaki fontlarin web-font surumleri (Georgia/Times sistem fontu; yuklenmez).
-// Tek bir CSS istegi -> woff2 yalnizca kullanilan fontlar icin (lazy).
-export const ARTICLE_GOOGLE_FONTS_HREF =
-  'https://fonts.googleapis.com/css2?' + [
-    'Inter:wght@400;600;700',
-    'Roboto:wght@400;700',
-    'Open+Sans:wght@400;700',
-    'Lato:wght@400;700',
-    'Montserrat:wght@400;700',
-    'Poppins:wght@400;600;700',
-    'Nunito:wght@400;700',
-    'Raleway:wght@400;700',
-    'Manrope:wght@400;600;700',
-    'Space+Grotesk:wght@400;500;700',
-    'Quicksand:wght@400;700',
-    'Oswald:wght@400;700',
-    'Playfair+Display:wght@400;700',
-    'Merriweather:wght@400;700',
-    'Lora:wght@400;700',
-    'Roboto+Slab:wght@400;700',
-    'Fira+Code:wght@400;700',
-    'Space+Mono:wght@400;700',
-  ].map((f) => 'family=' + f).join('&') + '&display=swap';
+// TEK KAYNAK: hem editorun tam listesi hem goruntuleyicinin daraltilmis listesi
+// buradan turetilir. Anahtar = font-family'de gecen aile adi.
+const GOOGLE_FONT_SPECS: Record<string, string> = {
+  'Inter':            'Inter:wght@400;600;700',
+  'Roboto Slab':      'Roboto+Slab:wght@400;700',   // 'Roboto'dan ONCE: bkz. eslesme notu
+  'Roboto':           'Roboto:wght@400;700',
+  'Open Sans':        'Open+Sans:wght@400;700',
+  'Lato':             'Lato:wght@400;700',
+  'Montserrat':       'Montserrat:wght@400;700',
+  'Poppins':          'Poppins:wght@400;600;700',
+  'Nunito':           'Nunito:wght@400;700',
+  'Raleway':          'Raleway:wght@400;700',
+  'Manrope':          'Manrope:wght@400;600;700',
+  'Space Grotesk':    'Space+Grotesk:wght@400;500;700',
+  'Quicksand':        'Quicksand:wght@400;700',
+  'Oswald':           'Oswald:wght@400;700',
+  'Playfair Display': 'Playfair+Display:wght@400;700',
+  'Merriweather':     'Merriweather:wght@400;700',
+  'Lora':             'Lora:wght@400;700',
+  'Fira Code':        'Fira+Code:wght@400;700',
+  'Space Mono':       'Space+Mono:wght@400;700',
+};
+
+const fontsHref = (specs: string[]) =>
+  'https://fonts.googleapis.com/css2?' + specs.map((f) => 'family=' + f).join('&') + '&display=swap';
+
+/** EDITOR icin: 18 ailenin hepsi. Font secici her secenegi KENDI fontuyla
+ *  gosteriyor (ArticleEditor.tsx), yani hepsi gercekten gerekli. */
+export const ARTICLE_GOOGLE_FONTS_HREF = fontsHref(Object.values(GOOGLE_FONT_SPECS));
+
+/**
+ * GORUNTULEYICI icin: yalnizca bu makalenin GERCEKTEN kullandigi aileler.
+ *
+ * Neden: /makale/[slug] 18 ailenin tamamini isteyen bir stylesheet yukluyordu,
+ * oysa bir makale genelde 1-2 tanesini kullaniyor. woff2 dosyalari zaten tembel
+ * (unicode-range) — OLCULDU, goruntuleme sayfasinda inen font dosyasi SIFIR —
+ * yani bu bir bant genisligi sorunu DEGILDI. Kazanc baska yerde: cok daha kucuk
+ * CSS, ~200 yerine bir avuc @font-face kuralinin ayristirilmasi, ve CSP
+ * raporlarinda yuzlerce satirlik gurultunun kaybolmasi.
+ *
+ * ESLESME: doc'un tamami metin olarak taranir ve aile adi geciyorsa dahil
+ * edilir. Fazladan dahil etmek ZARARSIZ (woff2 yine inmez); eksik birakmak
+ * makaleyi fontsuz gosterir. O yuzden kasitli olarak GENIS davraniyoruz:
+ * makale metninde tesadufen "Lora" gecse o aile de istenir, sorun olmaz.
+ * 'Roboto Slab' haritada 'Roboto'dan once geliyor ki uzun ad once eslessin.
+ */
+export function articleGoogleFontsHref(doc: unknown): string | null {
+  const hay = typeof doc === 'string' ? doc : JSON.stringify(doc ?? '');
+  const used = Object.entries(GOOGLE_FONT_SPECS)
+    .filter(([name]) => hay.includes(name))
+    .map(([, spec]) => spec);
+  return used.length ? fontsHref(used) : null;
+}
 
 // Editor renk paletleri (metin rengi + vurgu). Deger olarak hex kullanilir;
 // sanitize-html hex/rgb/hsl/isimli renkleri kabul eder.
