@@ -20,9 +20,16 @@ const getHomeContent = unstable_cache(
   async () => {
     // Üç sorgu da birbirinden bağımsız → tek Promise.all (stories eskiden
     // arkadan seri geliyordu; cache-miss başına 1 tur eksildi).
+    // Anket seçenekleri (post_polls) gönderiyle birlikte gelir — herkese aynı
+    // veri, paylaşılan önbellekte kalabilir; SAYIMLAR ve kendi oyun istemciden
+    // çekilir (kişiye özel). Tablo yoksa embed'siz sorguya düşülür.
+    let postsRes = await db.from('posts').select('*, users!posts_user_id_fkey(display_name, username, avatar, is_private), post_polls(options)').order('created_at', { ascending: false }).limit(60);
+    if (postsRes.error) {
+      postsRes = await db.from('posts').select('*, users!posts_user_id_fkey(display_name, username, avatar, is_private)').order('created_at', { ascending: false }).limit(60) as any;
+    }
     const [{ data: rawFacts, error: factsErr }, { data: rawPosts, error: postsErr }, { data: storiesRaw, error: storiesErr }] = await Promise.all([
       db.from('quick_facts').select('*, users!quick_facts_user_id_fkey(display_name, username, avatar, is_private), comments(count)').order('created_at', { ascending: false }).limit(60),
-      db.from('posts').select('*, users!posts_user_id_fkey(display_name, username, avatar, is_private)').order('created_at', { ascending: false }).limit(60),
+      Promise.resolve(postsRes),
       db.from('stories')
         .select('id, media_url, media_type, created_at, user_id, users(id, username, display_name, avatar, is_private)')
         .gt('expires_at', new Date().toISOString())

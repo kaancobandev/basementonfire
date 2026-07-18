@@ -12,6 +12,8 @@ import Caption from './Caption';
 import Logo from './Logo';
 import DailyQuestion from './DailyQuestion';
 import DidYouKnowCard from './DidYouKnowCard';
+import PostPoll from './PostPoll';
+import FeedComposer from './FeedComposer';
 import ReportButton from './ReportButton';
 import { uploadToStorage } from '@/lib/upload';
 import { LazyMotion, m, AnimatePresence } from 'framer-motion';
@@ -449,6 +451,17 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
         </Link>
         )}
 
+        {/* Hızlı besteci — metin + isteğe bağlı anket (medyalı gönderi /gonderi-olustur'da) */}
+        {currentUser && (
+          <FeedComposer
+            currentUser={currentUser}
+            onPosted={(post) => {
+              setFeedItems(prev => [post, ...prev]);
+              setTabEmpty(null);
+            }}
+          />
+        )}
+
         {/* Feed */}
         {tabLoading ? (
           <div style={{ textAlign: 'center', padding: '64px 0', color: 'var(--color-text-muted)' }}>Yükleniyor…</div>
@@ -606,7 +619,12 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                     <ReportButton targetType="post" targetId={item.id} subtitle={`@${item.username} gönderisi`} size={32} canReport={!!currentUser && currentUser.id !== item.user_id} />
                   </div>
                   <div style={{ padding: '12px 16px 4px', fontSize: '0.95rem', lineHeight: 1.6, color: 'var(--color-text)', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                    <Caption text={item.content} clamp />
+                    {item.content && <Caption text={item.content} clamp />}
+                    {/* Anket (post_polls) — sayımlar istemciden çekilir, feed'in
+                        paylaşılan önbelleği kişiselleşmez. */}
+                    {Array.isArray(item.poll) && item.poll.length >= 2 && (
+                      <PostPoll postId={item.id} options={item.poll} />
+                    )}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 10px 12px' }}>
                     <m.button

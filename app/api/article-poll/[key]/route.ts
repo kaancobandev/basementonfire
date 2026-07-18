@@ -2,7 +2,7 @@ import crypto from 'node:crypto';
 import { NextResponse, type NextRequest } from 'next/server';
 import { db, getMe } from '@/lib/supabase/server';
 import { clientIp } from '@/lib/geo';
-import { POLLS, isPollKey, isPollChoice } from '@/lib/polls';
+import { POLLS, isPollKey, isPollChoice, postIdFromPollKey } from '@/lib/polls';
 
 // Makale içi karar noktası oylaması (ilk kullanan: /articles/sezar → Rubicon).
 // Giriş GEREKTİRMEZ: okur bir seçim yapar, dağılımı görür.
@@ -31,9 +31,24 @@ function voterHash(req: NextRequest, pollKey: string): string {
   return crypto.createHash('sha256').update(`${ip}|${ua}|${day}|${pollKey}|${salt}`).digest('hex').slice(0, 32);
 }
 
-/** Seçenek başına sayım. Seçenekler registry'den gelir → istemci veriyle oynayamaz. */
-async function tally(pollKey: string): Promise<{ counts: Record<string, number>; total: number }> {
-  const choices = POLLS[pollKey];
+/**
+ * Bu anahtarın geçerli seçenekleri. İki kaynak:
+ *  - makale karar noktaları → lib/polls.ts registry'si (kodda sabit),
+ *  - kullanıcı anketleri ('post-<id>') → post_polls tablosu; oy olarak İNDEKS
+ *    saklandığından seçenekler '0'..'n-1'dir (metin DB'ye oy olarak girmez).
+ * Her iki durumda da istemciden gelen serbest metin asla doğrulamayı geçemez.
+ */
+async function pollChoices(pollKey: string): Promise<readonly string[] | null> {
+  if (isPollKey(pollKey)) return POLLS[pollKey];
+  const postId = postIdFromPollKey(pollKey);
+  if (postId === null) return null;
+  const { data, error } = await db.from('post_polls').select('options').eq('post_id', postId).maybeSingle();
+  if (error || !data || !Array.isArray(data.options)) return null;
+  return data.options.map((_: unknown, i: number) => String(i));
+}
+
+/** Seçenek başına sayım. Seçenekler doğrulanmış kümeden gelir → istemci veriyle oynayamaz. */
+async function tally(pollKey: string, choices: readonly string[]): Promise<{ counts: Record<string, number>; total: number }> {
   const rows = await Promise.all(
     choices.map(async (c) => {
       const { count, error } = await db
@@ -53,12 +68,13 @@ async function tally(pollKey: string): Promise<{ counts: Record<string, number>;
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ key: string }> }) {
   const { key } = await params;
-  if (!isPollKey(key)) return json({ available: false });
+  const choices = await pollChoices(key);
+  if (!choices) return json({ available: false });
   try {
     // `mine` gerçek (head'siz) bir select → tablo yoksa hatayı GÜVENİLİR yüzeye
     // çıkarır (head:true count'un aksine); tally de null count'a karşı korumalı.
     const [{ counts, total }, { data: mine, error: mineErr }] = await Promise.all([
-      tally(key),
+      tally(key, choices),
       db
         .from('article_poll_votes')
         .select('choice')
@@ -75,7 +91,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ key:
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ key: string }> }) {
   const { key } = await params;
-  if (!isPollKey(key)) return json({ available: false });
+  const choices = await pollChoices(key);
+  if (!choices) return json({ available: false });
 
   let choice = '';
   try {
@@ -84,7 +101,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ key
   } catch {
     return json({ error: 'Geçersiz istek' }, 400);
   }
-  if (!isPollChoice(key, choice)) return json({ error: 'Geçersiz seçim' }, 400);
+  // Makale registry'sinde isPollChoice, kullanıcı anketinde indeks kümesi.
+  const valid = isPollKey(key) ? isPollChoice(key, choice) : choices.includes(choice);
+  if (!valid) return json({ error: 'Geçersiz seçim' }, 400);
 
   try {
     const hash = voterHash(req, key);
@@ -115,7 +134,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ key
       mine = prev?.choice ?? choice;
     }
 
-    const { counts, total } = await tally(key);
+    const { counts, total } = await tally(key, choices);
     return json({ available: true, counts, total, mine, alreadyVoted: !!error });
   } catch {
     return json({ available: false });

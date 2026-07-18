@@ -1,5 +1,6 @@
 export type Post = {
   id: number;
+  user_id?: number;
   content: string;
   image_url: string | null;
   category: string;
@@ -9,6 +10,8 @@ export type Post = {
   display_name: string;
   username: string;
   avatar: string;
+  /** Anket seçenekleri (post_polls). Anketsiz gönderide null/undefined. */
+  poll?: string[] | null;
 };
 
 // w/h: yükleme anında ölçülen piksel boyutları (CLS önlemi — oran SSR'da
@@ -82,6 +85,9 @@ export function flattenPosts(rows: any[]): Post[] {
     display_name: r.users?.display_name ?? '',
     username: r.users?.username ?? '',
     avatar: r.users?.avatar ?? '/avatars/default.png',
+    // Anket seçenekleri gömülü gelir (post_polls(options)); sorguda seçilmediyse
+    // ya da tablo yoksa undefined kalır → kart anketsiz çizilir.
+    poll: Array.isArray(r.post_polls) ? (r.post_polls[0]?.options ?? null) : (r.post_polls?.options ?? null),
   }));
 }
 

@@ -52,6 +52,21 @@ create table if not exists public.article_quiz_answers (
 );
 alter table public.article_quiz_answers enable row level security;
 
+-- ── 5) GÖNDERİ ANKETLERİ (post_polls) ─────────────────────────────────────
+-- Oylar GENEL article_poll_votes tablosunda tutulur (poll_key='post-<id>',
+-- choice = seçenek İNDEKSİ) — çerezsiz anonim oy + çift oy koruması kanıtlanmış.
+-- Bu tablo yalnız seçenek METİNLERİNİ taşır.
+-- NOT: eski polls/poll_options/poll_votes üçlüsü ve cast_poll_vote RPC'si canlı
+-- DB'de HİÇ YOKTU (ölçüldü, 2026-07-19) ve hiçbir UI onları çağırmıyordu;
+-- o ölü yol koddan kaldırıldı, yeniden oluşturulmasına gerek yok.
+create table if not exists public.post_polls (
+  post_id    bigint primary key references public.posts(id) on delete cascade,
+  options    jsonb not null,
+  created_at timestamptz default now() not null
+);
+alter table public.post_polls enable row level security;
+
+
 -- Örnek sorular: dogal-secilim makalesinin GÖMÜLÜ quiz'inden (widgets.tsx) taşındı.
 -- Diğer makaleler için aynı biçimde satır ekleyebilirsin; article_slug lib/articles.ts
 -- registry'sindeki slug ile birebir aynı olmalı, makale başına ilk 3 aktif soru gösterilir.
