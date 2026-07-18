@@ -26,6 +26,9 @@ export type QuickFact = {
   display_name: string;
   username: string;
   avatar?: string;
+  /** Yorum sayısı. Sorguda `comments(count)` gömülü seçildiyse dolu gelir;
+   *  seçilmediği yüzeylerde undefined kalır (sayaç gizlenir, kart bozulmaz). */
+  comments_count?: number;
 };
 
 export type DbUser = {
@@ -84,6 +87,11 @@ export function flattenFacts(rows: any[]): QuickFact[] {
     display_name: r.users?.display_name ?? '',
     username: r.users?.username ?? '',
     avatar: r.users?.avatar ?? null,
+    // PostgREST gömülü toplam sayımı `comments: [{ count: N }]` biçiminde
+    // döner (sorguda `comments(count)` seçilmişse). Tek sorguda gelir —
+    // gönderi başına ayrı sayım atmak N+1 olurdu.
+    // Seçilmediyse undefined kalır ve kartta sayaç gösterilmez.
+    comments_count: Array.isArray(r.comments) ? (r.comments[0]?.count ?? 0) : undefined,
   }));
 }
 

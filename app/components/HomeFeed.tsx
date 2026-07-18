@@ -453,8 +453,13 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                           yalnızca bu bağlantıydı. /p/[id] akıştan tıklanınca
                           modal olarak açılır (paralel rota) ve yorumları gösterir.
                           aria-label/title: ikon-only buton erişilebilir isimsizdi. */}
-                      <Link href={`/p/${item.id}`} aria-label="Yorumlar" title="Yorumlar" style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '6px 8px', borderRadius: '9999px', color: 'var(--color-text)', textDecoration: 'none', transition: 'background 0.12s' }}>
+                      <Link href={`/p/${item.id}`} aria-label={`Yorumlar${typeof item.comments_count === 'number' ? ` (${item.comments_count})` : ''}`} title="Yorumlar" style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', borderRadius: '9999px', color: 'var(--color-text)', fontWeight: 600, fontSize: '0.9rem', textDecoration: 'none', transition: 'background 0.12s' }}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        {/* Sorguda comments(count) seçilmeyen yüzeylerde undefined
+                            gelir → sayaç hiç basılmaz, kart bozulmaz. */}
+                        {typeof item.comments_count === 'number' && (
+                          <span className="tnum">{item.comments_count}</span>
+                        )}
                       </Link>
                       <m.button
                         onClick={() => toggleRepost(item.id)}

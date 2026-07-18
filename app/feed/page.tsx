@@ -19,7 +19,7 @@ export const dynamic = 'force-dynamic';
 const getHomeContent = unstable_cache(
   async () => {
     const [{ data: rawFacts, error: factsErr }, { data: rawPosts, error: postsErr }] = await Promise.all([
-      db.from('quick_facts').select('*, users!quick_facts_user_id_fkey(display_name, username, avatar, is_private)').order('created_at', { ascending: false }).limit(60),
+      db.from('quick_facts').select('*, users!quick_facts_user_id_fkey(display_name, username, avatar, is_private), comments(count)').order('created_at', { ascending: false }).limit(60),
       db.from('posts').select('*, users!posts_user_id_fkey(display_name, username, avatar, is_private)').order('created_at', { ascending: false }).limit(60),
     ]);
     logIfError('feed quick_facts', factsErr);

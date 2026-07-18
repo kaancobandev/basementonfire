@@ -35,7 +35,7 @@ export async function GET(req: Request) {
     // boş kalıyor, `hasMore=false` dönüyordu. Yani 50. öğeden eskisine sonsuz
     // kaydırmayla ULAŞILAMIYORDU ve her deneme aynı satırları boşuna indiriyordu.
     let factsQ = db.from('quick_facts')
-      .select('*, users!quick_facts_user_id_fkey(display_name, username, avatar, is_private)')
+      .select('*, users!quick_facts_user_id_fkey(display_name, username, avatar, is_private), comments(count)')
       .order('created_at', { ascending: false })
       .limit(limit * 2);
     let postsQ = db.from('posts')
@@ -101,7 +101,7 @@ export async function GET(req: Request) {
     .from('quick_facts')
     // is_private ŞART: yukarıdaki `visible()` bu kolona bakıyor. Seçilmediğinde
     // filtre sessizce herkesi geçiriyordu (gizli hesaplar /akis'ta sızıyordu).
-    .select('*, users!quick_facts_user_id_fkey(display_name, username, avatar, is_private)')
+    .select('*, users!quick_facts_user_id_fkey(display_name, username, avatar, is_private), comments(count)')
     .order('created_at', { ascending: false })
     .order('id', { ascending: false })
     .limit(limit * 2 + 1); // gizli-hesap filtresinden sonra sayfa dolsun diye tampon
