@@ -75,10 +75,21 @@ const CSP_REPORT_ONLY = [
   "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://cdnjs.cloudflare.com",
   // 39 dosyada <style>, 1878 yerde style={{}} → nonce stil ÖZNİTELİĞİNE
   // uygulanamaz, 'unsafe-inline' burada da zorunlu. Riski script'in çok altında.
-  "style-src 'self' 'unsafe-inline'",
+  // fonts.googleapis: KULLANICI MAKALELERİ (bkz. font-src notu).
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "img-src 'self' data: blob: https://*.supabase.co https://*.giphy.com https://i.ytimg.com",
   "media-src 'self' blob: https://*.supabase.co",
-  "font-src 'self' data:",
+  // fonts.gstatic: kullanıcı makaleleri yazara 19 Google Font seçeneği sunuyor
+  // (lib/userArticles.ts → ARTICLE_GOOGLE_FONTS_HREF) ve stylesheet hem editörde
+  // hem /makale/[slug] görüntüleyicisinde yükleniyor. Rapor modu bunu yakaladı:
+  // izin verilmeseydi zorunlu kılındığı an tüm kullanıcı makaleleri fontsuz kalırdı.
+  //
+  // NOT: konsolda yüzlerce font ihlali görünür ama bu İNDİRME DEĞİLDİR — ölçüldü,
+  // görüntüleme sayfasında indirilen font dosyası sayısı SIFIR. Tarayıcı
+  // @font-face kurallarını işlerken bildirilen her URL'i politikayla karşılaştırıp
+  // raporluyor; woff2'ler unicode-range sayesinde yalnızca gerçekten kullanılınca
+  // iniyor. Yani performans sorunu yok, yalnızca izin listesi eksikti.
+  "font-src 'self' data: https://fonts.gstatic.com",
   "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://*.giphy.com",
   "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://open.spotify.com",
   "worker-src 'self' blob:",
