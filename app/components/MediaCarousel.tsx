@@ -156,6 +156,9 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
   // dalı erken `return` ediyor, oraya konsaydı koşullu hook çağrısı olur ve
   // tek/çok görselli gönderiler arasında geçişte React patlardı.
   const drag = useRef({ x: 0, scroll: 0, from: 0, active: false });
+  // Geçişten sonra CSS yapışmasını geri açan zamanlayıcı (aynı sebeple burada).
+  const snapBack = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (snapBack.current) clearTimeout(snapBack.current); }, []);
 
   const { visuals, audio } = splitMedia(media);
 
@@ -262,6 +265,13 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
   function onTouchStart(e: React.TouchEvent) {
     // clientWidth 0 iken (henuz yerlesmemis kapsayici) bolme NaN uretirdi.
     const t = trackRef.current; if (!t || !t.clientWidth) return;
+    // CSS yapışmasını GEÇİCİ kapat. Neden: onTouchMove'da scrollLeft'i doğrudan
+    // yazıyoruz; `scroll-snap-type: mandatory` her yazmayı "kaydırma bitti"
+    // sayıp ANINDA en yakın noktaya yapışıyor ve bırakınca çalıştırdığımız
+    // yumuşak geçişi eziyordu → hızlı kaydırmada görsel keskin/animasyonsuz
+    // atlıyordu. Masaüstü trackpad'i için yapışma gerekli, o yüzden siliyoruz
+    // değil, geçişten sonra geri açıyoruz.
+    t.style.scrollSnapType = 'none';
     drag.current = {
       x: e.touches[0].clientX,
       scroll: t.scrollLeft,
@@ -286,6 +296,17 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
     // Karar saf fonksiyonda (lib/swipe.ts) — orada testi var: parmak ne kadar
     // sürüklenirse sürüklensin hedef en fazla 1 slayt uzaklaşır.
     go(swipeTarget(drag.current.from, dx, t.clientWidth, visuals.length));
+
+    // Yumuşak geçiş bittikten sonra yapışmayı geri aç (masaüstü trackpad için).
+    // Yeni bir dokunuş gelirse onTouchStart onu tekrar kapatır, çakışma olmaz.
+    // 600ms: tarayıcının yumuşak kaydırması tipik olarak ~300ms sürer; yavaş
+    // cihazda erken geri açmak animasyonun ortasında ani yapışmaya yol açardı.
+    // Geç açmanın maliyeti yok (dokunmatik cihazda yapışmaya zaten gerek yok).
+    if (snapBack.current) clearTimeout(snapBack.current);
+    snapBack.current = setTimeout(() => {
+      const el = trackRef.current;
+      if (el && !drag.current.active) el.style.scrollSnapType = 'x mandatory';
+    }, 600);
   }
 
   const containerStyle: React.CSSProperties = variant === 'feed'
