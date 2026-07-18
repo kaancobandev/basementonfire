@@ -15,7 +15,11 @@ export async function GET(req: Request) {
 
   const { me } = await getMe();
   // Engellediğim + beni engelleyen kullanıcıların içeriği akışta gösterilmez.
-  const blocked = me ? await getBlockedUserIds(me.id) : new Set<number>();
+  // Engel listesi yalnız SONUÇLARI filtrelemek için gerekli, sorguları kurmak
+  // için değil → içerik sorgularıyla PARALEL çözülür (sonsuz kaydırmanın her
+  // sayfasından 1 seri tur eksildi). `visible` çağrılmadan önce atanır.
+  const blockedP: Promise<Set<number>> = me ? getBlockedUserIds(me.id) : Promise.resolve(new Set<number>());
+  let blocked = new Set<number>();
   // `is_private` embed'de SEÇİLMEMİŞSE `undefined` gelir ve `!undefined === true`
   // olduğu için filtre sessizce HERKESİ geçirir — facts dalında tam bu oldu ve
   // gizli hesapların gönderileri sonsuz kaydırmaya sızdı. Embed var ama kolon
@@ -48,7 +52,8 @@ export async function GET(req: Request) {
       postsQ = postsQ.lt('created_at', since);
     }
 
-    const [factsRes, postsRes] = await Promise.all([factsQ, postsQ]);
+    const [factsRes, postsRes, blockedSet] = await Promise.all([factsQ, postsQ, blockedP]);
+    blocked = blockedSet;
     logIfError('feed mixed quick_facts', factsRes.error);
     logIfError('feed mixed posts', postsRes.error);
 
@@ -108,7 +113,8 @@ export async function GET(req: Request) {
 
   if (cursor) query = query.lt('id', cursor);
 
-  const { data: raw, error } = await query;
+  const [{ data: raw, error }, blockedSet] = await Promise.all([query, blockedP]);
+  blocked = blockedSet;
   logIfError('feed quick_facts', error);
   // Gizli hesapların ve engelli kullanıcıların gönderileri akışta gösterilmez.
   const all     = flattenFacts((raw ?? []).filter(visible));

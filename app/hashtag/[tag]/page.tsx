@@ -1,11 +1,24 @@
 import type { Metadata } from 'next';
 import { unstable_cache } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { db, getMe, logIfError } from '@/lib/supabase/server';
+import { db, logIfError } from '@/lib/supabase/server';
 import { breadcrumbJsonLd, jsonLdScript } from '@/lib/seo';
 import HashtagClient from './HashtagClient';
 
-export const dynamic = 'force-dynamic';
+// ESKİDEN force-dynamic'ti — tek sebebi getMe()'nin ürettiği meId'ydi ve o da
+// yalnız istemci-taraflı bir UI kararıydı (ReportButton). meId artık istemcide
+// NavUserContext'ten geliyor → sayfa ISR. Sitemap'teki 2.000 etiket URL'inin
+// her crawler ziyareti fonksiyon çalıştırıyordu; artık CDN'den dönüyor.
+// (Path parametresi query değil → Netlify'ın "sorguyu yok sayar" tuzağına girmez.)
+export const revalidate = 60;
+
+// Build'de hiçbir etiket üretilmez (build DB'ye bağımlı kalmaz, 6 deploy/gün
+// uzamaz); her etiket İLK istekte üretilip ISR ile saklanır. Bu tanım OLMADAN
+// Next dinamik segmenti düz SSR sayıyor (ölçüldü: private,no-store dönüyordu) —
+// boş dizi ISR makinesini açar (dynamicParams varsayılanı true).
+export async function generateStaticParams(): Promise<{ tag: string }[]> {
+  return [];
+}
 
 const SITE = 'https://basementonfire.com';
 
@@ -123,11 +136,7 @@ export default async function HashtagPage({ params }: { params: Promise<{ tag: s
 
   if (!normalizedTag) redirect('/');
 
-  // Paylaşılan içerik (60sn cache) ile oturum okuması birbirinden bağımsız → paralel
-  const [{ posts, related }, { me }] = await Promise.all([
-    getHashtagContent(normalizedTag),
-    getMe(),
-  ]);
+  const { posts, related } = await getHashtagContent(normalizedTag);
 
   const breadcrumbLd = breadcrumbJsonLd([
     { name: 'Ana Sayfa', path: '/' },
@@ -165,7 +174,7 @@ export default async function HashtagPage({ params }: { params: Promise<{ tag: s
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(collectionLd) }} />
-      <HashtagClient tag={normalizedTag} posts={posts} related={related} meId={me?.id ?? null} />
+      <HashtagClient tag={normalizedTag} posts={posts} related={related} />
     </>
   );
 }

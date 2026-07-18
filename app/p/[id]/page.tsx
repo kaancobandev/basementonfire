@@ -44,7 +44,9 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
   const postId = Number(id);
   if (!postId) notFound();
 
-  const { me } = await getMe();
+  // getMe ile gönderi sorgusu bağımsız → paralel. getPost React cache()'li olduğu
+  // için getPostDetail içindeki ikinci çağrı bedava (sorgu tekrarlanmaz).
+  const [{ me }] = await Promise.all([getMe(), getPost(postId)]);
   const detail = await getPostDetail(postId, me?.id ?? null);
   if (!detail) notFound();
 

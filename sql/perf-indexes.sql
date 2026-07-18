@@ -55,7 +55,11 @@ create index if not exists idx_follows_follower_following on public.follows (fol
 create index if not exists idx_follows_following          on public.follows (following_id);
 
 -- ── 8) YORUMLAR ───────────────────────────────────────────────────────────
-create index if not exists idx_comments_post on public.comments (post_id, created_at);
+-- DİKKAT (2026-07-18): eskiden bu satır `idx_comments_post` adını kullanıyordu
+-- ama canlı DB'de aynı İSİMLE dar bir (post_id) index'i zaten vardı →
+-- `if not exists` yüzünden bileşik sürüm hiç oluşmamıştı. Yeni ad + eski dar
+-- index'in kaldırılması sql/perf-2026-07-18.sql'de.
+create index if not exists idx_comments_post_created on public.comments (post_id, created_at);
 
 
 -- ── 9) HASHTAG / MÜZİK (özellik tabloları — yoksa to_regclass ile atlanır) ─

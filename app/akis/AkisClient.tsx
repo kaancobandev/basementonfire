@@ -3,7 +3,6 @@
 import Img from '@/app/components/Img';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useSearchParams } from 'next/navigation';
 import type { QuickFact } from '@/lib/types';
 import { factMediaList } from '@/lib/types';
 import { MultiBadge, AudioThumb, MusicBadge } from '@/app/components/MediaCarousel';
@@ -12,23 +11,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { celebrate } from '@/lib/confetti';
 import { uploadToStorage, measureMediaDims } from '@/lib/upload';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
-import { useIsMobile } from '@/lib/useIsMobile';
 import dynamic from 'next/dynamic';
 
 const ImageCropper = dynamic(() => import('@/app/components/ImageCropper'), { ssr: false });
-
-interface CurrentUser { id: number; username: string; display_name: string; }
 
 interface Props {
   initialPosts: QuickFact[];
   initialNextCursor: number | null;
   initialHasMore: boolean;
-  currentUser: CurrentUser | null;
 }
 
-export default function AkisClient({ initialPosts, initialNextCursor, initialHasMore, currentUser }: Props) {
-  const searchParams = useSearchParams();
-  const isMobile = useIsMobile();
+export default function AkisClient({ initialPosts, initialNextCursor, initialHasMore }: Props) {
   const [posts, setPosts] = useState<QuickFact[]>(initialPosts);
   const [nextCursor, setNextCursor] = useState<number | null>(initialNextCursor);
   const [hasMore, setHasMore] = useState(initialHasMore);
@@ -49,10 +42,14 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [gridRef] = useAutoAnimate<HTMLDivElement>();
 
-  // Open upload modal from ?create=1
+  // ?create=1 → yükleme modalını aç. useSearchParams DEĞİL: o kanca statik
+  // prerender'da Suspense zorunluluğu doğurup client tree'yi istemciye kaydırır
+  // (discover'daki dersin aynısı) — sayfa artık ISR, URL mount'ta okunur.
   useEffect(() => {
-    if (searchParams.get('create') === '1') setUploadOpen(true);
-  }, [searchParams]);
+    try {
+      if (new URLSearchParams(window.location.search).get('create') === '1') setUploadOpen(true);
+    } catch {}
+  }, []);
 
   // Infinite scroll
   const loadMore = useCallback(async () => {
@@ -201,7 +198,10 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
             <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>İlk gönderini paylaşmak için "Yeni Paylaş" butonuna bas.</p>
           </div>
         ) : (
-          <div ref={gridRef} style={{ display: 'grid', gridTemplateColumns: `repeat(${isMobile ? 3 : 4}, 1fr)`, gap: 2, padding: 2 }}>
+          // Sütun sayısı CSS media query'de (globals.css .akis-grid): useIsMobile
+          // başlangıçta false döndüğünden mobil SSR önce 4 sütun basıp hydration
+          // sonrası 3'e zıplıyordu (görünür reflow). CSS ile ilk kare doğru.
+          <div ref={gridRef} className="akis-grid">
             {posts.map(post => (
               <Link
                 key={post.id}

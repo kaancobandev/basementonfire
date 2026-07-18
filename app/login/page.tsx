@@ -1,15 +1,11 @@
-import { redirect } from 'next/navigation';
-import { getMe } from '@/lib/supabase/server';
 import LoginForm from './LoginForm';
-import { authMessage } from '@/lib/authMessages';
+import AuthErrorNotice from '@/app/components/AuthErrorNotice';
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
-  const { me } = await getMe();
-  if (me) redirect('/');
-
-  const { error } = await searchParams;
-  const message = authMessage(error);
-
+// ESKİDEN dinamikti: getMe()+redirect ÖLÜ koddu (middleware.ts girişli
+// kullanıcıyı /login'e ulaşmadan /feed'e yönlendiriyor) ve ?error= sunucuda
+// okunuyordu. Hata kutusu istemciye taşındı (AuthErrorNotice) → sayfa statik;
+// ilk ziyaretçinin ilk temas noktası deploy sonrası soğuk fonksiyon beklemez.
+export default function LoginPage() {
   return (
     <main className="main-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--color-bg)' }}>
       <div style={{ background: 'var(--color-surface)', borderRadius: '20px', padding: '40px', width: '100%', maxWidth: '420px', boxShadow: 'var(--shadow-md)' }}>
@@ -18,24 +14,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <div style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Hesabına giriş yap</div>
         </div>
 
-        {/* URL'de yalnızca KOD taşınır; metin lib/authMessages.ts'ten gelir.
-            Eskiden `?error=` içeriği doğrudan basılıyordu → saldırgan istediği
-            metni sitenin kendi hata kutusunda gösterebiliyordu. */}
-        {message && (
-          <div role="alert" style={{ background: 'var(--color-danger-soft)', color: 'var(--color-danger)', padding: '10px 14px', borderRadius: '10px', fontSize: '0.85rem', marginBottom: '16px' }}>
-            {message}
-            {/* Onaysız hesap giriş yapamaz. Kullanıcının burada SIKIŞMASININ
-                sebebi buydu: hatayı görüyor ama ne yapacağını bilmiyordu. */}
-            {error === 'onaysiz' && (
-              <>
-                {' '}
-                <a href="/eposta-onayi" style={{ color: 'var(--color-danger)', fontWeight: 700, textDecoration: 'underline' }}>
-                  Onay e-postasını yeniden gönder
-                </a>
-              </>
-            )}
-          </div>
-        )}
+        <AuthErrorNotice />
 
         <LoginForm />
 

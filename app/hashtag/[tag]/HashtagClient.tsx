@@ -10,6 +10,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Caption from '@/app/components/Caption';
 import ReportButton from '@/app/components/ReportButton';
+import { useNavUser } from '@/app/components/NavUserContext';
 
 interface Post {
   id: number; user_id: number; media_url: string; media_type: string;
@@ -18,9 +19,12 @@ interface Post {
   media?: { url: string; type: 'image' | 'video' }[] | null;
 }
 
-interface Props { tag: string; posts: Post[]; related?: { tag: string; count: number }[]; meId?: number | null; }
+interface Props { tag: string; posts: Post[]; related?: { tag: string; count: number }[]; }
 
-export default function HashtagClient({ tag, posts, related = [], meId = null }: Props) {
+export default function HashtagClient({ tag, posts, related = [] }: Props) {
+  // Sayfa ISR (paylaşılan HTML) — kimlik sunucudan gelmez, AppShell'in nav-state
+  // sonucundan (NavUserContext) okunur. Yalnız ReportButton görünürlüğü için.
+  const meId = useNavUser()?.id ?? null;
   const isMobile = useIsMobile();
   const [selected, setSelected] = useState<Post | null>(null);
 

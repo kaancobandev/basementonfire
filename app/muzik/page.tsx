@@ -1,9 +1,12 @@
 import type { Metadata } from 'next';
 import { unstable_cache } from 'next/cache';
-import { db, getMe, logIfError } from '@/lib/supabase/server';
+import { db, logIfError } from '@/lib/supabase/server';
 import MuzikClient from './MuzikClient';
 
-export const dynamic = 'force-dynamic';
+// ESKİDEN force-dynamic'ti — tek sebebi getMe()'nin ürettiği currentUserId'ydi
+// ve o da yalnız istemci UI görünürlüğü içindi (ekle/sil butonları). Kimlik
+// artık istemcide NavUserContext'ten geliyor → sayfa ISR, CDN'den döner.
+export const revalidate = 120;
 
 // Müzik listeleri PAYLAŞILAN (topluluğun paylaştığı son müzikler) — kişiye özel
 // değil, sık değişmez → 120sn önbellek.
@@ -34,8 +37,6 @@ export const metadata: Metadata = {
 };
 
 export default async function MuzikPage() {
-  const { me } = await getMe();
-
   // Paylaşılan müzik içeriği önbellekten gelir (120sn).
   const { sp: spRaw, yt: ytRaw } = await getMusic();
 
@@ -66,7 +67,6 @@ export default async function MuzikPage() {
     <MuzikClient
       spotifyItems={spotifyItems}
       youtubeItems={youtubeItems}
-      currentUserId={me?.id ?? null}
     />
   );
 }

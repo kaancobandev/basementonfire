@@ -10,13 +10,9 @@ const ImageCropper = dynamic(() => import('@/app/components/ImageCropper'), { ss
 
 const MAX_MEDIA = 20;
 
-interface Props {
-  error: string | null;
-}
-
 type Item = { id: number; file: File; url: string; type: 'image' | 'video' | 'audio' };
 
-export default function GonderiForm({ error: initialError }: Props) {
+export default function GonderiForm() {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
   const audioRef = useRef<HTMLInputElement>(null);
@@ -29,7 +25,7 @@ export default function GonderiForm({ error: initialError }: Props) {
   const [caption, setCaption] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
-  const [error, setError] = useState(initialError ?? '');
+  const [error, setError] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const [shake, setShake] = useState(false);
 

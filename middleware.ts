@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { AUTH_COOKIE_OPTIONS } from '@/lib/supabase/cookieOptions';
 
-const PROTECTED = ['/profile', '/settings', '/messages', '/notifications', '/bookmarks', '/gonderi-olustur'];
+const PROTECTED = ['/profile', '/settings', '/messages', '/notifications', '/bookmarks', '/gonderi-olustur', '/bilgi-karti'];
 
 // Oturum çerezindeki access token'ın süresinin dolmak üzere olup olmadığını AĞ
 // ÇAĞRISI YAPMADAN anlar. @supabase/ssr oturumu "base64-<base64url(JSON)>"

@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import Link from 'next/link';
 import Img from '@/app/components/Img';
 import { avatarSrc } from '@/lib/avatar';
+import { useNavUser } from '@/app/components/NavUserContext';
 
 interface SpotifyItem {
   id: number; playlist_id: string; title: string; created_at: string;
@@ -17,7 +18,6 @@ interface YouTubeItem {
 interface Props {
   spotifyItems: SpotifyItem[];
   youtubeItems: YouTubeItem[];
-  currentUserId: number | null;
 }
 
 function timeAgo(d: string) {
@@ -60,7 +60,10 @@ const cardStyle: React.CSSProperties = {
   overflow: 'hidden',
 };
 
-export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: initialYt, currentUserId }: Props) {
+export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: initialYt }: Props) {
+  // Sayfa ISR (paylaşılan HTML) — kimlik NavUserContext'ten. Yalnız ekle/sil
+  // butonlarının görünürlüğü için; asıl yetki kontrolü API'larda (sunucuda).
+  const currentUserId = useNavUser()?.id ?? null;
   const [tab, setTab] = useState<'spotify' | 'youtube'>('spotify');
   const [spItems, setSpItems] = useState(initialSp);
   const [ytItems, setYtItems] = useState(initialYt);

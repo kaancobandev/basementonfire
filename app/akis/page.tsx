@@ -1,10 +1,14 @@
 import type { Metadata } from 'next';
 import { unstable_cache } from 'next/cache';
-import { db, getMe, logIfError } from '@/lib/supabase/server';
+import { db, logIfError } from '@/lib/supabase/server';
 import { flattenFacts, type QuickFact } from '@/lib/types';
 import AkisClient from './AkisClient';
 
-export const dynamic = 'force-dynamic';
+// ESKİDEN force-dynamic'ti — tek sebebi getMe()'ydi ve ürettiği currentUser
+// prop'u AkisClient'ta HİÇ kullanılmıyordu (ölü prop). İçerik zaten paylaşımlı
+// (aşağıdaki unstable_cache) → sayfa ISR: her ziyaretçi fonksiyon yerine
+// CDN'den alır, 30sn'de bir arka planda tazelenir.
+export const revalidate = 30;
 
 // İlk sayfa feed'i PAYLAŞILAN (en yeni gönderiler, kişiye özel değil) → 30sn
 // önbellek. Kendi yeni gönderini akış istemcisi zaten optimistik gösterir;
@@ -38,8 +42,6 @@ export const metadata: Metadata = {
 };
 
 export default async function AkisPage() {
-  const { me } = await getMe();
-
   const PAGE_SIZE = 12;
   const raw = await getInitialFeed(PAGE_SIZE + 1);
 
@@ -53,7 +55,6 @@ export default async function AkisPage() {
       initialPosts={posts}
       initialNextCursor={initialNextCursor}
       initialHasMore={hasMore}
-      currentUser={me ? { id: me.id, username: me.username, display_name: me.display_name } : null}
     />
   );
 }

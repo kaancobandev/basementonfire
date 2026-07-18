@@ -18,20 +18,21 @@ export const dynamic = 'force-dynamic';
 // canlı kalır. Kendi yeni gönderin akış istemcisinde optimistik görünür.
 const getHomeContent = unstable_cache(
   async () => {
-    const [{ data: rawFacts, error: factsErr }, { data: rawPosts, error: postsErr }] = await Promise.all([
+    // Üç sorgu da birbirinden bağımsız → tek Promise.all (stories eskiden
+    // arkadan seri geliyordu; cache-miss başına 1 tur eksildi).
+    const [{ data: rawFacts, error: factsErr }, { data: rawPosts, error: postsErr }, { data: storiesRaw, error: storiesErr }] = await Promise.all([
       db.from('quick_facts').select('*, users!quick_facts_user_id_fkey(display_name, username, avatar, is_private), comments(count)').order('created_at', { ascending: false }).limit(60),
       db.from('posts').select('*, users!posts_user_id_fkey(display_name, username, avatar, is_private)').order('created_at', { ascending: false }).limit(60),
+      db.from('stories')
+        .select('id, media_url, media_type, created_at, user_id, users(id, username, display_name, avatar, is_private)')
+        .gt('expires_at', new Date().toISOString())
+        .order('created_at', { ascending: false })
+        // Büyüme sigortası: şerit zaten en yeni hikâyeleri gösterir; 24 saatte 100+
+        // aktif hikâye olursa en eskiler düşer (limitsiz hali tüm tabloyu çekiyordu).
+        .limit(100),
     ]);
     logIfError('feed quick_facts', factsErr);
     logIfError('feed posts', postsErr);
-    const { data: storiesRaw, error: storiesErr } = await db
-      .from('stories')
-      .select('id, media_url, media_type, created_at, user_id, users(id, username, display_name, avatar, is_private)')
-      .gt('expires_at', new Date().toISOString())
-      .order('created_at', { ascending: false })
-      // Büyüme sigortası: şerit zaten en yeni hikâyeleri gösterir; 24 saatte 100+
-      // aktif hikâye olursa en eskiler düşer (limitsiz hali tüm tabloyu çekiyordu).
-      .limit(100);
     logIfError('feed stories', storiesErr);
     // Gizli hesapların içeriği küresel ana akışta/story şeridinde gösterilmez (is_private truthy=gizli).
     const pub = (r: any) => !r.users?.is_private;
@@ -66,63 +67,17 @@ const getDidYouKnow = unstable_cache(
   { revalidate: 60, tags: ['feed'] },
 );
 
-// Kişiye özel akış → arama motoruna kapalı (ana sayfa landing'i indekslenir).
-export const metadata: Metadata = {
-  title: 'Akışın',
-  description: 'Basements akışın: en yeni gönderiler, hikâyeler, günün sorusu ve bilgi kartları.',
-  alternates: { canonical: '/feed' },
-  robots: { index: false, follow: true },
-};
+type SuggestedUser = { id: number; username: string; display_name: string; bio: string | null; avatar: string | null; mutual_count: number };
 
-export default async function FeedPage() {
-  const { me } = await getMe();
-
-  // Paylaşılan feed içeriği önbellekten (30sn); kişiye özel değil.
-  const [{ rawFacts, rawPosts, storiesRaw }, dyks] = await Promise.all([
-    getHomeContent(),
-    getDidYouKnow(),
-  ]);
-
-  const facts: QuickFact[] = flattenFacts(rawFacts ?? []);
-  const posts: Post[] = flattenPosts(rawPosts ?? []);
-
-  type FeedItem = (QuickFact & { kind: 'fact' }) | (Post & { kind: 'post' }) | (DidYouKnow & { kind: 'dyk' });
-  const baseItems: FeedItem[] = [
-    ...facts.map(f => ({ ...f, kind: 'fact' as const })),
-    ...posts.map(p => ({ ...p, kind: 'post' as const })),
-  ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 50);
-
-  // Bilgi kartlarini her 4 gönderide bir serpiştir. SON öğeyi DEĞİŞTİRME:
-  // sonsuz kaydırma imleci son fact/post'un created_at'ine bağlı (dyk imleç bozar).
-  const feedItems: FeedItem[] = [];
-  let dykIdx = 0;
-  for (let i = 0; i < baseItems.length; i++) {
-    feedItems.push(baseItems[i]);
-    if ((i + 1) % 4 === 0 && i < baseItems.length - 1 && dykIdx < dyks.length) {
-      feedItems.push({ ...dyks[dykIdx++], kind: 'dyk' as const });
-    }
-  }
-
-  let likedFactIds: number[] = [];
-  let likedPostIds: number[] = [];
-  let repostedFactIds: number[] = [];
-  if (me) {
-    const [fr, pr, rr] = await Promise.all([
-      facts.length ? db.from('fact_likes').select('fact_id').eq('user_id', me.id).in('fact_id', facts.map(f => f.id)) : { data: [] },
-      posts.length ? db.from('post_likes').select('post_id').eq('user_id', me.id).in('post_id', posts.map(p => p.id)) : { data: [] },
-      facts.length ? db.from('fact_reposts').select('fact_id').eq('user_id', me.id).in('fact_id', facts.map(f => f.id)) : { data: [] },
-    ]);
-    likedFactIds = (fr.data ?? []).map((r: any) => r.fact_id);
-    likedPostIds = (pr.data ?? []).map((r: any) => r.post_id);
-    repostedFactIds = (rr.data ?? []).map((r: any) => r.fact_id);
-  }
-
-  // Suggested users
-  let suggestedUsers: Array<{ id: number; username: string; display_name: string; bio: string | null; avatar: string | null; mutual_count: number }> = [];
-  if (me) {
-    const { data: myFollows } = await db.from('follows').select('following_id').eq('follower_id', me.id);
+// Önerilen kullanıcılar dakikalar içinde değişmez ama her istekte 2-4 SERİ sorgu
+// koşuyordu → kullanıcı başına 5 dk önbellek (unstable_cache argümanı — meId —
+// anahtara otomatik dahil olur, kullanıcılar birbirinin önerisini görmez).
+const getSuggestedUsers = unstable_cache(
+  async (meId: number): Promise<SuggestedUser[]> => {
+    let suggestedUsers: SuggestedUser[] = [];
+    const { data: myFollows } = await db.from('follows').select('following_id').eq('follower_id', meId);
     const myFollowIds: number[] = (myFollows ?? []).map((f: any) => f.following_id);
-    const excludeIds = [me.id, ...myFollowIds];
+    const excludeIds = [meId, ...myFollowIds];
     const excludeStr = `(${excludeIds.join(',')})`;
 
     if (myFollowIds.length > 0) {
@@ -151,6 +106,68 @@ export default async function FeedPage() {
         }
       }
     }
+    return suggestedUsers;
+  },
+  ['feed-suggested-users-v1'],
+  { revalidate: 300 },
+);
+
+// Kişiye özel akış → arama motoruna kapalı (ana sayfa landing'i indekslenir).
+export const metadata: Metadata = {
+  title: 'Akışın',
+  description: 'Basements akışın: en yeni gönderiler, hikâyeler, günün sorusu ve bilgi kartları.',
+  alternates: { canonical: '/feed' },
+  robots: { index: false, follow: true },
+};
+
+export default async function FeedPage() {
+  // getMe (2 ağ turu: auth + users) içerik sorgularına bağımlı değil → paralel.
+  // Paylaşılan feed içeriği önbellekten (30sn); kişiye özel değil.
+  const [{ me }, [{ rawFacts, rawPosts, storiesRaw }, dyks]] = await Promise.all([
+    getMe(),
+    Promise.all([getHomeContent(), getDidYouKnow()]),
+  ]);
+
+  const facts: QuickFact[] = flattenFacts(rawFacts ?? []);
+  const posts: Post[] = flattenPosts(rawPosts ?? []);
+
+  type FeedItem = (QuickFact & { kind: 'fact' }) | (Post & { kind: 'post' }) | (DidYouKnow & { kind: 'dyk' });
+  const baseItems: FeedItem[] = [
+    ...facts.map(f => ({ ...f, kind: 'fact' as const })),
+    ...posts.map(p => ({ ...p, kind: 'post' as const })),
+  ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 50);
+
+  // Bilgi kartlarini her 4 gönderide bir serpiştir. SON öğeyi DEĞİŞTİRME:
+  // sonsuz kaydırma imleci son fact/post'un created_at'ine bağlı (dyk imleç bozar).
+  const feedItems: FeedItem[] = [];
+  let dykIdx = 0;
+  for (let i = 0; i < baseItems.length; i++) {
+    feedItems.push(baseItems[i]);
+    if ((i + 1) % 4 === 0 && i < baseItems.length - 1 && dykIdx < dyks.length) {
+      feedItems.push({ ...dyks[dykIdx++], kind: 'dyk' as const });
+    }
+  }
+
+  let likedFactIds: number[] = [];
+  let likedPostIds: number[] = [];
+  let repostedFactIds: number[] = [];
+  let suggestedUsers: SuggestedUser[] = [];
+  if (me) {
+    // Beğeni/repost durumu (içerik listesine bağlı) ile önerilen kullanıcılar
+    // (yalnız me.id'ye bağlı) birbirinden BAĞIMSIZ — eskiden ardışıktı, artık
+    // paralel; öneriler ayrıca 5 dk önbellekli (cache-hit'te 0 sorgu).
+    const [[fr, pr, rr], suggested] = await Promise.all([
+      Promise.all([
+        facts.length ? db.from('fact_likes').select('fact_id').eq('user_id', me.id).in('fact_id', facts.map(f => f.id)) : { data: [] },
+        posts.length ? db.from('post_likes').select('post_id').eq('user_id', me.id).in('post_id', posts.map(p => p.id)) : { data: [] },
+        facts.length ? db.from('fact_reposts').select('fact_id').eq('user_id', me.id).in('fact_id', facts.map(f => f.id)) : { data: [] },
+      ]),
+      getSuggestedUsers(me.id),
+    ]);
+    likedFactIds = (fr.data ?? []).map((r: any) => r.fact_id);
+    likedPostIds = (pr.data ?? []).map((r: any) => r.post_id);
+    repostedFactIds = (rr.data ?? []).map((r: any) => r.fact_id);
+    suggestedUsers = suggested;
   }
 
   // Stories

@@ -7,6 +7,7 @@ import dynamic from 'next/dynamic';
 import { Toaster, toast } from 'sonner';
 import Logo from './Logo';
 import DesktopCreateMenu from './DesktopCreateMenu';
+import { NavUserProvider } from './NavUserContext';
 
 const RealtimeProvider = dynamic(() => import('./RealtimeProvider'), { ssr: false });
 // Mobil paylaş-sheet'i (framer-motion) ayrı parça olarak yüklenir → framer-motion ANA bundle'dan çıkar.
@@ -65,6 +66,15 @@ export default function AppShell({ children }: AppShellProps) {
   const [msgCount, setMsgCount] = useState(0);
 
   useEffect(() => {
+    // Anonim bekçe: inline auth-hint (layout.tsx) çereze bakıp data-auth'u ilk
+    // boyamadan önce basıyor. Oturum çerezi yoksa /api/nav-state'in cevabı
+    // GARANTİ {user:null} — statik sayfaları gezen her çıkışlı ziyaretçi için
+    // fonksiyonu boşuna uyandırma. Hint 'in' ama oturum düşmüşse fetch çalışır
+    // ve aşağıda data-auth'u 'out'a düzeltir (davranış aynı).
+    if (document.documentElement.getAttribute('data-auth') !== 'in') {
+      setUser(null);
+      return;
+    }
     let alive = true;
     fetch('/api/nav-state', { credentials: 'same-origin' })
       .then(r => r.json())
@@ -124,14 +134,18 @@ export default function AppShell({ children }: AppShellProps) {
     return () => obs.disconnect();
   }, []);
 
-  function openSheet() { setSheetOpen(true); }
+  // Sheet chunk'ı (tam framer-motion çekirdeği, ~30-40KB gz) ilk açılışa kadar
+  // İNMEZ: user set olur olmaz mount etmek, sheet'i hiç kullanmayan girişli
+  // kullanıcıya her sayfada bu parçayı indirip parse ettiriyordu.
+  const [sheetEverOpened, setSheetEverOpened] = useState(false);
+  function openSheet() { setSheetEverOpened(true); setSheetOpen(true); }
   function closeSheet() { setSheetOpen(false); }
 
   const isAuthPage = pathname === '/login' || pathname === '/register' || pathname === '/forgot-password' || pathname === '/reset-password';
-  if (isAuthPage) return <>{children}</>;
+  if (isAuthPage) return <NavUserProvider value={user}>{children}</NavUserProvider>;
 
   return (
-    <>
+    <NavUserProvider value={user}>
       <div className="app-shell">
         {/* Desktop Sidebar */}
         <aside className="sidebar">
@@ -237,8 +251,9 @@ export default function AppShell({ children }: AppShellProps) {
         </div>
       </nav>
 
-      {/* Mobil paylaş-sheet'i — lazy yüklenen ayrı parça (framer-motion ana bundle'da değil) */}
-      {user && <MobileCreateSheet open={sheetOpen} onClose={closeSheet} />}
+      {/* Mobil paylaş-sheet'i — lazy yüklenen ayrı parça (framer-motion ana bundle'da
+          değil) ve İLK AÇILIŞA KADAR mount edilmez (chunk hiç inmesin). */}
+      {user && sheetEverOpened && <MobileCreateSheet open={sheetOpen} onClose={closeSheet} />}
 
       {/* Toasts — sonner */}
       <Toaster theme={theme} position="bottom-center" />
@@ -252,6 +267,6 @@ export default function AppShell({ children }: AppShellProps) {
           onMsg={handleMsg}
         />
       )}
-    </>
+    </NavUserProvider>
   );
 }

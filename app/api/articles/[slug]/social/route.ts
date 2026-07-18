@@ -10,15 +10,17 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
   const { slug } = await params;
   if (!isArticleSlug(slug)) return json({ available: false });
   try {
-    const { data: rawComments, error } = await db
-      .from('article_comments')
-      .select('id, content, created_at, user_id, users!article_comments_user_id_fkey(username, display_name, avatar)')
-      .eq('article_slug', slug)
-      .order('created_at', { ascending: true })
-      .limit(200);
+    // Yorum sorgusu ile getMe birbirinden bagimsiz -> paralel (1 seri tur eksildi).
+    const [{ data: rawComments, error }, { me }] = await Promise.all([
+      db
+        .from('article_comments')
+        .select('id, content, created_at, user_id, users!article_comments_user_id_fkey(username, display_name, avatar)')
+        .eq('article_slug', slug)
+        .order('created_at', { ascending: true })
+        .limit(200),
+      getMe(),
+    ]);
     if (error) return json({ available: false });
-
-    const { me } = await getMe();
     let saved = false;
     if (me) {
       const { data: s } = await db

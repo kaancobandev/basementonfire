@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import { db, getMe, isAdmin } from '@/lib/supabase/server';
 import { breadcrumbJsonLd, jsonLdScript } from '@/lib/seo';
@@ -17,14 +18,17 @@ type ArticleRow = {
   users: { username: string; display_name: string; avatar: string | null } | null;
 };
 
-async function load(slug: string): Promise<ArticleRow | null> {
+// cache(): generateMetadata + sayfa gövdesi aynı istekte ikisi de load() çağırır;
+// sarmadan önce koca `doc` jsonb'li satır her istekte İKİ KEZ iniyordu
+// (getPost/getProfileUser ile aynı desen).
+const load = cache(async (slug: string): Promise<ArticleRow | null> => {
   const { data } = await db
     .from('user_articles')
     .select('id, slug, title, summary, cover_url, category, doc, sources, status, created_at, updated_at, published_at, user_id, users!user_articles_user_id_fkey(username, display_name, avatar)')
     .eq('slug', slug)
     .maybeSingle();
   return (data as any) ?? null;
-}
+});
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -52,10 +56,10 @@ function fmtDate(s: string | null): string {
 
 export default async function UserArticlePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const a = await load(slug);
+  // getMe yalnız onaysız-önizleme kapısı için; makale sorgusuna bağımlı değil → paralel.
+  const [a, { me }] = await Promise.all([load(slug), getMe()]);
   if (!a) notFound();
 
-  const { me } = await getMe();
   const isOwner = !!me && me.id === a.user_id;
   const admin = isAdmin(me as any);
   // Onaysiz makaleyi yalnizca sahibi veya admin onizleyebilir.

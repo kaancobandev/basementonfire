@@ -1,13 +1,12 @@
-import { redirect } from 'next/navigation';
 import type { Metadata } from 'next';
-import { getMe } from '@/lib/supabase/server';
 import BilgiKartiClient from './BilgiKartiClient';
 
-export const dynamic = 'force-dynamic';
+// ESKİDEN force-dynamic'ti: getMe() yalnız anonimi /login'e atmak içindi ve
+// BilgiKartiClient'a hiçbir prop geçmiyordu (HTML herkes için aynı). Auth
+// kapısı middleware PROTECTED'a taşındı (aynı yönlendirme, sayfa kodu çalışmadan)
+// + istemci zaten 401'de /login'e atıyor → sayfa statik, CDN'den döner.
 export const metadata: Metadata = { title: 'Bilgi Kartı Paylaş', robots: { index: false } };
 
-export default async function BilgiKartiPage() {
-  const { me } = await getMe();
-  if (!me) redirect('/login');
+export default function BilgiKartiPage() {
   return <BilgiKartiClient />;
 }

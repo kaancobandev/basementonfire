@@ -49,3 +49,40 @@
 # kullanıyor; katı bir script-src/style-src hepsini kırar. Doğru sıra: önce
 # Content-Security-Policy-Report-Only + bir rapor ucu, gerçek ihlalleri topla,
 # sonra zorunlu kıl. Ayrı iş olarak ele alınmalı.
+
+# ── Statik varlık önbelleği (2026-07-18). ÖNCESİNDE HİÇ YOKTU: public/* ve
+# /.netlify/images türevleri max-age=0 dönüyordu (canlı ölçüldü) → 589KB'lık
+# three-r128.min.js dahil her varlık her tekrar ziyarette yeniden doğrulanıyordu.
+# Image CDN türevi kaynağın başlığını miras alır → aşağıdakiler türevleri de düzeltir.
+# /_next/static'i Next plugin'i zaten hallediyor; bunlar yalnız public/ katmanı.
+
+# İçerik değişince dosya ADI değişen/hiç değişmeyen katmanlar → 1 yıl immutable.
+# (vendor: sürümlü dosya adı; uploads: timestamp'li ad; articles: makale görselleri)
+[[headers]]
+  for = "/vendor/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/uploads/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# İKİ segment (/articles/<slug>/<dosya>) → yalnız görseller. TEK segmentli
+# /articles/<slug> HTML sayfalarını YAKALAMAZ (onlar Next cache'inde).
+[[headers]]
+  for = "/articles/:slug/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Marka/ikon dosyaları aynı adla DEĞİŞEBİLİR (logo yenilemesi) → immutable değil,
+# 7 gün. Eski logoyu 1 yıl gösterme riskine girmeye değmez.
+[[headers]]
+  for = "/brand/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+[[headers]]
+  for = "/icons/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"

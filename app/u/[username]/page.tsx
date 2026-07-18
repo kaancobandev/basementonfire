@@ -74,11 +74,10 @@ function calcAge(bd: string | null): number | null {
 export default async function UserProfilePage({ params }: { params: Promise<{ username: string }> }) {
   const { username } = await params;
 
-  const profileUser = await getProfileUser(username);
+  // Profil sorgusu ile getMe (2 tur: auth + users) birbirinden bağımsız → paralel.
+  const [profileUser, { me }] = await Promise.all([getProfileUser(username), getMe()]);
 
   if (!profileUser) redirect('/');
-
-  const { me } = await getMe();
 
   // Kendi profili ise /profile'a yönlendir
   if (me?.id === profileUser.id) redirect('/profile');

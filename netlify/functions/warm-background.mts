@@ -59,6 +59,9 @@ const ALLOW = [
   /^\/$/,                          // landing (statik)
   /^\/articles\/[a-z0-9-]+$/,      // 32 makale (statik) — asıl kazanç burada
   /^\/discover$/,                  // ISR 60 sn — kısmi fayda, bkz. not
+  /^\/akis$/,                      // ISR 30 sn (2026-07-18 dönüşümü)
+  /^\/muzik$/,                     // ISR 120 sn (2026-07-18 dönüşümü)
+  // /hashtag/* BİLEREK YOK: sitemap 2.000 etiket taşıyor, süpürmek kredi tuzağı.
 ];
 // /discover NOTU (ölçüm): süpürgenin isteğinde `"Netlify Durable"; fwd=bypass`
 // görünüyor — yani ISR sayfasının durable girdisi doldurulamıyor, yalnız süpürgenin

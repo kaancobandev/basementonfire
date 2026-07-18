@@ -32,7 +32,9 @@ export async function GET(req: Request) {
     return { data: [...seen.values()].slice(0, 15) };
   };
 
-  const [usersRes, postsRes, hashtagsRes] = await Promise.all([
+  // getMe arama sorgularına bağımlı değil → aynı Promise.all'da (eskiden arkadan
+  // seri geliyordu; etkileşimli uçta 1-2 tur doğrudan hissedilir kazanç).
+  const [usersRes, postsRes, hashtagsRes, { me }] = await Promise.all([
     type !== 'posts'
       // Silinmiş hesaplar (anonim künye) aramada ÇIKMAZ.
       ? searchUsers()
@@ -41,18 +43,20 @@ export async function GET(req: Request) {
       ? db.from('quick_facts').select('id, caption, media_url, media_type, created_at, user:user_id(id, username, display_name, avatar, is_private)').ilike('caption', pattern).order('created_at', { ascending: false }).limit(40)
       : { data: [] },
     db.from('hashtags').select('id, tag').ilike('tag', `%${q.replace(/^#/, '').toLowerCase()}%`).limit(8),
+    getMe(),
   ]);
 
-  const { me } = await getMe();
-  // Engellediğim + beni engelleyen kullanıcılar aramada (hem profil hem gönderi) görünmez.
-  const blocked = me ? await getBlockedUserIds(me.id) : new Set<number>();
-  let followingIds = new Set<number>();
-
-  if (me && (type === 'users' || type === 'all') && (usersRes.data ?? []).length > 0) {
-    const targetIds = (usersRes.data ?? []).map((u: any) => u.id);
-    const { data: follows } = await db.from('follows').select('following_id').eq('follower_id', me.id).in('following_id', targetIds);
-    if (follows) follows.forEach((f: any) => followingIds.add(f.following_id));
-  }
+  // Engel listesi ile takip durumu birbirinden bağımsız → paralel.
+  const targetIds = me && (type === 'users' || type === 'all') ? (usersRes.data ?? []).map((u: any) => u.id) : [];
+  const [blocked, followsRes] = await Promise.all([
+    // Engellediğim + beni engelleyen kullanıcılar aramada (hem profil hem gönderi) görünmez.
+    me ? getBlockedUserIds(me.id) : Promise.resolve(new Set<number>()),
+    me && targetIds.length > 0
+      ? db.from('follows').select('following_id').eq('follower_id', me.id).in('following_id', targetIds)
+      : Promise.resolve({ data: [] as { following_id: number }[] }),
+  ]);
+  const followingIds = new Set<number>();
+  (followsRes.data ?? []).forEach((f: any) => followingIds.add(f.following_id));
 
   const users = (usersRes.data ?? [])
     .filter((u: any) => !blocked.has(u.id))

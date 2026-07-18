@@ -9,7 +9,6 @@ import Caption from '@/app/components/Caption';
 import Img from '@/app/components/Img';
 import { avatarSrc } from '@/lib/avatar';
 import { factMediaList } from '@/lib/types';
-import { useIsMobile } from '@/lib/useIsMobile';
 import ReportButton from '@/app/components/ReportButton';
 import type { PostProp, DetailComment } from '@/app/p/[id]/postData';
 
@@ -35,7 +34,6 @@ function timeAgo(iso: string) {
  */
 export default function PostModal({ post, initialComments, initialLiked, initialBookmarked, initialReposted, currentUser }: Props) {
   const router = useRouter();
-  const isMobile = useIsMobile();
   const [liked, setLiked] = useState(initialLiked);
   const [bookmarked, setBookmarked] = useState(initialBookmarked);
   const [reposted, setReposted] = useState(initialReposted);
@@ -120,7 +118,11 @@ export default function PostModal({ post, initialComments, initialLiked, initial
       <motion.div
         initial={{ opacity: 0, scale: 0.94, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ type: 'spring', duration: 0.35 }}
-        style={{ background: 'var(--color-surface)', borderRadius: 16, display: 'flex', flexDirection: isMobile ? 'column' : 'row', width: '100%', maxWidth: 860, height: '90vh', overflow: 'hidden', position: 'relative' }}
+        // Yön (satır/sütun) CSS media query'de (.pm-shell): useIsMobile ilk
+        // render'da false döndüğünden modal mobilde önce masaüstü düzeniyle
+        // açılıp sonra dikeye dönüyordu (görünür zıplama). CSS ile ilk kare doğru.
+        className="pm-shell"
+        style={{ background: 'var(--color-surface)', borderRadius: 16, display: 'flex', width: '100%', maxWidth: 860, height: '90vh', overflow: 'hidden', position: 'relative' }}
       >
         {/* Medya — kapat butonu sol üstte */}
         <div style={{ flex: 1, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0, minHeight: 0, overflow: 'hidden', position: 'relative' }}>
@@ -136,7 +138,7 @@ export default function PostModal({ post, initialComments, initialLiked, initial
         </div>
 
         {/* Bilgi paneli */}
-        <div style={{ width: isMobile ? '100%' : 300, maxHeight: isMobile ? '42%' : undefined, flexShrink: 0, display: 'flex', flexDirection: 'column', borderLeft: isMobile ? 'none' : '1px solid var(--color-border)', borderTop: isMobile ? '1px solid var(--color-border)' : 'none', minHeight: 0 }}>
+        <div className="pm-panel" style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px', borderBottom: '1px solid var(--color-border)', flexShrink: 0 }}>
             <Link href={`/u/${post.username}`} style={{ width: 34, height: 34, borderRadius: '50%', flexShrink: 0, textDecoration: 'none', overflow: 'hidden' }}>
               <Img src={avatarSrc(post.username, post.avatar)} alt="" fixedWidth={68} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />

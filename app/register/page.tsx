@@ -1,16 +1,9 @@
-import { redirect } from 'next/navigation';
-import { getMe } from '@/lib/supabase/server';
 import RegisterForm from './RegisterForm';
-import { authMessage } from '@/lib/authMessages';
+import AuthErrorNotice from '@/app/components/AuthErrorNotice';
 
-export default async function RegisterPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
-  const { me } = await getMe();
-  if (me) redirect('/');
-
-  const { error } = await searchParams;
-  // Kod → Türkçe metin (bkz. lib/authMessages.ts: dil + içerik enjeksiyonu).
-  const message = authMessage(error);
-
+// ESKİDEN dinamikti — /login ile aynı dönüşüm: getMe()+redirect middleware'de
+// zaten var (ölü kod), ?error= istemcide okunur → sayfa statik.
+export default function RegisterPage() {
   return (
     <main className="main-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--color-bg)' }}>
       <div style={{ background: 'var(--color-surface)', borderRadius: '20px', padding: '40px', width: '100%', maxWidth: '420px', boxShadow: 'var(--shadow-md)' }}>
@@ -19,11 +12,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
           <div style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Hesap oluştur</div>
         </div>
 
-        {message && (
-          <div role="alert" style={{ background: 'var(--color-danger-soft)', color: 'var(--color-danger)', padding: '10px 14px', borderRadius: '10px', fontSize: '0.85rem', marginBottom: '16px' }}>
-            {message}
-          </div>
-        )}
+        <AuthErrorNotice />
 
         <RegisterForm />
 

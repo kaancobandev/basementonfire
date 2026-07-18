@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Img from '@/app/components/Img';
 import { toast } from 'sonner';
@@ -34,8 +34,25 @@ export default function ArticleDiscussion({ slug }: { slug: string }) {
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
   const [savingBusy, setSavingBusy] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(false);
+
+  // Tembel yukleme (DailyQuestion deseni): bolum sayfanin EN SONUNDA — kullanici
+  // daha hero'dayken fonksiyon uyandirmak, anonim makale trafiginin tamamina
+  // goruntuleme basina 1 gereksiz invocation demekti. Gorunure ~300px kala cekilir.
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting) { setInView(true); io.disconnect(); } },
+      { rootMargin: '300px' },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   useEffect(() => {
+    if (!inView) return;
     let alive = true;
     (async () => {
       try {
@@ -49,7 +66,7 @@ export default function ArticleDiscussion({ slug }: { slug: string }) {
       }
     })();
     return () => { alive = false; };
-  }, [slug]);
+  }, [inView, slug]);
 
   async function toggleSave() {
     if (st.phase !== 'ready' || savingBusy) return;
@@ -110,7 +127,10 @@ export default function ArticleDiscussion({ slug }: { slug: string }) {
     }
   }
 
-  if (st.phase === 'loading' || st.phase === 'hidden') return null;
+  // loading: gorunmez golcu (sentinel) — IntersectionObserver'in gozleyecegi bir
+  // DOM dugumu olmali, yoksa fetch hic tetiklenmez. hidden: tamamen kaldir.
+  if (st.phase === 'loading') return <div ref={rootRef} aria-hidden />;
+  if (st.phase === 'hidden') return null;
 
   return (
     <section className="as-disc" aria-label="Tartışma">

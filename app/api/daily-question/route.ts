@@ -1,5 +1,6 @@
 import { db, getMe } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { unstable_cache } from 'next/cache';
 import { earnedBadgeKeys, levelFromXp, BADGE_MAP } from '@/lib/badges';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
@@ -22,25 +23,36 @@ function prevDate(dateStr: string): string {
 
 // Bugunun sorusu deterministik: aktif sorular id'ye gore siralanir, gunluk
 // indeks = dayNumber % adet -> herkese ayni soru, her gun doner.
+//
+// GUNDE BIR degisen KURESEL sonuc her istekte 2 SERI sorguyla yeniden
+// hesaplaniyordu (feed'in en sicak yan yolu). Iki iyilestirme birden:
+// (a) tek sorgu — tum aktif sorular cekilip JS'te secilir (tablo kucuk),
+// (b) unstable_cache — dayNumber anahtara dahil (gun donunce otomatik yeni
+//     girdi), 5 dk tazeleme "soru aktif/pasif edildi" durumunu da yakalar.
+// Cache-hit'te 0 DB turu.
+const getTodayQuestion = unstable_cache(
+  async (dayNumber: number) => {
+    const { data, error } = await db
+      .from('quiz_questions')
+      .select('id, question, options, correct_index, explanation, article_slug')
+      .eq('active', true).order('id', { ascending: true });
+    if (error || !data || !data.length) return null;
+    return data[dayNumber % data.length] ?? null;
+  },
+  ['daily-question-v1'],
+  { revalidate: 300 },
+);
+
 async function pickTodayQuestion() {
-  const { data: ids, error } = await db
-    .from('quiz_questions').select('id').eq('active', true).order('id', { ascending: true });
-  if (error || !ids || !ids.length) return null;
-  const { dayNumber } = istanbulDayParts();
-  const qid = (ids as any[])[dayNumber % ids.length].id as number;
-  const { data: q } = await db
-    .from('quiz_questions')
-    .select('id, question, options, correct_index, explanation, article_slug')
-    .eq('id', qid).single();
-  return q ?? null;
+  return getTodayQuestion(istanbulDayParts().dayNumber);
 }
 
 export async function GET() {
   try {
-    const q = await pickTodayQuestion();
+    // Soru (kuresel, cache'li) ile getMe birbirinden bagimsiz -> paralel.
+    const [q, { me }] = await Promise.all([pickTodayQuestion(), getMe()]);
     if (!q) return json({ available: false });
     const { date } = istanbulDayParts();
-    const { me } = await getMe();
     const publicQ = { id: q.id, question: q.question, options: q.options, article_slug: q.article_slug };
 
     if (!me) return json({ available: true, date, loggedIn: false, answered: false, question: publicQ });
