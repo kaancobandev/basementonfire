@@ -1,12 +1,15 @@
 import { redirect } from 'next/navigation';
 import { getMe } from '@/lib/supabase/server';
 import RegisterForm from './RegisterForm';
+import { authMessage } from '@/lib/authMessages';
 
 export default async function RegisterPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const { me } = await getMe();
   if (me) redirect('/');
 
   const { error } = await searchParams;
+  // Kod → Türkçe metin (bkz. lib/authMessages.ts: dil + içerik enjeksiyonu).
+  const message = authMessage(error);
 
   return (
     <main className="main-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--color-bg)' }}>
@@ -16,9 +19,9 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
           <div style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Hesap oluştur</div>
         </div>
 
-        {error && (
+        {message && (
           <div role="alert" style={{ background: 'var(--color-danger-soft)', color: 'var(--color-danger)', padding: '10px 14px', borderRadius: '10px', fontSize: '0.85rem', marginBottom: '16px' }}>
-            {error}
+            {message}
           </div>
         )}
 

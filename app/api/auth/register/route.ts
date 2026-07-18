@@ -1,6 +1,8 @@
 import { createAuthClientForResponse, db, logIfError } from '@/lib/supabase/server';
 import { recordLogin } from '@/lib/login-tracking';
 import { MIN_AGE, ageFromBirthdate } from '@/lib/age';
+import { authCodeFromError } from '@/lib/authMessages';
+import { PENDING_EMAIL_COOKIE, PENDING_EMAIL_COOKIE_OPTIONS } from '@/lib/pendingEmail';
 import { NextResponse, type NextRequest } from 'next/server';
 
 const fail = (req: NextRequest, msg: string) =>
@@ -15,9 +17,9 @@ export async function POST(req: NextRequest) {
   const terms     =  form.get('terms');
 
   if (!email || !password || !username || !birthdate)
-    return fail(req, 'Tüm alanları doldurun');
+    return fail(req, 'eksik_alan');
   if (password.length < 6)
-    return fail(req, 'Şifre en az 6 karakter olmalı');
+    return fail(req, 'zayif_sifre');
 
   // KULLANICI ADI — kayıtta hiç doğrulanmıyordu; kural yalnızca profil
   // düzenlemede (api/profile/edit) vardı. Boşluk/'/'/'%' içeren adlar
@@ -35,24 +37,25 @@ export async function POST(req: NextRequest) {
   // Düzeltmesi: sql/fix-handle-new-user.sql (çalıştırılması gerekiyor).
   const uname = username.toLowerCase();
   if (!/^[a-z0-9_]{3,30}$/.test(uname))
-    return fail(req, 'Kullanıcı adı 3-30 karakter olmalı; sadece küçük harf, rakam ve alt çizgi (_) içerebilir.');
+    return fail(req, 'ad_format');
 
   const { data: taken } = await db.from('users').select('id').eq('username', uname).maybeSingle();
   if (taken)
-    return fail(req, 'Bu kullanıcı adı zaten alınmış. Başka birini dene.');
+    return fail(req, 'ad_alinmis');
 
   // Koşul/gizlilik onayı — istemcideki `required` atlanabilir, ASIL kontrol burada.
   if (!terms)
-    return fail(req, 'Devam etmek için Kullanım Koşulları ve Gizlilik Politikasını kabul etmelisin');
+    return fail(req, 'kosullar');
 
   // YAŞ KAPISI — istemciye güvenilmez, sunucuda yeniden hesaplanır.
   const age = ageFromBirthdate(birthdate);
   if (age === null)
-    return fail(req, 'Geçerli bir doğum tarihi gir');
+    return fail(req, 'gecersiz_dogum');
   if (age < MIN_AGE)
-    return fail(req, `Kayıt için en az ${MIN_AGE} yaşında olmalısın`);
+    return fail(req, 'yas_kucuk');
 
   // Kayıt sonrası oturum cookie'leri (e-posta onayı kapalıysa) doğrudan bu yanıta yazılır.
+  // Hedef aşağıda DÜZELTİLİR: oturum oluşmadıysa onay ekranına gideceğiz.
   const response = NextResponse.redirect(new URL('/?welcome=1', req.url), { status: 303 });
   const client = createAuthClientForResponse(req, response);
 
@@ -64,9 +67,14 @@ export async function POST(req: NextRequest) {
     options: { data: { username: uname, birthdate } },
   });
 
+  // Supabase hatası HAM geçirilmez: İngilizce olurdu ve /register?error= içeriği
+  // sayfaya basıldığı için saldırgana serbest metin yazdırma zemini verirdi.
   if (error)
-    return fail(req, error.message);
+    return fail(req, authCodeFromError(error.message));
 
+  // DİKKAT — bu blok oturum kontrolünden ÖNCE gelmeli. public.users satırı
+  // signUp anında trigger ile oluşuyor (oturum olsun olmasın). Yaş beyanı ve
+  // koşul onayı KVKK ispat kaydıdır; e-posta onayı açıkken de yazılmalı.
   if (data.user) {
     // Yaş + onay kaydını users satırına yaz (kanıt/ispat). Hata olursa kaydı BOZMA, sadece logla.
     const { error: upErr } = await db
@@ -87,6 +95,20 @@ export async function POST(req: NextRequest) {
 
     // Ilk kayit girisini de kaydet (method='register').
     await recordLogin(req, { authId: data.user.id, method: 'register' });
+  }
+
+  // E-POSTA ONAYI AÇIKSA `signUp` OTURUM DÖNDÜRMEZ.
+  // Eskiden bu ayrım hiç yapılmıyordu: kullanıcı her hâlükârda `/?welcome=1`e
+  // atılıyor, orada çıkış yapmış hâlde kalıyor ve e-postasını onaylaması
+  // gerektiğini HİÇBİR YERDE görmüyordu. Sonra "Giriş yap"a gidip deniyor,
+  // başarısız oluyor ve durumu ancak oradaki (İngilizce) hatadan anlıyordu.
+  if (!data.session) {
+    const onay = NextResponse.redirect(new URL('/eposta-onayi', req.url), { status: 303 });
+    // Adresi onay ekranında göstermek ve "yeniden gönder" için sakla.
+    // URL'e KOYMUYORUZ: kişisel veri; geçmişe, sunucu loglarına ve Referer
+    // başlığına sızardı. httpOnly → istemci JS'i de okuyamaz.
+    onay.cookies.set(PENDING_EMAIL_COOKIE, email, PENDING_EMAIL_COOKIE_OPTIONS);
+    return onay;
   }
 
   return response;

@@ -1,5 +1,6 @@
 import { createAuthClientForResponse } from '@/lib/supabase/server';
 import { recordLogin } from '@/lib/login-tracking';
+import { authCodeFromError } from '@/lib/authMessages';
 import { NextResponse, type NextRequest } from 'next/server';
 
 export async function POST(req: NextRequest) {
@@ -8,7 +9,7 @@ export async function POST(req: NextRequest) {
   const password =  form.get('password') as string;
 
   if (!email || !password)
-    return NextResponse.redirect(new URL('/login?error=E-posta ve şifre gerekli', req.url), { status: 303 });
+    return NextResponse.redirect(new URL('/login?error=eksik', req.url), { status: 303 });
 
   // Auth cookie'leri doğrudan bu redirect yanıtına yazılır (createAuthClientForResponse).
   const response = NextResponse.redirect(new URL('/', req.url), { status: 303 });
@@ -16,8 +17,13 @@ export async function POST(req: NextRequest) {
 
   const { data, error } = await client.auth.signInWithPassword({ email, password });
 
+  // Supabase hatası HAM geçirilmez. İki sebep:
+  //  · İngilizce ("Email not confirmed") — Türkçe sitede anlamsız
+  //  · /login?error= içeriği sayfaya basıldığı için saldırgan istediği metni
+  //    sitenin kendi hata kutusunda gösterebiliyordu (kimlik avı zemini)
+  // Artık URL'de yalnızca KOD var; metin lib/authMessages.ts'ten geliyor.
   if (error)
-    return NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(error.message)}`, req.url), { status: 303 });
+    return NextResponse.redirect(new URL(`/login?error=${authCodeFromError(error.message)}`, req.url), { status: 303 });
 
   // Basarili girisi sunucu tarafinda kaydet (cerez onayindan bagimsiz sayim + ulke).
   // signIn sonucundan kullaniciyi aldik -> ekstra auth turu yok. En iyi caba, girisi bozmaz.
