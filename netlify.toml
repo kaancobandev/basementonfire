@@ -17,3 +17,35 @@
 # üzerinden yeniden boyutlandırılıp WebP olarak sunulabilmesi için allowlist.
 [images]
   remote_images = ['https://.*\.supabase\.co/.*']
+
+# Güvenlik başlıkları. ÖNCESİNDE HİÇBİRİ YOKTU: ne burada, ne next.config.ts
+# headers()'ta, ne public/_headers'ta. netlify.toml'a konuldu çünkü burası
+# Netlify'ın sunduğu HER yanıtı kapsar (SSR fonksiyonu + ISR + statik varlık).
+[[headers]]
+  for = "/*"
+
+  [headers.values]
+    # Clickjacking. Bu olmadan saldırgan <iframe src=".../settings"> açıp şeffaf
+    # katmanla kullanıcıya hesap silme formunu tıklatabiliyordu (Lax çerezler
+    # aynı-site istekte gönderilir). DENY güvenli: sitede kendi sayfamızı
+    # çerçeveleyen hiçbir yer yok — tüm iframe'ler srcDoc sandbox ya da YouTube.
+    X-Frame-Options = "DENY"
+
+    # MIME sniffing — yüklenen dosyaların yanlış content-type ile HTML sanılıp
+    # çalıştırılmasını engeller (depolanmış XSS yüzeyi).
+    X-Content-Type-Options = "nosniff"
+
+    # /login?error=... gibi URL'ler dış linklere referer olarak sızıyordu.
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+    # HSTS. Bu olmadan ilk http:// isteği düz metin gidiyor ve oturum çerezi
+    # (aşağıda Secure yapıldı ama HSTS ikinci savunma) downgrade'e açık kalıyor.
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+
+    # Kullanılmayan güçlü API'leri kapat.
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), browsing-topics=()"
+
+# NOT — CSP bilinçli olarak EKLENMEDİ. 32 makale inline <style> ve ld+json
+# kullanıyor; katı bir script-src/style-src hepsini kırar. Doğru sıra: önce
+# Content-Security-Policy-Report-Only + bir rapor ucu, gerçek ihlalleri topla,
+# sonra zorunlu kıl. Ayrı iş olarak ele alınmalı.

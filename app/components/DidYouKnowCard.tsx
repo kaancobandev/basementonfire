@@ -16,9 +16,15 @@ export default function DidYouKnowCard({ item }: { item: DidYouKnow }) {
         <span style={{ fontSize: '0.74rem', fontWeight: 800, letterSpacing: '0.04em', color: 'var(--color-primary)', textTransform: 'uppercase' }}>Bunu biliyor muydun?</span>
       </div>
 
+      {/* aspectRatio ŞART: kutu boyutsuzdu → ilk boyamada 0px yükseklikteydi,
+          görsel inince ~340px'e açılıp altındaki tüm kartları (Günün Sorusu
+          dahil) aşağı itiyordu (ölçülebilir CLS; kullanıcı o an bir kalp
+          butonuna dokunuyorsa yanlış öğeye basıyordu). loading="lazy" de yoktu
+          → ekranın çok altındaki kartların görselleri LCP ile yarışıyordu.
+          Aynı akıştaki MediaCarousel ikisini de doğru yapıyor. */}
       {item.image_url && (
-        <div style={{ width: '100%', background: '#000', lineHeight: 0 }}>
-          <Img src={item.image_url} alt="" sizes="(max-width:620px) 100vw, 600px" style={{ width: '100%', maxHeight: 340, objectFit: 'cover' }} />
+        <div style={{ width: '100%', background: '#000', lineHeight: 0, aspectRatio: '16 / 9' }}>
+          <Img src={item.image_url} alt="" loading="lazy" sizes="(max-width:620px) 100vw, 600px" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
       )}
 

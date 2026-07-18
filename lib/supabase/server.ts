@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { type NextRequest, type NextResponse } from 'next/server';
 import { cache } from 'react';
+import { AUTH_COOKIE_OPTIONS } from './cookieOptions';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -15,6 +16,7 @@ export const db = createClient(url, service, { auth: { persistSession: false } }
 export async function createAuthClient() {
   const cookieStore = await cookies();
   return createServerClient(url, anon, {
+    cookieOptions: AUTH_COOKIE_OPTIONS,
     cookies: {
       getAll: () => cookieStore.getAll(),
       setAll: (list) => {
@@ -33,6 +35,7 @@ export async function createAuthClient() {
 // giriş başarılı görünür ama sonraki istekte oturum yoktur (/login'e geri atar).
 export function createAuthClientForResponse(req: NextRequest, res: NextResponse) {
   return createServerClient(url, anon, {
+    cookieOptions: AUTH_COOKIE_OPTIONS,
     cookies: {
       getAll: () => req.cookies.getAll(),
       setAll: (list) => {

@@ -19,6 +19,20 @@ export async function POST(req: NextRequest) {
   if (password.length < 6)
     return fail(req, 'Şifre en az 6 karakter olmalı');
 
+  // KULLANICI ADI — kayıtta hiç doğrulanmıyordu; kural yalnızca profil
+  // düzenlemede (api/profile/edit) vardı. İki sonucu vardı:
+  //  · Postgres'te metin benzersizliği BÜYÜK/KÜÇÜK HARFE DUYARLI, ama isAdmin()
+  //    karşılaştırmayı küçük harfe indiriyor → admin 'kaan' iken 'Kaan' adıyla
+  //    kayıt olan biri benzersizlik kısıtını geçip isAdmin() true alabiliyordu.
+  //  · Boşluk/'/'/'%' içeren adlar /u/[username] ve dm/start eşleşmesini bozuyordu.
+  const uname = username.toLowerCase();
+  if (!/^[a-z0-9_]{3,30}$/.test(uname))
+    return fail(req, 'Kullanıcı adı 3-30 karakter olmalı; sadece küçük harf, rakam ve alt çizgi (_) içerebilir.');
+
+  const { data: taken } = await db.from('users').select('id').eq('username', uname).maybeSingle();
+  if (taken)
+    return fail(req, 'Bu kullanıcı adı zaten alınmış. Başka birini dene.');
+
   // Koşul/gizlilik onayı — istemcideki `required` atlanabilir, ASIL kontrol burada.
   if (!terms)
     return fail(req, 'Devam etmek için Kullanım Koşulları ve Gizlilik Politikasını kabul etmelisin');
@@ -39,7 +53,7 @@ export async function POST(req: NextRequest) {
   const { data, error } = await client.auth.signUp({
     email,
     password,
-    options: { data: { username, birthdate } },
+    options: { data: { username: uname, birthdate } },
   });
 
   if (error)

@@ -105,8 +105,10 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
             },
           };
           setMessages(prev => [...prev, incoming]);
-          // Okundu işaretle (arka planda)
-          fetch(`/api/dm/${activeConvId}/messages`).catch(() => {});
+          // Okundu işaretle (arka planda). ESKİDEN `/messages` çağrılıyor ve
+          // yanıt çöpe atılıyordu → her gelen mesajda tüm sohbet geçmişi
+          // yeniden iniyordu. Bu uç yalnızca UPDATE çalıştırır, gövde taşımaz.
+          fetch(`/api/dm/${activeConvId}/read`, { method: 'POST' }).catch(() => {});
         }
       )
       .subscribe();

@@ -6,28 +6,49 @@ import { flattenFacts, flattenPosts } from '@/lib/types';
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const cursor = searchParams.get('cursor');
-  const limit  = parseInt(searchParams.get('limit') ?? '12');
+  // Üst sınır ZORUNLU: `?limit=500000` iki tablodan 1M satırı (media jsonb dahil)
+  // belleğe çekip JS'te sıralıyordu ve bu uç kimlik doğrulaması istemiyor.
+  // NaN de kapatıldı: `parseInt('abc')` → `.limit(NaN)` → her istek boş akış.
+  const limitRaw = Number.parseInt(searchParams.get('limit') ?? '12', 10);
+  const limit    = Number.isFinite(limitRaw) ? Math.min(Math.max(limitRaw, 1), 50) : 12;
   const type   = searchParams.get('type') ?? 'facts'; // 'facts' | 'mixed'
 
   const { me } = await getMe();
   // Engellediğim + beni engelleyen kullanıcıların içeriği akışta gösterilmez.
   const blocked = me ? await getBlockedUserIds(me.id) : new Set<number>();
-  const visible = (r: any) => !r.users?.is_private && !blocked.has(r.user_id);
+  // `is_private` embed'de SEÇİLMEMİŞSE `undefined` gelir ve `!undefined === true`
+  // olduğu için filtre sessizce HERKESİ geçirir — facts dalında tam bu oldu ve
+  // gizli hesapların gönderileri sonsuz kaydırmaya sızdı. Embed var ama kolon
+  // yoksa artık GİZLİ sayıyoruz: bir daha unutulursa akış açılmaz, kapanır.
+  const visible = (r: any) => {
+    const u = r.users;
+    if (u && !('is_private' in u)) return false;
+    return !u?.is_private && !blocked.has(r.user_id);
+  };
 
   if (type === 'mixed') {
     // Ana sayfa: quick_facts + text posts birleşik
     const since = cursor ?? null;
 
-    const [factsRes, postsRes] = await Promise.all([
-      db.from('quick_facts')
-        .select('*, users!quick_facts_user_id_fkey(display_name, username, avatar, is_private)')
-        .order('created_at', { ascending: false })
-        .limit(limit * 2),
-      db.from('posts')
-        .select('*, users!posts_user_id_fkey(display_name, username, avatar, is_private)')
-        .order('created_at', { ascending: false })
-        .limit(limit * 2),
-    ]);
+    // Cursor'ı DB'ye it. Eskiden yalnızca bellekte filtreleniyordu: her istek
+    // en yeni 2×limit satırı çekip cursor'dan yenilerini eliyordu → sonuç hep
+    // boş kalıyor, `hasMore=false` dönüyordu. Yani 50. öğeden eskisine sonsuz
+    // kaydırmayla ULAŞILAMIYORDU ve her deneme aynı satırları boşuna indiriyordu.
+    let factsQ = db.from('quick_facts')
+      .select('*, users!quick_facts_user_id_fkey(display_name, username, avatar, is_private)')
+      .order('created_at', { ascending: false })
+      .limit(limit * 2);
+    let postsQ = db.from('posts')
+      .select('*, users!posts_user_id_fkey(display_name, username, avatar, is_private)')
+      .order('created_at', { ascending: false })
+      .limit(limit * 2);
+
+    if (since) {
+      factsQ = factsQ.lt('created_at', since);
+      postsQ = postsQ.lt('created_at', since);
+    }
+
+    const [factsRes, postsRes] = await Promise.all([factsQ, postsQ]);
     logIfError('feed mixed quick_facts', factsRes.error);
     logIfError('feed mixed posts', postsRes.error);
 
@@ -78,7 +99,9 @@ export async function GET(req: Request) {
   // Varsayılan: sadece quick_facts (Akış sayfası için)
   let query = db
     .from('quick_facts')
-    .select('*, users!quick_facts_user_id_fkey(display_name, username, avatar)')
+    // is_private ŞART: yukarıdaki `visible()` bu kolona bakıyor. Seçilmediğinde
+    // filtre sessizce herkesi geçiriyordu (gizli hesaplar /akis'ta sızıyordu).
+    .select('*, users!quick_facts_user_id_fkey(display_name, username, avatar, is_private)')
     .order('created_at', { ascending: false })
     .order('id', { ascending: false })
     .limit(limit * 2 + 1); // gizli-hesap filtresinden sonra sayfa dolsun diye tampon

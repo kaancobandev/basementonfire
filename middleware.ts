@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { AUTH_COOKIE_OPTIONS } from '@/lib/supabase/cookieOptions';
 
 const PROTECTED = ['/profile', '/settings', '/messages', '/notifications', '/bookmarks', '/gonderi-olustur'];
 
@@ -71,7 +72,11 @@ export async function middleware(request: NextRequest) {
   //    ziyaretçiyi de /feed'e atabilirdi (landing ölür, SEO ölür).
   // Cache'lenen / her zaman landing kalır; kişisel içerik kendi URL'inde.
   if (path === '/' && hasSessionCookie(request)) {
-    const res = NextResponse.redirect(new URL('/feed', request.url), 307);
+    // `request.nextUrl.search` ŞART: `new URL('/feed', base)` sorgu dizesini
+    // TAŞIMAZ. Paylaş menüsündeki "Hikaye" seçeneği `/?story=1`e gidiyordu →
+    // sorgu burada düşüyordu → HomeFeed'in `story=1` efekti hiç tetiklenmiyor,
+    // hikaye oluşturucu sessizce AÇILMIYORDU (iki giriş noktasında da ölüydü).
+    const res = NextResponse.redirect(new URL('/feed' + request.nextUrl.search, request.url), 307);
     res.headers.set('cache-control', 'private, no-store');
     return res;
   }
@@ -94,6 +99,7 @@ export async function middleware(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      cookieOptions: AUTH_COOKIE_OPTIONS,
       cookies: {
         getAll: () => request.cookies.getAll(),
         setAll: (list) => {

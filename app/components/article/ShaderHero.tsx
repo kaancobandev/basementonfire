@@ -67,17 +67,28 @@ export default function ShaderHero({ colors }: { colors?: [Rgb, Rgb, Rgb, Rgb] }
       });
       const mesh = new Mesh(gl, { geometry, program });
 
+      // Fare konumu için önbelleklenen canvas dikdörtgeni. Eskiden her
+      // `pointermove`'da `getBoundingClientRect()` çağrılıyordu → her fare
+      // hareketinde zorunlu düzen hesabı (forced layout). Dinleyici efektin
+      // ömrü boyunca window üzerinde kaldığı için, hero ekran dışındayken ve
+      // shader hiç render etmezken bile bu maliyet ödeniyordu. Rect yalnızca
+      // resize/scroll'da değişir; ikisinde de tazeliyoruz.
+      let rect = canvas.getBoundingClientRect();
+      const refreshRect = () => { rect = canvas.getBoundingClientRect(); };
+
       const resize = () => {
         const p = canvas.parentElement;
         renderer.setSize(p ? p.clientWidth : window.innerWidth, p ? p.clientHeight : window.innerHeight);
+        refreshRect();
       };
       resize();
       window.addEventListener('resize', resize);
 
+      window.addEventListener('scroll', refreshRect, { passive: true });
+
       const onMove = (e: PointerEvent) => {
-        const r = canvas.getBoundingClientRect();
-        mouse[0] = (e.clientX - r.left) / r.width;
-        mouse[1] = 1 - (e.clientY - r.top) / r.height;
+        mouse[0] = (e.clientX - rect.left) / rect.width;
+        mouse[1] = 1 - (e.clientY - rect.top) / rect.height;
       };
       window.addEventListener('pointermove', onMove, { passive: true });
 
@@ -103,6 +114,7 @@ export default function ShaderHero({ colors }: { colors?: [Rgb, Rgb, Rgb, Rgb] }
         cancelAnimationFrame(raf);
         io?.disconnect();
         window.removeEventListener('resize', resize);
+        window.removeEventListener('scroll', refreshRect);
         window.removeEventListener('pointermove', onMove);
         try { gl.getExtension('WEBGL_lose_context')?.loseContext(); } catch {}
       };

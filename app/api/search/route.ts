@@ -9,12 +9,33 @@ export async function GET(req: Request) {
 
   if (!q) return NextResponse.json({ users: [], posts: [], hashtags: [] });
 
-  const pattern = `%${q}%`;
+  const pattern = `%${q.slice(0, 60)}%`;
+  const USER_COLS = 'id, username, display_name, avatar, bio';
+
+  // GÜVENLİK — `.or()` KULLANMA. Eskiden şöyleydi:
+  //   .or(`username.ilike.${pattern},display_name.ilike.${pattern}`)
+  // supabase-js `.or()` içeriğini PostgREST'e HAM geçirir, değer olarak
+  // kaçışlamaz. `?q=zz,birthdate.gte.2005-01-01,username.ilike.zz` gibi bir
+  // sorgu users tablosunun HERHANGİ bir kolonuna (birthdate, is_admin, auth_id)
+  // saldırganın kendi filtresini eklemesine izin veriyordu; dönen sonuç kümesi
+  // boolean oracle'a dönüşüp ikili aramayla doğum tarihi çıkarılabiliyordu.
+  // `.ilike()` değeri parametre olarak geçirir → iki ayrı sorgu + kodda birleştirme.
+  const searchUsers = async () => {
+    const [byUsername, byDisplay] = await Promise.all([
+      db.from('users').select(USER_COLS).ilike('username', pattern).eq('is_deleted', false).limit(15),
+      db.from('users').select(USER_COLS).ilike('display_name', pattern).eq('is_deleted', false).limit(15),
+    ]);
+    const seen = new Map<number, any>();
+    for (const u of [...(byUsername.data ?? []), ...(byDisplay.data ?? [])]) {
+      if (!seen.has(u.id)) seen.set(u.id, u);
+    }
+    return { data: [...seen.values()].slice(0, 15) };
+  };
 
   const [usersRes, postsRes, hashtagsRes] = await Promise.all([
     type !== 'posts'
       // Silinmiş hesaplar (anonim künye) aramada ÇIKMAZ.
-      ? db.from('users').select('id, username, display_name, avatar, bio').or(`username.ilike.${pattern},display_name.ilike.${pattern}`).eq('is_deleted', false).limit(15)
+      ? searchUsers()
       : { data: [] },
     type !== 'users'
       ? db.from('quick_facts').select('id, caption, media_url, media_type, created_at, user:user_id(id, username, display_name, avatar, is_private)').ilike('caption', pattern).order('created_at', { ascending: false }).limit(40)

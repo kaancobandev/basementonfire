@@ -3,6 +3,7 @@
 // "Çift Yarık Deneyi" makalesine ÖZEL interaktif oyunlar + arka plan elektron alanı + veri.
 // Genel şablon: @/app/components/article/ArticleBlocks
 import { useEffect, useRef, useState } from 'react';
+import { observeVisibility } from '@/lib/rafVisible';
 
 export { refs } from './refs';
 
@@ -249,6 +250,9 @@ export function RippleTank() {
     const img = ctx.createImageData(CW, CH);
     let raf = 0, t = 0;
     const render = () => {
+      // Ekran dışında dur: her kare 220×132 = 29.040 piksel üzerinde iç içe
+      // döngüyle iki Math.hypot + iki Math.sin hesaplanıp putImageData yapılıyor.
+      if (!vis.visible) { raf = 0; return; }
       const sepv = sepR.current, wlv = wlR.current;
       const s1y = CH / 2 - sepv / 2, s2y = CH / 2 + sepv / 2, sx = 26;
       const d = img.data;
@@ -273,8 +277,9 @@ export function RippleTank() {
       t += 0.22;
       if (!reduce) raf = requestAnimationFrame(render);
     };
+    const vis = observeVisibility(c, () => { if (!raf && !reduce) raf = requestAnimationFrame(render); });
     if (reduce) render(); else raf = requestAnimationFrame(render);
-    return () => cancelAnimationFrame(raf);
+    return () => { cancelAnimationFrame(raf); vis.disconnect(); };
   }, []);
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 backdrop-blur sm:p-5">

@@ -1,4 +1,5 @@
 import { db, getMe } from '@/lib/supabase/server';
+import { MIN_AGE, ageFromBirthdate } from '@/lib/age';
 import { NextResponse } from 'next/server';
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -85,8 +86,24 @@ export async function POST(req: Request) {
   update.location = location || null;
   update.website = websiteNorm || null;
   update.gender = gender;
-  update.birthdate = birthdateRaw || null;
   update.interests = interests;
+
+  // --- Doğum tarihi: doğrulanır ve YALNIZCA BİR KEZ yazılır ---
+  // Eskiden ham değer doğrudan yazılıyordu (`update.birthdate = birthdateRaw || null`).
+  // /eslesme'nin 18+ kapısı (api/match/deck, swipe, matches) TAMAMEN bu kolona
+  // bakıyor → 16 yaşındaki bir kullanıcı profil formundan tarihini 1990 yapıp üç
+  // kapıyı birden geçebiliyordu. Kayıtta doğrulama zaten vardı, bu boşluk onu
+  // anlamsızlaştırıyordu. Alanı boşaltmak da yaş beyanını NULL'a çekiyordu.
+  const curBirthdate = me.birthdate ? String(me.birthdate).slice(0, 10) : '';
+  if (birthdateRaw !== curBirthdate) {
+    if (curBirthdate)
+      return fail(req, 'Doğum tarihi kayıt sırasında beyan edilir ve sonradan değiştirilemez.');
+    // Yaş kapısından ÖNCE kayıt olmuş eski hesaplarda NULL → bir kez doldurulabilir.
+    const age = ageFromBirthdate(birthdateRaw);
+    if (age === null) return fail(req, 'Geçerli bir doğum tarihi gir');
+    if (age < MIN_AGE) return fail(req, `En az ${MIN_AGE} yaşında olmalısın`);
+    update.birthdate = birthdateRaw;
+  }
 
   const { error } = await db.from('users').update(update).eq('id', me.id);
   if (error) return fail(req, 'Kaydedilemedi');

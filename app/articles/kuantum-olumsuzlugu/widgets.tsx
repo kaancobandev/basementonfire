@@ -3,6 +3,7 @@
 // "Kuantum Ölümsüzlüğü" makalesine ÖZEL interaktifler + arka plan (çok-dünyalı dallanma) + veri.
 // Genel şablon: @/app/components/article/ArticleBlocks
 import { useEffect, useRef, useState } from 'react';
+import { observeVisibility } from '@/lib/rafVisible';
 
 export { refs } from './refs';
 
@@ -213,6 +214,8 @@ export function MobiusStrip() {
     const resize = () => { c.width = c.clientWidth * dpr; c.height = c.clientHeight * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); };
     resize();
     const draw = () => {
+      // Ekran dışında dur: her kare 80 dörtgen üretilip z'ye göre sıralanıyor.
+      if (!vis.visible) { raf = 0; return; }
       const W = c.clientWidth, H = c.clientHeight, cx = W / 2, cy = H / 2, R = Math.min(W, H) * 0.28, wid = R * 0.42;
       ctx.clearRect(0, 0, W, H);
       const ca = Math.cos(ang), sa = Math.sin(ang), tilt = 0.5, ct = Math.cos(tilt), st = Math.sin(tilt);
@@ -242,9 +245,10 @@ export function MobiusStrip() {
       ang += 0.012;
       if (!reduce) raf = requestAnimationFrame(draw);
     };
+    const vis = observeVisibility(c, () => { if (!raf && !reduce) raf = requestAnimationFrame(draw); });
     window.addEventListener('resize', resize);
     if (reduce) draw(); else raf = requestAnimationFrame(draw);
-    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); };
+    return () => { cancelAnimationFrame(raf); vis.disconnect(); window.removeEventListener('resize', resize); };
   }, []);
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 backdrop-blur">

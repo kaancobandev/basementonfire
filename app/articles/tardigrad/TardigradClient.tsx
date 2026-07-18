@@ -187,6 +187,12 @@ function TardigradeGame() {
     }
 
     function loop(ts: number) {
+      // Ekran dışında TAMAMEN dur. Eskiden rAF koşulsuz yeniden zamanlanıyor ve
+      // `draw()` en sonda koşulsuz çağrılıyordu; `visibleRef` yalnızca fiziği
+      // donduruyordu. Sonuç: okur 08–09. bölüme geçtikten sonra bile oyun sahnesi
+      // (tam canvas gradyan + tardigrad gövdesi + HUD) saniyede 60 kez yeniden
+      // boyanmaya devam ediyordu → quiz butonlarında INP gecikmesi.
+      if (!visibleRef.current) { raf = 0; return; }
       raf = requestAnimationFrame(loop);
       const dt = Math.min(40, ts - (last || ts)); last = ts; const f = dt / 16.67;
       const s = g.current;
@@ -232,7 +238,14 @@ function TardigradeGame() {
       else if (k === 'ArrowRight' || k === 'd' || k === 'D') g.current.right = false;
     }
     window.addEventListener('keydown', kd); window.addEventListener('keyup', ku);
-    const io = new IntersectionObserver((es) => { es.forEach((e) => { visibleRef.current = e.isIntersecting; }); }, { threshold: 0.25 });
+    const io = new IntersectionObserver((es) => {
+      es.forEach((e) => {
+        visibleRef.current = e.isIntersecting;
+        // Geri görünür olunca döngüyü yeniden başlat (yukarıdaki erken dönüş onu
+        // durdurmuş olur). `last = 0` → ilk kare dev bir dt ile sıçramasın.
+        if (e.isIntersecting && !raf) { last = 0; raf = requestAnimationFrame(loop); }
+      });
+    }, { threshold: 0.25 });
     if (wrapRef.current) io.observe(wrapRef.current);
 
     // kanvas üstünde sürükle (mobil)

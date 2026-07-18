@@ -3,6 +3,7 @@
 // "Sıfırdan Fizik" makalesine ÖZEL, AÇIK TEMA interaktif simülasyonlar + veri.
 // Bu makale ArticleShell (koyu) KULLANMAZ; kendi açık temasını taşır.
 import { useEffect, useRef, useState } from 'react';
+import { observeVisibility } from '@/lib/rafVisible';
 
 export { refs } from './refs';
 
@@ -31,6 +32,7 @@ export function BouncingHero() {
     const init = () => { bs = Array.from({ length: 14 }, (_, i) => ({ x: Math.random() * w, y: Math.random() * h * 0.5, vx: (Math.random() - 0.5) * 3, vy: Math.random() * 2, r: 8 + Math.random() * 16, c: cols[i % cols.length] })); };
     const resize = () => { w = c.clientWidth; h = c.clientHeight; c.width = w * dpr; c.height = h * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); if (!bs.length) init(); };
     const draw = () => {
+      if (!vis.visible) { raf = 0; return; }
       ctx.clearRect(0, 0, w, h);
       for (const b of bs) {
         b.vy += 0.18; b.x += b.vx; b.y += b.vy;
@@ -43,9 +45,10 @@ export function BouncingHero() {
       ctx.globalAlpha = 1;
       if (!reduce) raf = requestAnimationFrame(draw);
     };
+    const vis = observeVisibility(c, () => { if (!raf && !reduce) raf = requestAnimationFrame(draw); });
     resize(); window.addEventListener('resize', resize);
     if (reduce) draw(); else raf = requestAnimationFrame(draw);
-    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); };
+    return () => { cancelAnimationFrame(raf); vis.disconnect(); window.removeEventListener('resize', resize); };
   }, []);
   return <canvas ref={ref} aria-hidden className="absolute inset-0 h-full w-full" />;
 }
@@ -112,6 +115,7 @@ export function ForceLab() {
     const resize = () => { c.width = c.clientWidth * dpr; c.height = c.clientHeight * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); };
     resize();
     const loop = () => {
+      if (!vis.visible) { raf = 0; return; }
       const W = c.clientWidth, H = c.clientHeight;
       const s = st.current;
       const acc = fRef.current / mRef.current;
@@ -133,9 +137,10 @@ export function ForceLab() {
       ctx.fillStyle = C.orange; ctx.font = 'bold 12px system-ui'; ctx.fillText('F', bx - al - 10, by + bs / 2 + 4);
       raf = requestAnimationFrame(loop);
     };
+    const vis = observeVisibility(c, () => { if (!raf) raf = requestAnimationFrame(loop); });
     raf = requestAnimationFrame(loop);
     window.addEventListener('resize', resize);
-    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); };
+    return () => { cancelAnimationFrame(raf); vis.disconnect(); window.removeEventListener('resize', resize); };
   }, []);
   const push = () => { const s = st.current; if (s.running) { s.running = false; setRunning(false); return; } s.x = 0; s.v = 0; setVDisp(0); s.running = true; setRunning(true); };
   const reset = () => { const s = st.current; s.x = 0; s.v = 0; s.running = false; setRunning(false); setVDisp(0); };
@@ -184,6 +189,7 @@ export function MotionSim() {
     const resize = () => { c.width = c.clientWidth * dpr; c.height = c.clientHeight * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); };
     resize();
     const loop = () => {
+      if (!vis.visible) { raf = 0; return; }
       const W = c.clientWidth, H = c.clientHeight, s = st.current;
       if (s.running) { s.t += 0.03; }
       const t = s.t, v = v0R.current + aR.current * t, x = v0R.current * t + 0.5 * aR.current * t * t;
@@ -198,8 +204,9 @@ export function MotionSim() {
       ctx.fillStyle = '#334155'; ctx.beginPath(); ctx.arc(cx + 13, cy - 6, 7, 0, Math.PI * 2); ctx.arc(cx + 40, cy - 6, 7, 0, Math.PI * 2); ctx.fill();
       raf = requestAnimationFrame(loop);
     };
+    const vis = observeVisibility(c, () => { if (!raf) raf = requestAnimationFrame(loop); });
     raf = requestAnimationFrame(loop); window.addEventListener('resize', resize);
-    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); };
+    return () => { cancelAnimationFrame(raf); vis.disconnect(); window.removeEventListener('resize', resize); };
   }, []);
   const toggle = () => { const s = st.current; if (s.running) { s.running = false; setRunning(false); } else { if (s.t > 12) { s.t = 0; } s.running = true; setRunning(true); } };
   const reset = () => { st.current.t = 0; st.current.running = false; setRunning(false); setDisp({ x: 0, v: v0, t: 0 }); };
@@ -249,6 +256,7 @@ export function MomentumCollision() {
     resize();
     const size = (m: number) => 24 + m * 8;
     const draw = () => {
+      if (!vis.visible) { raf = 0; return; }
       const W = c.clientWidth, H = c.clientHeight, s = st.current, IN = refIn.current, y = H - 22;
       if (s.phase === 'run') {
         s.x1 += s.v1 * 0.6; s.x2 += s.v2 * 0.6;
@@ -266,8 +274,9 @@ export function MomentumCollision() {
       drawCart(s.x2, IN.m2, C.blue, IN.m2 + 'kg');
       raf = requestAnimationFrame(draw);
     };
+    const vis = observeVisibility(c, () => { if (!raf) raf = requestAnimationFrame(draw); });
     raf = requestAnimationFrame(draw); window.addEventListener('resize', resize);
-    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); };
+    return () => { cancelAnimationFrame(raf); vis.disconnect(); window.removeEventListener('resize', resize); };
   }, []);
   const run = () => {
     const c = cv.current; if (!c) return; const W = c.clientWidth; const s = st.current;
@@ -314,6 +323,7 @@ export function EnergyRamp() {
     const resize = () => { c.width = c.clientWidth * dpr; c.height = c.clientHeight * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); };
     resize();
     const loop = () => {
+      if (!vis.visible) { raf = 0; return; }
       const W = c.clientWidth, H = c.clientHeight, s = st.current;
       // rampa: sol üstten sağ alta eğri (çeyrek daire benzeri)
       const x0 = 30, y0 = 24, x1 = W - 30, y1 = H - 28;
@@ -328,8 +338,9 @@ export function EnergyRamp() {
       ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.beginPath(); ctx.arc(p.x - 3, p.y - 13, 3, 0, Math.PI * 2); ctx.fill();
       raf = requestAnimationFrame(loop);
     };
+    const vis = observeVisibility(c, () => { if (!raf) raf = requestAnimationFrame(loop); });
     raf = requestAnimationFrame(loop); window.addEventListener('resize', resize);
-    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); };
+    return () => { cancelAnimationFrame(raf); vis.disconnect(); window.removeEventListener('resize', resize); };
   }, []);
   const drop = () => { const s = st.current; s.s = 0; s.v = 0; s.running = true; setRunning(true); setBars({ pe: 100, ke: 0 }); };
   return (
