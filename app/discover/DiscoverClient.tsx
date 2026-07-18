@@ -20,10 +20,11 @@ interface Props {
   media: MediaPost[];
   articles: Article[];
   communityArticles?: CommunityArticle[];
+  trending?: { tag: string; count: number }[];
 }
 
 
-export default function DiscoverClient({ users, media, articles, communityArticles = [] }: Props) {
+export default function DiscoverClient({ users, media, articles, communityArticles = [], trending = [] }: Props) {
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState<{ users: User[]; posts: MediaPost[] } | null>(null);
   const [searching, setSearching] = useState(false);
@@ -200,6 +201,25 @@ export default function DiscoverClient({ users, media, articles, communityArticl
                       <div className="dc-comm-title">{a.title}</div>
                       {a.summary && <div className="dc-comm-desc">{a.summary}</div>}
                       <div className="dc-comm-author">@{a.username}</div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Gündem — son 7 günün en çok kullanılan etiketleri. .trending-*
+              sınıfları globals.css'te baştan beri hazırdı (ilk kez kullanılıyor). */}
+          {trending.length > 0 && (
+            <div className="dc-section">
+              <h2 className="dc-section-title">Gündem</h2>
+              <div className="widget-card" style={{ padding: '6px 16px' }}>
+                {trending.map((t, i) => (
+                  <Link key={t.tag} href={`/hashtag/${encodeURIComponent(t.tag)}`} style={{ display: 'block', textDecoration: 'none', color: 'inherit' }}>
+                    <div className="trending-item">
+                      <div className="trending-label">{i + 1} · Gündemde</div>
+                      <div className="trending-topic">#{t.tag}</div>
+                      <div className="trending-count">{t.count} gönderi</div>
                     </div>
                   </Link>
                 ))}

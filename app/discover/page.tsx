@@ -40,9 +40,39 @@ const getDiscoverContent = unstable_cache(
     logIfError('discover user_articles', uaErr);
     // Gizli hesapların gönderi medyası Keşfet ızgarasında gösterilmez (is_private truthy=gizli).
     const media = ((mediaRaw ?? []) as any[]).filter((r) => !r.users?.is_private).slice(0, 12);
-    return { users: users ?? [], mediaRaw: media, uaRaw: uaRaw ?? [] };
+
+    // Gündem: en güncel 500 herkese açık gönderinin en çok kullanılan etiketleri.
+    // Sabit "son 7 gün" penceresi KULLANILMADI (denendi): bu ölçekte pencere çoğu
+    // hafta boş kalıp bloğu gizliyordu; son-500 doğal olarak güncele ağırlık verir
+    // ve etiket var olduğu sürece blok dolu kalır. post_hashtags'te created_at yok
+    // → güncellik quick_facts sırasından gelir. Sorgular yalnız ISR yeniden
+    // üretiminde koşar. Gizli hesapların gönderileri sayıma girmez (her küresel
+    // yüzeyde elle is_private filtresi). Tablolar yoksa/boşsa blok sessizce gizlenir.
+    let trending: { tag: string; count: number }[] = [];
+    try {
+      const { data: recentFacts } = await db
+        .from('quick_facts')
+        .select('id, users!quick_facts_user_id_fkey(is_private)')
+        .order('created_at', { ascending: false })
+        .limit(500);
+      const publicIds = ((recentFacts ?? []) as any[]).filter((r) => !r.users?.is_private).map((r) => r.id);
+      if (publicIds.length) {
+        const { data: ph } = await db.from('post_hashtags').select('hashtag_id').in('post_id', publicIds);
+        const countMap = new Map<number, number>();
+        for (const r of (ph ?? []) as any[]) countMap.set(r.hashtag_id, (countMap.get(r.hashtag_id) ?? 0) + 1);
+        const topIds = [...countMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([id]) => id);
+        if (topIds.length) {
+          const { data: tags } = await db.from('hashtags').select('id, tag').in('id', topIds);
+          trending = ((tags ?? []) as any[])
+            .map((t) => ({ tag: t.tag as string, count: countMap.get(t.id) ?? 0 }))
+            .sort((a, b) => b.count - a.count);
+        }
+      }
+    } catch { /* gündem best-effort */ }
+
+    return { users: users ?? [], mediaRaw: media, uaRaw: uaRaw ?? [], trending };
   },
-  ['discover-content-v2'],
+  ['discover-content-v3'],
   { revalidate: 60, tags: ['feed'] },
 );
 
@@ -60,7 +90,7 @@ export const metadata: Metadata = {
 
 export default async function DiscoverPage() {
   // Paylaşılan içerik önbellekten gelir (60sn); kişiye özel veri YOK → sayfa ISR.
-  const { users, mediaRaw, uaRaw } = await getDiscoverContent();
+  const { users, mediaRaw, uaRaw, trending } = await getDiscoverContent();
   const media = (mediaRaw ?? []).map((m: any) => ({ ...m, username: m.users?.username ?? '', display_name: m.users?.display_name ?? '' }));
   const communityArticles = (uaRaw ?? []).map((a: any) => ({
     slug: a.slug, title: a.title, summary: a.summary ?? '', cover_url: a.cover_url ?? null,
@@ -74,6 +104,7 @@ export default async function DiscoverPage() {
       media={media}
       articles={ARTICLES}
       communityArticles={communityArticles}
+      trending={trending ?? []}
     />
   );
 }
