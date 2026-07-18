@@ -353,7 +353,17 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
           <div key={i} style={{ flex: '0 0 100%', width: '100%', height: '100%', scrollSnapAlign: 'center', scrollSnapStop: 'always', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {m.type === 'video'
               ? <video src={m.url} controls playsInline title={caption} aria-label={caption} onLoadedMetadata={variant === 'feed' && i === 0 ? onFeedVideoMeta : undefined} style={mediaStyle} />
-              : <Img src={m.url} alt={caption || ''} sizes={sizes} onLoad={variant === 'feed' && i === 0 ? onFeedImgLoad : undefined} loading={variant === 'feed' && !(priority && i === 0) ? 'lazy' : undefined} fetchPriority={priority && i === 0 ? 'high' : undefined} style={mediaStyle} />}
+              // KOMŞU SLAYT ÖNCEDEN YÜKLENİR (|i - idx| <= 1).
+              // Neden: yatay kaydırma kapsayıcısında tarayıcı `loading="lazy"`
+              // görseli ancak belirgin şekilde görünür olunca yüklemeye
+              // başlıyor → kaydırmanın ORTASINDA ağ+decode maliyeti biniyor ve
+              // parmak altında takılma hissediliyordu.
+              // `idx` değişince bu prop 'lazy' → undefined olur; bir görselin
+              // loading niteliğini eager'a çevirmek tarayıcıda yüklemeyi
+              // BAŞLATIR, yani sonraki slayt sen ona varmadan hazır olur.
+              // Hepsini birden eager yapmıyoruz: 8 görselli gönderide akışta
+              // gereksiz indirme olurdu (ilk slaytın priority mantığı korundu).
+              : <Img src={m.url} alt={caption || ''} sizes={sizes} onLoad={variant === 'feed' && i === 0 ? onFeedImgLoad : undefined} loading={variant === 'feed' && !(priority && i === 0) && Math.abs(i - idx) > 1 ? 'lazy' : undefined} fetchPriority={priority && i === 0 ? 'high' : undefined} style={mediaStyle} />}
           </div>
         ))}
       </div>
