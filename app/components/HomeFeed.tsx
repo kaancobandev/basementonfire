@@ -15,6 +15,7 @@ import DidYouKnowCard from './DidYouKnowCard';
 import PostPoll from './PostPoll';
 import FeedComposer from './FeedComposer';
 import ReportButton from './ReportButton';
+import { toast } from 'sonner';
 import { uploadToStorage } from '@/lib/upload';
 import { LazyMotion, m, AnimatePresence } from 'framer-motion';
 
@@ -241,6 +242,51 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
     svAdvancedRef.current = false;
     setSvDuration(s.mediaType === 'video' ? 15 : 5);
   }, [viewerOpen, svUserIdx, svStoryIdx]);
+
+  // ── Hikaye görüntülenme + tepki (2026-07-19) ────────────────────────────
+  // Hikaye atan kullanıcı şimdiye kadar hiç geri bildirim almıyordu.
+  const [storyViews, setStoryViews] = useState<{ count: number; viewers: { username: string; display_name: string; avatar: string | null }[] } | null>(null);
+  const [viewersOpen, setViewersOpen] = useState(false);
+  const [reactionSent, setReactionSent] = useState<string | null>(null);
+  const isOwnStory = !!ownStoryUser && allStoryUsers[svUserIdx]?.userId === ownStoryUser.userId;
+
+  // Hikaye değişince: izleyiciyse görüntülenme beacon'ı, sahibiyse liste çekilir.
+  useEffect(() => {
+    if (!viewerOpen) return;
+    const s = allStoryUsers[svUserIdx]?.stories[svStoryIdx];
+    if (!s) return;
+    setReactionSent(null);
+    setViewersOpen(false);
+    setStoryViews(null);
+    if (!currentUser) return;
+    if (isOwnStory) {
+      let alive = true;
+      fetch(`/api/stories/${s.id}/view`)
+        .then(r => r.json())
+        .then(d => { if (alive && d?.available) setStoryViews({ count: d.count ?? 0, viewers: d.viewers ?? [] }); })
+        .catch(() => {});
+      return () => { alive = false; };
+    }
+    // Fire-and-forget: sayım hikayeyi izlemeyi bekletmez.
+    fetch(`/api/stories/${s.id}/view`, { method: 'POST', keepalive: true }).catch(() => {});
+  }, [viewerOpen, svUserIdx, svStoryIdx, currentUser, isOwnStory]);
+
+  async function sendStoryReaction(storyId: number, emoji: string) {
+    if (reactionSent) return;
+    if (!currentUser) { window.location.href = '/login'; return; }
+    setReactionSent(emoji); // optimistik
+    try {
+      const r = await fetch(`/api/stories/${storyId}/view`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emoji }),
+      });
+      const d = await r.json();
+      if (!r.ok || !d.ok) { setReactionSent(null); toast(d.error ?? 'Tepki gönderilemedi'); return; }
+      toast(`${emoji} gönderildi`, { description: 'Tepkin mesaj olarak iletildi.' });
+    } catch {
+      setReactionSent(null);
+    }
+  }
 
   // svDuration hem ilerleme çubuğunu hem bu timer'ı sürer; metadata süreyi
   // güncelleyince (video) timer yeniden kurulur.
@@ -783,9 +829,57 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                 : <Img key={currentSvStory.mediaUrl} src={currentSvStory.mediaUrl} alt="" sizes="(max-width:520px) 100vw, 460px" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               }
             </div>
-            {/* Touch zones — klavye/ekran-okuyucu için <button> + aria-label */}
-            <button type="button" aria-label="Önceki hikaye" onClick={() => advanceStory(-1)} style={{ position: 'absolute', top: 60, bottom: 0, left: 0, width: '40%', cursor: 'pointer', zIndex: 5, background: 'none', border: 'none', padding: 0 }} />
-            <button type="button" aria-label="Sonraki hikaye" onClick={() => advanceStory(1)} style={{ position: 'absolute', top: 60, bottom: 0, right: 0, width: '40%', cursor: 'pointer', zIndex: 5, background: 'none', border: 'none', padding: 0 }} />
+            {/* Touch zones — klavye/ekran-okuyucu için <button> + aria-label.
+                Alt şerit (tepki/görüntülenme) dokunma alanının DIŞINDA kalsın
+                diye bottom değeri şerit yüksekliği kadar yukarıdan başlar. */}
+            <button type="button" aria-label="Önceki hikaye" onClick={() => advanceStory(-1)} style={{ position: 'absolute', top: 60, bottom: 56, left: 0, width: '40%', cursor: 'pointer', zIndex: 5, background: 'none', border: 'none', padding: 0 }} />
+            <button type="button" aria-label="Sonraki hikaye" onClick={() => advanceStory(1)} style={{ position: 'absolute', top: 60, bottom: 56, right: 0, width: '40%', cursor: 'pointer', zIndex: 5, background: 'none', border: 'none', padding: 0 }} />
+
+            {/* Alt şerit: SAHİBİ görüntülenme sayısını görür, İZLEYİCİ tepki verir.
+                Hikaye atan kullanıcı şimdiye kadar sıfır geri bildirim alıyordu. */}
+            <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 8, padding: '10px 12px', background: 'linear-gradient(to top, rgba(0,0,0,0.65), transparent)', display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', minHeight: 56 }}>
+              {isOwnStory ? (
+                <button
+                  type="button"
+                  onClick={() => setViewersOpen(v => !v)}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: 'rgba(255,255,255,0.14)', border: 'none', borderRadius: 9999, padding: '7px 14px', color: '#fff', fontFamily: 'inherit', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  👁 {storyViews?.count ?? 0} kişi gördü
+                </button>
+              ) : (
+                ['❤️', '🔥', '😮', '👏', '😂'].map(em => (
+                  <button
+                    key={em}
+                    type="button"
+                    onClick={() => sendStoryReaction(currentSvStory.id, em)}
+                    disabled={reactionSent !== null}
+                    aria-label={`${em} tepkisi gönder`}
+                    style={{ background: reactionSent === em ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.12)', border: 'none', borderRadius: '50%', width: 40, height: 40, fontSize: '1.15rem', cursor: reactionSent ? 'default' : 'pointer', lineHeight: 1 }}
+                  >
+                    {em}
+                  </button>
+                ))
+              )}
+            </div>
+
+            {/* Görüntüleyen listesi (yalnız sahibine) */}
+            {isOwnStory && viewersOpen && (
+              <div style={{ position: 'absolute', left: 0, right: 0, bottom: 56, zIndex: 9, maxHeight: '45%', overflowY: 'auto', background: 'rgba(0,0,0,0.85)', padding: '10px 14px' }}>
+                {(storyViews?.viewers ?? []).length === 0 ? (
+                  <p style={{ margin: 0, color: 'rgba(255,255,255,0.7)', fontSize: '0.82rem', textAlign: 'center' }}>Henüz kimse görmedi.</p>
+                ) : (
+                  (storyViews?.viewers ?? []).map(v => (
+                    <div key={v.username} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '6px 0' }}>
+                      <span style={{ width: 28, height: 28, borderRadius: '50%', overflow: 'hidden', flexShrink: 0 }}>
+                        <Img src={avatarSrc(v.username, v.avatar)} alt="" fixedWidth={56} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </span>
+                      <span style={{ color: '#fff', fontSize: '0.84rem', fontWeight: 600 }}>{v.display_name}</span>
+                      <span style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.78rem' }}>@{v.username}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
           </div>
           <style>{`@keyframes sv-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }`}</style>
         </div>

@@ -67,6 +67,20 @@ create table if not exists public.post_polls (
 alter table public.post_polls enable row level security;
 
 
+-- ── 6) HİKAYE GÖRÜNTÜLENMESİ (story_views) ────────────────────────────────
+-- Hikaye atan kullanıcı sıfır geri bildirim alıyordu. Tepkiler ayrı tablo
+-- İSTEMEZ: mevcut DM altyapısından mesaj olarak gider (dm_privacy + engel
+-- kontrolüyle), böylece konuşma başlatır.
+create table if not exists public.story_views (
+  story_id   bigint not null references public.stories(id) on delete cascade,
+  viewer_id  bigint not null references public.users(id) on delete cascade,
+  created_at timestamptz default now() not null,
+  primary key (story_id, viewer_id)
+);
+create index if not exists idx_story_views_story on public.story_views (story_id, created_at desc);
+alter table public.story_views enable row level security;
+
+
 -- Örnek sorular: dogal-secilim makalesinin GÖMÜLÜ quiz'inden (widgets.tsx) taşındı.
 -- Diğer makaleler için aynı biçimde satır ekleyebilirsin; article_slug lib/articles.ts
 -- registry'sindeki slug ile birebir aynı olmalı, makale başına ilk 3 aktif soru gösterilir.
