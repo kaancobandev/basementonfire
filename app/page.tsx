@@ -235,7 +235,12 @@ export default function HomePage() {
               </div>
               <div className={s.rows}>
                 {ARTICLES.filter((a) => a.category === c.cat).map((a) => (
-                  <Link key={a.slug} className={s.row} href={`/articles/${a.slug}`}>
+                  // prefetch={false}: arşiv 32 makalenin TAMAMINI listeler; viewport
+                  // prefetch'i arşive kaydıran her ziyaretçiye ~815KB RSC indirtiyor
+                  // ve her deploy sonrası 32'ye kadar fonksiyon çağrısı patlatıyordu
+                  // (warmer yalnız HTML varyantını ısıtır, RSC ayrı cache girdisi).
+                  // Kürate gruplar (kapılar/duvar/fiiller, ~17 link) prefetch'li kalır.
+                  <Link key={a.slug} prefetch={false} className={s.row} href={`/articles/${a.slug}`}>
                     <span className={s.rowTile} style={{ background: gradientFor(a.slug) }} aria-hidden>{a.emoji}</span>
                     <span className={s.rowBody}>
                       <span className={s.rowTitle}>{a.title}</span>
