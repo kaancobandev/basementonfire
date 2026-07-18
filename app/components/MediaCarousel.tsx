@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import Img from '@/app/components/Img';
 import { splitMedia, type MediaItem } from '@/lib/types';
+import { swipeTarget } from '@/lib/swipe';
 
 // Lightbox medya sütunu artık her yüzeyde belirli yükseklikte → %100 ebeveyni doldurur
 // (masaüstünde 90vh'lik sütun = eski görünüm; mobil dikey istifte doğru ölçü).
@@ -150,6 +151,11 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
   const [feedRatio, setFeedRatio] = useState<number | null>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  // Dokunmatik sürükleme durumu — aşağıdaki onTouch* işleyicileri kullanır.
+  // BURADA tanımlı olmalı (diğer hook'larla birlikte): aşağıdaki tek-görsel
+  // dalı erken `return` ediyor, oraya konsaydı koşullu hook çağrısı olur ve
+  // tek/çok görselli gönderiler arasında geçişte React patlardı.
+  const drag = useRef({ x: 0, scroll: 0, from: 0, active: false });
 
   const { visuals, audio } = splitMedia(media);
 
@@ -238,9 +244,48 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
     setIdx(c);
   }
   function onScroll() {
-    const t = trackRef.current; if (!t) return;
+    const t = trackRef.current; if (!t || !t.clientWidth) return;
     const i = Math.round(t.scrollLeft / t.clientWidth);
     if (i !== idx) setIdx(i);
+  }
+
+  // ── BİR KAYDIRMA = BİR GÖRSEL (dokunmatik) ────────────────────────────────
+  // Önce yalnız CSS ile denendi (`scroll-snap-stop: always`) ama telefonda
+  // YETMEDİ — tek savurmada hâlâ 2 görsel atlıyordu (iOS Safari'de bu
+  // özelliğin bilinen güvenilirlik sorunları var). O yüzden hareketi tarayıcının
+  // momentumuna bırakmıyoruz, parmağı biz takip edip biz bırakıyoruz.
+  //
+  // Track'te `touchAction: 'pan-y'` var: tarayıcı YATAY savurmayı hiç
+  // başlatmıyor (dolayısıyla savaşacağımız momentum da yok), dikey sayfa
+  // kaydırma ise normal çalışmaya devam ediyor. Masaüstü trackpad/fare
+  // kaydırması etkilenmiyor — o hâlâ native scroll + snap ile yürüyor.
+  function onTouchStart(e: React.TouchEvent) {
+    // clientWidth 0 iken (henuz yerlesmemis kapsayici) bolme NaN uretirdi.
+    const t = trackRef.current; if (!t || !t.clientWidth) return;
+    drag.current = {
+      x: e.touches[0].clientX,
+      scroll: t.scrollLeft,
+      from: Math.round(t.scrollLeft / t.clientWidth),
+      active: true,
+    };
+  }
+
+  function onTouchMove(e: React.TouchEvent) {
+    const t = trackRef.current; if (!t || !drag.current.active) return;
+    const dx = e.touches[0].clientX - drag.current.x;
+    // Parmağı takip et ama EN FAZLA bir slayt: kullanıcı ne kadar sürüklerse
+    // sürüklesin komşu görselden öteye geçemesin.
+    const max = t.clientWidth;
+    t.scrollLeft = drag.current.scroll + Math.max(-max, Math.min(max, -dx));
+  }
+
+  function onTouchEnd(e: React.TouchEvent) {
+    const t = trackRef.current; if (!t || !drag.current.active) return;
+    drag.current.active = false;
+    const dx = e.changedTouches[0].clientX - drag.current.x;
+    // Karar saf fonksiyonda (lib/swipe.ts) — orada testi var: parmak ne kadar
+    // sürüklenirse sürüklensin hedef en fazla 1 slayt uzaklaşır.
+    go(swipeTarget(drag.current.from, dx, t.clientWidth, visuals.length));
   }
 
   const containerStyle: React.CSSProperties = variant === 'feed'
@@ -255,8 +300,18 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
       <div
         ref={trackRef}
         onScroll={onScroll}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        onTouchCancel={onTouchEnd}
         className="mc-track"
-        style={{ display: 'flex', width: '100%', height: '100%', overflowX: 'auto', scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}
+        style={{
+          display: 'flex', width: '100%', height: '100%', overflowX: 'auto',
+          scrollSnapType: 'x mandatory', scrollbarWidth: 'none',
+          // pan-y: yatay savurmayı tarayıcı BAŞLATMAZ (yukarıdaki nota bak),
+          // dikey sayfa kaydırma normal çalışır.
+          touchAction: 'pan-y',
+        }}
       >
         {visuals.map((m, i) => (
           // scrollSnapStop: 'always' → BİR KAYDIRMA = BİR GÖRSEL.
