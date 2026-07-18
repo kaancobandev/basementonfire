@@ -2,7 +2,8 @@ import { db, getMe } from '@/lib/supabase/server';
 import { createNotification } from '@/lib/notify';
 import { isBlockedBetween } from '@/lib/blocks';
 import { canViewOwnerContent } from '@/lib/visibility';
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
+import { notifyMentions } from '@/lib/mentions';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
 
@@ -59,6 +60,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (parentCm && parentCm.user_id !== me.id && parentCm.user_id !== post?.user_id)
       await createNotification({ userId: parentCm.user_id, actorId: me.id, type: 'comment', postId, commentId: comment.id });
   }
+
+  // Yorumdaki @bahsetmelere bildirim — yanıt sonrası, best-effort.
+  after(() => notifyMentions({ actorId: me.id, text: content, postId, commentId: comment.id }));
 
   return json({ comment: { ...comment, display_name: me.display_name, username: me.username, avatar: me.avatar ?? null } });
 }

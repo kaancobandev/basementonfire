@@ -1,6 +1,7 @@
 import { db, getMe } from '@/lib/supabase/server';
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { isArticleSlug } from '@/lib/articles';
+import { notifyMentions } from '@/lib/mentions';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
 
@@ -32,6 +33,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     .select('id, content, created_at')
     .single();
   if (error) return json({ error: 'Yorum eklenemedi' }, 500);
+
+  // Makale yorumundaki @bahsetmelere bildirim — yanıt sonrası, best-effort.
+  // postId YOK (notifications.post_id quick_facts FK'lı; link aktör profiline gider).
+  after(() => notifyMentions({ actorId: me.id, text: content }));
 
   return json({
     comment: { ...data, username: me.username, display_name: me.display_name, avatar: me.avatar ?? null, is_mine: true },

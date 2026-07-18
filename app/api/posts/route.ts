@@ -1,6 +1,7 @@
 import { db, getMe } from '@/lib/supabase/server';
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { revalidateTag } from 'next/cache';
+import { notifyMentions } from '@/lib/mentions';
 
 export async function POST(req: Request) {
   const { me } = await getMe();
@@ -21,6 +22,10 @@ export async function POST(req: Request) {
 
   if (newPost) {
     revalidateTag('feed'); // yeni post → home feed önbelleğini hemen tazele
+    // @bahsetmelere bildirim — yanıt sonrası, best-effort. postId YOK:
+    // notifications.post_id quick_facts FK'lı, text post id'si oraya yazılamaz;
+    // bildirim sayfası linki zaten aktör profiline gider.
+    after(() => notifyMentions({ actorId: me.id, text: content }));
     const opts = [1, 2, 3, 4]
       .map(n => (form.get(`poll_opt_${n}`) as string)?.trim() ?? '')
       .filter(o => o.length > 0);

@@ -3,6 +3,7 @@ import { NextResponse, after } from 'next/server';
 import { revalidateTag } from 'next/cache';
 import { submitToIndexNow, postUrl, profileUrl, isLiveRequest } from '@/lib/indexnow';
 import { parseHashtags } from '@/lib/caption';
+import { notifyMentions } from '@/lib/mentions';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
 const MAX_MEDIA = 20;
@@ -90,6 +91,9 @@ export async function POST(req: Request) {
   // Yeni gönderi → home/akış/discover paylaşılan feed önbelleğini (T2 'feed' tag'i)
   // hemen tazele → gönderi herkese anında görünür, revalidate penceresini beklemez.
   revalidateTag('feed');
+
+  // Caption'daki @bahsetmelere bildirim — yanıt döndükten sonra (after), best-effort.
+  after(() => notifyMentions({ actorId: me.id, text: caption, postId: newId }));
 
   // Caption'daki #etiketleri çıkar → hashtags + post_hashtags tablolarına işle.
   // Best-effort: hata gönderi oluşturmayı geçersiz kılmaz. hashtags.tag üzerinde
