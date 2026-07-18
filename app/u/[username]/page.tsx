@@ -106,7 +106,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
   // Gizli hesap VEYA (iki yönlü) engel → içerik gizli.
   const isHidden = (profileUser.is_private && !isFollowing) || iBlocked || blockedMe;
 
-  const [followersRes, followingRes, postsRes, articlesRes] = await Promise.all([
+  const [followersRes, followingRes, postsRes, articlesRes, progressRes, badgesRes] = await Promise.all([
     db.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', profileUser.id),
     db.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', profileUser.id),
     isHidden
@@ -125,7 +125,19 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
           .eq('user_id', profileUser.id)
           .eq('status', 'approved')
           .order('published_at', { ascending: false }),
+    // Bilgi/seri vitrini (XP, seri, rozetler) — /profile ile aynı veri, artık
+    // HERKESE AÇIK profilde de görünür (görünmeyen statü çalışmaz). Gizli
+    // profilde gösterilmez; tablolar yoksa hata yutulur, bölüm gizlenir.
+    isHidden
+      ? Promise.resolve({ data: null, error: null } as any)
+      : db.from('user_progress').select('xp, current_streak, longest_streak, total_correct').eq('user_id', profileUser.id).maybeSingle(),
+    isHidden
+      ? Promise.resolve({ data: [], error: null } as any)
+      : db.from('user_badges').select('badge_key, earned_at').eq('user_id', profileUser.id).order('earned_at', { ascending: true }),
   ]);
+
+  const progress = progressRes && !progressRes.error ? ((progressRes.data ?? null) as { xp: number; current_streak: number; longest_streak: number; total_correct: number } | null) : null;
+  const badgeKeys: string[] = (badgesRes && !badgesRes.error ? ((badgesRes.data ?? []) as any[]) : []).map((b: any) => b.badge_key);
 
   const mediaPosts = (postsRes.data ?? []) as Array<{
     id: number; media_url: string; media_type: string; caption: string; likes: number; created_at: string;
@@ -188,6 +200,8 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
       blockedMe={blockedMe}
       mediaPosts={mediaPosts}
       articles={articles}
+      progress={progress}
+      badgeKeys={badgeKeys}
       me={me ? { id: me.id, username: me.username, display_name: me.display_name, avatar: me.avatar ?? null } : null}
     />
     </>

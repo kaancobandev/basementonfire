@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Caption from '@/app/components/Caption';
 import AnimatedNumber from '@/app/components/AnimatedNumber';
+import { BADGE_MAP, levelFromXp } from '@/lib/badges';
 import ReportModal from '@/app/components/ReportModal';
 import ReportButton from '@/app/components/ReportButton';
 
@@ -34,6 +35,8 @@ interface Props {
   blockedMe: boolean;
   mediaPosts: MediaPost[];
   articles?: { slug: string; title: string; summary: string; cover_url: string | null; category: string | null }[];
+  progress?: { xp: number; current_streak: number; longest_streak: number; total_correct: number } | null;
+  badgeKeys?: string[];
   me: { id: number; username: string; display_name: string; avatar: string | null } | null;
 }
 
@@ -44,7 +47,7 @@ function timeAgo(iso: string) {
 
 const GENDER_LABEL: Record<string, string> = { erkek: 'Erkek', kadin: 'Kadın', diger: 'Diğer' };
 
-export default function UserProfileClient({ profileUser, bg, age, followersCount, followingCount, isFollowing: initialFollowing, isHidden, iBlocked, blockedMe, mediaPosts, articles = [], me }: Props) {
+export default function UserProfileClient({ profileUser, bg, age, followersCount, followingCount, isFollowing: initialFollowing, isHidden, iBlocked, blockedMe, mediaPosts, articles = [], progress = null, badgeKeys = [], me }: Props) {
   const router = useRouter();
   const isMobile = useIsMobile();
   const [following, setFollowing] = useState(initialFollowing);
@@ -291,6 +294,34 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
           <span><strong style={{ color: 'var(--color-text)' }}><AnimatedNumber value={followers} /></strong> Takipçi</span>
           <span><strong style={{ color: 'var(--color-text)' }}><AnimatedNumber value={followingCount} /></strong> Takip</span>
         </div>
+
+        {/* Bilgi & Seri vitrini — /profile'daki bloğun herkese açık, kompakt hali.
+            progress yoksa (hiç soru çözmemiş / SQL çalışmamış / gizli profil) gizli.
+            İlerleme çubuğu BİLEREK yok: başkasının profilinde hedef değil statü gösterilir. */}
+        {progress && (progress.xp > 0 || badgeKeys.length > 0) && (() => {
+          const { level } = levelFromXp(progress.xp);
+          const earned = badgeKeys.map(k => BADGE_MAP[k]).filter(Boolean);
+          return (
+            <div style={{ marginTop: 12, padding: '10px 12px', borderRadius: 14, border: '1px solid var(--color-border)', background: 'linear-gradient(90deg, rgba(16,185,129,0.07), rgba(59,130,246,0.05))' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: '0.88rem', fontWeight: 800, color: 'var(--color-text)' }}>⭐ Lv {level}</span>
+                {progress.current_streak > 0 && (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: '0.84rem', fontWeight: 700, color: '#f97316' }}>🔥 {progress.current_streak} gün seri</span>
+                )}
+                <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{progress.total_correct} doğru · {progress.xp} XP</span>
+              </div>
+              {earned.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginTop: 9 }}>
+                  {earned.map(b => (
+                    <span key={b.key} title={b.desc} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 9px', borderRadius: 9999, background: 'var(--color-surface)', border: '1px solid var(--color-border)', fontSize: '0.76rem', fontWeight: 700, color: 'var(--color-text)' }}>
+                      <span>{b.emoji}</span>{b.name}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })()}
       </div>
 
       {/* Makaleler — yayındaki kullanıcı makaleleri */}
