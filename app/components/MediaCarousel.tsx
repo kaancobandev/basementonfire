@@ -156,6 +156,10 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
   // dalı erken `return` ediyor, oraya konsaydı koşullu hook çağrısı olur ve
   // tek/çok görselli gönderiler arasında geçişte React patlardı.
   const drag = useRef({ x: 0, scroll: 0, from: 0, active: false });
+  // Sürükleme sırasında taşınan iç sarmalayıcı (transform hedefi) + oturma
+  // animasyonunun iki kez bitmesini önleyen bayrak.
+  const innerRef = useRef<HTMLDivElement>(null);
+  const settling = useRef(false);
   // Geçişten sonra CSS yapışmasını geri açan zamanlayıcı (aynı sebeple burada).
   const snapBack = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => { if (snapBack.current) clearTimeout(snapBack.current); }, []);
@@ -280,6 +284,21 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
     // atlıyordu. Masaüstü trackpad'i için yapışma gerekli, o yüzden siliyoruz
     // değil, geçişten sonra geri açıyoruz.
     t.style.scrollSnapType = 'none';
+
+    // Önceki oturma animasyonu hâlâ sürüyorsa onu kes ve konumu kesinleştir;
+    // aksi hâlde yeni sürükleme yarım kalmış bir transform üstüne binerdi.
+    const inner = innerRef.current;
+    if (inner) {
+      if (settling.current) {
+        if (snapBack.current) clearTimeout(snapBack.current);
+        inner.style.transition = '';
+        inner.style.transform = '';
+        settling.current = false;
+      }
+      // GPU katmanına al: sürükleme boyunca yeniden boyama olmasın.
+      inner.style.willChange = 'transform';
+    }
+
     drag.current = {
       x: e.touches[0].clientX,
       scroll: t.scrollLeft,
@@ -288,33 +307,61 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
     };
   }
 
+  // SÜRÜKLEME `scrollLeft` İLE DEĞİL `transform` İLE YAPILIYOR.
+  // Önce scrollLeft yazılıyordu; kullanıcı her kaydırmada yolun ortasında
+  // takılma bildirdi. İki aday ölçümle elendi: (a) görsel indirme/decode değil
+  // — takılma ÖNBELLEKTEKİ görselde de her seferinde oluyor, (b) tarayıcının
+  // yatay/dikey yön kararı değil — o hareketin BAŞINDA olurdu, bu ortasında.
+  // Geriye kalan: scrollLeft yazmak ana iş parçacığında kaydırma + yeniden
+  // boyama demek; komşu görsel görünür alana girdiğinde raster maliyeti
+  // biniyordu. translate3d ise GPU'da bileşikleniyor, boyama yok.
   function onTouchMove(e: React.TouchEvent) {
-    const t = trackRef.current; if (!t || !drag.current.active) return;
+    const inner = innerRef.current;
+    const t = trackRef.current;
+    if (!inner || !t || !drag.current.active) return;
     const dx = e.touches[0].clientX - drag.current.x;
-    // Parmağı takip et ama EN FAZLA bir slayt: kullanıcı ne kadar sürüklerse
-    // sürüklesin komşu görselden öteye geçemesin.
+    // Parmağı takip et ama EN FAZLA bir slayt.
     const max = t.clientWidth;
-    t.scrollLeft = drag.current.scroll + Math.max(-max, Math.min(max, -dx));
+    const clamped = Math.max(-max, Math.min(max, dx));
+    inner.style.transform = `translate3d(${clamped}px,0,0)`;
   }
 
   function onTouchEnd(e: React.TouchEvent) {
-    const t = trackRef.current; if (!t || !drag.current.active) return;
+    const t = trackRef.current;
+    const inner = innerRef.current;
+    if (!t || !inner || !drag.current.active) return;
     drag.current.active = false;
+
+    const w = t.clientWidth;
     const dx = e.changedTouches[0].clientX - drag.current.x;
     // Karar saf fonksiyonda (lib/swipe.ts) — orada testi var: parmak ne kadar
     // sürüklenirse sürüklensin hedef en fazla 1 slayt uzaklaşır.
-    go(swipeTarget(drag.current.from, dx, t.clientWidth, visuals.length));
+    const target = swipeTarget(drag.current.from, dx, w, visuals.length);
+    const step = target - drag.current.from;   // -1 | 0 | 1
 
-    // Yumuşak geçiş bittikten sonra yapışmayı geri aç (masaüstü trackpad için).
-    // Yeni bir dokunuş gelirse onTouchStart onu tekrar kapatır, çakışma olmaz.
-    // 600ms: tarayıcının yumuşak kaydırması tipik olarak ~300ms sürer; yavaş
-    // cihazda erken geri açmak animasyonun ortasında ani yapışmaya yol açardı.
-    // Geç açmanın maliyeti yok (dokunmatik cihazda yapışmaya zaten gerek yok).
+    // Kalan mesafeyi transform ile yumuşat, sonra GERÇEK konuma sessizce geç.
+    settling.current = true;
+    inner.style.transition = 'transform 260ms cubic-bezier(.22,.61,.36,1)';
+    inner.style.transform = `translate3d(${-step * w}px,0,0)`;
+
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      inner.removeEventListener('transitionend', finish);
+      // Aynı karede: animasyonu kaldır + gerçek scroll konumuna otur.
+      // Sıra önemli — transform sıfırlanmadan scrollLeft yazılırsa görüntü zıplar.
+      inner.style.transition = '';
+      inner.style.transform = '';
+      t.scrollLeft = target * w;
+      setIdx(target);
+      t.style.scrollSnapType = 'x mandatory';  // masaüstü trackpad'i için geri aç
+      settling.current = false;
+    };
+    inner.addEventListener('transitionend', finish);
+    // Emniyet: transitionend gelmezse (sekme arkaya alınırsa vb.) yine otur.
     if (snapBack.current) clearTimeout(snapBack.current);
-    snapBack.current = setTimeout(() => {
-      const el = trackRef.current;
-      if (el && !drag.current.active) el.style.scrollSnapType = 'x mandatory';
-    }, 600);
+    snapBack.current = setTimeout(finish, 400);
   }
 
   const containerStyle: React.CSSProperties = variant === 'feed'
@@ -342,15 +389,27 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
           touchAction: 'pan-y',
         }}
       >
+        {/* İÇ SARMALAYICI — sürüklerken transform BUNA uygulanır.
+            Track'in kendisi kaydırma kapsayıcısı olduğu için ona transform
+            veremeyiz; slaytları bir kat içine alıp onu taşıyoruz. Sürükleme
+            bitince transform sıfırlanır ve gerçek scrollLeft'e oturulur, yani
+            masaüstündeki native kaydırma + yapışma aynen çalışmaya devam eder. */}
+        {/* Genişlik n×%100, slaytlar (100/n)% → her slayt tam olarak track
+            genişliği kadar olur ve track'in kaydırılabilir alanı n×track olur.
+            Slaytlara düz `flex: 0 0 100%` verilseydi bu %100 artık INNER'ı
+            işaret ederdi; inner de %100 olduğundan kaydırılacak alan hiç
+            oluşmaz ve kaydırma komple kırılırdı. */}
+        {/* flexShrink: 0 ŞART — inner, track'in (display:flex) çocuğu olduğu
+            için varsayılan flex-shrink:1 onu kapsayıcıya sığdırmak üzere geri
+            büzüyor ve genişlik %700 yerine %100'e düşüyordu (ölçüldü: 2100
+            yerine 300px, slaytlar 300 yerine 43px). */}
+        <div ref={innerRef} style={{ display: 'flex', flex: '0 0 auto', width: `${visuals.length * 100}%`, height: '100%' }}>
         {visuals.map((m, i) => (
-          // scrollSnapStop: 'always' → BİR KAYDIRMA = BİR GÖRSEL.
-          // Yalnız `scroll-snap-type: x mandatory` varken mobilde hızlı bir
-          // savurma momentumla birkaç slaytı birden geçip nereye denk gelirse
-          // oraya yapışıyordu (3 fotoğraflı gönderide 1'den 3'e atlamak gibi).
-          // 'always' tarayıcıyı HER yapışma noktasında durmaya zorlar, momentum
-          // ne kadar güçlü olursa olsun. Desteklemeyen eski tarayıcılar bu
-          // özelliği yok sayar → eski davranışa döner, kırılma olmaz.
-          <div key={i} style={{ flex: '0 0 100%', width: '100%', height: '100%', scrollSnapAlign: 'center', scrollSnapStop: 'always', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          // scrollSnapStop: 'always' → masaüstü trackpad kaydırmasında bir
+          // savurmanın birkaç slayt atlamasını engeller. (Dokunmatikte artık
+          // hareketi tamamen biz yönetiyoruz, orada bu özelliğe bel bağlamıyoruz
+          // — telefonda yeterli olmadığı ölçüldü.)
+          <div key={i} style={{ flex: `0 0 ${100 / visuals.length}%`, width: `${100 / visuals.length}%`, height: '100%', scrollSnapAlign: 'center', scrollSnapStop: 'always', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {m.type === 'video'
               ? <video src={m.url} controls playsInline title={caption} aria-label={caption} onLoadedMetadata={variant === 'feed' && i === 0 ? onFeedVideoMeta : undefined} style={mediaStyle} />
               // KOMŞU SLAYT ÖNCEDEN YÜKLENİR (|i - idx| <= 1).
@@ -366,6 +425,7 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
               : <Img src={m.url} alt={caption || ''} sizes={sizes} onLoad={variant === 'feed' && i === 0 ? onFeedImgLoad : undefined} loading={variant === 'feed' && !(priority && i === 0) && Math.abs(i - idx) > 1 ? 'lazy' : undefined} fetchPriority={priority && i === 0 ? 'high' : undefined} style={mediaStyle} />}
           </div>
         ))}
+        </div>
       </div>
 
       {idx > 0 && <button type="button" aria-label="Önceki" onClick={() => go(idx - 1)} style={navBtn('left')}>‹</button>}
