@@ -18,6 +18,8 @@ type Candidate = {
   location: string | null;
   shared: string[];
   age: number | null;
+  /** İkinizin de okuduğu/kaydettiği makale başlıkları (en fazla 3). */
+  commonArticles?: string[];
 };
 type MatchUser = { id: number; username: string; display_name: string; avatar: string };
 type MatchRow = { id: number | string; conversationId: number | null; user: MatchUser };
@@ -38,6 +40,13 @@ function CardInner({ user, myInterests }: { user: Candidate; myInterests: string
       </div>
       <div className="match-card-body">
         {user.bio ? <p className="match-card-bio">{user.bio}</p> : null}
+        {/* Ortak merak — okumak eşleşme kalitesini artıran bir eyleme dönüşür
+            ve konuşma açacak somut bir zemin verir. */}
+        {(user.commonArticles?.length ?? 0) > 0 && (
+          <p className="match-card-common">
+            📚 İkiniz de okudunuz: <strong>{user.commonArticles!.join(', ')}</strong>
+          </p>
+        )}
         {interests.length > 0 && (
           <div className="match-card-tags">
             {interests.map((t) => (

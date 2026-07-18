@@ -1,5 +1,6 @@
 import { db, getMe } from '@/lib/supabase/server';
 import { MATCH_MIN_AGE, isAtLeast, birthdateCutoff } from '@/lib/age';
+import { ARTICLE_MAP } from '@/lib/articles';
 import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -64,16 +65,52 @@ export async function GET() {
     }
   }
 
-  // Ortak ilgi sayisina gore sirala (cok ortak -> once), ilk 20'yi don.
+  // ORTAK MERAK (2026-07-19): "ikiniz de X okudunuz" — okumak eşleşme
+  // kalitesini artıran bir eyleme dönüşür. article_reads/article_saves yoksa
+  // (SQL çalışmadıysa) sessizce boş kalır, sıralama eski haliyle çalışır.
+  const poolIds = pool.map((u) => u.id as number);
+  const commonBySlug = new Map<number, string[]>();
+  if (poolIds.length) {
+    try {
+      const readsOf = async (userIds: number[]) => {
+        const [reads, saves] = await Promise.all([
+          db.from('article_reads').select('user_id, article_slug').in('user_id', userIds),
+          db.from('article_saves').select('user_id, article_slug').in('user_id', userIds),
+        ]);
+        const map = new Map<number, Set<string>>();
+        for (const row of [...((reads.data ?? []) as any[]), ...((saves.data ?? []) as any[])]) {
+          if (!map.has(row.user_id)) map.set(row.user_id, new Set());
+          map.get(row.user_id)!.add(row.article_slug);
+        }
+        return map;
+      };
+      const [mineMap, poolMap] = await Promise.all([readsOf([me.id]), readsOf(poolIds)]);
+      const mySlugs = mineMap.get(me.id) ?? new Set<string>();
+      if (mySlugs.size) {
+        for (const [uid, slugs] of poolMap) {
+          const common = [...slugs].filter((s) => mySlugs.has(s));
+          if (common.length) commonBySlug.set(uid, common);
+        }
+      }
+    } catch { /* ortak-okuma best-effort */ }
+  }
+
+  // Sıralama: ortak ilgi BİRİNCİL, ortak okuma İKİNCİL.
   const ranked = pool
     .map((u) => {
       const ui: string[] = Array.isArray(u.interests) ? (u.interests as string[]) : [];
       const shared = ui.filter((t) => myInterests.includes(t));
       // Ham doğum tarihini (DOB) istemciye SIZDIRMA — sunucuda yaşa çevir, birthdate'i çıkar.
       const { birthdate, ...rest } = u as Record<string, unknown>;
-      return { ...rest, shared, age: ageFrom((birthdate as string) ?? null) };
+      const commonSlugs = commonBySlug.get(u.id as number) ?? [];
+      // Slug yerine BAŞLIK gönder (kartta okunur metin; kürate makale registry'si).
+      const commonArticles = commonSlugs
+        .map((s) => ARTICLE_MAP[s]?.title)
+        .filter(Boolean)
+        .slice(0, 3) as string[];
+      return { ...rest, shared, age: ageFrom((birthdate as string) ?? null), commonArticles };
     })
-    .sort((a, b) => b.shared.length - a.shared.length)
+    .sort((a, b) => b.shared.length - a.shared.length || b.commonArticles.length - a.commonArticles.length)
     .slice(0, 20);
 
   return json({ deck: ranked, myInterests });

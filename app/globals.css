@@ -993,6 +993,16 @@ body {
   line-height: 1.45;
   color: var(--color-text);
 }
+/* Ortak merak satırı — eşleşme kartında konuşma zemini (2026-07-19) */
+.match-card-common {
+  margin: 0 0 10px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--color-text);
+}
 .match-card-tags { display: flex; flex-wrap: wrap; gap: 6px; }
 .match-tag {
   font-size: 0.74rem;

@@ -1,5 +1,6 @@
 import { db, getMe } from '@/lib/supabase/server';
 import { MATCH_MIN_AGE, isAtLeast } from '@/lib/age';
+import { ARTICLE_MAP } from '@/lib/articles';
 import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -82,6 +83,38 @@ export async function POST(req: Request) {
     { user1_id: u1, user2_id: u2, conversation_id: conversationId },
     { onConflict: 'user1_id,user2_id' },
   );
+
+  // BUZ KIRICI (2026-07-19): ortak okunan makale varsa konusmaya somut bir
+  // zeminle baslat — bos DM kutusu eslesmelerin en buyuk olum nedeni.
+  // Yalniz KONUSMA BOSSA yazilir (tekrar eslesmede spam olmasin) ve
+  // best-effort'tur: hata eslesmeyi bozmaz.
+  if (conversationId) {
+    try {
+      const { count: msgCount } = await db
+        .from('messages').select('id', { count: 'exact', head: true })
+        .eq('conversation_id', conversationId);
+      if ((msgCount ?? 0) === 0) {
+        const readsOf = async (uid: number) => {
+          const [r, s] = await Promise.all([
+            db.from('article_reads').select('article_slug').eq('user_id', uid),
+            db.from('article_saves').select('article_slug').eq('user_id', uid),
+          ]);
+          return new Set([...(r.data ?? []), ...(s.data ?? [])].map((x: any) => x.article_slug as string));
+        };
+        const [mine, theirs] = await Promise.all([readsOf(me.id), readsOf(targetId)]);
+        const commonSlug = [...mine].find((s) => theirs.has(s));
+        const title = commonSlug ? ARTICLE_MAP[commonSlug]?.title : null;
+        if (title) {
+          await db.from('messages').insert({
+            conversation_id: conversationId,
+            sender_id: me.id,
+            content: `İkiniz de "${title}" makalesini okumuşsunuz — oradan başlayabilirsiniz. 📚`,
+          });
+          await db.from('conversations').update({ last_message_at: new Date().toISOString() }).eq('id', conversationId);
+        }
+      }
+    } catch { /* buz kirici best-effort */ }
+  }
 
   // Kutlama modali icin eslesilen kisinin temel bilgisi.
   const { data: other } = await db
