@@ -225,7 +225,9 @@ export default function ArticleEditor({ initial }: { initial: Initial | null }) 
       if (!res.ok) { setError(data.error ?? 'Bir hata oluştu.'); setSubmitting(false); setProgress(''); return; }
 
       toast('Makalen incelemeye gönderildi ✅', { description: 'Onaylanınca yayına girecek.' });
-      router.push(editing ? `/makale/${initial!.slug}` : `/makale/${data.slug}`);
+      // Gönderim sonrası makale 'pending' — /makale/[slug] artık yalnız onaylıları
+      // sunan ISR rotası (404 verir). Sahip önizlemesi ayrı dinamik rotada.
+      router.push(`/makale/onizleme/${editing ? initial!.id : data.id}`);
     } catch (e: any) {
       setError(e?.message ?? 'Bağlantı hatası. Tekrar dene.');
       setSubmitting(false);

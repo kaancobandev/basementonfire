@@ -61,7 +61,9 @@ export default function AdminClient({ items: initial }: { items: Item[] }) {
             </div>
             {a.summary && <p style={{ fontSize: '0.9rem', color: 'var(--color-text)', margin: '0 0 12px' }}>{a.summary}</p>}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <Link href={`/makale/${a.slug}`} target="_blank" style={{ padding: '8px 16px', borderRadius: 10, border: '1px solid var(--color-border)', color: 'var(--color-text)', textDecoration: 'none', fontWeight: 700, fontSize: '0.85rem' }}>👁 Önizle</Link>
+              {/* Kuyruktakiler 'pending' — ana rota (ISR, yalnız onaylılar) 404
+                  verir; admin önizlemesi dinamik önizleme rotasından. */}
+              <Link href={`/makale/onizleme/${a.id}`} target="_blank" style={{ padding: '8px 16px', borderRadius: 10, border: '1px solid var(--color-border)', color: 'var(--color-text)', textDecoration: 'none', fontWeight: 700, fontSize: '0.85rem' }}>👁 Önizle</Link>
               <button type="button" disabled={busy === a.id} onClick={() => moderate(a.id, 'approve')} style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: '#16a34a', color: '#fff', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer' }}>✓ Onayla</button>
               <button type="button" disabled={busy === a.id} onClick={() => moderate(a.id, 'reject')} style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: '#ef4444', color: '#fff', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer' }}>✕ Reddet</button>
             </div>

@@ -20,6 +20,7 @@ export default function robots(): MetadataRoute.Robots {
           '/notifications',
           '/bookmarks',
           '/gonderi-olustur',
+          '/makale/onizleme/',
           '/profile',
         ],
       },

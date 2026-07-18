@@ -1,6 +1,6 @@
 import { db, getMe, isAdmin } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
-import { revalidateTag } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { LIMITS, ARTICLE_CATEGORIES } from '@/lib/userArticles';
 import { normalizeDoc, normalizeSources, clampText, isAllowedMediaUrl } from '@/lib/articleSanitize';
 
@@ -16,7 +16,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const id = Number((await params).id);
   if (!Number.isFinite(id)) return json({ error: 'Geçersiz id' }, 400);
 
-  const { data: existing } = await db.from('user_articles').select('id, user_id, updated_at').eq('id', id).maybeSingle();
+  const { data: existing } = await db.from('user_articles').select('id, user_id, slug, updated_at').eq('id', id).maybeSingle();
   if (!existing) return json({ error: 'Makale bulunamadı' }, 404);
   if (existing.user_id !== me.id) return json({ error: 'Yetkin yok' }, 403);
   // Sik tekrarli (scriptlenmis) buyuk yazimlari engelle — basit debounce.
@@ -52,6 +52,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (error) return json({ error: 'Güncellenemedi.' }, 500);
 
   revalidateTag('feed'); // yayindaydiysa Keşfet'ten dussun (tekrar onaya kadar)
+  // Duzenleme statusu pending'e cevirdi -> ISR'daki yayindaki kopya dusmeli.
+  if (existing.slug) revalidatePath(`/makale/${existing.slug}`);
   return json({ ok: true, status: 'pending' });
 }
 
@@ -62,12 +64,14 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   const id = Number((await params).id);
   if (!Number.isFinite(id)) return json({ error: 'Geçersiz id' }, 400);
 
-  const { data: existing } = await db.from('user_articles').select('id, user_id, status').eq('id', id).maybeSingle();
+  const { data: existing } = await db.from('user_articles').select('id, user_id, slug, status').eq('id', id).maybeSingle();
   if (!existing) return json({ error: 'Makale bulunamadı' }, 404);
   if (existing.user_id !== me.id && !isAdmin(me as any)) return json({ error: 'Yetkin yok' }, 403);
 
   const { error } = await db.from('user_articles').delete().eq('id', id);
   if (error) return json({ error: 'Silinemedi.' }, 500);
   if (existing.status === 'approved') revalidateTag('feed');
+  // ISR'daki kopya dusmeli (rota artik 404 vermeli).
+  if (existing.slug) revalidatePath(`/makale/${existing.slug}`);
   return json({ ok: true });
 }

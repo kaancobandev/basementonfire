@@ -1,6 +1,6 @@
 import { db, getMe, isAdmin } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
-import { revalidateTag } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { clampText } from '@/lib/articleSanitize';
 import { submitToIndexNow, articleUrl, isLiveRequest } from '@/lib/indexnow';
 
@@ -27,6 +27,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const { error } = await db.from('user_articles').update(patch).eq('id', id);
     if (error) return json({ error: 'Onaylanamadı.' }, 500);
     revalidateTag('feed'); // Keşfet/feed onbellegini tazele -> makale gorunur olsun
+    // /makale/[slug] artik ISR: onaydan ONCE istenmisse 404 onbellege girmis
+    // olabilir — purge et ki makale aninda erisilebilir olsun.
+    if (existing.slug) revalidatePath(`/makale/${existing.slug}`);
     // Yayına giren makaleyi arama motorlarına ANINDA bildir (yalnız canlı üretimde).
     if (existing.slug && isLiveRequest(req)) await submitToIndexNow(articleUrl(existing.slug));
     return json({ ok: true, status: 'approved' });
@@ -37,6 +40,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const { error } = await db.from('user_articles').update({ status: 'rejected', reject_reason: reason || null }).eq('id', id);
     if (error) return json({ error: 'Reddedilemedi.' }, 500);
     if (existing.status === 'approved') revalidateTag('feed');
+    // Yayindaydiysa ISR'daki kopyasi dusmeli (rota artik 404 vermeli).
+    if (existing.slug) revalidatePath(`/makale/${existing.slug}`);
     return json({ ok: true, status: 'rejected' });
   }
 

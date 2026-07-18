@@ -337,7 +337,9 @@ export default function ProfileClient({ user, bg, age, followersCount, following
                   <span style={{ fontSize: '0.72rem', fontWeight: 800, color: badge.c }}>● {badge.t}</span>
                   {a.status === 'rejected' && a.reject_reason && <div style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)' }}>Neden: {a.reject_reason}</div>}
                 </div>
-                <Link href={`/makale/${a.slug}`} style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--color-text)', textDecoration: 'none', padding: '6px 10px', border: '1px solid var(--color-border)', borderRadius: 8 }}>Gör</Link>
+                {/* Onaylı → herkese açık ISR rotası; incelemede/reddedilmiş →
+                    sahip önizlemesi (ana rota onaysızlara 404 verir). */}
+                <Link href={a.status === 'approved' ? `/makale/${a.slug}` : `/makale/onizleme/${a.id}`} style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--color-text)', textDecoration: 'none', padding: '6px 10px', border: '1px solid var(--color-border)', borderRadius: 8 }}>Gör</Link>
                 <Link href={`/makale/yeni?id=${a.id}`} style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--color-primary)', textDecoration: 'none', padding: '6px 10px', border: '1px solid var(--color-border)', borderRadius: 8 }}>Düzenle</Link>
                 <button type="button" onClick={async () => { if (!window.confirm('Makale silinsin mi?')) return; const r = await fetch(`/api/user-articles/${a.id}`, { method: 'DELETE' }); if (r.ok) { setArticles(p => p.filter(x => x.id !== a.id)); toast('Silindi'); } else toast('Silinemedi'); }} style={{ fontSize: '0.78rem', fontWeight: 700, color: '#ef4444', background: 'none', border: '1px solid var(--color-border)', borderRadius: 8, padding: '6px 10px', cursor: 'pointer' }}>Sil</button>
               </div>
