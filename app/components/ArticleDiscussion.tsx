@@ -61,6 +61,9 @@ export default function ArticleDiscussion({ slug }: { slug: string }) {
         if (!alive) return;
         if (!d.available) { setSt({ phase: 'hidden' }); return; }
         setSt({ phase: 'ready', loggedIn: !!d.loggedIn, saved: !!d.saved, comments: d.comments ?? [] });
+        // "Okundu" isareti: bu bolum makalenin EN SONUNDA — buraya ulasmak makaleyi
+        // bitirmenin makul vekili. Fire-and-forget; koleksiyon ilerlemesini besler.
+        if (d.loggedIn) fetch(`/api/articles/${slug}/read`, { method: 'POST', keepalive: true }).catch(() => {});
       } catch {
         if (alive) setSt({ phase: 'hidden' });
       }

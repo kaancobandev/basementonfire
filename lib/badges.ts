@@ -14,7 +14,26 @@ export const BADGES: Badge[] = [
   { key: 'correct_50',    name: 'Bilgi Avcisi',   emoji: '🧠', desc: '50 dogru cevap topladin' },
   { key: 'xp_100',        name: 'Merakli',        emoji: '💡', desc: '100 XP topladin' },
   { key: 'xp_500',        name: 'Bilge',          emoji: '🦉', desc: '500 XP topladin' },
+  // Koleksiyon rozetleri (2026-07-19): bir kategorinin TUM makalelerini okuyana
+  // verilir. earnedBadgeKeys() BUNLARI VERMEZ (o yalniz soru ilerlemesine bakar);
+  // odul /api/articles/[slug]/read icinde kategori tamamlaninca yazilir.
+  { key: 'koleksiyon_fizik',     name: 'Fizik Rafi',     emoji: '⚛️', desc: 'Tum Fizik makalelerini okudun' },
+  { key: 'koleksiyon_kimya',     name: 'Kimya Rafi',     emoji: '🧪', desc: 'Tum Kimya makalelerini okudun' },
+  { key: 'koleksiyon_tarih',     name: 'Tarih Rafi',     emoji: '🏛️', desc: 'Tum Tarih makalelerini okudun' },
+  { key: 'koleksiyon_biyoloji',  name: 'Biyoloji Rafi',  emoji: '🧬', desc: 'Tum Biyoloji makalelerini okudun' },
+  { key: 'koleksiyon_teknoloji', name: 'Teknoloji Rafi', emoji: '💻', desc: 'Tum Teknoloji makalelerini okudun' },
+  { key: 'koleksiyon_kultur',    name: 'Kultur Rafi',    emoji: '🎭', desc: 'Tum Kultur makalelerini okudun' },
 ];
+
+// Kategori adi (lib/articles.ts) → koleksiyon rozeti anahtari.
+export const CATEGORY_BADGE_KEYS: Record<string, string> = {
+  'Fizik': 'koleksiyon_fizik',
+  'Kimya': 'koleksiyon_kimya',
+  'Tarih': 'koleksiyon_tarih',
+  'Biyoloji': 'koleksiyon_biyoloji',
+  'Teknoloji': 'koleksiyon_teknoloji',
+  'Kültür': 'koleksiyon_kultur',
+};
 
 export const BADGE_MAP: Record<string, Badge> = Object.fromEntries(BADGES.map(b => [b.key, b]));
 
