@@ -99,18 +99,15 @@ select * from (values
 where not exists (select 1 from public.quiz_questions where article_slug = 'dogal-secilim');
 
 
--- ── 4) MAKALE SONU MİNİ-QUIZ → XP (article_quiz_answers) ──────────────────
--- daily_answers deseninin kopyası; quiz_questions.article_slug kolonu zaten var.
-create table if not exists public.article_quiz_answers (
-  user_id        bigint not null references public.users(id) on delete cascade,
-  question_id    bigint not null references public.quiz_questions(id) on delete cascade,
-  selected_index integer not null,
-  is_correct     boolean not null,
-  created_at     timestamptz default now() not null,
-  primary key (user_id, question_id)
-);
-alter table public.article_quiz_answers enable row level security;
-
--- Tohum sorular: doğal-seçilim makalesinin gömülü quiz'inden 3 örnek.
--- (Diğer makalelerin soruları aynı biçimde eklenir: article_slug + options jsonb.)
-insert
+-- ════════════════════════════════════════════════════════════════════════
+--  DOĞRULAMA (opsiyonel): tabloların oluştuğunu gör.
+--    select table_name from information_schema.tables
+--     where table_schema='public'
+--       and table_name in ('dyk_likes','article_reads','article_quiz_answers',
+--                          'post_polls','story_views');
+--  Kolonlar:
+--    select column_name from information_schema.columns
+--     where table_name='game_scores' and column_name='game_key';
+--    select column_name from information_schema.columns
+--     where table_name='notifications' and column_name='dyk_id';
+-- ════════════════════════════════════════════════════════════════════════
