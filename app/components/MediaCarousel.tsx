@@ -248,6 +248,14 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
   }
   function onScroll() {
     const t = trackRef.current; if (!t || !t.clientWidth) return;
+    // PARMAK EKRANDAYKEN durum GÜNCELLENMEZ.
+    // Neden: onTouchMove her karede scrollLeft yazıyor, bu da onScroll'u
+    // tetikliyordu. Kaydırma yarıyı geçtiği an Math.round bir sonraki indekse
+    // dönüyor ve setIdx çağrılıyordu → sürüklemenin TAM ORTASINDA React
+    // yeniden render + ok butonlarının DOM'dan eklenip çıkarılması (ikisi de
+    // `idx`e bağlı). Sonuç: her kaydırmada aynı noktada hissedilen takılma.
+    // Doğru indeksi zaten onTouchEnd'de go() yazıyor; sürüklerken gerekmiyor.
+    if (drag.current.active) return;
     const i = Math.round(t.scrollLeft / t.clientWidth);
     if (i !== idx) setIdx(i);
   }
