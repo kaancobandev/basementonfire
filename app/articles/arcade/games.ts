@@ -37,6 +37,19 @@ html.reduced .arc-root .gx-modal{ animation:none; }
 .arc-root .gx-screen{ position:relative; background:#05030c; border:1px solid var(--line); border-radius:10px; overflow:hidden; }
 .arc-root .gx-canvas{ display:block; width:100%; height:auto; max-height:60vh; touch-action:none; image-rendering:auto; }
 .arc-root .gx-hint{ text-align:center; font-size:.78rem; color:var(--dim); }
+/* Skor panosu (game_scores liderlik tablosu) */
+.arc-root .gx-board{ border-top:1px solid var(--line); padding-top:10px; display:flex; flex-direction:column; gap:4px; max-height:180px; overflow-y:auto; }
+.arc-root .gx-board-t{ font-family:var(--pix); font-size:.55rem; letter-spacing:.08em; color:var(--cyan,#2ce6e6); margin-bottom:4px; text-align:center; }
+.arc-root .gx-board-row{ display:flex; align-items:center; gap:10px; font-size:.82rem; color:var(--ink,#f4ecff); padding:2px 6px; }
+.arc-root .gx-board-rank{ font-family:var(--pix); font-size:.55rem; color:var(--dim); width:18px; text-align:right; }
+.arc-root .gx-board-name{ flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.arc-root .gx-board-sc{ font-family:var(--pix); font-size:.6rem; color:#36ff9e; }
+.arc-root .gx-send{ display:flex; align-items:center; gap:8px; padding:4px 6px 8px; flex-wrap:wrap; }
+.arc-root .gx-send-sc{ font-family:var(--pix); font-size:.6rem; color:#ffd23f; }
+.arc-root .gx-send-name{ flex:1; min-width:110px; background:rgba(255,255,255,.06); border:1px solid var(--line); border-radius:6px; color:var(--ink,#f4ecff); font-size:.85rem; padding:6px 9px; outline:none; }
+.arc-root .gx-send-name:focus{ border-color:var(--pink,#ff2e88); }
+.arc-root .gx-send-btn{ font-family:var(--pix); font-size:.5rem; letter-spacing:.05em; color:#0b0712; background:#36ff9e; border:none; border-radius:6px; padding:8px 10px; cursor:pointer; }
+.arc-root .gx-send-btn:disabled{ opacity:.6; cursor:default; }
 .arc-root .gx-hint b{ color:var(--ink); }
 .arc-root .gx-controls{ display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap; }
 .arc-root .gx-btn{ font-family:var(--pix); font-size:.8rem; color:var(--ink); background:rgba(255,255,255,.05);
@@ -72,17 +85,18 @@ export const GAME_JS = `
   }
 
   /* ---- modal (bir kez kurulur, .arc-root içine; gezinmede React kaldırır) ---- */
-  var overlay,titleEl,canvas,ctx,ctrlEl,hintEl, current=null;
+  var overlay,titleEl,canvas,ctx,ctrlEl,hintEl,boardEl=null,curKey=null, current=null;
   function isOpen(){ return overlay && overlay.classList.contains('open'); }
   function buildModal(){
     overlay=document.createElement('div'); overlay.className='gx-overlay'; overlay.setAttribute('aria-hidden','true');
     overlay.innerHTML='<div class="gx-modal" role="dialog" aria-modal="true">'
       +'<div class="gx-bar"><span class="gx-title"></span><button class="gx-close" aria-label="Kapat">\\u2715</button></div>'
       +'<div class="gx-screen"><canvas class="gx-canvas" width="720" height="540"></canvas></div>'
-      +'<div class="gx-hint"></div><div class="gx-controls"></div></div>';
+      +'<div class="gx-hint"></div><div class="gx-controls"></div><div class="gx-board" hidden></div></div>';
     root.appendChild(overlay);
     titleEl=overlay.querySelector('.gx-title'); canvas=overlay.querySelector('.gx-canvas');
     ctx=canvas.getContext('2d'); ctrlEl=overlay.querySelector('.gx-controls'); hintEl=overlay.querySelector('.gx-hint');
+    boardEl=overlay.querySelector('.gx-board');
     overlay.querySelector('.gx-close').addEventListener('click', closeModal);
     overlay.addEventListener('mousedown', function(e){ if(e.target===overlay) closeModal(); });
     // dokunmatik kontrol delegasyonu (modal düğmeleri)
@@ -94,12 +108,52 @@ export const GAME_JS = `
     document.documentElement.style.overflow='hidden'; var a=ac(); if(a&&a.state==='suspended')a.resume(); }
   function closeModal(){ if(!overlay) return; if(current&&current.stop) current.stop(); current=null;
     overlay.classList.remove('open'); overlay.setAttribute('aria-hidden','true'); document.documentElement.style.overflow='';
-    if(ctrlEl) ctrlEl.innerHTML=''; }
+    if(ctrlEl) ctrlEl.innerHTML=''; if(boardEl){ boardEl.innerHTML=''; boardEl.hidden=true; } curKey=null; }
+
+  /* ---- skor panosu (game_scores liderlik tablosu) ----
+     Panoyu API besler; tablo/kolon henüz yoksa uç available:false döner ve
+     pano hiç görünmez (oyunlar aynen çalışır). İsimler kullanıcı verisi →
+     innerHTML'e ASLA girmez, textContent ile basılır (XSS). */
+  function loadBoard(){ if(!boardEl||!curKey) return; var key=curKey;
+    fetch('/api/game-scores?game='+key).then(function(r){ return r.json(); }).then(function(d){
+      if(curKey!==key||!boardEl) return;
+      if(!d||!d.available){ boardEl.hidden=true; return; }
+      var h='<div class="gx-board-t">SKOR TABLOSU</div>';
+      if(!d.scores.length){ h+='<div class="gx-board-row"><span class="gx-board-name">Henüz skor yok — ilk sen ol!</span></div>'; }
+      for(var i=0;i<d.scores.length;i++){ h+='<div class="gx-board-row"><span class="gx-board-rank">'+(i+1)+'</span><span class="gx-board-name"></span><span class="gx-board-sc">'+((d.scores[i].score|0))+'</span></div>'; }
+      boardEl.innerHTML=h;
+      var rows=boardEl.querySelectorAll('.gx-board-row');
+      for(var m=0;m<d.scores.length;m++){ var nEl=rows[m]&&rows[m].querySelector('.gx-board-name'); if(nEl) nEl.textContent=d.scores[m].player_name; }
+      boardEl.hidden=false;
+    }).catch(function(){ if(boardEl) boardEl.hidden=true; });
+  }
+  function gxOver(score){ if(!boardEl||!curKey||!(score>0)) return;
+    var old=boardEl.querySelector('.gx-send'); if(old) old.remove();
+    var loggedIn=false; try{ loggedIn=document.documentElement.getAttribute('data-auth')==='in'; }catch(e){}
+    var row=document.createElement('div'); row.className='gx-send';
+    row.innerHTML='<span class="gx-send-sc">SKOR '+(score|0)+'</span>'
+      +(loggedIn?'':'<input class="gx-send-name" maxlength="20" placeholder="rumuz" autocomplete="off">')
+      +'<button type="button" class="gx-send-btn">PANOYA YAZ</button>';
+    boardEl.insertBefore(row, boardEl.firstChild); boardEl.hidden=false;
+    row.querySelector('.gx-send-btn').addEventListener('click', function(){
+      var btn=this, nameIn=row.querySelector('.gx-send-name');
+      var name=nameIn?nameIn.value.trim():'';
+      if(!loggedIn && name.length<2){ if(nameIn) nameIn.focus(); return; }
+      btn.disabled=true; btn.textContent='...';
+      fetch('/api/game-scores',{ method:'POST', headers:{'Content-Type':'application/json'}, credentials:'same-origin',
+        body:JSON.stringify({ game:curKey, score:(score|0), name:name }) })
+        .then(function(r){ return r.json(); }).then(function(d){
+          if(d&&d.ok){ row.remove(); loadBoard(); }
+          else { btn.disabled=false; btn.textContent='PANOYA YAZ'; } })
+        .catch(function(){ btn.disabled=false; btn.textContent='PANOYA YAZ'; });
+    });
+  }
 
   /* ---- global girdi (SENKRON init → ArticleRuntime temizler), modal açıkken aktif ---- */
   window.addEventListener('keydown', function(e){ if(!isOpen()) return;
+    if(e.target&&e.target.tagName==='INPUT') return; // rumuz yazarken oyun tuşları çalışmasın
     if(e.key==='Escape'){ closeModal(); return; } if(current&&current.key) current.key(e,true); });
-  window.addEventListener('keyup', function(e){ if(!isOpen()) return; if(current&&current.key) current.key(e,false); });
+  window.addEventListener('keyup', function(e){ if(!isOpen()) return; if(e.target&&e.target.tagName==='INPUT') return; if(current&&current.key) current.key(e,false); });
   window.addEventListener('pointerup', function(){ if(!isOpen()) return;
     if(ctrlEl){ var ons=ctrlEl.querySelectorAll('.gx-btn.on'); for(var i=0;i<ons.length;i++) ons[i].classList.remove('on'); }
     if(current&&current.up) current.up(); });
@@ -131,7 +185,7 @@ export const GAME_JS = `
       var nx=Math.cos(ship.a), ny=Math.sin(ship.a);
       bullets.push({x:ship.x+nx*15,y:ship.y+ny*15,vx:nx*BSPD+ship.vx*0.4,vy:ny*BSPD+ship.vy*0.4,life:BLIFE}); fcd=FCD; beep(880,0.04,'square',0.03); }
     function loseLife(){ lives--; beep(120,0.3,'sawtooth',0.05); if(lives<=0){ over=true;
-        if(score>hi){ hi=score; try{ localStorage.setItem('arc_ast_hi',String(hi)); }catch(e){} } }
+        if(score>hi){ hi=score; try{ localStorage.setItem('arc_ast_hi',String(hi)); }catch(e){} } gxOver(score); }
       else { ship.x=W/2; ship.y=H/2; ship.vx=0; ship.vy=0; ship.a=-Math.PI/2; inv=110; } }
     function splitRock(idx){ var r=rocks[idx]; score+=(r.r>30?20:(r.r>18?50:100)); beep(r.r>30?180:(r.r>18?300:520),0.08,'square',0.035);
       rocks.splice(idx,1); if(r.r>18){ var nr=(r.r>30?24:13); rocks.push(makeRock(r.x,r.y,nr)); rocks.push(makeRock(r.x,r.y,nr)); }
@@ -226,7 +280,7 @@ export const GAME_JS = `
     function aliveN(){ var n=0; for(var i=0;i<aliens.length;i++) if(aliens[i].alive) n++; return n; }
     function spawnDive(){ var pool=[]; for(var i=0;i<aliens.length;i++){ var a=aliens[i]; if(a.alive && !a.dive) pool.push(a); } if(!pool.length) return;
       var a=pool[(Math.random()*pool.length)|0]; a.dive=true; a.dt=0; a.x=hX(a); a.y=hY(a); a.vy=1.3; beep(440,0.06,'sawtooth',0.025); }
-    function loseLife(){ lives--; beep(120,0.3,'sawtooth',0.05); if(lives<=0){ over=true; if(score>hi){ hi=score; try{ localStorage.setItem('arc_gx_hi',String(hi)); }catch(e){} } } else { resp=110; player.x=W/2; } }
+    function loseLife(){ lives--; beep(120,0.3,'sawtooth',0.05); if(lives<=0){ over=true; if(score>hi){ hi=score; try{ localStorage.setItem('arc_gx_hi',String(hi)); }catch(e){} } gxOver(score); } else { resp=110; player.x=W/2; } }
 
     function update(s){
       t+=s;
@@ -382,7 +436,7 @@ export const GAME_JS = `
       if(ch==='?'){ G[cy][cx]='u'; score+=50; coinCount++; levelCoins++; pops.push({x:cx*T+T/2,y:cy*T,life:26}); beep(880,0.06,'square',0.04); }
       else if(ch==='B'){ G[cy][cx]=' '; beep(240,0.05,'square',0.04); } }
     function spawnDust(n){ for(var i=0;i<n;i++){ dust.push({x:px+PW/2+(Math.random()*10-5),y:py+PH-1,vx:(Math.random()*2-1)*1.3,vy:-Math.random()*0.9,life:15+Math.random()*8}); } }
-    function advanceLevel(){ LV++; if(LV>=LEVELS.length){ won=true; if(score>hi){ hi=score; try{ localStorage.setItem('arc_pf_hi',String(hi)); }catch(e){} } } else loadLevel(LV); cleared=false; }
+    function advanceLevel(){ LV++; if(LV>=LEVELS.length){ won=true; if(score>hi){ hi=score; try{ localStorage.setItem('arc_pf_hi',String(hi)); }catch(e){} } gxOver(score); } else loadLevel(LV); cleared=false; }
 
     function step(ss){
       // yatay
@@ -407,7 +461,7 @@ export const GAME_JS = `
       if(dust) for(var i=dust.length-1;i>=0;i--){ var du=dust[i]; du.x+=du.vx*s; du.y+=du.vy*s; du.vy+=0.07*s; du.life-=s; if(du.life<=0) dust.splice(i,1); }
       if(!started||over||won) return;
       if(cleared){ clearT-=s; if(clearT<=0){ advanceLevel(); } return; }
-      if(dead){ pvy+=GRAV*s; py+=pvy*s; deadT-=s; if(deadT<=0){ lives--; if(lives<=0){ over=true; if(score>hi){ hi=score; try{ localStorage.setItem('arc_pf_hi',String(hi)); }catch(e){} } } else loadLevel(LV); } return; }
+      if(dead){ pvy+=GRAV*s; py+=pvy*s; deadT-=s; if(deadT<=0){ lives--; if(lives<=0){ over=true; if(score>hi){ hi=score; try{ localStorage.setItem('arc_pf_hi',String(hi)); }catch(e){} } gxOver(score); } else loadLevel(LV); } return; }
       var ss=Math.min(s,1.7); step(ss); animT+=Math.abs(pvx)*ss;
       camX=px+PW/2-W/2; var maxc=cols*T-W; if(maxc<0) maxc=0; if(camX<0) camX=0; else if(camX>maxc) camX=maxc;
       if(py>rows*T+40){ die(); return; }
@@ -592,7 +646,7 @@ export const GAME_JS = `
   }
 
   /* ---- oyun kaydı + fame kartlarını bağla ---- */
-  var GAMES = { 'Asteroids': { title:'ASTEROIDS \\u00b7 1979', start:startAsteroids }, 'Galaxian': { title:'GALAXIAN \\u00b7 1979', start:startGalaxian }, 'ZIPZIP': { title:'ZIPZIP \\u00b7 PLATFORM', start:startPlatformer } };
+  var GAMES = { 'Asteroids': { title:'ASTEROIDS \\u00b7 1979', start:startAsteroids, key:'ast' }, 'Galaxian': { title:'GALAXIAN \\u00b7 1979', start:startGalaxian, key:'gx' }, 'ZIPZIP': { title:'ZIPZIP \\u00b7 PLATFORM', start:startPlatformer, key:'pf' } };
   // bonus orijinal oyunun kartini fame gridine ekle (content.ts'e dokunmadan)
   (function(){ var fame=root.querySelector('.fame'); if(!fame) return;
     var card=document.createElement('div'); card.className='f';
@@ -605,7 +659,7 @@ export const GAME_JS = `
     var nEl=card.querySelector('.n'); if(!nEl) return; var g=GAMES[nEl.textContent.trim()]; if(!g) return;
     card.classList.add('f-playable'); card.setAttribute('role','button'); card.setAttribute('tabindex','0');
     var badge=document.createElement('div'); badge.className='f-play'; badge.innerHTML='\\u25B6 OYNA'; card.appendChild(badge);
-    function launch(){ openModal(g.title); current=g.start(); }
+    function launch(){ openModal(g.title); curKey=g.key||null; loadBoard(); current=g.start(); }
     card.addEventListener('click', launch);
     card.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); launch(); } });
   })(cards[i]); }
