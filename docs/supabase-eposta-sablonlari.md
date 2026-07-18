@@ -107,9 +107,44 @@ Aynı ekrandaki **Rate limit** değerini de yükselt.
 - **DMARC** — `_dmarc` adına TXT: `v=DMARC1; p=none;
   rua=mailto:info@basementonfire.com`. Hiçbir maili engellemez, sadece rapor
   toplar.
-- **Diğer şablonlar** — şifre sıfırlama ve e-posta değişikliği de aynı
-  mantıkla çevrilebilir; bağlantıdaki `type=` değeri `recovery` ve
-  `email_change` olur.
+---
+
+# Şifre sıfırlama şablonu
+
+## ⛔ BAĞLANTIYA DOKUNMA
+
+Kayıt onayında yaptığımız `token_hash` değişikliğini **buraya uygulama**.
+`app/reset-password/page.tsx` üç akışı birden karşılıyor (hash hatası,
+PKCE `?code=`, eski implicit hash) ve `{{ .ConfirmationURL }}` ile
+**çalışıyor**. `token_hash`'e çevirirsen o sayfa bu biçimi tanımaz ve
+çalışan bir akışı kırmış olursun.
+
+Yalnızca **metni** Türkçeleştir. Konu: `Basements şifreni sıfırla`
+
+```html
+<h2>Şifre sıfırlama</h2>
+
+<p>Şifreni sıfırlamak için aşağıdaki bağlantıya tıkla.
+Bağlantı kısa süre sonra geçersiz olur.</p>
+
+<p>
+  <a href="{{ .ConfirmationURL }}"
+     style="display:inline-block;padding:12px 22px;background:#5b2eef;
+            color:#ffffff;border-radius:10px;font-weight:700;
+            text-decoration:none">
+    Şifremi sıfırla
+  </a>
+</p>
+
+<p style="color:#666;font-size:13px">
+  Bu isteği sen yapmadıysan bu e-postayı yok say; şifren değişmez.
+</p>
+```
+
+# E-posta değiştirme şablonu
+
+Uygulamada e-posta değiştirme özelliği **yok** (`updateUser` yalnızca şifre
+için kullanılıyor). O şablon hiç tetiklenmiyor — dokunmaya gerek yok.
 
 ## Zaten gönderilmiş eski mailler?
 
