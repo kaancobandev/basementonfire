@@ -103,25 +103,32 @@ $function$;
 -- AÇIK KALAN İKİ KONU (bilerek bırakıldı, körlemesine düzeltme yapılmadı)
 -- ═══════════════════════════════════════════════════════════════════════════
 
--- 1) YARIŞ KORUMASI
--- Üç fonksiyon da "önce SELECT EXISTS, sonra INSERT" deseniyle çalışıyor.
--- Aradaki boşlukta ikinci bir istek gelirse (hızlı çift tıklama) iki satır
--- yazılır ve `likes` sayacı iki kez artar — sayaç kalıcı olarak şişer.
--- Composite PRIMARY KEY zaten varsa sorun yok (fact_reposts bu deseni
--- kullanıyor). ÖNCE KONTROL ET:
+-- 1) YARIŞ KORUMASI — ÖLÇÜLDÜ, SORUN YOK. Tekrar araştırma.
+-- Üç fonksiyon da "önce SELECT EXISTS, sonra INSERT" deseniyle çalışıyor;
+-- aradaki boşlukta ikinci istek gelirse (hızlı çift tıklama) sayaç iki kez
+-- artabilirdi. 2026-07-18'de canlı PK'lar ölçüldü:
 --
---   select c.relname as tablo, i.relname as index_adi, x.indisunique as benzersiz
---     from pg_index x
---     join pg_class c on c.oid = x.indrelid
---     join pg_class i on i.oid = x.indexrelid
+--   fact_likes  PK = (user_id, fact_id)   <- bileşik, korumalı
+--   post_likes  PK = (user_id, post_id)   <- bileşik, korumalı
+--   reposts     PK = (user_id, post_id)   <- bileşik, korumalı
+--
+-- Yani ek unique index GEREKMİYOR; eklemek PK'yı tekrarlayan ölü index olurdu.
+-- (Denetim raporu bunları önermişti — ölçüm önerinin gereksiz olduğunu gösterdi.)
+--
+-- BUNA KARŞILIK `follows` ve `bookmarks` PK'ları vekil `id` üzerindeydi, yani
+-- (follower_id, following_id) / (user_id, post_id) çiftleri KORUNMASIZDI. O ikisi
+-- sql/audit-2026-07-18.sql ile kapatıldı (uq_follows_pair, uq_bookmarks_user_post
+-- — 2026-07-18'de oluşturuldukları doğrulandı).
+--
+-- Yeni bir "önce SELECT sonra INSERT" ucu yazarsan PK'sını ÖNCE kontrol et:
+--   select c.relname, string_agg(a.attname, ', ' order by k.ord)
+--     from pg_constraint con
+--     join pg_class c on c.oid = con.conrelid
 --     join pg_namespace n on n.oid = c.relnamespace
---    where n.nspname = 'public' and c.relname in ('fact_likes','post_likes','reposts')
---    order by 1, 2;
---
--- Çıktıda benzersiz=true bir index YOKSA aşağıdakileri aç:
--- create unique index if not exists uq_fact_likes_user_fact on public.fact_likes (user_id, fact_id);
--- create unique index if not exists uq_post_likes_user_post on public.post_likes (user_id, post_id);
--- create unique index if not exists uq_reposts_user_post    on public.reposts    (user_id, post_id);
+--     cross join lateral unnest(con.conkey) with ordinality as k(attnum, ord)
+--     join pg_attribute a on a.attrelid = c.oid and a.attnum = k.attnum
+--    where con.contype = 'p' and n.nspname = 'public' and c.relname = '<tablo>'
+--    group by c.relname;
 
 -- 2) TABLOLARIN KENDİSİ DE DEPODA YOK
 -- `fact_likes`, `post_likes`, `reposts`, `quick_facts`, `posts`, `users`,

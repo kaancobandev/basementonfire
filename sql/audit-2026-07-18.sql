@@ -11,8 +11,22 @@
 -- Supabase SQL Editor'ın sardığı transaction içinde ÇALIŞMAZ ve her ifadeyi
 -- tek tek çalıştırmanı gerektirirdi. Gereksiz zorluk, sıfır fayda.
 --
--- ÖNCE BÖLÜM 0'ı çalıştır, çıktısını bana getir. Diğer bölümler zaten güvenli
--- ama teşhis çıktısı hangilerinin gerçekten gerektiğini gösterir.
+-- ═══════════════════════════════════════════════════════════════════════════
+-- DURUM: BU DOSYA 2026-07-18'DE ÇALIŞTIRILDI VE DOĞRULANDI.
+-- Tekrar çalıştırmak zararsız (idempotent) ama gerekmiyor.
+--
+-- Doğrulanan sonuçlar:
+--  · 7 index'in 7'si oluştu (aşağıdaki doğrulama sorgusuyla teyit edildi).
+--  · RLS tüm çekirdek tablolarda AÇIK (ayrıca anon vs service-role satır
+--    sayısı karşılaştırmasıyla bağımsız olarak doğrulandı: messages 10 satır
+--    taşıyor, anon 0 görüyor).
+--  · Bölüm 4'ün DDL dökümü alındı → sql/functions-toggles.sql olarak depoda.
+--    Beklenen 6 fonksiyondan 5'i geldi; eksik `cast_poll_vote` ve dayandığı
+--    polls/poll_options/poll_votes tabloları canlıda hiç yok → gönderi-anketi
+--    özelliği hiç bitirilmemiş (kırık değil, uykuda; UI girişi de yok).
+--  · Beğeni bildirimi hatasının asıl düzeltmesi KODDA yapıldı (lib/notify.ts);
+--    buradaki kısmi unique index yalnızca yarış korumasıdır.
+-- ═══════════════════════════════════════════════════════════════════════════
 -- ═══════════════════════════════════════════════════════════════════════════
 
 
