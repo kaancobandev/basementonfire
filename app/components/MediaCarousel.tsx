@@ -259,7 +259,14 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
         style={{ display: 'flex', width: '100%', height: '100%', overflowX: 'auto', scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}
       >
         {visuals.map((m, i) => (
-          <div key={i} style={{ flex: '0 0 100%', width: '100%', height: '100%', scrollSnapAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          // scrollSnapStop: 'always' → BİR KAYDIRMA = BİR GÖRSEL.
+          // Yalnız `scroll-snap-type: x mandatory` varken mobilde hızlı bir
+          // savurma momentumla birkaç slaytı birden geçip nereye denk gelirse
+          // oraya yapışıyordu (3 fotoğraflı gönderide 1'den 3'e atlamak gibi).
+          // 'always' tarayıcıyı HER yapışma noktasında durmaya zorlar, momentum
+          // ne kadar güçlü olursa olsun. Desteklemeyen eski tarayıcılar bu
+          // özelliği yok sayar → eski davranışa döner, kırılma olmaz.
+          <div key={i} style={{ flex: '0 0 100%', width: '100%', height: '100%', scrollSnapAlign: 'center', scrollSnapStop: 'always', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {m.type === 'video'
               ? <video src={m.url} controls playsInline title={caption} aria-label={caption} onLoadedMetadata={variant === 'feed' && i === 0 ? onFeedVideoMeta : undefined} style={mediaStyle} />
               : <Img src={m.url} alt={caption || ''} sizes={sizes} onLoad={variant === 'feed' && i === 0 ? onFeedImgLoad : undefined} loading={variant === 'feed' && !(priority && i === 0) ? 'lazy' : undefined} fetchPriority={priority && i === 0 ? 'high' : undefined} style={mediaStyle} />}
