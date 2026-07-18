@@ -1,5 +1,5 @@
 import { db, getMe } from '@/lib/supabase/server';
-import { MIN_AGE, ageFromBirthdate } from '@/lib/age';
+import { MIN_AGE, ageFromBirthdate, isAllowedBirthdateEdit } from '@/lib/age';
 import { NextResponse } from 'next/server';
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -88,20 +88,26 @@ export async function POST(req: Request) {
   update.gender = gender;
   update.interests = interests;
 
-  // --- Doğum tarihi: doğrulanır ve YALNIZCA BİR KEZ yazılır ---
-  // Eskiden ham değer doğrudan yazılıyordu (`update.birthdate = birthdateRaw || null`).
-  // /eslesme'nin 18+ kapısı (api/match/deck, swipe, matches) TAMAMEN bu kolona
-  // bakıyor → 16 yaşındaki bir kullanıcı profil formundan tarihini 1990 yapıp üç
-  // kapıyı birden geçebiliyordu. Kayıtta doğrulama zaten vardı, bu boşluk onu
-  // anlamsızlaştırıyordu. Alanı boşaltmak da yaş beyanını NULL'a çekiyordu.
+  // --- Doğum tarihi: düzenlenebilir, ama YALNIZCA GENÇLEŞME yönünde ---
+  //
+  // Eskiden ham değer hiç doğrulanmadan yazılıyordu → /eslesme'nin 18+ kapısı
+  // (match/deck + swipe + matches, üçü de) tek POST ile aşılabiliyordu.
+  // İlk düzeltmem alanı KİLİTLEMEKTİ; kapıyı korudu ama kayıtta yanlış tarih
+  // giren kullanıcıyı kalıcı sıkıştırdı. Şimdiki kural ikisini birden veriyor.
+  // Ayrıntılı gerekçe + reddedilen alternatif: lib/age.ts → isAllowedBirthdateEdit().
   const curBirthdate = me.birthdate ? String(me.birthdate).slice(0, 10) : '';
   if (birthdateRaw !== curBirthdate) {
-    if (curBirthdate)
-      return fail(req, 'Doğum tarihi kayıt sırasında beyan edilir ve sonradan değiştirilemez.');
-    // Yaş kapısından ÖNCE kayıt olmuş eski hesaplarda NULL → bir kez doldurulabilir.
+    if (!birthdateRaw) {
+      // Boşaltmak yaş beyanını NULL'a çekip kapıyı belirsizleştirirdi
+      // (isAtLeast(null) false döner → kullanıcı sessizce eşleştirmeden düşerdi).
+      return fail(req, 'Doğum tarihi boş bırakılamaz.');
+    }
     const age = ageFromBirthdate(birthdateRaw);
     if (age === null) return fail(req, 'Geçerli bir doğum tarihi gir');
     if (age < MIN_AGE) return fail(req, `En az ${MIN_AGE} yaşında olmalısın`);
+    if (!isAllowedBirthdateEdit(curBirthdate, birthdateRaw))
+      return fail(req, 'Doğum tarihini yalnızca daha küçük bir yaşa doğru düzeltebilirsin. Yaşını büyütmen gerekiyorsa bizimle iletişime geç.');
+
     update.birthdate = birthdateRaw;
   }
 

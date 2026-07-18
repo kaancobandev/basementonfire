@@ -28,5 +28,14 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
   await markConversationRead(convId, me.id);
 
+  // ERKEN UYARI — sayfalama henüz yok. 500'e dayanan bir sohbette eski mesajlar
+  // arayüzde GÖRÜNMEZ olur (yukarı kaydırınca yükleme yok). Şu an en uzun sohbet
+  // bu sınırın çok altında, o yüzden sayfalama yazmak erken optimizasyon olurdu;
+  // ama sessizce veri kaybı gibi görünmesin diye eşiğe yaklaşınca log düşüyoruz.
+  // Bu satır fonksiyon loglarında görülürse: cursor'lı sayfalama zamanı gelmiştir.
+  if ((messages?.length ?? 0) >= 400) {
+    console.warn(`[dm] sohbet ${convId}: ${messages?.length} mesaj — 500 sınırına yaklaşıldı, sayfalama gerekiyor`);
+  }
+
   return json({ messages: (messages ?? []).reverse() });
 }

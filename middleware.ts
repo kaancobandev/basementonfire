@@ -40,6 +40,51 @@ function hasSessionCookie(request: NextRequest): boolean {
   return request.cookies.getAll().some((c) => /^sb-.+-auth-token(\.\d+)?$/.test(c.name));
 }
 
+/**
+ * Content-Security-Policy — ŞİMDİLİK YALNIZCA RAPOR MODU (hiçbir şeyi engellemez).
+ *
+ * NEDEN NONCE YOK: Next.js'in standart CSP deseni her istekte yeni bir nonce
+ * üretip script etiketlerine basmaya dayanır. Bu sitede işe YARAMAZ — landing
+ * ve 32 makale `○ (Static)` olarak önceden üretiliyor (bkz. `next build`);
+ * HTML build'de donuyor, nonce ise istek başına değişiyor, ikisi uyuşmuyor.
+ * Dolayısıyla `script-src`'de 'unsafe-inline' kaçınılmaz.
+ *
+ * O HÂLDE NEYE YARIYOR: CSP'nin değeri script-src'den ibaret değil.
+ *  · base-uri 'self'      → enjekte edilen <base> ile tüm göreli URL'leri
+ *                            saldırgan sunucusuna çevirme saldırısını keser
+ *  · form-action 'self'   → enjekte edilen formun veriyi dışarı POST etmesini keser
+ *  · object-src 'none'    → <object>/<embed> tabanlı eski kaçış yollarını kapatır
+ *  · connect-src / img-src → XSS başarılı olsa bile veriyi DIŞARI taşıma
+ *                            kanallarını daraltır (exfiltration)
+ *  · frame-src            → sayfaya rastgele iframe gömülmesini engeller
+ *
+ * SIRA: önce Report-Only + /api/csp-report ile gerçek ihlaller toplanacak
+ * (özellikle kullanıcı makalelerinin srcdoc iframe'leri ana sayfanın CSP'sini
+ * MİRAS ALIR — cdnjs'e o yüzden izin verildi, doğrulanmalı). Liste temizlenince
+ * başlık `Content-Security-Policy` olarak zorunlu kılınacak.
+ */
+const CSP_REPORT_ONLY = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'none'",
+  "form-action 'self'",
+  // 'unsafe-inline': statik render + nonce uyumsuzluğu (yukarıdaki not).
+  // googletagmanager: onay verilmişse yüklenen GA. cdnjs: kullanıcı makalesi
+  // sandbox iframe'lerinin kullandığı confetti kütüphanesi.
+  "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://cdnjs.cloudflare.com",
+  // 39 dosyada <style>, 1878 yerde style={{}} → nonce stil ÖZNİTELİĞİNE
+  // uygulanamaz, 'unsafe-inline' burada da zorunlu. Riski script'in çok altında.
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https://*.supabase.co https://*.giphy.com https://i.ytimg.com",
+  "media-src 'self' blob: https://*.supabase.co",
+  "font-src 'self' data:",
+  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://*.giphy.com",
+  "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://open.spotify.com",
+  "worker-src 'self' blob:",
+  'report-uri /api/csp-report',
+].join('; ');
+
 export async function middleware(request: NextRequest) {
   // Kanonik alan adına zorla: tüm *.netlify.app host'ları (varsayılan subdomain +
   // HER deploy'un dondurulmuş permalink'i, ör. <hash>--basementonfire.netlify.app)
@@ -56,6 +101,10 @@ export async function middleware(request: NextRequest) {
   }
 
   const response = NextResponse.next({ request });
+
+  // Rapor modu: tarayıcı hiçbir şeyi ENGELLEMEZ, yalnızca ihlalleri
+  // /api/csp-report'a bildirir. Zorunlu kılmadan önce o raporlar okunacak.
+  response.headers.set('Content-Security-Policy-Report-Only', CSP_REPORT_ONLY);
 
   const path = request.nextUrl.pathname;
 

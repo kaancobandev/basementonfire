@@ -61,6 +61,37 @@ export function isAtLeast(birthdate: string | null | undefined, minAge: number):
 }
 
 /**
+ * Doğum tarihi düzenlemesi kabul edilebilir mi? — TEK YÖNLÜ KURAL.
+ *
+ * SORUN: /eslesme'nin 18+ kapısı (match/deck + swipe + matches) tamamen
+ * `users.birthdate`e bakıyor. Alan serbestçe düzenlenebilirse 16 yaşındaki bir
+ * kullanıcı tarihini 1990 yapıp üç kapıyı birden geçer. Alanı KİLİTLERSEK de
+ * kayıtta yanlış tarih giren kullanıcı kalıcı olarak sıkışır — self-servis
+ * düzeltme yok, destek akışı da yok.
+ *
+ * ÇÖZÜM: düzenlemeye izin ver, ama YALNIZCA GENÇLEŞME yönünde. Daha geç bir
+ * doğum tarihi = daha küçük yaş = daha AZ yetki. Yetki artıran yön reddedilir.
+ *  · 1920 yazıp 1990'a düzeltmek     → KABUL (yaş küçülüyor), typo düzelir
+ *  · 2010 iken 1990'a çekmek          → RET  (yaş büyüyor), bypass engellenir
+ *  · 1990 → 2015 → 1990 gidip gelmek  → 2015 kabul, geri dönüş RET; oyun bozulur
+ *
+ * Ters yöndeki typo (kendini olduğundan GENÇ yazmak) self-servis düzeltilemez —
+ * bu kaçınılmaz: yaşı büyüten her self-servis yol aynı zamanda kapıyı açar.
+ * Bu durum yönetici müdahalesi gerektirir (gerçek platformlar da böyle yapar).
+ *
+ * Ayrı bir "kapı kolonu" eklemek de düşünüldü ve REDDEDİLDİ: migration +
+ * backfill + üç route değişikliği + kolon eklenene kadar /eslesme'nin boş deste
+ * göstermesi demekti. Bu kural aynı iki güvenceyi şema değişikliği olmadan verir.
+ *
+ * ISO "YYYY-MM-DD" biçiminde sözlüksel karşılaştırma kronolojikle aynıdır.
+ */
+export function isAllowedBirthdateEdit(current: string | null | undefined, next: string): boolean {
+  const cur = current ? String(current).slice(0, 10) : null;
+  if (!cur) return true;          // hiç beyan yoksa ilk beyan serbest
+  return next >= cur;             // daha geç tarih = daha genç = izinli
+}
+
+/**
  * `minAge` yaşını doldurmuş olmak için gereken EN GEÇ doğum tarihi ("YYYY-MM-DD").
  * SQL'de havuzu filtrelemek için: `birthdate <= cutoff` → yalnızca minAge+ olanlar.
  * NULL birthdate bu karşılaştırmayı GEÇEMEZ (NULL <= x → NULL) → eski kayıtlar da elenir.
