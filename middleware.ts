@@ -41,7 +41,7 @@ function hasSessionCookie(request: NextRequest): boolean {
 }
 
 /**
- * Content-Security-Policy — ŞİMDİLİK YALNIZCA RAPOR MODU (hiçbir şeyi engellemez).
+ * Content-Security-Policy — ZORUNLU (2026-07-18'de rapor modundan çıkarıldı).
  *
  * NEDEN NONCE YOK: Next.js'in standart CSP deseni her istekte yeni bir nonce
  * üretip script etiketlerine basmaya dayanır. Bu sitede işe YARAMAZ — landing
@@ -58,12 +58,19 @@ function hasSessionCookie(request: NextRequest): boolean {
  *                            kanallarını daraltır (exfiltration)
  *  · frame-src            → sayfaya rastgele iframe gömülmesini engeller
  *
- * SIRA: önce Report-Only + /api/csp-report ile gerçek ihlaller toplanacak
- * (özellikle kullanıcı makalelerinin srcdoc iframe'leri ana sayfanın CSP'sini
- * MİRAS ALIR — cdnjs'e o yüzden izin verildi, doğrulanmalı). Liste temizlenince
- * başlık `Content-Security-Policy` olarak zorunlu kılınacak.
+ * GÖRSELLER NEDEN SERBEST (`img-src ... https:`): katı bir img-src bu sitede
+ * kazancından çok kırılma üretiyor. Kod tabanı tarandı ve dış görsel yükleyen
+ * yerler bulundu — ör. /articles/carthage hero'su images.unsplash.com'dan bir
+ * CSS arka planı çekiyor. Bunlar engellenince görsel SESSİZCE kaybolur, hata
+ * da vermez. Üstelik kullanıcı makaleleri serbest gömme HTML'i içerebiliyor ve
+ * srcdoc iframe'ler ana sayfanın CSP'sini MİRAS ALIYOR (ölçüldü) → yarın
+ * eklenecek her dış görsel sessizce ölürdü. Buna karşılık kazanç düşük:
+ * script-src zaten 'unsafe-inline' taşımak zorunda, yani asıl kaçırma kanalı
+ * olan connect-src'yi sıkı tutmak img-src'yi sıkı tutmaktan daha değerli.
+ *
+ * report-uri ZORUNLU modda da duruyor: engellenen bir şey olursa haberimiz olsun.
  */
-const CSP_REPORT_ONLY = [
+const CSP = [
   "default-src 'self'",
   "base-uri 'self'",
   "object-src 'none'",
@@ -72,13 +79,17 @@ const CSP_REPORT_ONLY = [
   // 'unsafe-inline': statik render + nonce uyumsuzluğu (yukarıdaki not).
   // googletagmanager: onay verilmişse yüklenen GA. cdnjs: kullanıcı makalesi
   // sandbox iframe'lerinin kullandığı confetti kütüphanesi.
-  "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://cdnjs.cloudflare.com",
+  // 'unsafe-eval' YALNIZCA geliştirmede: webpack/HMR eval kullanıyor ve zorunlu
+  // CSP onu engelleyince yerel geliştirme kırılır. Üretim derlemesinde eval yok,
+  // o yüzden orada eklenmiyor.
+  `script-src 'self' 'unsafe-inline' ${process.env.NODE_ENV === 'development' ? "'unsafe-eval' " : ''}https://www.googletagmanager.com https://cdnjs.cloudflare.com`,
   // 39 dosyada <style>, 1878 yerde style={{}} → nonce stil ÖZNİTELİĞİNE
   // uygulanamaz, 'unsafe-inline' burada da zorunlu. Riski script'in çok altında.
   // fonts.googleapis: KULLANICI MAKALELERİ (bkz. font-src notu).
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "img-src 'self' data: blob: https://*.supabase.co https://*.giphy.com https://i.ytimg.com",
-  "media-src 'self' blob: https://*.supabase.co",
+  // https: bilinçli olarak geniş — yukarıdaki "GÖRSELLER NEDEN SERBEST" notu.
+  "img-src 'self' data: blob: https:",
+  "media-src 'self' data: blob: https:",
   // fonts.gstatic: kullanıcı makaleleri yazara 19 Google Font seçeneği sunuyor
   // (lib/userArticles.ts → ARTICLE_GOOGLE_FONTS_HREF) ve stylesheet hem editörde
   // hem /makale/[slug] görüntüleyicisinde yükleniyor. Rapor modu bunu yakaladı:
@@ -90,7 +101,11 @@ const CSP_REPORT_ONLY = [
   // raporluyor; woff2'ler unicode-range sayesinde yalnızca gerçekten kullanılınca
   // iniyor. Yani performans sorunu yok, yalnızca izin listesi eksikti.
   "font-src 'self' data: https://fonts.gstatic.com",
-  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://*.giphy.com",
+  // GA4 veriyi BÖLGESEL adreslere gönderir (region1.google-analytics.com gibi),
+  // yalnız www.google-analytics.com yazmak analitiği SESSİZCE öldürürdü.
+  // giphy: istemci doğrudan çağırmıyor (hepsi /api/giphy üzerinden) ama
+  // ileride değişirse diye duruyor — zararsız.
+  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.giphy.com",
   "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://open.spotify.com",
   "worker-src 'self' blob:",
   'report-uri /api/csp-report',
@@ -113,9 +128,9 @@ export async function middleware(request: NextRequest) {
 
   const response = NextResponse.next({ request });
 
-  // Rapor modu: tarayıcı hiçbir şeyi ENGELLEMEZ, yalnızca ihlalleri
-  // /api/csp-report'a bildirir. Zorunlu kılmadan önce o raporlar okunacak.
-  response.headers.set('Content-Security-Policy-Report-Only', CSP_REPORT_ONLY);
+  // ZORUNLU. Sorun çıkarsa geri almak tek kelime: başlığı
+  // 'Content-Security-Policy-Report-Only' yap → engelleme durur, rapor sürer.
+  response.headers.set('Content-Security-Policy', CSP);
 
   const path = request.nextUrl.pathname;
 
