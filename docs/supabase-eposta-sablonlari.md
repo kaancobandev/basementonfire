@@ -94,6 +94,77 @@ sonra geçersiz olur.</p>
 
 ---
 
+---
+
+# Gönderen adresi: info@basementonfire.com (özel SMTP)
+
+Varsayılan gönderici `noreply@mail.app.supabase.io`. Üretim için **uygun değil**:
+Supabase'in yerleşik SMTP'si düşük saatlik limitle gelir ve limit dolunca
+mailler **sessizce gitmez** — birkaç kişi arka arkaya kayıt olursa onay maili
+hiç ulaşmaz ve hiçbir yerde hata görünmez.
+
+**Ölçüldü (2026-07-18):** alan adının MX kaydı `smtp.google.com` → posta Google
+Workspace'te. Ama **SPF kaydı YOK**, DMARC de yok (TXT'de yalnızca
+`google-site-verification` var).
+
+## Adım 1 — DNS (bunlar olmadan diğer adımlar boşa gider)
+
+Alan adı DNS panelinde:
+
+| Tip | Ad | Değer |
+|-----|-----|-------|
+| TXT | `@` | `v=spf1 include:_spf.google.com ~all` |
+| TXT | `_dmarc` | `v=DMARC1; p=none; rua=mailto:info@basementonfire.com` |
+
+DKIM ayrıca **Google Admin → Apps → Google Workspace → Gmail → Authenticate
+email** üzerinden açılır; orada üretilen TXT kaydını (`google._domainkey`)
+DNS'e eklemek gerekir.
+
+DMARC'ı `p=none` ile başlat: yalnızca rapor toplar, hiçbir maili engellemez.
+Raporlar temiz gelince `p=quarantine`'e çekilebilir.
+
+## Adım 2 — Google'da uygulama şifresi
+
+Google Hesabı → Güvenlik → 2 Adımlı Doğrulama (açık olmalı) → **Uygulama
+şifreleri** → yeni şifre üret.
+
+> Bu şifre normal hesap şifresi DEĞİLDİR ve yalnızca SMTP için geçerlidir.
+> Doğrudan Supabase paneline yapıştırılır; başka hiçbir yere yazılmamalı.
+
+## Adım 3 — Supabase SMTP ayarı
+
+Supabase → **Project Settings → Authentication → SMTP Settings** → Enable
+Custom SMTP:
+
+| Alan | Değer |
+|------|-------|
+| Host | `smtp.gmail.com` |
+| Port | `587` |
+| Username | `info@basementonfire.com` |
+| Password | (Adım 2'deki uygulama şifresi) |
+| Sender email | `info@basementonfire.com` |
+| Sender name | `Basements` |
+
+Aynı ekrandaki **Rate limit** değerini de yükselt (varsayılan çok düşüktür).
+
+Google Workspace günlük ~2.000 mesaja izin verir — bu ölçek için fazlasıyla yeter.
+
+## Adım 4 — Doğrula
+
+Yeni bir hesapla kayıt ol, gelen mailde şunlara bak:
+- Gönderen `Basements <info@basementonfire.com>` görünüyor mu
+- Gmail'de mesajı aç → ⋮ → **Orijinali göster** → `SPF: PASS`, `DKIM: PASS`
+- Spam'e düşmüyor mu
+
+## Alternatif: transactional servis
+
+Hacim büyürse (veya Google throttle etmeye başlarsa) Resend / Brevo / Mailgun
+gibi bir servis daha uygun olur: teslimat panosu, bounce yönetimi, daha yüksek
+limit. Kurulum aynı yerden yapılır, yalnızca host/port/kullanıcı değişir.
+Şu anki hacimde gerekli değil.
+
+---
+
 ## Ayrıca kontrol edilecekler
 
 - **Authentication → URL Configuration → Site URL** = `https://basementonfire.com`
