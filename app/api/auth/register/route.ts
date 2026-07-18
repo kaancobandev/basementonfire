@@ -20,11 +20,19 @@ export async function POST(req: NextRequest) {
     return fail(req, 'Şifre en az 6 karakter olmalı');
 
   // KULLANICI ADI — kayıtta hiç doğrulanmıyordu; kural yalnızca profil
-  // düzenlemede (api/profile/edit) vardı. İki sonucu vardı:
-  //  · Postgres'te metin benzersizliği BÜYÜK/KÜÇÜK HARFE DUYARLI, ama isAdmin()
-  //    karşılaştırmayı küçük harfe indiriyor → admin 'kaan' iken 'Kaan' adıyla
-  //    kayıt olan biri benzersizlik kısıtını geçip isAdmin() true alabiliyordu.
-  //  · Boşluk/'/'/'%' içeren adlar /u/[username] ve dm/start eşleşmesini bozuyordu.
+  // düzenlemede (api/profile/edit) vardı. Boşluk/'/'/'%' içeren adlar
+  // /u/[username] ve dm/start eşleşmesini bozuyordu.
+  //
+  // DÜZELTME (2026-07-18): buraya önce "büyük harfli varyantla admin taklidi"
+  // gerekçesini yazmıştım — YANLIŞTI. Canlı şema dökümünde `users` tablosunda
+  // `users_username_lower_idx UNIQUE (lower(username))` olduğu görüldü, yani
+  // 'kaan' varken 'Kaan' zaten alınamıyor. Doğrulama yerinde kalıyor ama
+  // gerekçesi bu değil.
+  //
+  // ASIL SORUN BAŞKA YERDE: `auth.users` üzerindeki `handle_new_user` trigger'ı
+  // buradan gönderilen username'i HİÇ OKUMUYOR, e-posta önekini yazıyor →
+  // aşağıdaki doğrulama geçerli ama seçilen ad kullanılmıyor.
+  // Düzeltmesi: sql/fix-handle-new-user.sql (çalıştırılması gerekiyor).
   const uname = username.toLowerCase();
   if (!/^[a-z0-9_]{3,30}$/.test(uname))
     return fail(req, 'Kullanıcı adı 3-30 karakter olmalı; sadece küçük harf, rakam ve alt çizgi (_) içerebilir.');
