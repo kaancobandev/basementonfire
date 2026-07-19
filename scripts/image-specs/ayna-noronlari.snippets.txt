@@ -1,0 +1,55 @@
+<ArticleImage
+  src="/articles/ayna-noronlari/parma-universitesi.webp"
+  ratio="1600 / 2146"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Parma1983 · CC BY-SA 4.0"
+/>
+
+<ArticleImage
+  src="/articles/ayna-noronlari/makak-maymunu.webp"
+  ratio="1600 / 1066"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Thompson Hyggen · CC0"
+/>
+
+<ArticleImage
+  src="/articles/ayna-noronlari/f5-premotor-korteks.webp"
+  ratio="1200 / 1108"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Driss Boussaoud, Judith Tanné-Gariépy, Thierry Wannier and E · CC BY 2.0"
+/>
+
+<ArticleImage
+  src="/articles/ayna-noronlari/rizzolatti-portre.webp"
+  ratio="1600 / 2400"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Festival della Scienza from Genova - photo by Cirone-Musi · CC BY-SA 2.0"
+/>
+
+<ArticleImage
+  src="/articles/ayna-noronlari/ramachandran-portre.webp"
+  ratio="1600 / 2284"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="David Shankbone · CC BY 3.0"
+/>
+
+<ArticleImage
+  src="/articles/ayna-noronlari/heyes-portre.webp"
+  ratio="1600 / 2134"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Robert Taylor https://taylor-photo.co.uk/ · CC BY-SA 4.0"
+/>
+
+<ArticleImage
+  src="/articles/ayna-noronlari/esneyen-kadin.webp"
+  ratio="1600 / 1067"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Wheeler Cowperthwaite · CC BY 2.0"
+/>

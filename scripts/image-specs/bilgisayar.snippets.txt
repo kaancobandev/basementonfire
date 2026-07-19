@@ -1,0 +1,63 @@
+<ArticleImage
+  src="/articles/bilgisayar/ilk-transistor-replika.webp"
+  ratio="1600 / 1850"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Mister rf · CC BY-SA 4.0"
+/>
+
+<ArticleImage
+  src="/articles/bilgisayar/cpu-islemci.webp"
+  ratio="1600 / 1600"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="4300streetcar · CC BY 4.0"
+/>
+
+<ArticleImage
+  src="/articles/bilgisayar/gpu-ekran-karti.webp"
+  ratio="1600 / 1067"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="PantheraLeo1359531 · CC BY 4.0"
+/>
+
+<ArticleImage
+  src="/articles/bilgisayar/kuvars-kristali.webp"
+  ratio="1600 / 1640"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Mister rf · CC BY-SA 4.0"
+/>
+
+<ArticleImage
+  src="/articles/bilgisayar/ddr5-bellek.webp"
+  ratio="1600 / 1280"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="4300streetcar · CC BY 4.0"
+/>
+
+<ArticleImage
+  src="/articles/bilgisayar/hdd-ic-yapisi.webp"
+  ratio="1600 / 1394"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Zzubnik · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/bilgisayar/anakart.webp"
+  ratio="1600 / 1330"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="PantheraLeo1359531 · CC BY 4.0"
+/>
+
+<ArticleImage
+  src="/articles/bilgisayar/ilk-bug-guve.webp"
+  ratio="1600 / 1265"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Courtesy of the Naval Surface Warfare Center, Dahlgren, VA., · kamu malı"
+/>

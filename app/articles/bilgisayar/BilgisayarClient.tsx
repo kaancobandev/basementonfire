@@ -5,6 +5,7 @@ import Link from 'next/link';
 import {
   ArticleShell, ArticleHero, ArticleLede, ArticleSection, CardGrid, HorizontalTimeline, ArticleQuiz, ArticleBibliography, ArticleFooter,
 } from '@/app/components/article/ArticleBlocks';
+import ArticleImage from '@/app/components/article/ArticleImage';
 import {
   BinaryPlayground, CommandCycle, Compare, CPU_GPU, SSD_HDD, RgbMixer,
   StatStrip, LogicGates, CpuGpuRace, DramRefreshGame, BinaryChallenge, PartMatchGame,
@@ -80,6 +81,14 @@ export default function BilgisayarClient() {
         <p className="mb-6 leading-relaxed text-slate-300">
           İşlemci her saniye milyarlarca kez <strong className="text-cyan-300">komut döngüsünü</strong> tekrarlar. Aşağıda kendin adımla:
         </p>
+        <ArticleImage
+          className="bg-img mb-6"
+          src="/articles/bilgisayar/cpu-islemci.webp"
+          ratio="1600 / 1600"
+          alt="Modern bir işlemci, altın rengi temas noktaları görünecek şekilde yandan ve üstten; üstünde metal bir kapak, kapağın üzerinde model yazısı var."
+          caption="Modern bir masaüstü işlemcisi. Gördüğünüz parlak metal, transistörler değil onların üzerindeki ısı kapağı — milyarlarca anahtar bu kapağın altında, tırnak kadar bir silikon parçasında duruyor."
+          credit="4300streetcar · CC BY 4.0"
+        />
         <CommandCycle />
         <div className="mt-6 grid gap-3 sm:grid-cols-3">
           {[['⏱️', 'Saat hızı (GHz)', '3 GHz ≈ saniyede 3 milyar adım. Ritmi sistem kristali verir.'], ['🧩', 'Çekirdek (core)', 'Modern işlemciler çok çekirdekli (4/8/16...); her çekirdek bağımsız bir mini işlemci gibi paralel çalışır.'], ['⚡', 'Önbellek (cache)', "İşlemcinin yanında, RAM'den bile hızlı L1/L2/L3 katmanları; en sık veriyi tutar."]].map(([i, t, d]) => (
@@ -93,7 +102,15 @@ export default function BilgisayarClient() {
         <LogicGates />
 
         <FunFact icon="🕰️" title="İlk transistör 1947'de doğdu">
-          İlk transistör 1947'de Bell Labs'ta üretildi ve neredeyse bir avuç içi büyüklüğündeydi. Bugün bir işlemcideki transistörler <strong className="text-white">birkaç nanometre</strong> — bir grip virüsünden bile küçük. Aynı çipe artık <strong className="text-white">on milyarlarca</strong> sığıyor.
+          İlk transistör 1947'de Bell Labs'ta üretildi: birkaç santimlik, elle dizilmiş bir düzenek. Bugün bir işlemcideki transistörler <strong className="text-white">birkaç nanometre</strong> — bir grip virüsünden bile küçük. Aynı çipe artık <strong className="text-white">on milyarlarca</strong> sığıyor.
+          <ArticleImage
+            className="bg-img mt-5"
+            src="/articles/bilgisayar/ilk-transistor-replika.webp"
+            ratio="1600 / 1850"
+            alt="Üçgen bir plastik takoz ve ona bastıran ince metal teller ile küçük bir yarı iletken parçasından oluşan basit düzenek; yanında karşılaştırma için modern, çok daha küçük bir transistör duruyor."
+            caption="1947 Bell Labs nokta-temaslı transistörünün replikası; yanındaki minik parça karşılaştırma için konmuş modern bir transistör. Bu, orijinalin kendisi değil, sonradan yapılmış bir yeniden yapım."
+            credit="Mister rf · CC BY-SA 4.0"
+          />
         </FunFact>
         <FunFact icon="⚡" title="Işık bile yavaş kalıyor">
           3 GHz'de bir “tık” yalnızca <strong className="text-white">0,33 nanosaniye</strong> sürer. Bu sürede elektrik sinyali ancak ~10 santimetre yol alabilir — bu yüzden çip ne kadar küçükse o kadar hızlı olur: sinyalin gidecek yolu kısalır.
@@ -108,6 +125,14 @@ export default function BilgisayarClient() {
         <p className="mb-6 leading-relaxed text-slate-300">
           Yapay zekânın temelinde de devasa matris çarpımları yatar; bu tam olarak GPU'nun en iyi yaptığı iştir. ChatGPT gibi modellerin eğitildiği makineler binlerce GPU içerir.
         </p>
+        <ArticleImage
+          className="bg-img mb-6"
+          src="/articles/bilgisayar/gpu-ekran-karti.webp"
+          ratio="1600 / 1067"
+          alt="Uzun, dikdörtgen bir ekran kartı; üzerinde üç adet büyük fan ve fanların altında metal soğutucu kanatlar görünüyor."
+          caption="Modern bir ekran kartı. Buradaki hacmin neredeyse tamamı soğutma: binlerce çekirdeğin ürettiği ısıyı atmak, çekirdeklerin kendisinden daha çok yer kaplıyor."
+          credit="PantheraLeo1359531 · CC BY 4.0"
+        />
         <Compare items={CPU_GPU} />
         <Analogy>CPU birkaç dâhi profesörse, GPU binlerce öğrencinin aynı anda kolay çarpım yapmasıdır. Tek karmaşık problem için profesör, milyonlarca basit işlem için ordu lazımdır.</Analogy>
 
@@ -128,6 +153,14 @@ export default function BilgisayarClient() {
         <p className="leading-relaxed text-slate-300">
           Bu titreşim bir <strong className="text-cyan-300">metronom</strong> gibidir: her “tık”ta bir işlem adımı gerçekleşir, böylece tüm parçalar aynı tempoda çalışır. Kristalin temel frekansı düşüktür; anakarttaki <strong className="text-cyan-300">PLL</strong> devreleri onu çarparak işlemcinin GHz'lik hızlarını elde eder.
         </p>
+        <ArticleImage
+          className="bg-img mt-6"
+          src="/articles/bilgisayar/kuvars-kristali.webp"
+          ratio="1600 / 1640"
+          alt="Kapağı sökülmüş küçük metal bir kutu; içinde ince tellerle askıya alınmış, parlak gümüş renkli düz bir kuvars elemanı duruyor."
+          caption="Kapağı açılmış bir kuvars rezonatör. Metal kutunun içindeki bu ince eleman, elektrik verildiğinde son derece kararlı bir frekansta titreşir. Bilgisayarlardaki kristaller aynı fiziğe dayanır, yalnızca farklı frekanslarda çalışır."
+          credit="Mister rf · CC BY-SA 4.0"
+        />
         <FunFact icon="⌚" title="Kol saatindeki kristalle aynı">
           Kuvars saatlerin çoğunda kristal saniyede tam <strong className="text-white">32.768 kez</strong> titreşir (2¹⁵). Bu titreşim o kadar kararlıdır ki iyi bir kuvars saat ayda yalnızca birkaç saniye şaşar — bilgisayarındaki “kalp atışı” da aynı fiziğe dayanır.
         </FunFact>
@@ -165,6 +198,14 @@ export default function BilgisayarClient() {
           <strong className="text-cyan-300">DDR (Double Data Rate)</strong>, modern RAM standardıdır. Eski bellekler veriyi yalnızca saat dalgasının <strong>yükselen</strong> kenarında aktarırdı; DDR ise hem yükselen hem <strong>alçalan</strong> kenarda aktarır — yani her tıkta iki kat veri. Nesiller birbiriyle <strong className="text-amber-300">uyumlu değildir</strong> (çentikleri bile farklı yerde — yanlış takmayı önleyen kasıtlı tasarım).
         </p>
         <CardGrid items={ddrGens} cols={3} />
+        <ArticleImage
+          className="bg-img mt-6"
+          src="/articles/bilgisayar/ddr5-bellek.webp"
+          ratio="1600 / 1280"
+          alt="Bir vitrinde yan yana dizilmiş, farklı boy ve biçimlerde bellek modülleri; bazıları uzun ince çubuk, bazıları kısa dikdörtgen kart."
+          caption="SK Hynix'in Computex 2025'te sergilediği çeşitli DDR5 biçimleri. Hepsi aynı kuşak bellek, ama farklı biçim faktörleri: uzun çubuklar masaüstü DIMM'leri, yassı kartlar ise dizüstü için tasarlanan CAMM modülleri."
+          credit="4300streetcar · CC BY 4.0"
+        />
       </ArticleSection>
 
       {/* 7. SSD vs HDD */}
@@ -174,6 +215,14 @@ export default function BilgisayarClient() {
         </p>
         <Compare items={SSD_HDD} />
         <p className="mt-6 leading-relaxed text-slate-300">Pratikte: işletim sistemini SSD'ye kurarsan bilgisayar saniyeler içinde açılır; HDD'de bu dakikaları bulabilir. Bu yüzden çoğu sistemde <strong className="text-cyan-300">SSD (işletim sistemi)</strong> + <strong className="text-amber-300">HDD (büyük depo)</strong> birlikte kullanılır.</p>
+        <ArticleImage
+          className="bg-img mt-6"
+          src="/articles/bilgisayar/hdd-ic-yapisi.webp"
+          ratio="1600 / 1394"
+          alt="Kapağı sökülmüş sabit disk: parlak ayna gibi yuvarlak bir plak ve plağın üzerine uzanan ince, açılı bir okuma kolu."
+          caption="Kapağı sökülmüş bir sabit disk. Aynaya benzeyen yuvarlak plak dakikada binlerce devir döner; ince kol ise plağa değmeden, saç telinin binde biri kadar bir yükseklikte süzülerek okur."
+          credit="Zzubnik · kamu malı"
+        />
         <FunFact icon="🗄️" title="İlk sabit disk bir buzdolabı kadardı">
           1956'da IBM'in ilk sabit diski <strong className="text-white">5 MB</strong> tutuyordu (bir tek şarkı bile sığmaz), bir buzdolabı boyutundaydı ve tonlarca ağırlıktaydı. Bugün tırnak ucu kadar bir SSD <strong className="text-white">binlerce kat</strong> fazlasını taşıyor.
         </FunFact>
@@ -183,6 +232,14 @@ export default function BilgisayarClient() {
       <ArticleSection title="8. Anakart — Her şeyi birleştiren omurga" max="max-w-4xl">
         <p className="mb-6 leading-relaxed text-slate-300">Anakart, bütün parçaların üzerine takıldığı ve birbiriyle konuştuğu ana devre kartıdır. Tek başına “iş yapmaz” ama herkesi bir araya getirir.</p>
         <CardGrid items={motherboardParts} cols={3} />
+        <ArticleImage
+          className="bg-img mt-6"
+          src="/articles/bilgisayar/anakart.webp"
+          ratio="1600 / 1330"
+          alt="Bir anakart tepeden çekilmiş: solda kare işlemci soketi, üstte dört uzun ince bellek yuvası, sağda yatay uzanan geniş genişleme yuvaları ve aralarda metal soğutucu kapaklar."
+          caption="Bir anakart, tepeden. Soldaki kare çerçeve işlemci soketi, üstteki dört uzun yuva bellek çubukları için, sağdaki geniş yatay yuvalar ise ekran kartı gibi genişleme kartlarına ait. Bu makalede tek tek anlattığımız parçaların hepsi buraya takılıyor."
+          credit="PantheraLeo1359531 · CC BY 4.0"
+        />
         <Analogy>Anakart bir şehrin yol ve altyapı ağıdır; CPU, GPU ve RAM ise o şehirdeki binalar. Binalar ne kadar güçlü olursa olsun, onları bağlayan yollar olmadan hiçbir şey çalışmaz.</Analogy>
       </ArticleSection>
 
@@ -256,7 +313,15 @@ export default function BilgisayarClient() {
         </p>
         <div className="mx-auto mt-6 max-w-2xl">
           <FunFact icon="🐛" title="“Bug” neden böcek demek?">
-            1947'de bir bilgisayarın rölesine sıkışmış gerçek bir <strong className="text-white">güve</strong> arızaya yol açtı; mühendisler onu çıkarıp deftere “ilk gerçek bug bulundu” diye yapıştırdı. Yazılım hatalarına hâlâ “bug” (böcek) dememizin sebebi bu.
+            1947'de Harvard'daki Mark II'nin rölesine sıkışan gerçek bir <strong className="text-white">güve</strong> arızaya yol açtı; operatörler onu çıkarıp deftere yapıştırdı ve yanına “bir böceğin bulunduğu ilk gerçek vaka” diye not düştü. Şaka tam da buradaydı: <strong className="text-white">“bug” zaten mühendislik dilinde arıza demekti</strong> — Edison 1878'de kullanıyordu. Yani bu, kelimenin kaynağı değil; kelimenin bir kez birebir gerçekleştiği an.
+            <ArticleImage
+              className="bg-img mt-5"
+              src="/articles/bilgisayar/ilk-bug-guve.webp"
+              ratio="1600 / 1265"
+              alt="Çizgili bir defter sayfası; el yazısıyla yazılmış saat kayıtlarının arasına bantla yapıştırılmış, kanatları açık gerçek bir güve duruyor."
+              caption="Harvard Mark II'nin arıza defteri, 9 Eylül 1947. Güve bantla sayfaya yapıştırılmış, yanına da not düşülmüş."
+              credit="ABD Donanması · kamu malı"
+            />
           </FunFact>
         </div>
       </ArticleSection>
@@ -266,6 +331,17 @@ export default function BilgisayarClient() {
       </div>
 
       <ArticleFooter tagline="Elektrik → 1 ve 0 → mantık → koca bir dünya. Basit fiziğin katman katman büyüsü. 💻" />
+
+      <style>{`
+        /* ArticleImage'ın slate varsayılanlarını makalenin camgöbeği-menekşe paletine bağla. */
+        .bg-img {
+          --ai-caption: #cbd5e1;
+          --ai-credit: #8291a3;
+          --ai-border: rgba(34,211,238,0.22);
+          --ai-fill: rgba(34,211,238,0.05);
+          --ai-mark: rgba(34,211,238,0.28);
+        }
+      `}</style>
     </ArticleShell>
   );
 }
