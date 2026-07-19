@@ -52,8 +52,24 @@ export default function ArticleImage({
 }) {
   const [failed, setFailed] = useState(false);
 
+  // Dikey görseller geniş prose kolonunda ekranı aşıyordu: 718px genişlikte
+  // 1600/2400'lük bir portre 1077px, tonomura karesi (0,34) 2082px sürüyordu —
+  // iki buçuk ekran. Yüksekliği ekranın %78'iyle sınırlıyoruz.
+  //
+  // Sınır max-HEIGHT değil max-WIDTH olarak yazılır: aspect-ratio kutusunda
+  // max-height kutuyu DARALTMAZ, içeriği kırpar (overflow-hidden + object-cover
+  // ile fotoğrafın altı üstü kesilirdi). Genişliği sınırlarsak oran korunur,
+  // kutu bütün hâlde küçülür ve ortalanır.
+  //
+  // `vh`, `dvh` değil: dvh mobilde adres çubuğu gizlenince değişir, o da
+  // kaydırırken görselin boyunun oynamasına yol açardı.
+  const oran = (() => {
+    const [g, y] = ratio.split('/').map(s => parseFloat(s.trim()));
+    return y > 0 && g > 0 ? g / y : 16 / 9;
+  })();
+
   return (
-    <figure className={`my-8 ${className}`}>
+    <figure className={`my-8 ${className}`} style={{ maxWidth: `calc(78vh * ${oran.toFixed(3)})`, marginInline: 'auto' }}>
       <div
         className="relative overflow-hidden rounded-2xl border bg-[var(--ai-fill,rgb(255_255_255/0.03))]"
         style={{ aspectRatio: ratio, borderColor: 'var(--ai-border, rgb(255 255 255 / 0.12))' }}
