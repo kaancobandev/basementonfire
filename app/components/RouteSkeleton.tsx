@@ -25,7 +25,10 @@ export default function RouteSkeleton() {
         ))}
       </div>
       <style>{`
-        .sk-wrap { padding: 0; }
+        /* Alt pay KORUNUR: mobilde yüzen cam dock'un altında iskelet kartları
+           kalmasın (padding:0 yazınca son kart dock'un arkasına giriyordu). */
+        .sk-wrap { padding: 0 0 var(--sk-pad-bottom, 0px); }
+        @media (max-width: 699px) { .sk-wrap { --sk-pad-bottom: calc(82px + env(safe-area-inset-bottom, 0px)); } }
         .sk-inner { max-width: 680px; padding: 18px 16px; display: flex; flex-direction: column; gap: 16px; }
         .sk-head { display: flex; align-items: center; gap: 12px; }
         .sk-head-lines { flex: 1; display: flex; flex-direction: column; gap: 7px; }

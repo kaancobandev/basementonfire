@@ -496,30 +496,52 @@ body {
 .trending-count { font-size: 0.75rem; color: var(--color-text-muted); }
 
 /* Mobile nav */
+/* ══ CAM DOCK (mobil alt navigasyon) ═══════════════════════════════════════
+   Kenardan kenara opak bir çubuk yerine, yüzen ve arkasını bulanıklaştıran
+   bir dock. Bilerek hazır bir "glass dock" bileşeni KURULMADI: o bileşenler
+   linkleri <div onClick={window.location.href}> ile kuruyor (Google linkleri
+   göremez + her dokunuşta tam sayfa yenilenir) ve efektleri onMouseEnter'a
+   bağlı — mobilde hover olmadığı için hiç tetiklenmez. Buradaki <Link>'ler
+   olduğu gibi duruyor; görünüm ve dokunma hissi CSS ile veriliyor, yani
+   ek bağımlılık ve bundle maliyeti YOK.
+   safe-area-inset: iPhone'un alt çubuğunun altında kalmasın diye (eskiden
+   bu hesap yoktu, nav ana ekran çizgisinin altına giriyordu). */
 .mobile-nav {
   display: none;
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: var(--color-surface);
-  border-top: 1px solid var(--color-border);
+  bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  left: 10px;
+  right: 10px;
+  border-radius: 22px;
+  background: color-mix(in srgb, var(--color-surface) 72%, transparent);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  box-shadow:
+    0 8px 28px rgba(15, 20, 25, 0.13),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);   /* üstte ince cam parlaması */
   z-index: 100;
+}
+/* backdrop-filter yoksa (eski Android WebView) cam yerine düz zemin —
+   yarı saydam bırakılırsa metin okunmaz hâle gelir. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .mobile-nav { background: var(--color-surface); }
 }
 .mobile-nav-inner {
   display: flex;
   justify-content: space-around;   /* öğeleri eşit dağıt — taşmadan sığar */
   align-items: center;
   width: 100%;                     /* .mobile-nav flex çocuğu olarak tam genişlik */
-  height: 56px;
+  height: 58px;
   scrollbar-width: none;
-  padding: 0 2px;
+  padding: 0 4px;
   gap: 0;
 }
 .mobile-nav-inner::-webkit-scrollbar { display: none; }
 .mobile-nav-btn {
   flex: 1 1 0;            /* her öğe eşit pay alır → dar ekranda küçülür, taşmaz */
   min-width: 0;
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -527,15 +549,57 @@ body {
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--color-text);
+  color: var(--color-text-muted);
   text-decoration: none;
-  padding: 8px 0;         /* yatay padding kaldırıldı — sabit 56px yerine esner */
-  border-radius: 12px;
-  transition: background 0.1s;
+  padding: 7px 0;
+  border-radius: 14px;
+  -webkit-tap-highlight-color: transparent;  /* kendi basılma efektimiz var */
+  transition: color 0.18s ease;
 }
 .mobile-nav-btn:hover, .mobile-nav-btn.active { color: var(--color-primary); }
+
+/* Aktif sekmenin arkasındaki yumuşak hap. Ayrı bir katman (::before) çünkü
+   Link'in kendisini ölçeklemek etiketi de bulanıklaştırıyordu. */
+.mobile-nav-btn::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 50%;
+  width: 42px;
+  height: 32px;
+  margin-left: -21px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 0.2s ease, transform 0.34s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
+}
+.mobile-nav-btn.active::before { opacity: 1; transform: scale(1); }
+
 /* Ekran daraldıkça alt-nav ikonları küçülür (ufak telefonlarda taşmayı önler) */
-.mobile-nav-btn svg { width: clamp(20px, 6.2vw, 24px); height: clamp(20px, 6.2vw, 24px); }
+.mobile-nav-btn svg {
+  width: clamp(20px, 6.2vw, 24px);
+  height: clamp(20px, 6.2vw, 24px);
+  /* cubic-bezier'in son değeri 1'i aşıyor → bırakınca hedefi geçip yaylanarak
+     oturur; "yay" hissi bundan geliyor, kütüphane gerekmiyor. */
+  transition: transform 0.34s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.mobile-nav-btn.active svg { transform: translateY(-1px) scale(1.08); }
+/* Basma: hızlı küçül (0.09s), bırakınca yukarıdaki yaylı geçişle geri gel. */
+.mobile-nav-btn:active svg { transform: scale(0.86); transition-duration: 0.09s; }
+.mobile-create-btn:active { transform: scale(0.9); }
+.mobile-create-btn { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.15s; }
+
+/* Hareket azaltma tercihi: yay ve hap animasyonu kapanır, renk vurgusu kalır. */
+@media (prefers-reduced-motion: reduce) {
+  .mobile-nav-btn svg,
+  .mobile-nav-btn::before,
+  .mobile-create-btn { transition: none; }
+  .mobile-nav-btn.active svg,
+  .mobile-nav-btn:active svg,
+  .mobile-create-btn:active { transform: none; }
+}
 /* Alt-nav ikon etiketi — keşfedilebilirlik (skill: nav-label-icon). Küçük ve dar
    ekranda kısalır; taşmasın diye tek satır + ellipsis. */
 .mobile-nav-label { font-size: clamp(0.5rem, 2.4vw, 0.62rem); font-weight: 600; line-height: 1; margin-top: 3px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -783,7 +847,9 @@ body {
 @media (max-width: 699px) {
   .sidebar { display: none; }
   .mobile-nav { display: flex; }
-  .main-content { border-right: none; max-width: 100%; padding-bottom: 64px; }
+  /* Dock artık yüzüyor (58px yükseklik + 8px alt boşluk + iPhone güvenli alanı)
+     → içerik onun altında kalmasın diye padding buna göre hesaplanıyor. */
+  .main-content { border-right: none; max-width: 100%; padding-bottom: calc(82px + env(safe-area-inset-bottom, 0px)); }
   .app-shell { max-width: 100%; }
   .feed-header { padding: 12px 16px; font-size: 1.05rem; }
   .post-card { padding: 12px 16px; }
@@ -793,8 +859,8 @@ body {
   .widget-card { display: none; }
   .right-panel { display: none; }
   .notif-float { right: 12px; top: 10px; width: 36px; height: 36px; }
-  /* Çerez banner'ı alt navigasyonun (56px) üstünde dursun */
-  .cc-banner { bottom: 76px !important; }
+  /* Çerez banner'ı yüzen dock'un üstünde dursun (dock + güvenli alan) */
+  .cc-banner { bottom: calc(92px + env(safe-area-inset-bottom, 0px)) !important; }
 }
 
 /* ── Dark theme ── */
@@ -823,6 +889,15 @@ body {
 [data-theme="dark"] .nav-link:hover           { background: rgba(255,255,255,0.06); }
 [data-theme="dark"] .back-btn:hover           { background: rgba(255,255,255,0.06); }
 [data-theme="dark"] .mobile-nav-btn:hover     { background: rgba(255,255,255,0.06); }
+/* Cam dock koyu temada: zemin daha opak (koyu üstünde %72 saydamlık okunmuyor),
+   üstteki beyaz parlama kısılır, gölge derinleşir. */
+[data-theme="dark"] .mobile-nav {
+  background: color-mix(in srgb, var(--color-surface) 82%, transparent);
+  border-color: color-mix(in srgb, var(--color-border) 90%, transparent);
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
 [data-theme="dark"] .action-btn:hover         { background: var(--color-primary-soft); }
 [data-theme="dark"] .trending-item:hover      { background: rgba(255,255,255,0.04); }
 [data-theme="dark"] .feed-header  { background: rgba(15,20,25,0.88); }
