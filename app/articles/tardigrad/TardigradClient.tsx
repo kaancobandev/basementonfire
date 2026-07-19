@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode, type CSSProperties } from 'react';
 import Link from 'next/link';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
+import ArticleImage from '@/app/components/article/ArticleImage';
 
 /* ════════════════════════ VERİ ════════════════════════ */
 
@@ -375,6 +376,26 @@ export default function TardigradClient() {
           tasarladığı <strong>en inanılmaz hayatta kalma makinesi</strong> saklı — milyonlarca yıllık{' '}
           <Link href="/articles/dogal-secilim" className="article-ilink">doğal seçilimin</Link> şekillendirdiği bir başyapıt.
         </p>
+        <div className="trd-img-pair" style={{ margin: '20px 0' }}>
+          <ArticleImage
+            className="trd-img"
+            src="/articles/tardigrad/tardigrad-sem-aktif.webp"
+            ratio="1572 / 1205"
+            priority
+            alt="Elektron mikroskobu görüntüsü: bölmeli, tıknaz gövdeli bir yaratık; dört çift kısa bacağının ucunda pençeler, önde yuvarlak bir ağız açıklığı."
+            caption="Taramalı elektron mikroskobunda bir tardigrad. Aşağıdaki çizimin gerçeği: sekiz bacak, her birinin ucunda pençeler ve bölmeli gövde."
+            credit="Wikimedia Commons · CC BY-SA"
+          />
+          <ArticleImage
+            className="trd-img"
+            src="/articles/tardigrad/tardigrad-mikroskop.webp"
+            ratio="1600 / 1450"
+            alt="Işık mikroskobu altında yarı saydam, turuncumsu bir tardigrad; iç organları ve bağırsağı dışarıdan görünüyor."
+            caption="Aynı canlı, ışık mikroskobunda ve canlı hâlde. Elektron mikroskobunun gri dünyasının aksine gerçekte yarı saydam ve renkli — sallana sallana yürürken içi bile görünüyor."
+            credit="Wikimedia Commons · CC BY-SA"
+          />
+        </div>
+
         <div className="trd-anatomy">
           <svg viewBox="0 0 420 200" className="trd-svg">
             <ellipse cx="210" cy="105" rx="95" ry="48" fill="url(#trdBody)" stroke="#9c7536" strokeWidth="2" />
@@ -419,6 +440,25 @@ export default function TardigradClient() {
             </svg>
           )}
         </Stepper>
+
+        <div className="trd-img-pair" style={{ marginTop: 22 }}>
+          <ArticleImage
+            className="trd-img"
+            src="/articles/tardigrad/tun-hali-sem.webp"
+            ratio="1507 / 1176"
+            alt="Elektron mikroskobu görüntüsü: bacakları ve başı içeri çekilmiş, büzüşmüş yüzeyli fıçı biçiminde bir yumru."
+            caption="Tun hâli: bacaklar ve baş içeri çekilmiş, gövde fıçı gibi büzüşmüş. Yukarıdaki adımların sonunda ortaya çıkan şey bu."
+            credit="Wikimedia Commons · CC BY-SA"
+          />
+          <ArticleImage
+            className="trd-img"
+            src="/articles/tardigrad/aktif-tun-karsilastirma.webp"
+            ratio="1600 / 621"
+            alt="Yan yana iki mikroskop görüntüsü: solda bacakları açık, uzun gövdeli aktif hayvan; sağda küçülüp yuvarlaklaşmış tun hâli."
+            caption="Aynı türün aktif hâli ve tun hâli yan yana. Sağdaki, suyunun neredeyse tamamını kaybetmiş hâliyle onlarca yıl bekleyebilir."
+            credit="Wikimedia Commons · CC BY"
+          />
+        </div>
       </section>
 
       {/* 3. AŞIRI KOŞULLAR */}
@@ -460,6 +500,25 @@ export default function TardigradClient() {
       <section className="trd-section reveal">
         <div className="trd-kicker">05 — Ay Macerası</div>
         <h2 className="trd-h2">Ay'a Düşen Su Ayıları</h2>
+        <div className="trd-img-pair" style={{ margin: '0 0 18px' }}>
+          <ArticleImage
+            className="trd-img"
+            src="/articles/tardigrad/beresheet-uzay-araci.webp"
+            ratio="1600 / 1068"
+            alt="Dört ayaklı, altın rengi folyoyla kaplı küçük uzay aracı; temiz oda içinde teknisyenlerin yanında duruyor."
+            caption="Beresheet: İsrail'in özel finansmanlı ay aracı. İçindeki “ay kütüphanesi” kapsülünde binlerce kurutulmuş tardigrad vardı."
+            credit="Wikimedia Commons · CC BY-SA"
+          />
+          <ArticleImage
+            className="trd-img"
+            src="/articles/tardigrad/beresheet-carpma-noktasi.webp"
+            ratio="1100 / 1100"
+            alt="Ay yüzeyinin gri, kraterli uydu görüntüsü; ortada koyu bir leke ve çevresinde açık renkli saçılma izi."
+            caption="Çarpmanın izi: NASA'nın LRO uydusu, Beresheet'in düştüğü noktayı Ay yüzeyinde tespit etti. Koyu leke aracın kendisi, açık saçılma ise çarpmanın savurduğu toz."
+            credit="NASA/GSFC/Arizona State University · kamu malı"
+          />
+        </div>
+
         <p className="trd-p">
           2019'da İsrail'in <strong>Beresheet</strong> uzay aracı, bir “ay kütüphanesi” zaman kapsülünün içinde
           <strong> binlerce kurutulmuş tardigradla</strong> Ay'a iniş yapmaya çalıştı — ama son anda kontrolü
@@ -504,6 +563,26 @@ export default function TardigradClient() {
       <section className="trd-section reveal">
         <div className="trd-kicker">08 — Bilinmeyenler</div>
         <h2 className="trd-h2">Eğlenceli Gerçekler</h2>
+
+        <div className="trd-img-pair" style={{ margin: '0 0 20px' }}>
+          <ArticleImage
+            className="trd-img"
+            src="/articles/tardigrad/goeze-portre.webp"
+            ratio="1600 / 2530"
+            alt="18. yüzyıl gravürü: peruklu, papaz cüppeli bir adamın oval çerçeve içindeki portresi."
+            caption="Johann August Ephraim Goeze: 1773'te mikroskop altında bu canlıyı ilk kez gören Alman papaz. Onlara “küçük su ayısı” adını verdi."
+            credit="Rijksmuseum · CC0"
+          />
+          <ArticleImage
+            className="trd-img"
+            src="/articles/tardigrad/spallanzani-portre.webp"
+            ratio="1396 / 1654"
+            alt="18. yüzyıl portresi: kitap tutan, cüppeli ve peruklu bir adam masa başında oturuyor."
+            caption="Lazzaro Spallanzani: üç yıl sonra bu canlılara bugünkü bilimsel adını verdi — Tardigrada, yani “yavaş yürüyen”."
+            credit="Wikimedia Commons · kamu malı"
+          />
+        </div>
+
         <div className="trd-facts">
           {facts.map((f, i) => (
             <div key={i} className="trd-fact"><div className="trd-fact-ico">{f.icon}</div><h4 className="trd-fact-t">{f.t}</h4><p className="trd-fact-d">{f.d}</p></div>
@@ -548,6 +627,16 @@ export default function TardigradClient() {
       </footer>
 
       <style>{`
+        /* ArticleImage'ın slate varsayılanlarını makalenin yosun yeşiline bağla. */
+        .trd-img {
+          --ai-caption: #cfe0d6;
+          --ai-credit: #8fa89c;
+          --ai-border: rgba(74,222,128,0.2);
+          --ai-fill: rgba(74,222,128,0.05);
+          --ai-mark: rgba(74,222,128,0.26);
+        }
+        .trd-img-pair { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; align-items: start; }
+        @media (max-width: 700px) { .trd-img-pair { grid-template-columns: 1fr; } }
         .trd-page {
           --moss:#4ade80; --water:#22d3ee; --amber:#fbbf24; --rose:#fb7185;
           --bg:#0a1512; --panel:rgba(255,255,255,0.035); --line:rgba(74,222,128,0.16);

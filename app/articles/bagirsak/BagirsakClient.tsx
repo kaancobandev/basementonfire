@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
+import ArticleImage from '@/app/components/article/ArticleImage';
 
 /* ════════════════════════ VERİ ════════════════════════ */
 
@@ -155,6 +156,16 @@ export default function BagirsakClient() {
         <div className="gut-num">I</div>
         <h2 className="gut-h2">İçimizdeki İkinci Beyin</h2>
         <p className="gut-lead">Bağırsak duvarı, baştan aşağı ince bir sinir ağıyla örülüdür. Bu ağ o kadar gelişmiştir ki bilim insanları ona bir ad verdi: <strong>enterik sinir sistemi</strong> — ya da sevdiğimiz adıyla, <strong>ikinci beyin</strong>.</p>
+        <ArticleImage
+          className="gut-img"
+          src="/articles/bagirsak/miyenterik-pleksus.webp"
+          ratio="960 / 540"
+          priority
+          alt="Mikroskop görüntüsü: pembe boyalı doku içinde ağ gibi dallanan koyu sinir lifleri ve aralarında topaklanmış hücre kümeleri."
+          caption="Bağırsak duvarındaki sinir ağı (miyenterik pleksus). Yazının “ikinci beyin” dediği şey bu: yaklaşık 500 milyon sinir hücresinden oluşan, kendi başına çalışabilen bir ağ."
+          credit="Dr. Roshan Nasimudeen · CC BY-SA 3.0"
+        />
+
         <p className="gut-p">
           Bu ağda yaklaşık <strong>500 milyon sinir hücresi</strong> bulunur — neredeyse bir kedinin beynindeki
           kadar. En şaşırtıcı yanı: Beyinle bağlantısı tamamen kesilse bile sindirimi <strong>kendi başına</strong>
@@ -204,6 +215,15 @@ export default function BagirsakClient() {
           bağırsaktan beyne taşır. Beyin bu hatta çoğunlukla <em>dinleyen</em> taraftır. Bağırsağın söyleyecek
           çok şeyi vardır; beyin kulak kabartır.
         </p>
+        <ArticleImage
+          className="gut-img"
+          src="/articles/bagirsak/vagus-uyarimi.webp"
+          ratio="1600 / 900"
+          alt="Tıbbi şema: insan gövdesi çizimi üzerinde boyuna yerleştirilmiş uyarıcı cihaz ve buradan yukarı beyne, aşağı organlara uzanan sinir yolu."
+          caption="Vagus siniri uyarımının işleyiş şeması. Bu bir cihaz fotoğrafı değil, temsilî bir çizim: göğse yerleştirilen bir üreteç, boyundaki vagus siniri üzerinden beyne düzenli sinyal gönderiyor."
+          credit="Scientific Animations · CC BY-SA"
+        />
+
         <div className="gut-note">
           <span>🩺</span>
           <p><Link href="/articles/tibbi" className="article-ilink">Tıp bunu kullanıyor</Link>: <strong>Vagus siniri uyarımı (VNS)</strong> adlı küçük bir cihaz, 2005'te
@@ -230,6 +250,15 @@ export default function BagirsakClient() {
           Beynimizin ruh halini ayarladığı kimyasalların büyük kısmı, aslında bağırsakta üretilir. İşte
           karnımızdaki kimyager:
         </p>
+        <ArticleImage
+          className="gut-img mx-auto"
+          src="/articles/bagirsak/serotonin-molekul.webp"
+          ratio="1600 / 1268"
+          alt="Üç boyutlu molekül modeli: gri, beyaz, mavi ve kırmızı küreler çubuklarla bağlanmış halka yapı."
+          caption="Serotonin molekülü. Vücuttaki serotoninin tahminen yüzde 90'ı beyinde değil, bağırsakta üretiliyor — ama oradaki serotonin doğrudan beyne geçmiyor, etkisini sinir yoluyla gösteriyor."
+          credit="Ben Mills · kamu malı"
+        />
+
         <div className="gut-mols">
           {molecules.map((m) => (
             <div key={m.n} className="gut-mol" style={{ borderColor: `${m.c}40` }}>
@@ -252,6 +281,15 @@ export default function BagirsakClient() {
       <section className="gut-section reveal">
         <div className="gut-num">V</div>
         <h2 className="gut-h2">Mikrobiyom: Unutulan Organ</h2>
+        <ArticleImage
+          className="gut-img"
+          src="/articles/bagirsak/e-coli-mikrograf.webp"
+          ratio="1600 / 1163"
+          alt="Elektron mikroskobu görüntüsü: yüzeyde kümelenmiş, çubuk biçimli çok sayıda bakteri."
+          caption="Bağırsak bakterilerinden E. coli, elektron mikroskobunda. Renkler sonradan eklendi — elektron mikroskobu renk görmez, görüntü gri tonlamalı çekilir."
+          credit="Wikimedia Commons · CC BY-SA"
+        />
+
         <p className="gut-p">
           Bağırsaklarımızda <strong>yaklaşık 38 trilyon bakteri</strong> yaşar — neredeyse kendi vücut
           hücrelerimiz kadar. Bin türden fazla bu canlı topluluğa <strong>mikrobiyom</strong> denir. O kadar
@@ -272,6 +310,15 @@ export default function BagirsakClient() {
       <section className="gut-section reveal">
         <div className="gut-num">VI</div>
         <h2 className="gut-h2">Hayatın İlk Günleri</h2>
+
+        <ArticleImage
+          className="gut-img"
+          src="/articles/bagirsak/bagirsak-kolonizasyon.webp"
+          ratio="1600 / 724"
+          alt="Bilimsel şema: doğumdan itibaren zaman ekseni boyunca bağırsakta yerleşen bakteri gruplarını gösteren renkli diyagram."
+          caption="Mikrobiyomun yerleşmesi: doğumdan itibaren hangi bakteri gruplarının ne zaman geldiğini gösteren şema. Ölçüm grafiği değil, ders kitabı çizimi — genel örüntüyü anlatır."
+          credit="Wikimedia Commons · CC BY"
+        />
         <p className="gut-p">
           Mikrobiyom bizimle doğmaz; biz onu hayatın ilk günlerinde <strong>toplarız</strong>. Anne karnında
           neredeyse sterildik; doğumdan itibaren mikroplar bağırsağı şenlendirmeye başlar. Bu ilk yerleşme,
@@ -293,6 +340,15 @@ export default function BagirsakClient() {
       <section className="gut-section reveal">
         <div className="gut-num">VII</div>
         <h2 className="gut-h2">Mikroplar Ruh Halini Nasıl Yönetir?</h2>
+        <ArticleImage
+          className="gut-img mx-auto max-w-xs"
+          src="/articles/bagirsak/laboratuvar-faresi.webp"
+          ratio="1600 / 2401"
+          alt="Beyaz bir laboratuvar faresi, eldivenli bir elin üzerinde duruyor."
+          caption="Bu alandaki kanıtların çoğu farelerden geliyor: hiç mikrobu olmayan “steril” farelerin stres tepkisi ve beyin kimyası farklı çıkıyor. Temsilî fotoğraf — belirli bir deneye ait değil."
+          credit="Wikimedia Commons · CC BY-SA"
+        />
+
         <p className="gut-p">
           Son yılların en çarpıcı keşfi: bağırsaktaki mikroplar duygularımızı etkileyebilir. Kanıtlar oldukça güçlü:
         </p>
@@ -312,6 +368,15 @@ export default function BagirsakClient() {
       <section className="gut-section reveal">
         <div className="gut-num">VIII</div>
         <h2 className="gut-h2">“İçime Doğdu”: Kararların Bilimi</h2>
+        <ArticleImage
+          className="gut-img mx-auto max-w-sm"
+          src="/articles/bagirsak/damasio-portre.webp"
+          ratio="1600 / 1071"
+          alt="Gözlüklü, kısa saçlı bir adamın konuşma yaparken çekilmiş fotoğrafı."
+          caption="António Damásio: kararlarımızın beden sinyallerine dayandığını öne süren “somatik işaretleyici” kuramının mimarı. “İçime doğdu” dediğimiz şeyin arkasındaki fikir onun."
+          credit="Franek Vetulani · CC BY-SA 4.0"
+        />
+
         <p className="gut-p">
           Bazen mantıklı bir gerekçe bulamadan “bu doğru değil” deriz. Bu <strong>içgüdüsel karar</strong>, sihir
           değil; beynin beden sinyallerini okumasıdır. Buna <strong>interosepsiyon</strong> denir — kalp atışından
@@ -393,6 +458,15 @@ export default function BagirsakClient() {
         <div className="gut-num">XII</div>
         <h2 className="gut-h2">İkinci Beynini Beslemek</h2>
         <p className="gut-p">Ruh haline iyi gelmek için bazen yapılacak en iyi şey, karnındaki ortağına iyi bakmaktır:</p>
+        <ArticleImage
+          className="gut-img"
+          src="/articles/bagirsak/kefir-fermente.webp"
+          ratio="1600 / 1184"
+          alt="Cam kavanozlarda ve bardaklarda beyaz, köpüklü fermente süt içeceği; yanında tahıl taneleri."
+          caption="Kefir gibi fermente ürünler canlı kültür taşır. Yazının önerdiği şey basit: mikroplarını beslersen onlar da sana çalışır."
+          credit="Wikimedia Commons · CC BY-SA"
+        />
+
         <div className="gut-feed">
           {feed.map((f) => (
             <div key={f.t} className="gut-feed-card"><div className="gut-feed-ico">{f.icon}</div><h4>{f.t}</h4><p>{f.d}</p></div>
@@ -449,6 +523,17 @@ export default function BagirsakClient() {
       </footer>
 
       <style>{`
+        /* ArticleImage varsayılanları KOYU tema için: beyaz kenarlık ve beyaz
+           filigran bu AÇIK zeminde görünmez olurdu → tamamen açık temaya bağlanıyor. */
+        .gut-img {
+          --ai-caption: #334155;
+          --ai-credit: #64748b;
+          --ai-border: #e2e8f0;
+          --ai-fill: #f8fafc;
+          --ai-mark: rgba(15,23,42,0.3);
+        }
+        .gut-img-pair { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; align-items: start; }
+        @media (max-width: 700px) { .gut-img-pair { grid-template-columns: 1fr; } }
         .gut-page {
           --accent:#2563eb; --accent-dk:#1d4ed8; --rose:#db2777; --teal:#0d9488;
           --bg:#ffffff; --bg2:#f8fafc; --line:#e2e8f0;

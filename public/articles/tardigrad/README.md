@@ -1,0 +1,20 @@
+# /articles/tardigrad görselleri
+
+`ArticleImage` ile Netlify Image CDN üzerinden servis edilir (otomatik WebP + responsive).
+Tümü `scripts/source-images.mjs` ile Wikimedia Commons'tan indirildi: lisans doğrulandı,
+ticari kullanıma açık (NC/ND yok), en fazla 1600px genişliğe indirildi.
+
+Yeniden üretmek için: `node scripts/source-images.mjs tardigrad`
+
+## Manifest
+
+| Dosya | Yerleşim | Lisans | Kaynak/Yazar | Commons |
+|---|---|---|---|---|
+| `tardigrad-sem-aktif.webp` | Hero / 01 Tanışma · elle çizilen trd-anatomy SVG'sinin gerçeği — 'sekiz bacak + pençeler' ve 'gövde bölmeli' etiketlerinin taramalı elektron mikroskobundaki karşılığı; facts'teki 🐻 ('Su ayısı der gibi') emojisinin yerine geçer | CC BY 2.5 | Schokraie E, Warnken U, Hotz-Wagenblatt  | [Commons](https://commons.wikimedia.org/wiki/File:SEM_image_of_Milnesium_tardigradum_in_active_state_-_journal.pone.0045682.g001-2.png) |
+| `tardigrad-mikroskop.webp` | 01 Tanışma · 'Görünüşleri sevimli ve sakindir' — SEM'in gri dünyasının aksine CANLI, renkli ışık mikroskobu görüntüsü; makalenin 'tombul, neşeli görünüşlü' iddiasını gözle doğrular | CC BY-SA 4.0 | DSparrow14 | [Commons](https://commons.wikimedia.org/wiki/File:Tardigrade_under_microscope.jpg) |
+| `tun-hali-sem.webp` | 02 Kriptobiyoz · makalenin çekirdek kavramı — 'Bacaklarını ve başını içeri çeker, fıçı şeklinde minik bir topa (tun) dönüşür' cümlesinin birebir fotoğrafı; stepper'daki 🟤/💤 SVG'sinin gerçeği. Aktif hâl SEM'iyle AYNI çalışmadan → yan yana koyunca ölçek ve doku tutarlı | CC BY 2.5 | Schokraie E, Warnken U, Hotz-Wagenblatt  | [Commons](https://commons.wikimedia.org/wiki/File:SEM_image_of_Milnesium_tardigradum_in_tun_state_-_journal.pone.0045682.g001-3.png) |
+| `aktif-tun-karsilastirma.webp` | 02 Kriptobiyoz · aynı türün aktif ve tun hâli YAN YANA — stepper'ın altı adımda anlattığı dönüşümü tek karede özetler; '03 Neye Dayanırlar' bölümüne giriş olarak da çalışır | CC BY 4.0 | Halberg KA, Jørgensen A, Møbjerg N | [Commons](https://commons.wikimedia.org/wiki/File:Richtersius_coronifer_in_active_and_tun_states.png) |
+| `beresheet-carpma-noktasi.webp` | 05 Ay Macerası · 'son anda kontrolü kaybedip yüzeye çakıldı' — NASA'nın LRO uydusunun Ay yüzeyinde tespit ettiği GERÇEK çarpma noktası; facts'teki 🌙 emojisinin yerine geçer | Public domain | NASA/GSFC/Arizona State University | [Commons](https://commons.wikimedia.org/wiki/File:Beresheet_Crash_Site_Spotted_LRO_01.png) |
+| `beresheet-uzay-araci.webp` | 05 Ay Macerası · 'binlerce kurutulmuş tardigradla Ay'a iniş yapmaya çalıştı' — çarpma noktası fotoğrafından ÖNCE gelmeli (önce araç, sonra enkaz). DİKKAT: bu MAKET, uçan araç DEĞİL. İngilizce başlık 'spacecraft' diyor ama İbranice açıklama 'דגם החללית' = 'uzay aracının MAKETİ'; tarih 7 Ekim 2015, yani fırlatmadan (Şubat 2019) 3,5 yıl önceki duyuru töreni. ALTYAZI 'maket' DEMEK ZORUNDA — Commons'ta Beresheet'in uçan donanımının gerçek fotoğrafı YOK (kategorinin tamamı maket/render; 'Spacecraft 03.jpg' bile Photoshop ile yapılmış 'maketin Ay'daki simülasyonu'). Kare bir tören karesi (kategoriler: Rivlin, Ofir Akunis, Kfir Damari) → kırpma/çerçeve gözle kontrol edilmeli. Atıf ZORUNLU: Alon Hadar (אלון הדר), CC BY-SA 4.0 | CC BY-SA 4.0 | אלון הדר | [Commons](https://commons.wikimedia.org/wiki/File:Unveiling_the_spacecraft_in_SpaceIL%27s_launch_announcement_ceremony,_at_President_Rivlin%27s_residence.jpg) |
+| `goeze-portre.webp` | 08 Gerçekler · 🔬 '1773'te keşfedildi' — 'Alman papaz J. A. E. Goeze mikroskopla ilk kez gördü' cümlesindeki kişi. Rijksmuseum, CC0 | CC0 | Rijksmuseum | [Commons](https://commons.wikimedia.org/wiki/File:Portret_van_Johann_August_Ephraim_Goeze,_RP-P-1912-1374.jpg) |
+| `spallanzani-portre.webp` | 08 Gerçekler · 🔬 aynı fact'in ikinci yarısı — 'Üç yıl sonra İtalyan Spallanzani Tardigrada (yavaş yürüyen) adını verdi'; hero eyebrow'daki 'YAVAŞ YÜRÜYEN' ibaresinin sahibi | Public domain | Caterina Piotti-Pirola | [Commons](https://commons.wikimedia.org/wiki/File:Ritratto_di_Lazzaro_Spallanzani,_ante_1842_-_Accademia_delle_Scienze_di_Torino_-_Ritratti_0148_B.jpg) |
