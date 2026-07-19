@@ -57,6 +57,11 @@ export default function Page() {
       <div className="main-content arc-root">
         <style dangerouslySetInnerHTML={{ __html: CSS }} />
         <style dangerouslySetInnerHTML={{ __html: GAME_CSS }} />
+        {/* MAKALENİN GÖVDESİ. Bu tek satır content.ts'teki ~2500 kelimenin
+            tamamını basar — silinirse sayfada yalnızca galeri + kaynakça kalır
+            ve bunu build de tsc de FARK ETMEZ (HTML yine içe aktarılmış
+            görünür). Galeri eklerken bir kez silindi; yerinden oynatma. */}
+        <div dangerouslySetInnerHTML={{ __html: HTML }} />
         <style>{`
           .arc-gallery { max-width: 1080px; margin: 0 auto; padding: 8px 22px 44px; }
           .arc-gallery h2 { font-size: clamp(1.15rem, 3vw, 1.6rem); font-weight: 800; color: #e9f6ff; margin: 30px 0 8px; letter-spacing: .04em; }

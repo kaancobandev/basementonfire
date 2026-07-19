@@ -383,7 +383,7 @@ export default function EndosimbiyozClient() {
         </div>
 
         <p className="endo-p">
-          Mitokondri bu sınırı yok etti. Onu içeri alarak ökaryot hücre, enerji üretimini iç zarlara taşıdı;yüzlerce
+          Mitokondri bu sınırı yok etti. Onu içeri alarak ökaryot hücre, enerji üretimini iç zarlara taşıdı; yüzlerce
           mitokondri, her biri kendi enerji-üreten zarıyla paralel çalıştı. Bu devasa enerji fazlasıyla ökaryotlar dev
           genomlar taşıyabildi, binlerce yeni protein üretti, büyüdü, uzmanlaştı ve sonunda dokulara, organlara,
           beyinlere dönüştü.

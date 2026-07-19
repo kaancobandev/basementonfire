@@ -66,6 +66,11 @@ export default function Page() {
       <link rel="stylesheet" href={FONT_URL} />
       <main className="main-content tib-root">
         <style dangerouslySetInnerHTML={{ __html: CSS }} />
+        {/* MAKALENİN GÖVDESİ. Bu tek satır content.ts'teki ~3300 kelimenin
+            tamamını basar — silinirse sayfada yalnızca galeri + kaynakça kalır
+            ve bunu build de tsc de FARK ETMEZ (HTML yine içe aktarılmış
+            görünür). Galeri eklerken bir kez silindi; yerinden oynatma. */}
+        <div dangerouslySetInnerHTML={{ __html: HTML }} />
         <style>{`
           .tib-gallery { max-width: var(--maxw, 1100px); margin: 0 auto; padding: 8px 24px 48px; }
           .tib-gallery h2 { font-family: Fraunces, Georgia, serif; font-size: clamp(1.2rem, 3vw, 1.7rem); font-weight: 700; color: var(--ink, #1a1714); margin: 32px 0 8px; }

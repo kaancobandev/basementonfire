@@ -61,6 +61,11 @@ export default function Page() {
       <link rel="stylesheet" href={FONT_URL} />
       <div className="main-content ayn-root">
         <style dangerouslySetInnerHTML={{ __html: CSS }} />
+        {/* MAKALENİN GÖVDESİ. Bu tek satır content.ts'teki metnin tamamını
+            basar — silinirse sayfada yalnızca galeri + kaynakça kalır ve bunu
+            build de tsc de FARK ETMEZ (HTML yine içe aktarılmış görünür).
+            Galeri eklerken bir kez silindi; yerinden oynatma. */}
+        <div dangerouslySetInnerHTML={{ __html: HTML }} />
         <style>{`
           .ayn-gallery { max-width: 1080px; margin: 0 auto; padding: 8px 22px 44px; }
           .ayn-gallery h2 { font-size: clamp(1.15rem, 3vw, 1.6rem); font-weight: 800; color: #eef1f8; margin: 30px 0 8px; }
