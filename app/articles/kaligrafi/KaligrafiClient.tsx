@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
+import ArticleImage from '@/app/components/article/ArticleImage';
 
 /* ════════════════════════ VERİ ════════════════════════ */
 
@@ -243,6 +244,43 @@ export default function KaligrafiClient() {
             <div key={i} className="cal-card"><div className="cal-card-e">{e}</div><div><strong>{t}</strong><span>{d}</span></div></div>
           ))}
         </div>
+
+        {/* Atıf uyarısı: bu alanda eserin tarihi ile ELDEKİ NESNENİN tarihi sık sık
+            ayrışıyor — altyazılar bu farkı söylüyor, yuvarlamıyor. */}
+        <div className="cal-img-grid">
+          <ArticleImage
+            className="cal-img"
+            src="/articles/kaligrafi/kufi-kuran.webp"
+            ratio="1600 / 1114"
+            alt="Yıpranmış parşömen yaprağı; üzerinde geniş aralıklarla, köşeli ve yatay vurgulu koyu Arap harfleriyle satırlar yazılı."
+            caption="Abbâsî dönemi Kur'an yaprağı, 8.–9. yüzyıl. Köşeli, yatayda gerilmiş anıtsal kûfî — henüz kıvrım değil, mimarî bir yazı."
+            credit="Freer Gallery of Art · kamu malı"
+          />
+          <ArticleImage
+            className="cal-img"
+            src="/articles/kaligrafi/seyh-hamdullah-murakka.webp"
+            ratio="1600 / 1128"
+            alt="Açılmış bir hat albümünün iki sayfası; her sayfada süslü çerçeveler içinde farklı boyutlarda yazı blokları var."
+            caption="Şeyh Hamdullah'a atfedilen hatlar içeren bir murakka. “Atfedilen” burada önemli: eserin onun elinden çıktığı kesin değil, geleneğin ona bağladığı bir albüm."
+            credit="Sakıp Sabancı Müzesi · kamu malı"
+          />
+          <ArticleImage
+            className="cal-img"
+            src="/articles/kaligrafi/hafiz-osman-hilye.webp"
+            ratio="1600 / 2020"
+            alt="Dikey bir hat levhası: ortada yuvarlak bir madalyon içinde yazı, çevresinde altın yaldızlı bezeme ve alt kısımda metin blokları."
+            caption="Hâfız Osman'ın hilyesi, y. 1670–80 — bugün hâlâ taklit edilen düzeni o standartlaştırdı. Ama dikkat: metin dışındaki altın tezhip 20. yüzyıl başından, yani hattan yaklaşık iki yüzyıl daha genç."
+            credit="Sadberk Hanım Müzesi · kamu malı"
+          />
+          <ArticleImage
+            className="cal-img"
+            src="/articles/kaligrafi/suleyman-tugra.webp"
+            ratio="1600 / 1218"
+            alt="Mavi ve altın bezemeli, sola doğru uzanan üç dikey çizgi ve yuvarlak kıvrımlardan oluşan görkemli bir Osmanlı imza kompozisyonu."
+            caption="Kanûnî Sultan Süleyman'ın tuğrası, y. 1555–60. Bir imza değil, bir kompozisyon: adı okunur ama asıl iş, o adı taşıyan biçimin kendisidir."
+            credit="The Met · CC0"
+          />
+        </div>
       </section>
 
       {/* III. DOĞU ASYA */}
@@ -273,6 +311,24 @@ export default function KaligrafiClient() {
           <span>🍵</span>
           <p>Fırçanın hareketi, yazanın iç dünyasını yansıtır; Zen'de tek nefeste çizilen bir daire (<strong>ensō</strong>) meditasyonun kendisidir. Geleneğin vazgeçilmez dört aracı <strong>"Çalışma Odasının Dört Hazinesi"</strong> (文房四宝) olarak anılır: fırça, mürekkep çubuğu, kâğıt ve mürekkep taşı.</p>
         </div>
+        <div className="cal-img-grid">
+          <ArticleImage
+            className="cal-img"
+            src="/articles/kaligrafi/lantingji-xu.webp"
+            ratio="1600 / 525"
+            alt="Uzun yatay bir kâğıt tomarı; sağdan sola doğru, akışkan ve birbirine bağlanan fırça darbeleriyle yazılmış Çince sütunlar."
+            caption="Lantingji Xu (Orkide Köşkü Önsözü) — Çin kaligrafisinin en ünlü eseri. Wang Xizhi'nin y. 353'te yazdığı özgün nüsha kayıp; elimizdeki her şey gibi bu da bir Tang dönemi kopyası (Feng Chengsu, y. 627–650)."
+            credit="Kamu malı"
+          />
+          <ArticleImage
+            className="cal-img"
+            src="/articles/kaligrafi/dort-hazine.webp"
+            ratio="1600 / 1067"
+            alt="Müze ortamında sergilenen koyu ahşap çalışma masası; üzerinde açılmış kâğıt, fırçalık ve fırçalar, yuvarlak bir mürekkep taşı ve küçük aletler duruyor, arkada hat panosu var."
+            caption="Bir çalışma odası masası: kâğıt, fırça, mürekkep taşı ve mürekkep çubuğu. Bu dört araç, Çin geleneğinde “Çalışma Odasının Dört Hazinesi” diye tek bir bütün sayılır."
+            credit="ahen0barbus · CC BY-SA 3.0"
+          />
+        </div>
       </section>
 
       {/* IV. BATI */}
@@ -299,6 +355,24 @@ export default function KaligrafiClient() {
           medyada popülerleşen <strong>modern kaligrafi ve fırça lettering</strong>'e kadar geniş bir yelpazede yaşıyor:
           düğün davetiyeleri, marka kimlikleri ve sanat galerileri başlıca uygulama alanları.
         </p>
+        <div className="cal-img-grid">
+          <ArticleImage
+            className="cal-img"
+            src="/articles/kaligrafi/kells-chi-rho.webp"
+            ratio="1123 / 1558"
+            alt="Ortaçağ elyazması sayfası: sayfanın neredeyse tamamını kaplayan devasa, iç içe geçmiş spiral ve düğüm desenleriyle bezeli bir harf kompozisyonu."
+            caption="Kells Kitabı'nın Chi-Rho sayfası (folio 34r). Tek bir kısaltma, koca bir sayfaya yayılmış: Insular geleneğinde harf, okunacak bir işaret olmaktan çıkıp resmin kendisi olur."
+            credit="Kamu malı"
+          />
+          <ArticleImage
+            className="cal-img"
+            src="/articles/kaligrafi/gutenberg-incil.webp"
+            ratio="1600 / 1560"
+            alt="Erken matbu kitap sayfası: iki sütun hâlinde sıkışık, dikey ve köşeli siyah harfler; kenarlarda ve başlangıç harfinde elle yapılmış renkli bezeme."
+            caption="Gutenberg'in 42 satırlık İncil'i, y. 1455. Matbaa yazıyı elden aldı — ama ilk matbu harfler, taklit ettikleri gotik el yazısının ta kendisiydi."
+            credit="Kamu malı"
+          />
+        </div>
       </section>
 
       {/* V. YAZI TÜRLERİ SÖZLÜĞÜ */}
@@ -537,6 +611,18 @@ export default function KaligrafiClient() {
         .cal-note span:first-child { font-size: 1.3rem; line-height: 1.3; flex-shrink: 0; }
         .cal-note p { margin: 0; font-size: .96rem; color: var(--ink2); }
         .cal-note strong { color: var(--gold-deep); }
+
+        /* GÖRSELLER — AÇIK TEMA: ArticleImage varsayılanları koyu zemin içindir
+           (beyaz kenarlık + beyaz filigran) ve bu kâğıt zeminde görünmez olur;
+           beşini de açık temaya çevir. */
+        .cal-img-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 18px; align-items: start; margin: 26px 0 4px; }
+        .cal-img {
+          --ai-caption: #4a4138;
+          --ai-credit: #8a7d6c;
+          --ai-border: rgba(168,125,44,0.28);
+          --ai-fill: rgba(168,125,44,0.05);
+          --ai-mark: rgba(44,38,32,0.3);
+        }
 
         /* CARDS */
         .cal-cards { display: grid; gap: 12px; margin: 20px 0 4px; }

@@ -1,0 +1,63 @@
+<ArticleImage
+  src="/articles/kaligrafi/kufi-kuran.webp"
+  ratio="1600 / 1114"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Unknown in Abbasid dynasty · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/kaligrafi/seyh-hamdullah-murakka.webp"
+  ratio="1600 / 1128"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Containing calligraphies ascribed to Şeyh Hamdullah 1429 Det · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/kaligrafi/hafiz-osman-hilye.webp"
+  ratio="1600 / 2020"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Hafız Osman · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/kaligrafi/suleyman-tugra.webp"
+  ratio="1600 / 1218"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="This file was donated to Wikimedia Commons as part of a proj · CC0"
+/>
+
+<ArticleImage
+  src="/articles/kaligrafi/lantingji-xu.webp"
+  ratio="1600 / 525"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Feng Chengsu (馮承素), original by Wang Xizhi (王羲之) · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/kaligrafi/dort-hazine.webp"
+  ratio="1600 / 1067"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="ahen0barbus · CC BY-SA 3.0"
+/>
+
+<ArticleImage
+  src="/articles/kaligrafi/kells-chi-rho.webp"
+  ratio="1123 / 1558"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/kaligrafi/gutenberg-incil.webp"
+  ratio="1600 / 1560"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Original by Johannes Gutenberg (printer), Scan by Jossi · kamu malı"
+/>

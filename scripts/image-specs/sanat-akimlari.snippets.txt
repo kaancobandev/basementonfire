@@ -1,0 +1,55 @@
+<ArticleImage
+  src="/articles/sanat-akimlari/monet-izlenim.webp"
+  ratio="1600 / 1241"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Claude Monet · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/sanat-akimlari/malevic-siyah-kare.webp"
+  ratio="1600 / 1162"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Фотография Ателье Буллы Unknown Unknown [ 1 ] · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/sanat-akimlari/las-meninas.webp"
+  ratio="1600 / 1842"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Diego Velázquez · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/sanat-akimlari/horatiuslar-yemini.webp"
+  ratio="1600 / 1233"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Jacques-Louis David · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/sanat-akimlari/goya-3-mayis.webp"
+  ratio="1600 / 1221"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Francisco Goya · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/sanat-akimlari/hokusai-buyuk-dalga.webp"
+  ratio="1600 / 1076"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Katsushika Hokusai · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/sanat-akimlari/kaplumbaga-terbiyecisi.webp"
+  ratio="1600 / 2966"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Osman Hamdi Bey · kamu malı"
+/>

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import {
   ArticleShell, ArticleHero, ArticleLede, ArticleSection, CardGrid, HorizontalTimeline, ArticleQuiz, ArticleBibliography, ArticleFooter,
 } from '@/app/components/article/ArticleBlocks';
+import ArticleImage from '@/app/components/article/ArticleImage';
 import { FiveMotors, MovementExplorer, timeline, quizQs, refs } from './widgets';
 
 const ACCENT = '#e11d48';
@@ -59,6 +60,36 @@ export default function SanatClient() {
       <ArticleSection kicker="İNTERAKTİF · KEŞFET" title="Akım Kâşifi" max="max-w-4xl">
         <p className="mb-6 leading-relaxed text-slate-300">İşte tüm harita — 60'tan fazla akım. <strong className="text-rose-300">Ara</strong> (sanatçı, sebep, şehir), <strong className="text-rose-300">döneme</strong> ya da <strong className="text-rose-300">bölgeye</strong> göre süz, bir akıma tıklayıp “neden çıktığını” gör. Okumak yerine keşfet:</p>
         <MovementExplorer />
+
+        {/* Kâşifte adı geçen üç dönüm noktası. Makale bu üçünde SANATÇININ adını
+            veriyor, yapıtınkini değil → altyazılar eserin adını ve tarihini
+            kendileri taşımalı, yoksa görsel havada kalır. */}
+        <div className="sa-img-grid mt-8">
+          <ArticleImage
+            className="sa-img"
+            src="/articles/sanat-akimlari/las-meninas.webp"
+            ratio="1600 / 1842"
+            alt="Yüksek tavanlı loş bir saray odası: ortada beyaz elbiseli küçük bir prenses ve nedimeleri, solda büyük bir tuvalin arkasında duran ressamın kendisi, arka duvarda bir ayna."
+            caption="Diego Velázquez, Las Meninas, 1656, Prado. Ressam kendini resmin içine koyar, arkadaki aynada kral ile kraliçe belirir — ve bakan kişinin nerede durduğu aniden bir soru hâline gelir."
+            credit="Kamu malı"
+          />
+          <ArticleImage
+            className="sa-img"
+            src="/articles/sanat-akimlari/horatiuslar-yemini.webp"
+            ratio="1600 / 1233"
+            alt="Neoklasik tablo: solda kollarını uzatıp kılıçlara doğru yemin eden üç asker, ortada onlara kılıç tutan yaşlı adam, sağda başları öne eğik oturan kadınlar."
+            caption="Jacques-Louis David, Horatiusların Yemini, 1784–85, Louvre. Devrimden beş yıl önce yapıldı ama Devrim'in görsel dilini önceden yazdı: keskin çizgi, sert ışık, kişisel acıya karşı yurttaşlık ödevi."
+            credit="Kamu malı"
+          />
+          <ArticleImage
+            className="sa-img"
+            src="/articles/sanat-akimlari/goya-3-mayis.webp"
+            ratio="1600 / 1221"
+            alt="Gece sahnesi: sağda sıralanmış askerler tüfeklerini doğrultmuş, solda fenerin aydınlattığı beyaz gömlekli bir adam kollarını iki yana açmış duruyor, ayaklarının dibinde cesetler var."
+            caption="Francisco Goya, 3 Mayıs 1808, 1814, Prado. Modern savaş resminin başlangıcı: kahraman yok, zafer yok — bir fener, bir infaz mangası ve kurbanlar var."
+            credit="Kamu malı"
+          />
+        </div>
       </ArticleSection>
 
       {/* Büyük yay — kısa anlatı */}
@@ -80,6 +111,31 @@ export default function SanatClient() {
       {/* Şaşırtıcı hikâyeler */}
       <ArticleSection kicker="SIKILMA" title="Altı şaşırtıcı hikâye" max="max-w-4xl">
         <CardGrid items={surprises} cols={3} />
+
+        {/* 🚽 Duchamp kartına görsel KONMADI. Commons'ın dosya için ileri sürdüğü
+            tek gerekçe {{PD-1923}} ve dosya sayfası bunun yalnızca ABD yargı
+            yetkisinde geçerli olduğunu kendi yorumunda itiraf ediyor. Duchamp
+            1968'de öldü → FSEK'e göre Türkiye'de 2038 sonuna kadar korunuyor ve
+            fotoğrafın KONUSU eserin ta kendisi, yani de minimis savunması yok.
+            Reklam geliri planlanan bir sitede bu risk alınmadı; kart emojiyle kalır. */}
+        <div className="sa-img-pair mt-8">
+          <ArticleImage
+            className="sa-img"
+            src="/articles/sanat-akimlari/monet-izlenim.webp"
+            ratio="1600 / 1241"
+            alt="Sisli mavi-gri bir liman manzarası; puslu suyun üzerinde turuncu bir güneş ve önde küçük siluet hâlinde kayıklar."
+            caption="Claude Monet, İzlenim, Gün Doğumu, 1872. Eleştirmen Louis Leroy bu tabloyla alay ederken “izlenimci” kelimesini bir hakaret olarak kullandı; grup adı sahiplendi."
+            credit="Kamu malı"
+          />
+          <ArticleImage
+            className="sa-img"
+            src="/articles/sanat-akimlari/malevic-siyah-kare.webp"
+            ratio="1600 / 1162"
+            alt="Eski sergi fotoğrafı: bir odanın iki duvarı, farklı boyutlarda geometrik soyut tabloyla kaplı; tavana yakın köşede düz siyah kareli bir tablo asılı."
+            caption="0,10 sergisi, Petrograd, 1915. Siyah Kare'nin nerede durduğuna dikkat: tavanın hemen altındaki köşede — Rus evlerinde ikonanın asıldığı yerde. Şaka değil, iddianın kendisi buydu."
+            credit="Kamu malı"
+          />
+        </div>
       </ArticleSection>
 
       {/* Batı-dışı + Türkiye */}
@@ -90,6 +146,24 @@ export default function SanatClient() {
         <p className="leading-relaxed text-slate-300">
           <strong className="text-rose-300">Türkiye'de</strong> Batı'nın 400 yılı yaklaşık 80 yıla sığdı: asker ressamlardan (Osman Hamdi) 1914 Kuşağı'na, D Grubu'ndan soyut kuşağa ve İstanbul Bienali'yle (1987) küresel ağa. Kâşifte “Türkiye” ve “Batı-dışı” süzgeçlerini seç, bu paralel kronolojiyi gör.
         </p>
+        <div className="sa-img-pair mt-8">
+          <ArticleImage
+            className="sa-img"
+            src="/articles/sanat-akimlari/hokusai-buyuk-dalga.webp"
+            ratio="1600 / 1076"
+            alt="Japon ahşap baskı: pençe gibi köpüklü uçlarla kıvrılan devasa mavi bir dalga, altında küçük kayıklar, uzakta karla kaplı bir dağ."
+            caption="Katsushika Hokusai, Kanagawa Açıklarında Büyük Dalga (Fuji Dağı'nın Otuz Altı Görünümü serisinden, y. 1830–32). Sık yapılan bir hataya dikkat: bu bir tsunami değil, açık deniz dalgası (okinami)."
+            credit="Kamu malı"
+          />
+          <ArticleImage
+            className="sa-img"
+            src="/articles/sanat-akimlari/kaplumbaga-terbiyecisi.webp"
+            ratio="1600 / 2966"
+            alt="Dikey tablo: eski bir Osmanlı yapısının içinde, geleneksel kırmızı cübbeli ve sarıklı yaşlı bir adam elinde ney tutarak ayaklarının dibindeki kaplumbağalara bakıyor."
+            caption="Osman Hamdi Bey, Kaplumbağa Terbiyecisi, 1906 versiyonu, Pera Müzesi. (1907 tarihli ikinci bir versiyonu daha vardır.)"
+            credit="Kamu malı"
+          />
+        </div>
       </ArticleSection>
 
       {/* Zaman çizelgesi (GSAP pin — bilgisayar sayfasındaki gibi kaydırınca yatay ilerler).
@@ -113,6 +187,20 @@ export default function SanatClient() {
       </div>
 
       <ArticleFooter tagline="Kim ödüyor · hangi teknoloji · hangi ret · hangi fikir. Akım değişir, motorlar aynı. 🎨" />
+
+      <style>{`
+        /* ArticleImage'ın slate varsayılanlarını makalenin gül-kızıl paletine bağla. */
+        .sa-img {
+          --ai-caption: #d6cdd2;
+          --ai-credit: #9a8d94;
+          --ai-border: rgba(225,29,72,0.22);
+          --ai-fill: rgba(225,29,72,0.05);
+          --ai-mark: rgba(225,29,72,0.28);
+        }
+        .sa-img-pair { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; align-items: start; }
+        .sa-img-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 18px; align-items: start; }
+        @media (max-width: 700px) { .sa-img-pair { grid-template-columns: 1fr; } }
+      `}</style>
     </ArticleShell>
   );
 }
