@@ -18,6 +18,7 @@ const fontBody = DM_Sans({
   display: 'swap',
 });
 import AppShell from './components/AppShell';
+import { MediaDockProvider } from './components/MediaDock';
 import CelebrateOnParam from './components/CelebrateOnParam';
 import CookieConsent from './components/CookieConsent';
 import PageviewBeacon from './components/PageviewBeacon';
@@ -144,9 +145,14 @@ export default function RootLayout({ children, modal }: { children: React.ReactN
         {/* Native scroll. Lenis smooth-scroll KALDIRILDI: tekerlek/touchpad olayını
             yakalayıp (rAF/lenis-stopped durumunda) kaydırmayı engelleyebiliyordu;
             native scroll her cihaz ve tarayıcıda güvenilir çalışır. */}
-        <AppShell>
-          {children}
-        </AppShell>
+        {/* Medya dock'u AppShell'in DIŞINDA: AppShell giriş/kayıt sayfalarında
+            erken return yapıyor, sağlayıcı orada da ayakta kalsın. Ses ve gömülü
+            çerçeve burada yaşar → sayfa gezinmesinde çalma kesilmez. */}
+        <MediaDockProvider>
+          <AppShell>
+            {children}
+          </AppShell>
+        </MediaDockProvider>
         {/* Intercepting-route modal slotu (gönderi /p/[id] modalı) */}
         {modal}
         {/* Çerezsiz sayfa görüntüleme beacon'ı — onaydan bağımsız, herkesi sayar */}

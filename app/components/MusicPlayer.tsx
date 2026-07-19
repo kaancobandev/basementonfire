@@ -17,7 +17,8 @@
 // bağlamak CORS başlıkları tam değilse sesi tamamen susturabilir. Görsel
 // kazanç, çalmama riskine değmez.
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { useMediaDock } from './MediaDock';
 
 export type MusicTrack = {
   title: string;
@@ -69,180 +70,75 @@ export default function MusicPlayer({
   loop?: boolean;
   className?: string;
 }) {
-  const audioRef = useRef<HTMLAudioElement>(null);
+  // ARTIK KENDİ <audio>'SU YOK. Ses öğesi global MediaDock'ta yaşar (kök
+  // düzende monte, gezinmede sökülmez) → sayfa değişince müzik kesilmez.
+  // Bu bileşen o durumun BÜYÜK GÖRÜNÜMÜ: aynı arayüz, tek kaynak.
+  const dock = useMediaDock();
   const barRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
-
-  const [index, setIndex] = useState(() => Math.min(Math.max(startIndex, 0), Math.max(tracks.length - 1, 0)));
-  const [playing, setPlaying] = useState(false);
-  const [time, setTime] = useState(0);
-  const [dur, setDur] = useState(0);
-  const [buffered, setBuffered] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [vol, setVol] = useState(1);
-  const [muted, setMuted] = useState(false);
-  const [repeat, setRepeat] = useState<Repeat>(loop ? 'all' : 'off');
-  const [shuffle, setShuffle] = useState(false);
   const [listOpen, setListOpen] = useState(false);
 
-  const keepPlaying = useRef(false);
   const multi = tracks.length > 1;
+  // Dock başka bir şey çalıyorsa bu görünüm boşta durur (yanlış durum göstermez).
+  const mine = !!dock?.isCurrent(tracks);
+
+  const index = mine ? dock!.index : Math.min(Math.max(startIndex, 0), Math.max(tracks.length - 1, 0));
   const track = tracks[index];
+  const playing = mine ? dock!.playing : false;
+  const time = mine ? dock!.time : 0;
+  const dur = mine ? dock!.dur : 0;
+  const buffered = mine ? dock!.buffered : 0;
+  const loading = mine ? dock!.loading : false;
+  const error = mine ? dock!.error : '';
+  const vol = dock?.vol ?? 1;
+  const muted = dock?.muted ?? false;
+  const repeat = dock?.repeat ?? (loop ? 'all' : 'off');
+  const shuffle = dock?.shuffle ?? false;
 
-  // Karıştırma sırası: her açılışta değil, yalnız karıştırma AÇILDIĞINDA üretilir
-  // (her render'da yeniden üretilse "sonraki" her seferinde başka yere giderdi).
-  const [order, setOrder] = useState<number[]>([]);
-  useEffect(() => {
-    if (!shuffle) { setOrder([]); return; }
-    const rest = tracks.map((_, i) => i).filter(i => i !== index);
-    for (let i = rest.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [rest[i], rest[j]] = [rest[j], rest[i]];
-    }
-    setOrder([index, ...rest]);
-  }, [shuffle, tracks.length]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  /* ── Kayıtlı ses düzeyi ── */
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(VOL_KEY);
-      if (raw !== null) {
-        const v = Number(raw);
-        if (Number.isFinite(v) && v >= 0 && v <= 1) setVol(v);
-      }
-    } catch { /* depolama kapalı */ }
-  }, []);
-  useEffect(() => {
-    const a = audioRef.current;
-    if (a) { a.volume = vol; a.muted = muted; }
-    try { localStorage.setItem(VOL_KEY, String(vol)); } catch { /* yok say */ }
-  }, [vol, muted]);
-
-  /* ── Parça yükleme ── */
-  useEffect(() => {
-    const a = audioRef.current;
-    if (!a || !track) return;
-    setError(''); setLoading(true); setBuffered(0);
-    a.src = track.src;
-    a.load();
-    setTime(0);
-    if (keepPlaying.current) a.play().catch(() => { /* engellendi */ });
-  }, [index, track?.src, track]);
-
-  const play = useCallback(() => {
-    keepPlaying.current = true;
-    audioRef.current?.play().catch(() => setError('Çalınamadı.'));
-  }, []);
-  const pause = useCallback(() => {
-    keepPlaying.current = false;
-    audioRef.current?.pause();
-  }, []);
-  const toggle = useCallback(() => { playing ? pause() : play(); }, [playing, play, pause]);
-
-  const jump = useCallback((to: number) => {
-    keepPlaying.current = true;
-    setIndex(((to % tracks.length) + tracks.length) % tracks.length);
-  }, [tracks.length]);
+  const toggle = useCallback(() => {
+    if (!dock) return;
+    // Bu liste dock'ta değilse önce devret; zaten oradaysa yalnız çal/duraklat.
+    if (!dock.isCurrent(tracks)) dock.playTracks(tracks, index);
+    else dock.toggle();
+  }, [dock, tracks, index]);
 
   const step = useCallback((delta: number) => {
-    if (!multi) return;
-    if (shuffle && order.length) {
-      const pos = order.indexOf(index);
-      const nextPos = pos + delta;
-      if (nextPos < 0 || nextPos >= order.length) {
-        if (repeat !== 'all') { keepPlaying.current = false; setPlaying(false); return; }
-        jump(order[(nextPos + order.length) % order.length]);
-        return;
-      }
-      jump(order[nextPos]);
-      return;
-    }
-    const next = index + delta;
-    if ((next < 0 || next >= tracks.length) && repeat !== 'all') {
-      keepPlaying.current = false; setPlaying(false); return;
-    }
-    jump(next);
-  }, [multi, shuffle, order, index, repeat, tracks.length, jump]);
+    if (!dock) return;
+    if (!dock.isCurrent(tracks)) { dock.playTracks(tracks, index + delta); return; }
+    dock.step(delta);
+  }, [dock, tracks, index]);
 
-  const onEnded = useCallback(() => {
-    const a = audioRef.current;
-    if (repeat === 'one' && a) { a.currentTime = 0; a.play().catch(() => {}); return; }
-    if (!multi) {
-      if (repeat === 'all' && a) { a.currentTime = 0; a.play().catch(() => {}); return; }
-      keepPlaying.current = false; setPlaying(false); return;
-    }
-    step(1);
-  }, [repeat, multi, step]);
+  const jump = useCallback((to: number) => {
+    if (!dock) return;
+    if (!dock.isCurrent(tracks)) dock.playTracks(tracks, to);
+    else dock.jump(to);
+  }, [dock, tracks]);
 
-  /* ── Kilit ekranı / bildirim denetimleri (telefonun kendi oynatıcısı) ── */
-  useEffect(() => {
-    const ms = typeof navigator !== 'undefined' ? navigator.mediaSession : undefined;
-    if (!ms || !track) return;
-    ms.metadata = new MediaMetadata({
-      title: track.title,
-      artist: track.artist,
-      album: 'Basements',
-      ...(track.artwork ? { artwork: [{ src: track.artwork, sizes: '512x512' }] } : {}),
-    });
-    const set = (k: MediaSessionAction, fn: (() => void) | null) => {
-      try { ms.setActionHandler(k, fn); } catch { /* tarayıcı bu eylemi bilmiyor */ }
-    };
-    set('play', play);
-    set('pause', pause);
-    set('previoustrack', multi ? () => step(-1) : null);
-    set('nexttrack', multi ? () => step(1) : null);
-    return () => { set('play', null); set('pause', null); set('previoustrack', null); set('nexttrack', null); };
-  }, [track, multi, play, pause, step]);
-
-  useEffect(() => {
-    if (typeof navigator !== 'undefined' && navigator.mediaSession) {
-      navigator.mediaSession.playbackState = playing ? 'playing' : 'paused';
-    }
-  }, [playing]);
-
-  /* ── Sarma: tıkla + sürükle (3px'lik çizgiye tek tık dokunmatikte kullanılamaz) ── */
   const seekTo = useCallback((clientX: number) => {
-    const a = audioRef.current, bar = barRef.current;
-    if (!a || !bar || !dur) return;
+    const bar = barRef.current;
+    if (!dock || !bar || !dur) return;
     const r = bar.getBoundingClientRect();
-    a.currentTime = Math.min(Math.max((clientX - r.left) / r.width, 0), 1) * dur;
-  }, [dur]);
+    dock.seek(Math.min(Math.max((clientX - r.left) / r.width, 0), 1) * dur);
+  }, [dock, dur]);
 
-  /* ── Boşluk tuşu: çal/duraklat (çalar odaktayken) ── */
+  /* Boşluk tuşu: çal/duraklat (çalar odaktayken) */
   const onKey = (e: React.KeyboardEvent) => {
     if (e.key === ' ' || e.key === 'Spacebar') {
       const t = e.target as HTMLElement;
-      if (t.tagName === 'BUTTON' || t.tagName === 'INPUT') return; // düğmenin kendi işi
+      if (t.tagName === 'BUTTON' || t.tagName === 'INPUT') return;
       e.preventDefault(); toggle();
     }
   };
 
   const pct = dur > 0 ? (time / dur) * 100 : 0;
   const bufPct = dur > 0 ? (buffered / dur) * 100 : 0;
-  const sirada = useMemo(() => (shuffle && order.length ? order : tracks.map((_, i) => i)), [shuffle, order, tracks]);
+  const sirada = useMemo(() => tracks.map((_, i) => i), [tracks]);
 
   if (!tracks.length || !track) return null;
 
   return (
     <div ref={rootRef} className={cx('mp-root', className)} onKeyDown={onKey}>
-      <audio
-        ref={audioRef}
-        preload="metadata"
-        onPlay={() => setPlaying(true)}
-        onPause={() => setPlaying(false)}
-        onWaiting={() => setLoading(true)}
-        onPlaying={() => setLoading(false)}
-        onCanPlay={() => setLoading(false)}
-        onTimeUpdate={e => setTime(e.currentTarget.currentTime)}
-        onLoadedMetadata={e => { setDur(e.currentTarget.duration); setLoading(false); }}
-        onProgress={e => {
-          const b = e.currentTarget.buffered;
-          if (b.length) setBuffered(b.end(b.length - 1));
-        }}
-        onError={() => { setLoading(false); setError('Bu parça yüklenemedi.'); }}
-        onEnded={onEnded}
-      />
+{/* <audio> BURADA DEĞİL: global MediaDock'ta (bkz. yukarıdaki not). */}
 
       <div className={cx('mp-bar', playing && 'is-playing')}>
         {/* Seviye göstergesi — çalarken canlanır. Amber: sitenin sıcak aksanı. */}
@@ -277,22 +173,22 @@ export default function MusicPlayer({
           <span className="mp-time tnum">{fmt(time)}<span className="mp-dim"> / {fmt(dur)}</span></span>
 
           <div className="mp-vol">
-            <button type="button" onClick={() => setMuted(m => !m)} aria-label={muted ? 'Sesi aç' : 'Sesi kapat'}>
+            <button type="button" onClick={() => dock?.setMuted(m => !m)} aria-label={muted ? 'Sesi aç' : 'Sesi kapat'}>
               {muted || vol === 0 ? <MuteI /> : <VolI />}
             </button>
             <input
               type="range" min={0} max={1} step={0.01} value={muted ? 0 : vol}
-              onChange={e => { setVol(+e.target.value); if (+e.target.value > 0) setMuted(false); }}
+              onChange={e => { dock?.setVol(+e.target.value); if (+e.target.value > 0) dock?.setMuted(false); }}
               aria-label="Ses düzeyi" className="mp-vol-range"
             />
           </div>
 
           {multi && (
             <>
-              <button type="button" onClick={() => setShuffle(s => !s)} aria-label="Karıştır"
+              <button type="button" onClick={() => dock?.setShuffle(v => !v)} aria-label="Karıştır"
                 aria-pressed={shuffle} className={cx('mp-tog', shuffle && 'on')}><ShuffleI /></button>
               <button type="button" aria-label={`Tekrar: ${repeat === 'off' ? 'kapalı' : repeat === 'all' ? 'liste' : 'tek parça'}`}
-                onClick={() => setRepeat(r => (r === 'off' ? 'all' : r === 'all' ? 'one' : 'off'))}
+                onClick={() => dock?.setRepeat(r => (r === 'off' ? 'all' : r === 'all' ? 'one' : 'off'))}
                 className={cx('mp-tog', repeat !== 'off' && 'on')}>
                 <RepeatI />{repeat === 'one' && <b className="mp-one">1</b>}
               </button>
@@ -310,10 +206,9 @@ export default function MusicPlayer({
           onPointerDown={e => { e.currentTarget.setPointerCapture(e.pointerId); seekTo(e.clientX); }}
           onPointerMove={e => { if (e.currentTarget.hasPointerCapture(e.pointerId)) seekTo(e.clientX); }}
           onKeyDown={e => {
-            const a = audioRef.current;
-            if (!a || !dur) return;
-            if (e.key === 'ArrowRight') { e.preventDefault(); a.currentTime = Math.min(dur, time + 5); }
-            if (e.key === 'ArrowLeft') { e.preventDefault(); a.currentTime = Math.max(0, time - 5); }
+            if (!dock || !dur) return;
+            if (e.key === 'ArrowRight') { e.preventDefault(); dock.seek(Math.min(dur, time + 5)); }
+            if (e.key === 'ArrowLeft') { e.preventDefault(); dock.seek(Math.max(0, time - 5)); }
           }}
         >
           <div className="mp-seek-track">

@@ -6,6 +6,7 @@ import Img from '@/app/components/Img';
 import { avatarSrc } from '@/lib/avatar';
 import { useNavUser } from '@/app/components/NavUserContext';
 import TimeAgo from '@/app/components/TimeAgo';
+import { useMediaDock } from '@/app/components/MediaDock';
 import MusicPlayer, { type MusicTrack } from '@/app/components/MusicPlayer';
 import { uploadToStorage } from '@/lib/upload';
 
@@ -77,6 +78,9 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
   // Sayfa ISR (paylaşılan HTML) — kimlik NavUserContext'ten. Yalnız ekle/sil
   // butonlarının görünürlüğü için; asıl yetki kontrolü API'larda (sunucuda).
   const currentUserId = useNavUser()?.id ?? null;
+  // Gömülü içerik artık sayfada değil DOCK'ta açılır → başka sayfaya
+  // geçince çalmaya devam eder (sayfa içi iframe sökülürdü).
+  const dock = useMediaDock();
   // Site sekmesi ÖNCE gelir: sitenin kendi içeriği, gömülü içerikten önde.
   const [tab, setTab] = useState<'site' | 'spotify' | 'youtube'>('site');
   const [spItems, setSpItems] = useState(initialSp);
@@ -103,19 +107,8 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
 
   // YouTube ana oynatıcı
   const [ytSearch, setYtSearch] = useState('');
-  const ytIframeRef = useRef<HTMLIFrameElement>(null);
 
   // Açık embed'ler
-  const [openEmbeds, setOpenEmbeds] = useState<Set<string>>(new Set());
-
-  function toggleEmbed(key: string) {
-    setOpenEmbeds(prev => {
-      const next = new Set(prev);
-      next.has(key) ? next.delete(key) : next.add(key);
-      return next;
-    });
-  }
-
   // ── Site çalma listesi: yükle ──
   // Dosya tarayıcıdan DOĞRUDAN Storage'a gider (Netlify fonksiyon gövde
   // limitini aşmamak için), sonra yalnızca künyesi API'ye "commit" edilir.
@@ -221,14 +214,19 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
   function parsePlaylistId(s: string): string | null {
     const m = s.match(/[?&]list=([a-zA-Z0-9_-]+)/); return m ? m[1] : null;
   }
+  // Arama sonucu SAYFA İÇİNDE değil DOCK'ta açılır → başka sayfaya geçince
+  // izlemeye devam edilir. enablejsapi=1: dock'un çal/duraklat düğmesi için şart.
   function ytSearchGo() {
     const val = ytSearch.trim();
-    if (!val || !ytIframeRef.current) return;
+    if (!val || !dock) return;
     const vid = parseVideoId(val);
     const pl  = parsePlaylistId(val);
-    if (vid) ytIframeRef.current.src = `https://www.youtube.com/embed/${vid}?autoplay=1&rel=0&modestbranding=1`;
-    else if (pl) ytIframeRef.current.src = `https://www.youtube.com/embed/videoseries?list=${pl}&autoplay=1&rel=0&modestbranding=1`;
-    else ytIframeRef.current.src = `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(val)}&rel=0&modestbranding=1`;
+    const src = vid
+      ? `https://www.youtube.com/embed/${vid}?autoplay=1&rel=0&modestbranding=1&enablejsapi=1`
+      : pl
+        ? `https://www.youtube.com/embed/videoseries?list=${pl}&autoplay=1&rel=0&modestbranding=1&enablejsapi=1`
+        : `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(val)}&rel=0&modestbranding=1&enablejsapi=1`;
+    dock.playEmbed({ provider: 'youtube', src, title: val });
   }
 
   const inputStyle: React.CSSProperties = {
@@ -249,43 +247,6 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
           </button>
         </div>
         {error && <div style={{ fontSize: '0.8rem', color: '#ef4444', marginTop: 8, paddingLeft: 4 }}>{error}</div>}
-      </div>
-    );
-  }
-
-  function MusicCard({ user, title, time, onPlay, onDelete, isOpen, isOwn, playLabel }: {
-    user: { username: string; display_name: string; avatar: string | null };
-    title: string; time: string; onPlay: () => void; onDelete?: () => void;
-    isOpen: boolean; isOwn: boolean; playLabel: string;
-  }) {
-    return (
-      <div style={cardStyle}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px' }}>
-          <Link href={user.username ? `/u/${user.username}` : '#'} style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, textDecoration: 'none', overflow: 'hidden' }}>
-            <Img src={avatarSrc(user.username, user.avatar)} alt="" fixedWidth={76} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          </Link>
-          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {user.username && (
-              <Link href={`/u/${user.username}`} style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-text)', textDecoration: 'none' }}>{user.display_name}</Link>
-            )}
-            <span style={{ fontSize: '0.85rem', color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{title}</span>
-            <span style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)' }}>{time}</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-            <button onClick={onPlay} style={{ display: 'flex', alignItems: 'center', gap: 6, border: 'none', borderRadius: '9999px', padding: '7px 14px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', color: '#fff', background: playLabel === 'Dinle' ? '#1db954' : '#ff0000', opacity: isOpen ? 0.8 : 1, transition: 'opacity 0.15s, transform 0.12s' }}>
-              {isOpen ? <PauseIcon /> : <PlayIcon />}
-              {isOpen ? 'Kapat' : playLabel}
-            </button>
-            {isOwn && onDelete && (
-              <button onClick={onDelete} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, borderRadius: '50%', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', transition: 'all 0.15s' }}
-                onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(239,68,68,0.1)'; (e.currentTarget as HTMLElement).style.color = '#ef4444'; }}
-                onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'none'; (e.currentTarget as HTMLElement).style.color = 'var(--color-text-muted)'; }}
-              >
-                <TrashIcon />
-              </button>
-            )}
-          </div>
-        </div>
       </div>
     );
   }
@@ -429,8 +390,6 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
                     <p style={{ margin: 0 }}>Henüz Spotify playlist eklenmedi.</p>
                   </div>
                 ) : spItems.map(item => {
-                  const key = `sp-${item.id}`;
-                  const isOpen = openEmbeds.has(key);
                   return (
                     <div key={item.id} style={cardStyle}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px' }}>
@@ -444,11 +403,15 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                           <button
-                            onClick={() => toggleEmbed(key)}
-                            style={{ display: 'flex', alignItems: 'center', gap: 6, border: 'none', borderRadius: '9999px', padding: '7px 14px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', color: '#fff', background: '#1db954', opacity: isOpen ? 0.8 : 1, transition: 'opacity 0.15s' }}
+                            onClick={() => dock?.playEmbed({
+                              provider: 'spotify',
+                              src: `https://open.spotify.com/embed/playlist/${item.playlist_id}?utm_source=generator&theme=0`,
+                              title: item.title,
+                            })}
+                            style={{ display: 'flex', alignItems: 'center', gap: 6, border: 'none', borderRadius: '9999px', padding: '7px 14px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', color: '#fff', background: '#1db954', transition: 'opacity 0.15s' }}
                           >
-                            {isOpen ? <PauseIcon /> : <PlayIcon />}
-                            {isOpen ? 'Kapat' : 'Dinle'}
+                            <PlayIcon />
+                            Dinle
                           </button>
                           {currentUserId === item.user_id && (
                             <button onClick={() => deleteSpotify(item.id)}
@@ -461,17 +424,6 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
                           )}
                         </div>
                       </div>
-                      {isOpen && (
-                        <div style={{ borderTop: '1px solid var(--color-border)' }}>
-                          <iframe
-                            src={`https://open.spotify.com/embed/playlist/${item.playlist_id}?utm_source=generator&theme=0`}
-                            width="100%" height="352"
-                            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                            loading="lazy"
-                            style={{ display: 'block', border: 'none' }}
-                          />
-                        </div>
-                      )}
                     </div>
                   );
                 })}
@@ -497,15 +449,9 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
                     Ara
                   </button>
                 </div>
-                <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', background: '#0f0f0f' }}>
-                  <iframe
-                    ref={ytIframeRef}
-                    src="https://www.youtube.com/embed?listType=search&list=m%C3%BCzik&rel=0&modestbranding=1"
-                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none', display: 'block' }}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                  />
-                </div>
+                <p style={{ margin: '2px 4px 0', fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+                  Aradığın video sağ alt köşedeki oynatıcıda açılır; sitede gezinirken çalmaya devam eder.
+                </p>
               </div>
 
               {/* Kaydet bölümü */}
@@ -537,8 +483,6 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {ytItems.map(item => {
-                  const key = `yt-${item.id}`;
-                  const isOpen = openEmbeds.has(key);
                   const embedSrc = item.item_type === 'playlist'
                     ? `https://www.youtube.com/embed/videoseries?list=${item.item_id}&rel=0&modestbranding=1`
                     : `https://www.youtube.com/embed/${item.item_id}?rel=0&modestbranding=1`;
@@ -555,11 +499,11 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                           <button
-                            onClick={() => toggleEmbed(key)}
-                            style={{ display: 'flex', alignItems: 'center', gap: 6, border: 'none', borderRadius: '9999px', padding: '7px 14px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', color: '#fff', background: '#ff0000', opacity: isOpen ? 0.8 : 1, transition: 'opacity 0.15s' }}
+                            onClick={() => dock?.playEmbed({ provider: 'youtube', src: `${embedSrc}&enablejsapi=1&autoplay=1`, title: item.title })}
+                            style={{ display: 'flex', alignItems: 'center', gap: 6, border: 'none', borderRadius: '9999px', padding: '7px 14px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', color: '#fff', background: '#ff0000', transition: 'opacity 0.15s' }}
                           >
-                            {isOpen ? <PauseIcon /> : <PlayIcon />}
-                            {isOpen ? 'Kapat' : 'İzle'}
+                            <PlayIcon />
+                            İzle
                           </button>
                           {currentUserId === item.user_id && (
                             <button onClick={() => deleteYouTube(item.id)}
@@ -572,17 +516,6 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
                           )}
                         </div>
                       </div>
-                      {isOpen && (
-                        <div style={{ borderTop: '1px solid var(--color-border)' }}>
-                          <iframe
-                            src={embedSrc}
-                            width="100%" height="315"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                            allowFullScreen loading="lazy"
-                            style={{ display: 'block', border: 'none' }}
-                          />
-                        </div>
-                      )}
                     </div>
                   );
                 })}
