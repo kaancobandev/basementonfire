@@ -5,6 +5,7 @@ import Link from 'next/link';
 import {
   ArticleShell, ArticleHero, ArticleLede, ArticleSection, HorizontalTimeline, ArticleQuiz, ArticleBibliography, ArticleFooter,
 } from '@/app/components/article/ArticleBlocks';
+import ArticleImage from '@/app/components/article/ArticleImage';
 import { ACCENT, InView, WidgetFrame, WidgetSkeleton } from './ui';
 import { BodyActivity, DoseSlider, DecayChain, refs } from './widgets';
 import { HalfLifePoster, PenetrationPoster, GeigerPoster } from './posters';
@@ -18,6 +19,18 @@ const GeigerCounter = dynamic(() => import('./sim-geiger'), { ssr: false, loadin
 export default function RadyoaktiviteClient() {
   return (
     <ArticleShell accent={ACCENT} title="Radyoaktivite">
+      <style>{`
+        /* ArticleImage'ın slate varsayılanlarını makalenin radyum yeşiline bağla. */
+        .rd-img {
+          --ai-caption: #cbd5e1;
+          --ai-credit: #7f9159;
+          --ai-border: rgba(163,230,53,0.2);
+          --ai-fill: rgba(163,230,53,0.05);
+          --ai-mark: rgba(163,230,53,0.26);
+        }
+        .rd-img-pair { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; align-items: start; }
+        @media (max-width: 700px) { .rd-img-pair { grid-template-columns: 1fr; } }
+      `}</style>
       <ArticleHero
         title="Radyoaktivite"
         fullTitle="Radyoaktivite — Bulutlu Bir Paris Günü ve İçinizdeki Saniyede 8.000 Bozunma"
@@ -44,6 +57,16 @@ export default function RadyoaktiviteClient() {
           defterlerine bulaşan radyum-226&apos;nın yarılanma süresi 1.600 yıl. Yani o defterler, bugün yaşayan hiç
           kimsenin göremeyeceği kadar uzun bir süre boyunca tehlikeli olmaya devam edecek.
         </p>
+        <ArticleImage
+          className="rd-img mx-auto max-w-sm"
+          src="/articles/radyoaktivite/curie-defterleri.webp"
+          ratio="1600 / 2380"
+          priority
+          alt="Açılmış eski bir defterin sayfaları: mürekkeple yazılmış el yazısı satırlar, sayılar ve tablolar."
+          caption="Marie Curie'nin laboratuvar defterlerinden biri (1899–1902). Asıl defterler Paris'te kurşun kaplı kutularda saklanıyor; bu tarama o kutuların içeriğini gösteriyor, kutuları değil."
+          credit="Wellcome Collection · CC BY 4.0"
+        />
+
         <p className="mt-5 text-lg leading-relaxed text-slate-300">
           Bir kadının el yazısı, öldüğünden bir asır sonra hâlâ ışıma yapıyor. Radyoaktivite hakkında bilmeniz gereken
           ilk şey bu: <strong className="text-lime-300">atomlar, sizin takviminizle çalışmıyor.</strong>
@@ -73,6 +96,34 @@ export default function RadyoaktiviteClient() {
             davranışa iki yıl sonra bir isim verdi: <strong className="text-white">radyoaktivite</strong>. Sonra da bu
             isimle yaşayıp bu isimle öldü.
           </p>
+        </div>
+
+        <ArticleImage
+          className="rd-img mt-8"
+          src="/articles/radyoaktivite/curie-laboratuvar.webp"
+          ratio="1600 / 1116"
+          alt="Siyah beyaz laboratuvar fotoğrafı: bir kadın ve bir erkek, ahşap masalarda duran cam düzenekler ve ölçüm aletleri arasında çalışıyor."
+          caption="Marie ve Pierre Curie laboratuvarlarında (yaklaşık 1900). Radyoaktivite adını buradaki ölçümler koydurttu: Pierre'in elektrometresi, ışımanın havayı iletken hâle getirmesini sayıya çeviriyordu."
+          credit="Wikimedia Commons · kamu malı"
+        />
+
+        <div className="rd-img-pair mt-8">
+          <ArticleImage
+            className="rd-img"
+            src="/articles/radyoaktivite/becquerel-portre.webp"
+            ratio="1600 / 2152"
+            alt="Uzun sakallı, koyu ceketli bir adamın 19. yüzyıl sonu stüdyo portresi."
+            caption="Henri Becquerel. Ailede üç kuşak fizikçi vardı; keşfi yapan bu Henri (1852–1908)."
+            credit="Kamu malı"
+          />
+          <ArticleImage
+            className="rd-img"
+            src="/articles/radyoaktivite/becquerel-plaka.webp"
+            ratio="492 / 397"
+            alt="Eski bir fotoğraf plakasının taraması: koyu zemin üzerinde soluk lekeler ve ortada haç biçiminde belirgin açık bir iz."
+            caption="Becquerel'in plakası. Ortadaki keskin haç, uranyum tuzunun izi değil: araya konan Malta haçı biçimli metalin gölgesi. Tuzun kendi izi çevredeki bulanık kararmadır — ışınları metalin durdurduğu yerde iz oluşmamış."
+            credit="Kamu malı"
+          />
         </div>
       </ArticleSection>
 
@@ -178,6 +229,15 @@ export default function RadyoaktiviteClient() {
             geçen parçacık bir iyon izi bırakınca, devre bunu bir tık sesine çeviriyor. Aşağıdaki sayacı açın (sessiz
             başlar) ve doğal fonu dinleyin: şu an, bu odada, saniyede birkaç kez.
           </p>
+
+          <ArticleImage
+            className="rd-img mt-6"
+            src="/articles/radyoaktivite/bulut-odasi-alfa.webp"
+            ratio="1600 / 900"
+            alt="Karanlık bir hazne içinde, bir noktadan dışa doğru fışkıran kısa ve kalın beyaz sis izleri."
+            caption="Bulut odasında alfa parçacıklarının izleri. Parçacıkların kendisini görmüyoruz; geçtikleri yerde yoğuşan buharı görüyoruz — sayacın tık sesinin gözle görülen hâli."
+            credit="Nuledo · CC BY-SA"
+          />
         </div>
         <div className="mt-8">
           <InView poster={<WidgetFrame kicker="İNTERAKTİF · SES" title="Sanal Geiger sayacı" hint="Kaydırınca yüklenir. Sessiz başlar — sesi siz açarsınız."><GeigerPoster /></WidgetFrame>} minHeight={380}>
@@ -295,6 +355,25 @@ export default function RadyoaktiviteClient() {
             inceltmiş kadınlar sayesinde.</strong>
           </p>
         </div>
+
+        <div className="rd-img-pair mt-8">
+          <ArticleImage
+            className="rd-img"
+            src="/articles/radyoaktivite/radyum-kizlari.webp"
+            ratio="821 / 650"
+            alt="Siyah beyaz fabrika fotoğrafı: uzun masalarda yan yana oturmuş, önlerindeki küçük parçalar üzerinde çalışan genç kadınlar."
+            caption="US Radium fabrikasında saat kadranı boyayan kadınlar (yaklaşık 1922–23). Fotoğrafta ne maske var ne eldiven: şirket boyanın zararsız olduğunu söylemişti."
+            credit="Wikimedia Commons · kamu malı"
+          />
+          <ArticleImage
+            className="rd-img"
+            src="/articles/radyoaktivite/radithor-sise.webp"
+            ratio="1600 / 2406"
+            alt="Küçük, koyu renkli cam şişe; üzerinde eski tarz etiketle ürün adı yazılı."
+            caption="Radithor: radyumlu içme suyu. Eben Byers'ın yüzlercesini içtiği markadan bir şişe — Byers'ın kendi şişesi değil. Reçetesiz satılıyordu."
+            credit="Wikimedia Commons · CC BY-SA"
+          />
+        </div>
       </ArticleSection>
 
       {/* ── Bozunma zinciri ── */}
@@ -325,6 +404,15 @@ export default function RadyoaktiviteClient() {
             bozunuyor. <strong className="text-white">İnsanlığın en uzaktaki elçisi, bir radyoaktif kalp taşıyor.</strong>
           </p>
         </div>
+
+        <ArticleImage
+          className="rd-img mx-auto mt-8 max-w-sm"
+          src="/articles/radyoaktivite/plutonyum-238-pelet.webp"
+          ratio="1600 / 1280"
+          alt="Karanlıkta kendi ısısıyla turuncu-kırmızı parlayan, köşeleri yuvarlatılmış küçük bir blok."
+          caption="Bir plütonyum-238 peleti: kendi bozunma ısısıyla akkor hâlde parlıyor. Voyager'ın onlarca yıldır konuşmasını sağlayan güç bu — dışarıdan hiçbir enerji almadan."
+          credit="Kamu malı"
+        />
       </ArticleSection>
 
       {/* ── Motor ── */}

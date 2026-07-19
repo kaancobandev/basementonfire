@@ -5,6 +5,7 @@ import Link from 'next/link';
 import {
   ArticleShell, ArticleHero, ArticleLede, ArticleSection, CardGrid, HorizontalTimeline, ArticleQuiz, ArticleBibliography, ArticleFooter,
 } from '@/app/components/article/ArticleBlocks';
+import ArticleImage from '@/app/components/article/ArticleImage';
 import {
   MoleculeField, MolCalculator, ConversionMap, AvogadroScale, PeriodicPicker,
   timeline, everyday, terms, faqs, quizQs, refs,
@@ -38,6 +39,18 @@ function Formula({ children }: { children: ReactNode }) {
 export default function MolClient() {
   return (
     <ArticleShell accent={ACCENT} title="Kimyada Mol Kavramı">
+      <style>{`
+        /* ArticleImage'ın slate varsayılanlarını makalenin kehribar aksanına bağla. */
+        .ml-img {
+          --ai-caption: #cbd5e1;
+          --ai-credit: #9a7f4f;
+          --ai-border: rgba(245,158,11,0.22);
+          --ai-fill: rgba(245,158,11,0.05);
+          --ai-mark: rgba(245,158,11,0.28);
+        }
+        .ml-img-pair { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; align-items: start; }
+        @media (max-width: 700px) { .ml-img-pair { grid-template-columns: 1fr; } }
+      `}</style>
       <MoleculeField />
 
       <ArticleHero
@@ -73,6 +86,26 @@ export default function MolClient() {
           </table>
         </div>
         <p className="mt-5 leading-relaxed text-slate-300">Bu devasa sayıya <strong className="text-amber-300">Avogadro sayısı</strong> (N<sub>A</sub>) denir. Kimyacılar atomları saymak için kendi “düzinelerini” icat etmek zorunda kaldılar — çünkü uğraştıkları şeyler öyle küçük ki milyarlarca milyarla bile iş bitmiyordu.</p>
+        <div className="ml-img-pair my-6">
+          <ArticleImage
+            className="ml-img"
+            src="/articles/mol/avogadro-portre.webp"
+            ratio="1600 / 2204"
+            priority
+            alt="19. yüzyıl portresi: koyu ceketli, favorili bir adam masa başında oturmuş, elinde kâğıt tutuyor."
+            caption="Amedeo Avogadro. Hipotezini 1811'de yayımladı, ama kimse ciddiye almadı; adını taşıyan sayıyı hiç görmeden, 1856'da öldü."
+            credit="Kamu malı"
+          />
+          <ArticleImage
+            className="ml-img"
+            src="/articles/mol/cannizzaro-portre.webp"
+            ratio="1600 / 2273"
+            alt="Sakallı, koyu takım elbiseli yaşlı bir adamın siyah beyaz portre fotoğrafı."
+            caption="Stanislao Cannizzaro: 1860'ta Karlsruhe Kongresi'nde, elli yıldır göz ardı edilen fikri yeniden ortaya koydu ve kimyayı ikna etti."
+            credit="Kamu malı"
+          />
+        </div>
+
         <FunFact icon="📏" title="2019: mol artık bir tanım">
           Uluslararası birim sistemi (SI) 2019'da güncellendi: mol artık <strong className="text-white">tam olarak 6,02214076 × 10²³</strong> tanecik olarak <em className="not-italic text-amber-300">tanımlanıyor</em>. Yani Avogadro sayısı artık deneyle ölçülen değil, üzerinde anlaşılmış sabit bir sayı.
         </FunFact>
@@ -105,9 +138,29 @@ export default function MolClient() {
         <p className="mb-4 leading-relaxed text-slate-300">
           “Bir düzine yumurta” ile “bir düzine fil” — ikisi de 12 tanedir, ama ağırlıkları yerle gök kadar farklı. Mol için de aynısı: 1 mol <strong className="text-amber-300">hidrojen</strong> atomu ~1 gram; 1 mol <strong className="text-amber-300">altın</strong> atomu yine 6 × 10²³ tanedir ama ~197 gram. Sayı aynı, kütle farklı — çünkü altın atomu daha ağır.
         </p>
+        <div className="mx-auto my-6 max-w-[240px]">
+          <ArticleImage
+            className="ml-img"
+            src="/articles/mol/altin-kulcesi.webp"
+            ratio="1600 / 2000"
+            alt="Düzensiz yüzeyli, mat sarı renkli doğal altın külçesi; koyu zemin üzerinde duruyor."
+            caption="229 gramlık bir altın külçesi (Kaliforniya, 1851). Yaklaşık bir mol altın atomu — yani 6 × 10²³ tane — kabaca bu kadar yer tutuyor."
+            credit="Marie-Lan Taÿ Pamart · CC BY 4.0"
+          />
+        </div>
+
         <p className="mb-6 leading-relaxed text-slate-300">
           Bir maddenin 1 molünün gram cinsinden kütlesine <strong className="text-amber-300">molar kütle</strong> denir (g/mol). Kimyanın en zarif hilesi: periyodik tabloda bir elementin altında yazan sayı (bağıl atom kütlesi), aynı zamanda o elementin gram cinsinden molar kütlesidir. Bir element seç, gör:
         </p>
+        <ArticleImage
+          className="ml-img my-6"
+          src="/articles/mol/periyodik-tablo.webp"
+          ratio="1600 / 1236"
+          alt="Renkli periyodik tablo: her kutuda element simgesi, atom numarası ve atom kütlesi yazılı."
+          caption="Kutulardaki o ondalıklı sayı — atom kütlesi — aynı zamanda o elementin bir molünün gram cinsinden ağırlığıdır. Köprü tam olarak burada duruyor."
+          credit="Wikimedia Commons · kamu malı"
+        />
+
         <PeriodicPicker />
       </ArticleSection>
 
@@ -156,9 +209,47 @@ gaz hacmi (V)  = mol (n) × 22,4 L        (Normal Koşullar)`}</Formula>
         <p className="mb-4 leading-relaxed text-slate-300">
           Kimse atomları tek tek saymadığına göre, 6,022 × 10²³ sayısını nereden biliyoruz? Cevap, bir asırlık dâhice deneylerde. <strong className="text-amber-300">Jean Perrin</strong> (~1908), suda asılı minik parçacıkların rastgele titreşimini (<strong className="text-amber-300">Brown hareketi</strong>) izleyip Einstein'ın kuramını kullanarak Avogadro sayısını tahmin etti. Birbirinden bağımsız yöntemlerin hepsinin aynı sayıya çıkması, o güne dek şüpheyle bakılan <Link href="/articles/cift-yarik" className="article-ilink">atomların gerçekten var olduğu</Link> fikrini kanıtladı; Perrin 1926'da Nobel aldı.
         </p>
+        <div className="ml-img-pair my-6">
+          <ArticleImage
+            className="ml-img"
+            src="/articles/mol/perrin-portre.webp"
+            ratio="816 / 1074"
+            alt="Bıyıklı, takım elbiseli orta yaşlı bir adamın siyah beyaz stüdyo portresi."
+            caption="Jean Perrin: atomların gerçekten var olduğunu deneyle gösterdi ve 1926'da Nobel aldı. Sayıya “Avogadro sayısı” adını veren de odur."
+            credit="Kamu malı"
+          />
+          <ArticleImage
+            className="ml-img"
+            src="/articles/mol/perrin-gamboge-deneyi.webp"
+            ratio="926 / 760"
+            alt="Bilimsel yayından bir levha: mikroskop altında görülen küçük taneciklerin dağılımını gösteren şemalar ve noktalı çizimler."
+            caption="Perrin'in ölçümü: suda asılı gamboge taneciklerinin yükseklikle nasıl seyreldiğini mikroskopla saydı. Avogadro sayısını veren asıl deney bu — atomlar tek tek sayılmadı, istatistikleri okundu."
+            credit="Kamu malı"
+          />
+        </div>
+
         <FunFact icon="🔮" title="Dünyanın en yuvarlak cismi">
           Günümüzde bu sayıyı akıl almaz hassasiyetle ölçmek için saf silikon-28 atomlarından <strong className="text-white">kusursuza yakın bir küre</strong> üretiliyor; bilim insanları kristaldeki atom dizilişini ve hacmi ölçüp içindeki atomları adeta tek tek sayıyor. Bu küreler o kadar yuvarlaktır ki, Dünya büyüklüğüne getirilseydi en yüksek tepesiyle en derin çukuru arasındaki fark yalnızca birkaç metre olurdu.
         </FunFact>
+
+        <div className="ml-img-pair mt-6">
+          <ArticleImage
+            className="ml-img"
+            src="/articles/mol/silikon-28-kuresi.webp"
+            ratio="1600 / 1245"
+            alt="Eldivenli eller, aynadan yapılmış gibi parlayan kusursuz bir metal küreyi tutuyor; kürede odanın yansıması görünüyor."
+            caption="Silikon-28 küresi: yüzde 99,9995 saflıkta, tam 1 kilogram. İçindeki atomlar kristal dizilişi ve hacim ölçülerek adeta tek tek sayılıyor — Perrin'in yaptığı işin bugünkü hâli."
+            credit="Wikimedia Commons · CC BY 3.0"
+          />
+          <ArticleImage
+            className="ml-img"
+            src="/articles/mol/kilogram-prototipi.webp"
+            ratio="1217 / 1512"
+            alt="Cam fanus altında duran küçük, parlak metal silindir."
+            caption="Uluslararası kilogram prototipi: 130 yıl boyunca bir kilogram, Paris'teki bu metal silindirin ta kendisiydi. 2019'da hem kilogram hem mol, cisimlerden koparılıp sabit sayılara bağlandı."
+            credit="Wikimedia Commons · CC BY-SA 3.0 IGO"
+          />
+        </div>
       </ArticleSection>
 
       {/* Günlük hayat */}
