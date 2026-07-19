@@ -55,6 +55,18 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
   const realtimeChRef = useRef<ReturnType<typeof getSupa>['channel'] extends (...args: any[]) => infer R ? R : never | null>(null as any);
   const activeOtherUserRef = useRef<OtherUser | null>(null);
 
+  // Mesajlar uygulama benzeri SABİT bir ekran: içerik .dm-main içindeki listelerde
+  // kayar, belgenin kendisi hiç kaymamalı. Kilitlenmezse iOS klavye kapandıktan
+  // sonra sayfayı kaydırılmış bırakabiliyor ve altta sayfa zemini şerit hâlinde
+  // görünüyor ("navbarın yeri beyaz kalıyor"). Sayfadan çıkınca eski değer geri
+  // verilir — global overflow'u kalıcı bozmamak için.
+  useEffect(() => {
+    const el = document.documentElement;
+    const onceki = el.style.overflow;
+    el.style.overflow = 'hidden';
+    return () => { el.style.overflow = onceki; };
+  }, []);
+
   // Ekran genişliğini izle: mobilde tek panel + geri butonu, masaüstünde iki panel.
   useEffect(() => {
     const mq = matchMedia('(max-width: 699px)');

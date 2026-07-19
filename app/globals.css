@@ -199,7 +199,12 @@ body {
   background: var(--color-bg);
   color: var(--color-text);
   margin: 0;
+  /* iOS'ta 100vh URL çubuğunu YOK SAYAR → gövde görünen alandan uzun olur,
+     sayfa kayar ve altta açık zemin şerit olarak görünür (mesajlarda "navbarın
+     yeri beyaz" şikâyetinin kaynağı). dvh gerçek görünür yüksekliği verir;
+     100vh satırı dvh desteklemeyen tarayıcılar için yedek olarak KALIR. */
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 /* Makale gövdesi içi bağlam linkleri (iç linkleme / internal linking).
@@ -222,6 +227,7 @@ body {
 .app-shell {
   display: flex;
   min-height: 100vh;
+  min-height: 100dvh;
   width: 100%;
 }
 
