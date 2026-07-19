@@ -91,7 +91,7 @@ export default function Page() {
             altyazıda yazıyor.
           </p>
           <div className="arc-gallery-grid">
-            <ArticleImage
+            <ArticleImage narrow
               className="arc-img"
               src="/articles/arcade/tennis-for-two-osiloskop.webp"
               ratio="1600 / 1257"
@@ -99,7 +99,7 @@ export default function Page() {
               caption="Brookhaven Ulusal Laboratuvarı'nın 1958 ziyaretçi günü sergisi. Tennis for Two, işte bu standdaki cihazlardan birine bağlı beş inçlik bir osiloskopta oynanıyordu — dünyanın ilk video oyunu, bir laboratuvar açık gününün yan atraksiyonuydu."
               credit="Brookhaven National Laboratory · kamu malı"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="arc-img"
               src="/articles/arcade/spacewar-pdp1.webp"
               ratio="1600 / 1076"
@@ -107,7 +107,7 @@ export default function Page() {
               caption="Spacewar! (1962) çalışırken. Ama bu kare 2007'de çekildi: Computer History Museum'da restore edilmiş bir PDP-1 üzerinde, oyunun doğduğu MIT'de değil."
               credit="Joi Ito · CC BY 2.0"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="arc-img"
               src="/articles/arcade/pong-kabin.webp"
               ratio="1461 / 1998"
@@ -115,7 +115,7 @@ export default function Page() {
               caption="Bir Atari Pong kabini (foto 2011). Tüm oyun bu kutunun içinde: iki çubuk, bir nokta ve bir skor."
               credit="Rob Boudon · CC BY 2.0"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="arc-img"
               src="/articles/arcade/pacman-kabin.webp"
               ratio="1600 / 1200"
@@ -123,7 +123,7 @@ export default function Page() {
               caption="Nagoya'daki Japon Oyun Müzesi koleksiyonunda bir Pac-Man kabini (foto 2020). Oyun 1980'de çıktı; makinelerin çoğu artık müzelerde."
               credit="inunami · CC BY 2.0"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="arc-img"
               src="/articles/arcade/toru-iwatani-portre.webp"
               ratio="926 / 1159"
@@ -131,7 +131,7 @@ export default function Page() {
               caption="Toru Iwatani, Pac-Man'in yaratıcısı (GDC 2011)."
               credit="V. Diamante · CC BY 2.0"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="arc-img"
               src="/articles/arcade/donkey-kong-kabin.webp"
               ratio="960 / 1280"
@@ -139,7 +139,7 @@ export default function Page() {
               caption="QuakeCon 2005'te bir Donkey Kong kabini. Oyun 1981'de çıktı ve Mario'yu — o zamanki adıyla “Jumpman”i — dünyaya tanıttı."
               credit="Joshua Driggs · CC BY-SA 2.0"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="arc-img"
               src="/articles/arcade/miyamoto-portre.webp"
               ratio="1250 / 1666"
@@ -147,7 +147,7 @@ export default function Page() {
               caption="Shigeru Miyamoto, Donkey Kong'un ve Mario'nun yaratıcısı; 2015'te Kültür Liyakat Nişanı töreninde."
               credit="MEXT · CC BY 4.0"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="arc-img"
               src="/articles/arcade/oyun-salonu.webp"
               ratio="1600 / 1066"

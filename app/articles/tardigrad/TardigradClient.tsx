@@ -377,7 +377,7 @@ export default function TardigradClient() {
           <Link href="/articles/dogal-secilim" className="article-ilink">doğal seçilimin</Link> şekillendirdiği bir başyapıt.
         </p>
         <div className="trd-img-pair" style={{ margin: '20px 0' }}>
-          <ArticleImage
+          <ArticleImage narrow
             className="trd-img"
             src="/articles/tardigrad/tardigrad-sem-aktif.webp"
             ratio="1572 / 1205"
@@ -386,7 +386,7 @@ export default function TardigradClient() {
             caption="Taramalı elektron mikroskobunda bir tardigrad. Aşağıdaki çizimin gerçeği: sekiz bacak, her birinin ucunda pençeler ve bölmeli gövde."
             credit="Wikimedia Commons · CC BY-SA"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="trd-img"
             src="/articles/tardigrad/tardigrad-mikroskop.webp"
             ratio="1600 / 1450"
@@ -442,7 +442,7 @@ export default function TardigradClient() {
         </Stepper>
 
         <div className="trd-img-pair" style={{ marginTop: 22 }}>
-          <ArticleImage
+          <ArticleImage narrow
             className="trd-img"
             src="/articles/tardigrad/tun-hali-sem.webp"
             ratio="1507 / 1176"
@@ -450,7 +450,7 @@ export default function TardigradClient() {
             caption="Tun hâli: bacaklar ve baş içeri çekilmiş, gövde fıçı gibi büzüşmüş. Yukarıdaki adımların sonunda ortaya çıkan şey bu."
             credit="Wikimedia Commons · CC BY-SA"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="trd-img"
             src="/articles/tardigrad/aktif-tun-karsilastirma.webp"
             ratio="1600 / 621"
@@ -501,7 +501,7 @@ export default function TardigradClient() {
         <div className="trd-kicker">05 — Ay Macerası</div>
         <h2 className="trd-h2">Ay'a Düşen Su Ayıları</h2>
         <div className="trd-img-pair" style={{ margin: '0 0 18px' }}>
-          <ArticleImage
+          <ArticleImage narrow
             className="trd-img"
             src="/articles/tardigrad/beresheet-uzay-araci.webp"
             ratio="1600 / 1068"
@@ -509,7 +509,7 @@ export default function TardigradClient() {
             caption="Beresheet: İsrail'in özel finansmanlı ay aracı. İçindeki “ay kütüphanesi” kapsülünde binlerce kurutulmuş tardigrad vardı."
             credit="Wikimedia Commons · CC BY-SA"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="trd-img"
             src="/articles/tardigrad/beresheet-carpma-noktasi.webp"
             ratio="1100 / 1100"
@@ -565,7 +565,7 @@ export default function TardigradClient() {
         <h2 className="trd-h2">Eğlenceli Gerçekler</h2>
 
         <div className="trd-img-pair" style={{ margin: '0 0 20px' }}>
-          <ArticleImage
+          <ArticleImage narrow
             className="trd-img"
             src="/articles/tardigrad/goeze-portre.webp"
             ratio="1600 / 2530"
@@ -573,7 +573,7 @@ export default function TardigradClient() {
             caption="Johann August Ephraim Goeze: 1773'te mikroskop altında bu canlıyı ilk kez gören Alman papaz. Onlara “küçük su ayısı” adını verdi."
             credit="Rijksmuseum · CC0"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="trd-img"
             src="/articles/tardigrad/spallanzani-portre.webp"
             ratio="1396 / 1654"

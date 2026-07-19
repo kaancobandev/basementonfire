@@ -182,7 +182,7 @@ export default function EndosimbiyozClient() {
           uzanan yol:
         </p>
         <div className="endo-img-pair" style={{ marginBottom: 20 }}>
-          <ArticleImage
+          <ArticleImage narrow
             className="endo-img"
             src="/articles/endosimbiyoz/lynn-margulis.webp"
             ratio="1600 / 2400"
@@ -191,7 +191,7 @@ export default function EndosimbiyozClient() {
             caption="Lynn Margulis. Makalesi on beş dergiden geri çevrildi, yayımlandığında da yıllarca alaya alındı. Kuramı kanıtlarla kabul ettiren kişi oldu."
             credit="Javier Pedreira · CC BY 2.0"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="endo-img"
             src="/articles/endosimbiyoz/mereschkowski.webp"
             ratio="1600 / 1965"
@@ -228,7 +228,7 @@ export default function EndosimbiyozClient() {
           bağımsız bakterilerdik.</strong>
         </p>
         <div className="endo-img-pair" style={{ marginBottom: 18 }}>
-          <ArticleImage
+          <ArticleImage narrow
             className="endo-img"
             src="/articles/endosimbiyoz/mitokondri-tem.webp"
             ratio="640 / 433"
@@ -236,7 +236,7 @@ export default function EndosimbiyozClient() {
             caption="Bir mitokondri, elektron mikroskobunda. Kanıtın kendisi burada görünüyor: dıştan iki ayrı zar (biri yutulan bakteriye, diğeri onu saran keseye ait) ve içeriyi katlayan kristalar."
             credit="Louisa Howard · kamu malı"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="endo-img"
             src="/articles/endosimbiyoz/kloroplast.webp"
             ratio="1600 / 1629"

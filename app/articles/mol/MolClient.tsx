@@ -87,7 +87,7 @@ export default function MolClient() {
         </div>
         <p className="mt-5 leading-relaxed text-slate-300">Bu devasa sayıya <strong className="text-amber-300">Avogadro sayısı</strong> (N<sub>A</sub>) denir. Kimyacılar atomları saymak için kendi “düzinelerini” icat etmek zorunda kaldılar — çünkü uğraştıkları şeyler öyle küçük ki milyarlarca milyarla bile iş bitmiyordu.</p>
         <div className="ml-img-pair my-6">
-          <ArticleImage
+          <ArticleImage narrow
             className="ml-img"
             src="/articles/mol/avogadro-portre.webp"
             ratio="1600 / 2204"
@@ -96,7 +96,7 @@ export default function MolClient() {
             caption="Amedeo Avogadro. Hipotezini 1811'de yayımladı, ama kimse ciddiye almadı; adını taşıyan sayıyı hiç görmeden, 1856'da öldü."
             credit="Kamu malı"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="ml-img"
             src="/articles/mol/cannizzaro-portre.webp"
             ratio="1600 / 2273"
@@ -210,7 +210,7 @@ gaz hacmi (V)  = mol (n) × 22,4 L        (Normal Koşullar)`}</Formula>
           Kimse atomları tek tek saymadığına göre, 6,022 × 10²³ sayısını nereden biliyoruz? Cevap, bir asırlık dâhice deneylerde. <strong className="text-amber-300">Jean Perrin</strong> (~1908), suda asılı minik parçacıkların rastgele titreşimini (<strong className="text-amber-300">Brown hareketi</strong>) izleyip Einstein'ın kuramını kullanarak Avogadro sayısını tahmin etti. Birbirinden bağımsız yöntemlerin hepsinin aynı sayıya çıkması, o güne dek şüpheyle bakılan <Link href="/articles/cift-yarik" className="article-ilink">atomların gerçekten var olduğu</Link> fikrini kanıtladı; Perrin 1926'da Nobel aldı.
         </p>
         <div className="ml-img-pair my-6">
-          <ArticleImage
+          <ArticleImage narrow
             className="ml-img"
             src="/articles/mol/perrin-portre.webp"
             ratio="816 / 1074"
@@ -218,7 +218,7 @@ gaz hacmi (V)  = mol (n) × 22,4 L        (Normal Koşullar)`}</Formula>
             caption="Jean Perrin: atomların gerçekten var olduğunu deneyle gösterdi ve 1926'da Nobel aldı. Sayıya “Avogadro sayısı” adını veren de odur."
             credit="Kamu malı"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="ml-img"
             src="/articles/mol/perrin-gamboge-deneyi.webp"
             ratio="926 / 760"
@@ -233,7 +233,7 @@ gaz hacmi (V)  = mol (n) × 22,4 L        (Normal Koşullar)`}</Formula>
         </FunFact>
 
         <div className="ml-img-pair mt-6">
-          <ArticleImage
+          <ArticleImage narrow
             className="ml-img"
             src="/articles/mol/silikon-28-kuresi.webp"
             ratio="1600 / 1245"
@@ -241,7 +241,7 @@ gaz hacmi (V)  = mol (n) × 22,4 L        (Normal Koşullar)`}</Formula>
             caption="Silikon-28 küresi: yüzde 99,9995 saflıkta, tam 1 kilogram. İçindeki atomlar kristal dizilişi ve hacim ölçülerek adeta tek tek sayılıyor — Perrin'in yaptığı işin bugünkü hâli."
             credit="Wikimedia Commons · CC BY 3.0"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="ml-img"
             src="/articles/mol/kilogram-prototipi.webp"
             ratio="1217 / 1512"

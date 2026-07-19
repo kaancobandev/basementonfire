@@ -134,7 +134,7 @@ export default function FizikClient() {
         <Section color={C.green} kicker="1 · Temel" title="Kütle ve Ağırlık: aynı değiller!">
           <p><strong style={{ color: C.green }}>Kütle</strong>, bir cismin içinde ne kadar “madde” olduğudur — birimi kilogram (kg) ve nerede olursan ol değişmez. <strong style={{ color: C.orange }}>Ağırlık</strong> ise yerçekiminin o kütleyi çekme kuvvetidir; birimi newton (N) ve gezegene göre değişir. Ay'da kütlen aynı, ama daha az çekildiğin için ağırlığın azalır.</p>
           <div className="fz-img-pair">
-            <ArticleImage
+            <ArticleImage narrow
               className="fz-img"
               src="/articles/fizik-101/ayda-astronot.webp"
               ratio="1600 / 1600"
@@ -143,7 +143,7 @@ export default function FizikClient() {
               caption="Ay'da bir astronot. Kütlesi Dünya'dakiyle tamamen aynı; değişen tek şey Ay'ın onu daha zayıf çekmesi — yani ağırlığı."
               credit="NASA · kamu malı"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="fz-img"
               src="/articles/fizik-101/uzayda-agirliksizlik.webp"
               ratio="1600 / 1065"
@@ -182,7 +182,7 @@ export default function FizikClient() {
           </div>
 
           <div className="fz-img-pair">
-            <ArticleImage
+            <ArticleImage narrow
               className="fz-img"
               src="/articles/fizik-101/newton-portre.webp"
               ratio="1600 / 1927"
@@ -190,7 +190,7 @@ export default function FizikClient() {
               caption="Isaac Newton, 1689. Üç yasanın da sahibi."
               credit="Godfrey Kneller · kamu malı"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="fz-img"
               src="/articles/fizik-101/principia-kapak.webp"
               ratio="1600 / 2100"
@@ -198,7 +198,7 @@ export default function FizikClient() {
               caption="Principia'nın 1687 baskısının başlık sayfası — cilt kapağı değil, içteki başlık yaprağı. Üç yasa ilk kez burada yayımlandı."
               credit="Wikimedia Commons · kamu malı"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="fz-img"
               src="/articles/fizik-101/roket-firlatma.webp"
               ratio="1600 / 2000"

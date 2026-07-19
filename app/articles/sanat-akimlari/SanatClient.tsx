@@ -65,7 +65,7 @@ export default function SanatClient() {
             veriyor, yapıtınkini değil → altyazılar eserin adını ve tarihini
             kendileri taşımalı, yoksa görsel havada kalır. */}
         <div className="sa-img-grid mt-8">
-          <ArticleImage
+          <ArticleImage narrow
             className="sa-img"
             src="/articles/sanat-akimlari/las-meninas.webp"
             ratio="1600 / 1842"
@@ -73,7 +73,7 @@ export default function SanatClient() {
             caption="Diego Velázquez, Las Meninas, 1656, Prado. Ressam kendini resmin içine koyar, arkadaki aynada kral ile kraliçe belirir — ve bakan kişinin nerede durduğu aniden bir soru hâline gelir."
             credit="Kamu malı"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="sa-img"
             src="/articles/sanat-akimlari/horatiuslar-yemini.webp"
             ratio="1600 / 1233"
@@ -81,7 +81,7 @@ export default function SanatClient() {
             caption="Jacques-Louis David, Horatiusların Yemini, 1784–85, Louvre. Devrimden beş yıl önce yapıldı ama Devrim'in görsel dilini önceden yazdı: keskin çizgi, sert ışık, kişisel acıya karşı yurttaşlık ödevi."
             credit="Kamu malı"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="sa-img"
             src="/articles/sanat-akimlari/goya-3-mayis.webp"
             ratio="1600 / 1221"
@@ -119,7 +119,7 @@ export default function SanatClient() {
             fotoğrafın KONUSU eserin ta kendisi, yani de minimis savunması yok.
             Reklam geliri planlanan bir sitede bu risk alınmadı; kart emojiyle kalır. */}
         <div className="sa-img-pair mt-8">
-          <ArticleImage
+          <ArticleImage narrow
             className="sa-img"
             src="/articles/sanat-akimlari/monet-izlenim.webp"
             ratio="1600 / 1241"
@@ -127,7 +127,7 @@ export default function SanatClient() {
             caption="Claude Monet, İzlenim, Gün Doğumu, 1872. Eleştirmen Louis Leroy bu tabloyla alay ederken “izlenimci” kelimesini bir hakaret olarak kullandı; grup adı sahiplendi."
             credit="Kamu malı"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="sa-img"
             src="/articles/sanat-akimlari/malevic-siyah-kare.webp"
             ratio="1600 / 1162"
@@ -147,7 +147,7 @@ export default function SanatClient() {
           <strong className="text-rose-300">Türkiye'de</strong> Batı'nın 400 yılı yaklaşık 80 yıla sığdı: asker ressamlardan (Osman Hamdi) 1914 Kuşağı'na, D Grubu'ndan soyut kuşağa ve İstanbul Bienali'yle (1987) küresel ağa. Kâşifte “Türkiye” ve “Batı-dışı” süzgeçlerini seç, bu paralel kronolojiyi gör.
         </p>
         <div className="sa-img-pair mt-8">
-          <ArticleImage
+          <ArticleImage narrow
             className="sa-img"
             src="/articles/sanat-akimlari/hokusai-buyuk-dalga.webp"
             ratio="1600 / 1076"
@@ -155,7 +155,7 @@ export default function SanatClient() {
             caption="Katsushika Hokusai, Kanagawa Açıklarında Büyük Dalga (Fuji Dağı'nın Otuz Altı Görünümü serisinden, y. 1830–32). Sık yapılan bir hataya dikkat: bu bir tsunami değil, açık deniz dalgası (okinami)."
             credit="Kamu malı"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="sa-img"
             src="/articles/sanat-akimlari/kaplumbaga-terbiyecisi.webp"
             ratio="1600 / 2966"

@@ -108,7 +108,7 @@ export default function RadyoaktiviteClient() {
         />
 
         <div className="rd-img-pair mt-8">
-          <ArticleImage
+          <ArticleImage narrow
             className="rd-img"
             src="/articles/radyoaktivite/becquerel-portre.webp"
             ratio="1600 / 2152"
@@ -116,7 +116,7 @@ export default function RadyoaktiviteClient() {
             caption="Henri Becquerel. Ailede üç kuşak fizikçi vardı; keşfi yapan bu Henri (1852–1908)."
             credit="Kamu malı"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="rd-img"
             src="/articles/radyoaktivite/becquerel-plaka.webp"
             ratio="492 / 397"
@@ -357,7 +357,7 @@ export default function RadyoaktiviteClient() {
         </div>
 
         <div className="rd-img-pair mt-8">
-          <ArticleImage
+          <ArticleImage narrow
             className="rd-img"
             src="/articles/radyoaktivite/radyum-kizlari.webp"
             ratio="821 / 650"
@@ -365,7 +365,7 @@ export default function RadyoaktiviteClient() {
             caption="US Radium fabrikasında saat kadranı boyayan kadınlar (yaklaşık 1922–23). Fotoğrafta ne maske var ne eldiven: şirket boyanın zararsız olduğunu söylemişti."
             credit="Wikimedia Commons · kamu malı"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="rd-img"
             src="/articles/radyoaktivite/radithor-sise.webp"
             ratio="1600 / 2406"

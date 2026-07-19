@@ -101,7 +101,7 @@ export default function Page() {
             yapılmış bir canlandırma. Hangisinin ne olduğu her altyazıda yazıyor.
           </p>
           <div className="tib-gallery-grid">
-            <ArticleImage
+            <ArticleImage narrow
               className="tib-img"
               src="/articles/tibbi/trepanasyon-kafatasi.webp"
               ratio="1600 / 1200"
@@ -109,7 +109,7 @@ export default function Page() {
               caption="Trepanasyon uygulanmış tarih öncesi kafatası, Prag Şehri Müzesi. Kafatasına delik açmak, bilinen en eski cerrahi işlemlerden biri."
               credit="Zde · CC BY-SA 4.0"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="tib-img"
               src="/articles/tibbi/imhotep-heykeli.webp"
               ratio="1600 / 2137"
@@ -117,7 +117,7 @@ export default function Page() {
               caption="Oturan İmhotep heykelciği — ama Batlamyus Dönemi'nden (MÖ 332–30), yani İmhotep'ten yaklaşık 2.300 yıl sonra yapıldı. Bu bir hekimin portresi değil, tanrılaştırılmış hâlinin ikonu."
               credit="The Met · CC0"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="tib-img"
               src="/articles/tibbi/leeuwenhoek-mikroskop.webp"
               ratio="1600 / 785"
@@ -125,7 +125,7 @@ export default function Page() {
               caption="Leeuwenhoek'in basit mikroskobunun kopyası (faksimile), Utrecht Üniversitesi. Elinizdeki bu tek mercekli levha, ilk kez bakteri gören alet türüdür — ama bu örnek sonradan yapılmış bir eş nüsha."
               credit="Wellcome Collection · CC BY 4.0"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="tib-img"
               src="/articles/tibbi/jenner-ilk-asi.webp"
               ratio="1600 / 1246"
@@ -133,7 +133,7 @@ export default function Page() {
               caption="Jenner ilk aşıyı yaparken — ama bu E.-E. Hillemacher'in 1884 tarihli tablosu, yani olaydan 88 yıl sonra hayal edilmiş bir sahne. Kayıt değil, canlandırma."
               credit="Wellcome Collection · CC BY 4.0"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="tib-img"
               src="/articles/tibbi/snow-kolera-haritasi.webp"
               ratio="1600 / 1534"
@@ -141,7 +141,7 @@ export default function Page() {
               caption="John Snow'un kolera haritası: her siyah çubuk bir ölüm, kümelenme ise Broad Street pompasının çevresi. Harita 1855'te yayımlandı — yani pompa kolu söküldükten sonra; kanıtı üreten şey haritanın kendisi değil, arkasındaki sayımdı."
               credit="Wellcome Collection · CC BY 4.0"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="tib-img"
               src="/articles/tibbi/eter-ilk-ameliyat.webp"
               ratio="1600 / 1286"
@@ -149,7 +149,7 @@ export default function Page() {
               caption="Eter anestezisi altında bir ameliyat, Massachusetts General Hospital, 3 Temmuz 1847; cerrah John Collins Warren. Uzun süre 16 Ekim 1846'daki ilk ameliyatın canlandırması sanıldı — bu bir katalog hatasıydı. Yine de bilinen en erken cerrahi fotoğraf."
               credit="Southworth & Hawes · kamu malı"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="tib-img"
               src="/articles/tibbi/fleming-penisilin.webp"
               ratio="1600 / 1665"
@@ -157,7 +157,7 @@ export default function Page() {
               caption="Alexander Fleming, St Mary's Hastanesi'ndeki laboratuvarında. Penisilini bulmasını sağlayan şey de tam olarak burasıydı: tatile giderken kapatmayı unuttuğu bir kap."
               credit="Bilgi Bakanlığı / IWM · kamu malı"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="tib-img"
               src="/articles/tibbi/phineas-gage.webp"
               ratio="1600 / 2719"

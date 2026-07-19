@@ -219,7 +219,7 @@ export default function BlackHolePage() {
           </div>
 
           <div className="bh-img-pair" style={{ marginTop: 28 }}>
-            <ArticleImage
+            <ArticleImage narrow
               className="bh-img"
               src="/articles/black-hole/toplanma-diski.webp"
               ratio="1600 / 900"
@@ -227,7 +227,7 @@ export default function BlackHolePage() {
               caption="Toplanma diski: kara deliğin çevresinde ışık hızına yakın dönen, milyonlarca dereceye ısınan madde. Diskin arka tarafını hem üstte hem altta görüyoruz, çünkü kara delik arkasından gelen ışığı büküyor."
               credit="NASA Scientific Visualization Studio · kamu malı"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="bh-img"
               src="/articles/black-hole/yengec-bulutsusu.webp"
               ratio="1600 / 1600"
@@ -278,7 +278,7 @@ export default function BlackHolePage() {
             </div>
 
             <div className="bh-img-pair" style={{ marginTop: 28 }}>
-              <ArticleImage
+              <ArticleImage narrow
                 className="bh-img"
                 src="/articles/black-hole/sagittarius-a.webp"
                 ratio="1600 / 1600"
@@ -286,7 +286,7 @@ export default function BlackHolePage() {
                 caption="Sagittarius A*: kendi galaksimizin merkezindeki süper kütleli kara delik, 2022'de görüntülendi. Dünya'dan 27 bin ışık yılı uzakta ve Güneş'in dört milyon katı kütlede."
                 credit="EHT Collaboration · CC BY 4.0"
               />
-              <ArticleImage
+              <ArticleImage narrow
                 className="bh-img"
                 src="/articles/black-hole/cygnus-x1.webp"
                 ratio="1600 / 667"

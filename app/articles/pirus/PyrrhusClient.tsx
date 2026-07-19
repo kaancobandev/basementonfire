@@ -241,7 +241,7 @@ export default function PyrrhusClient() {
           aynı karizma, aynı doymak bilmez fetih arzusu.
         </p>
         <div className="pyr-img-pair">
-          <ArticleImage
+          <ArticleImage narrow
             className="pyr-img"
             src="/articles/pirus/pirus-portre.webp"
             ratio="1600 / 2133"
@@ -250,7 +250,7 @@ export default function PyrrhusClient() {
             caption="Geleneksel olarak Pirus’a atfedilen büst. Roma dönemi mermer kopyası — yaşarken yapılmış bir portre değil ve kimlik teşhisi kesin sayılmıyor."
             credit="Napoli MANN · CC BY"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="pyr-img"
             src="/articles/pirus/iskender-bust.webp"
             ratio="1600 / 1785"
@@ -336,7 +336,7 @@ export default function PyrrhusClient() {
         <h2 className="pyr-h2">İtalya Macerası — Sefer Haritası</h2>
 
         <div className="pyr-img-pair">
-          <ArticleImage
+          <ArticleImage narrow
             className="pyr-img"
             src="/articles/pirus/dodona-tiyatro.webp"
             ratio="1600 / 669"
@@ -344,7 +344,7 @@ export default function PyrrhusClient() {
             caption="Dodona tiyatrosu — Pirus’un kendi yaptırdığı yapı (MÖ 297–272). Bugün görülen hâli katmanlı: Roma tahribatı, arenaya dönüştürülme ve modern restorasyon üst üste binmiş durumda."
             credit="Wikimedia Commons · CC BY-SA"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="pyr-img"
             src="/articles/pirus/ambracia-apollon.webp"
             ratio="1600 / 505"

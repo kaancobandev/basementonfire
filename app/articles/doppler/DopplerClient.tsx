@@ -284,7 +284,7 @@ export default function DopplerClient() {
             <p className="mb-4 leading-relaxed">Olay adını Avusturyalı fizikçi <strong className="font-semibold text-slate-100">Christian Doppler</strong>'den (1803–1853) alır. 1842'de Prag'da sunduğu makalede çarpıcı bir öngörüde bulundu: bir yıldız bize yaklaşıyorsa ışığı <span className="text-sky-300">maviye</span>, uzaklaşıyorsa <span className="text-rose-300">kırmızıya</span> kaymalıydı. Temel fikir doğruydu ama örneği yanlıştı — yıldızlar görünür bir renk değişimi yaratamayacak kadar yavaştı.</p>
             <p className="mb-4 leading-relaxed">İlke çok geçmeden, bilim tarihinin en şirin deneylerinden biriyle doğrulandı. 1845'te Hollandalı meteorolog <strong className="font-semibold text-slate-100">Buys Ballot</strong>, Utrecht yakınındaki yeni demiryolunu kullandı: açık bir vagona trompetçiler koyup tek bir notayı kesintisiz çaldırdı; peronda mutlak kulağa sahip müzisyenler bekliyordu. Tren yaklaşırken nota daha tiz, uzaklaşırken daha kalın duyuldu — tam Doppler'in dediği gibi.</p>
             <div className="dp-img-pair my-6">
-              <ArticleImage
+              <ArticleImage narrow
                 className="dp-img"
                 src="/articles/doppler/christian-doppler.webp"
                 ratio="499 / 640"
@@ -292,7 +292,7 @@ export default function DopplerClient() {
                 caption="Christian Doppler (1803–1853). Etkinin adını taşıyan Avusturyalı fizikçi, ilkeyi 1842'de yıldız ışığı için önerdi."
                 credit="Kamu malı"
               />
-              <ArticleImage
+              <ArticleImage narrow
                 className="dp-img"
                 src="/articles/doppler/buys-ballot.webp"
                 ratio="1600 / 2611"
@@ -401,7 +401,7 @@ export default function DopplerClient() {
             </div>
 
             <div className="dp-img-pair mt-6">
-              <ArticleImage
+              <ArticleImage narrow
                 className="dp-img"
                 src="/articles/doppler/doppler-radari.webp"
                 ratio="1600 / 1246"
@@ -409,7 +409,7 @@ export default function DopplerClient() {
                 caption="Meteoroloji radarı: yağmur damlalarından yansıyan sinyalin frekans kayması, damlaların yaklaşıp uzaklaşma hızını verir. Hortum uyarıları bu ölçümden çıkar."
                 credit="Eric Kurth, NOAA · kamu malı"
               />
-              <ArticleImage
+              <ArticleImage narrow
                 className="dp-img"
                 src="/articles/doppler/doppler-ultrason.webp"
                 ratio="1024 / 698"
@@ -417,7 +417,7 @@ export default function DopplerClient() {
                 caption="Doppler ultrasonu: alttaki dalgalı iz, kandaki hücrelerden yansıyan sesin frekans kaymasıdır — yani akışın hızı ve yönü. Aynı ilke, bu kez damarın içinde."
                 credit="Cerevisae · CC BY-SA 4.0"
               />
-              <ArticleImage
+              <ArticleImage narrow
                 className="dp-img"
                 src="/articles/doppler/radar-tabancasi.webp"
                 ratio="1600 / 1067"
@@ -425,7 +425,7 @@ export default function DopplerClient() {
                 caption="El tipi radar: cihaz bir sinyal yollar, araçtan dönen sinyalin frekans farkı doğrudan hızı verir."
                 credit="U.S. Army · kamu malı"
               />
-              <ArticleImage
+              <ArticleImage narrow
                 className="dp-img"
                 src="/articles/doppler/51-pegasi-b.webp"
                 ratio="1600 / 1006"

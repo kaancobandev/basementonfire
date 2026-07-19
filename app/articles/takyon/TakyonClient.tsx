@@ -353,7 +353,7 @@ export default function TakyonClient() {
         <h2 className="tky-h2">Işıktan Hızlı Ama Kuralı Bozmayan Şeyler</h2>
 
         <div className="tky-img-pair">
-          <ArticleImage
+          <ArticleImage narrow
             className="tky-img"
             src="/articles/takyon/hubble-derin-alan.webp"
             ratio="1600 / 1600"
@@ -361,7 +361,7 @@ export default function TakyonClient() {
             caption="Çok uzak galaksiler bizden ışıktan hızlı uzaklaşıyor olabilir — ama uzayda koştukları için değil, aradaki uzayın kendisi genişlediği için. Kural bozulmuyor."
             credit="NASA ve ESA · kamu malı"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="tky-img"
             src="/articles/takyon/ay-lazer-olcumu.webp"
             ratio="1600 / 1063"
@@ -405,7 +405,7 @@ export default function TakyonClient() {
           “şok dalgası” bırakır: o mavi parıltı.
         </p>
         <div className="tky-img-pair">
-          <ArticleImage
+          <ArticleImage narrow
             className="tky-img"
             src="/articles/takyon/cherenkov-mavi-parilti.webp"
             ratio="1600 / 2102"
@@ -413,7 +413,7 @@ export default function TakyonClient() {
             caption="Cherenkov ışıması: bir araştırma reaktörünün çekirdeğinden yayılan mavi parıltı. Parçacıklar suda, ışığın sudaki hızından hızlı ilerliyor — boşluktaki ışık hızını değil."
             credit="Wikimedia Commons · CC BY-SA"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="tky-img"
             src="/articles/takyon/ses-bariyeri-koni.webp"
             ratio="1600 / 1143"
@@ -463,7 +463,7 @@ export default function TakyonClient() {
         </p>
 
         <div className="tky-img-pair">
-          <ArticleImage
+          <ArticleImage narrow
             className="tky-img"
             src="/articles/takyon/cngs-notrino-tuneli.webp"
             ratio="1600 / 1071"
@@ -471,7 +471,7 @@ export default function TakyonClient() {
             caption="Nötrinoları CERN'den 730 km uzaktaki Gran Sasso laboratuvarına gönderen demet hattı. Nötrinolar Alpler'in altından, doğrudan kayanın içinden geçiyordu."
             credit="Maximilien Brice, CERN · CC BY 4.0"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="tky-img"
             src="/articles/takyon/opera-dedektoru.webp"
             ratio="1024 / 768"

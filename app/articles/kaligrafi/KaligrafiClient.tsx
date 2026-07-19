@@ -248,7 +248,7 @@ export default function KaligrafiClient() {
         {/* Atıf uyarısı: bu alanda eserin tarihi ile ELDEKİ NESNENİN tarihi sık sık
             ayrışıyor — altyazılar bu farkı söylüyor, yuvarlamıyor. */}
         <div className="cal-img-grid">
-          <ArticleImage
+          <ArticleImage narrow
             className="cal-img"
             src="/articles/kaligrafi/kufi-kuran.webp"
             ratio="1600 / 1114"
@@ -256,7 +256,7 @@ export default function KaligrafiClient() {
             caption="Abbâsî dönemi Kur'an yaprağı, 8.–9. yüzyıl. Köşeli, yatayda gerilmiş anıtsal kûfî — henüz kıvrım değil, mimarî bir yazı."
             credit="Freer Gallery of Art · kamu malı"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="cal-img"
             src="/articles/kaligrafi/seyh-hamdullah-murakka.webp"
             ratio="1600 / 1128"
@@ -264,7 +264,7 @@ export default function KaligrafiClient() {
             caption="Şeyh Hamdullah'a atfedilen hatlar içeren bir murakka. “Atfedilen” burada önemli: eserin onun elinden çıktığı kesin değil, geleneğin ona bağladığı bir albüm."
             credit="Sakıp Sabancı Müzesi · kamu malı"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="cal-img"
             src="/articles/kaligrafi/hafiz-osman-hilye.webp"
             ratio="1600 / 2020"
@@ -272,7 +272,7 @@ export default function KaligrafiClient() {
             caption="Hâfız Osman'ın hilyesi, y. 1670–80 — bugün hâlâ taklit edilen düzeni o standartlaştırdı. Ama dikkat: metin dışındaki altın tezhip 20. yüzyıl başından, yani hattan yaklaşık iki yüzyıl daha genç."
             credit="Sadberk Hanım Müzesi · kamu malı"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="cal-img"
             src="/articles/kaligrafi/suleyman-tugra.webp"
             ratio="1600 / 1218"
@@ -312,7 +312,7 @@ export default function KaligrafiClient() {
           <p>Fırçanın hareketi, yazanın iç dünyasını yansıtır; Zen'de tek nefeste çizilen bir daire (<strong>ensō</strong>) meditasyonun kendisidir. Geleneğin vazgeçilmez dört aracı <strong>"Çalışma Odasının Dört Hazinesi"</strong> (文房四宝) olarak anılır: fırça, mürekkep çubuğu, kâğıt ve mürekkep taşı.</p>
         </div>
         <div className="cal-img-grid">
-          <ArticleImage
+          <ArticleImage narrow
             className="cal-img"
             src="/articles/kaligrafi/lantingji-xu.webp"
             ratio="1600 / 525"
@@ -320,7 +320,7 @@ export default function KaligrafiClient() {
             caption="Lantingji Xu (Orkide Köşkü Önsözü) — Çin kaligrafisinin en ünlü eseri. Wang Xizhi'nin y. 353'te yazdığı özgün nüsha kayıp; elimizdeki her şey gibi bu da bir Tang dönemi kopyası (Feng Chengsu, y. 627–650)."
             credit="Kamu malı"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="cal-img"
             src="/articles/kaligrafi/dort-hazine.webp"
             ratio="1600 / 1067"
@@ -356,7 +356,7 @@ export default function KaligrafiClient() {
           düğün davetiyeleri, marka kimlikleri ve sanat galerileri başlıca uygulama alanları.
         </p>
         <div className="cal-img-grid">
-          <ArticleImage
+          <ArticleImage narrow
             className="cal-img"
             src="/articles/kaligrafi/kells-chi-rho.webp"
             ratio="1123 / 1558"
@@ -364,7 +364,7 @@ export default function KaligrafiClient() {
             caption="Kells Kitabı'nın Chi-Rho sayfası (folio 34r). Tek bir kısaltma, koca bir sayfaya yayılmış: Insular geleneğinde harf, okunacak bir işaret olmaktan çıkıp resmin kendisi olur."
             credit="Kamu malı"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="cal-img"
             src="/articles/kaligrafi/gutenberg-incil.webp"
             ratio="1600 / 1560"

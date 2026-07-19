@@ -81,7 +81,7 @@ export default function Page() {
         <section className="erk-gallery">
           <h2>Fikri kuranlar</h2>
           <div className="erk-gallery-grid">
-            <ArticleImage
+            <ArticleImage narrow
               className="erk-img"
               src="/articles/einstein-rosen/einstein-portre.webp"
               ratio="1600 / 1980"
@@ -89,7 +89,7 @@ export default function Page() {
               caption="Albert Einstein. 1935'te Nathan Rosen ile yazdığı makale “köprü”yü ortaya attı — ama amaçları bir geçit tarif etmek değil, parçacıkları uzay-zaman geometrisiyle açıklamaktı."
               credit="Orren Jack Turner · kamu malı"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="erk-img"
               src="/articles/einstein-rosen/schwarzschild-portre.webp"
               ratio="1096 / 1498"
@@ -97,7 +97,7 @@ export default function Page() {
               caption="Karl Schwarzschild: Einstein'ın denklemlerinin ilk tam çözümünü 1916'da, Birinci Dünya Savaşı cephesindeyken buldu. Köprünün matematiği bu çözümden çıktı."
               credit="Kamu malı"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="erk-img"
               src="/articles/einstein-rosen/wheeler-portre.webp"
               ratio="720 / 900"
@@ -105,7 +105,7 @@ export default function Page() {
               caption="John Archibald Wheeler, 1963. “Solucan deliği” adını 1957'de o koydu; 1962'de Robert Fuller ile birlikte klasik köprünün ışık bile geçemeden çöktüğünü kanıtladı."
               credit="GFHund · CC BY 3.0"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="erk-img"
               src="/articles/einstein-rosen/kip-thorne.webp"
               ratio="1600 / 1067"
@@ -113,7 +113,7 @@ export default function Page() {
               caption="Kip Thorne: 1988'de Michael Morris ile birlikte, bir solucan deliğinin açık tutulabilmesi için gereken “egzotik madde”yi tarif etti — ve aynı makalede zaman makinesi sorununu açtı."
               credit="Victor R. Ruiz · CC BY 2.0"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="erk-img"
               src="/articles/einstein-rosen/hawking-portre.webp"
               ratio="1600 / 1067"
@@ -125,7 +125,7 @@ export default function Page() {
 
           <h2>Bükülmenin kanıtı</h2>
           <div className="erk-gallery-grid">
-            <ArticleImage
+            <ArticleImage narrow
               className="erk-img"
               src="/articles/einstein-rosen/m87-kara-delik.webp"
               ratio="1600 / 932"
@@ -133,7 +133,7 @@ export default function Page() {
               caption="M87'nin merkezindeki kara delik (Event Horizon Telescope, 2019). Solucan deliğinin fotoğrafı yok — ama uzay-zamanın gerçekten büküldüğünün fotoğrafı var."
               credit="Event Horizon Telescope · CC BY 4.0"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="erk-img"
               src="/articles/einstein-rosen/einstein-carmigi.webp"
               ratio="1600 / 1545"
@@ -141,7 +141,7 @@ export default function Page() {
               caption="Einstein Haçı: tek bir uzak kuazarın, önündeki galaksinin kütleçekimiyle bükülüp dörde katlanmış görüntüsü. Kütle, ışığın yolunu gerçekten eğiyor."
               credit="NASA, ESA, STScI · kamu malı"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="erk-img"
               src="/articles/einstein-rosen/nasa-solucan-deligi.webp"
               ratio="1200 / 900"

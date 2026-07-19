@@ -328,7 +328,7 @@ export default function BakteriyofajClient() {
           antibiyotiklerin sonu görünürken yeniden parladı.
         </p>
         <div className="phg-img-pair" style={{ marginBottom: 20 }}>
-          <ArticleImage
+          <ArticleImage narrow
             className="phg-img"
             src="/articles/bakteriyofaj/twort-portre.webp"
             ratio="794 / 1139"
@@ -336,7 +336,7 @@ export default function BakteriyofajClient() {
             caption="Frederick Twort, 1915: bakteri kolonilerinin camlaşarak eridiğini fark etti ama peşini bırakmak zorunda kaldı — savaş ve fon yokluğu araya girdi."
             credit="Kamu malı"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="phg-img"
             src="/articles/bakteriyofaj/dherelle-portre.webp"
             ratio="520 / 693"
@@ -344,7 +344,7 @@ export default function BakteriyofajClient() {
             caption="Félix d'Hérelle: 1917'de olguyu bağımsız olarak yeniden buldu, ona “bakteriyofaj” adını verdi ve 1919'da Paris'te dizanterili çocukları tedavi ederek faj terapisini başlattı."
             credit="Institut Pasteur · kamu malı"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="phg-img"
             src="/articles/bakteriyofaj/eliava-portre.webp"
             ratio="370 / 457"
@@ -352,7 +352,7 @@ export default function BakteriyofajClient() {
             caption="George Eliava: d'Hérelle ile birlikte Tiflis'te dünyanın ilk faj enstitüsünü kurdu. 1937'de Sovyet gizli polisi tarafından idam edildi."
             credit="Kamu malı"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="phg-img"
             src="/articles/bakteriyofaj/eliava-enstitusu.webp"
             ratio="1600 / 2228"

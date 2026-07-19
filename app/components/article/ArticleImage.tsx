@@ -23,8 +23,9 @@ import { useState } from 'react';
 import Img from '@/app/components/Img';
 
 export default function ArticleImage({
-  src, alt, caption, credit, ratio = '16 / 9',
-  priority = false, sizes = '(max-width: 768px) 100vw, 720px', className = '',
+  src, alt, caption, credit, ratio = '16 / 9', priority = false, narrow = false,
+  sizes = narrow ? '(max-width: 700px) 100vw, 360px' : '(max-width: 768px) 100vw, 720px',
+  className = '',
 }: {
   src: string;
   alt: string;
@@ -35,6 +36,17 @@ export default function ArticleImage({
   ratio?: string;
   /** Ekranın üstündeki (ilk görünen) görsel için true → eager yükle. */
   priority?: boolean;
+  /**
+   * Yan yana/ızgara kapsayıcıda (…-img-pair, …-img-grid, …-gallery-grid) duran
+   * görsel. Bunlar masaüstünde ~245-360px basılır, tek başına duran görselin
+   * 720px'i DEĞİL — ölçüldü: galeri hücresi 1280 ekranda 301px, ikili 351px.
+   * `sizes` bunu söylemezse tarayıcı 720px'e göre seçim yapar ve dpr 1'de 768w
+   * varyantı iner: gereken pikselin ~5 katı. (Ters yön TEHLİKELİ: geniş bir
+   * görsele narrow demek bulanıklık üretir, o yüzden şüphedeysen dokunma.)
+   * Mobilde hepsi tek sütuna çöktüğü için orada iki değer de aynı adımı seçer.
+   * Eşik 700px: makalelerdeki @media (max-width: 700px) çökme kuralıyla aynı.
+   */
+  narrow?: boolean;
   sizes?: string;
   className?: string;
 }) {

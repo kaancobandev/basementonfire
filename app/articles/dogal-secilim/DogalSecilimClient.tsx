@@ -85,7 +85,7 @@ export default function DogalSecilimClient() {
         {/* Kartların İÇİNE görsel konamıyor (CardGrid yalnızca icon/title/text alır),
             bu yüzden dört kanıt ızgaranın hemen altında kendi ızgarasında duruyor. */}
         <div className="ds-img-grid mt-8">
-          <ArticleImage
+          <ArticleImage narrow
             className="ds-img"
             src="/articles/dogal-secilim/biber-guvesi.webp"
             ratio="1600 / 1066"
@@ -93,7 +93,7 @@ export default function DogalSecilimClient() {
             caption="Biber güvesi, likenli ağaç kabuğunda. Sanayi devriminde kurum ağaçları karartınca bu desen artık saklamaz oldu ve koyu form yayıldı — kabuk değişti, avantaj el değiştirdi."
             credit="Charles J. Sharp · CC BY-SA 4.0"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="ds-img"
             src="/articles/dogal-secilim/ispinoz-gagalari.webp"
             ratio="1600 / 1207"
@@ -101,7 +101,7 @@ export default function DogalSecilimClient() {
             caption="John Gould'un 1845 levhası: aynı takımın dört ayrı türünde gaga yapısındaki kademelenme. Gaganın bir kuraklıkta tek nesilde ölçülebilir biçimde değiştiğini ise 1970'lerde Grant çifti gösterdi."
             credit="John Gould · kamu malı"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="ds-img"
             src="/articles/dogal-secilim/antibiyotik-direnci.webp"
             ratio="1600 / 1449"
@@ -109,7 +109,7 @@ export default function DogalSecilimClient() {
             caption="Disk difüzyon testi: her diskin çevresindeki berrak halka, o antibiyotiğin üremeyi durdurabildiği alan. Halka ne kadar dar, bakteri o ilaca o kadar dirençli — seçilim tabakta."
             credit="CDC / Don Stalons, 1972 · kamu malı"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="ds-img"
             src="/articles/dogal-secilim/orak-hucre.webp"
             ratio="1600 / 1066"
@@ -149,7 +149,7 @@ export default function DogalSecilimClient() {
       {/* Fikrin tarihi — zaman çizelgesinin 1858/1859 düğümlerinin yüzleri */}
       <ArticleSection title="Fikri kuranlar" max="max-w-4xl">
         <div className="ds-img-grid">
-          <ArticleImage
+          <ArticleImage narrow
             className="ds-img"
             src="/articles/dogal-secilim/darwin-portre.webp"
             ratio="1600 / 2056"
@@ -157,7 +157,7 @@ export default function DogalSecilimClient() {
             caption="Charles Darwin, Julia Margaret Cameron'ın 1868 yazında çektiği portre."
             credit="Julia Margaret Cameron · kamu malı"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="ds-img"
             src="/articles/dogal-secilim/wallace-portre.webp"
             ratio="1600 / 2341"
@@ -165,7 +165,7 @@ export default function DogalSecilimClient() {
             caption="Alfred Russel Wallace, y. 1895. Aynı fikre bağımsız olarak ulaşıp 1858'de Darwin'e yolladığında henüz 35 yaşındaydı — bu fotoğraf ondan kırk yıl sonrası."
             credit="London Stereoscopic Company · kamu malı"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="ds-img"
             src="/articles/dogal-secilim/turlerin-kokeni-kapak.webp"
             ratio="1600 / 2568"

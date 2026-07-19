@@ -86,7 +86,7 @@ export default function Page() {
             metnin adını verdiği birkaç somut şeyin gerçek görüntüleri.
           </p>
           <div className="eko-gallery-grid">
-            <ArticleImage
+            <ArticleImage narrow
               className="eko-img"
               src="/articles/ekonomi/merkez-banka-fed.webp"
               ratio="1600 / 888"
@@ -94,7 +94,7 @@ export default function Page() {
               caption="ABD Merkez Bankası'nın Eccles binası, Washington. Faiz kararları böyle binalarda alınır ve etkisi kredi kartı borcundan konut kredisine kadar herkese iner."
               credit="AgnosticPreachersKid · CC BY-SA 3.0"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="eko-img"
               src="/articles/ekonomi/altin-kulce.webp"
               ratio="1600 / 1200"
@@ -102,7 +102,7 @@ export default function Page() {
               caption="Altın külçeler. Emtia dediğimiz şey, en sert hâliyle: değeri bir kurumun sözünden değil, maddenin kendisinden gelen mal."
               credit="Pixabay · CC0"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="eko-img"
               src="/articles/ekonomi/borsa-cokusu-1929.webp"
               ratio="1600 / 1260"
@@ -110,7 +110,7 @@ export default function Page() {
               caption="1929'da New York Borsası'nın önünde toplanan kalabalık. Borsa çöküşü ile resesyon aynı şey değildir — ama bu çöküş, Büyük Buhran'a giden resesyonun fitilini ateşledi."
               credit="Associated Press · kamu malı"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="eko-img"
               src="/articles/ekonomi/benzin-krizi-1974.webp"
               ratio="1600 / 1080"
@@ -118,7 +118,7 @@ export default function Page() {
               caption="Mayıs 1974, Portland: istasyonun günlük benzin kotası tükendi. Petrol ambargosu mart ayında kalkmıştı, sıkıntı yine de sürüyordu — stagflasyonun görünen yüzü."
               credit="ABD Ulusal Arşivleri / DOCUMERICA"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="eko-img"
               src="/articles/ekonomi/enflasyon-banknot-1923.webp"
               ratio="1600 / 985"
@@ -126,7 +126,7 @@ export default function Page() {
               caption="5 trilyon marklık banknot, 9 Kasım 1923 — Alman demiryollarının bastığı acil durum parası. Bir hafta sonra yapılan reform fiyatlardan on iki sıfır sildi."
               credit="Kamu malı"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="eko-img"
               src="/articles/ekonomi/boga-ayi-heykeli.webp"
               ratio="1600 / 1064"
@@ -134,7 +134,7 @@ export default function Page() {
               caption="Frankfurt Borsası'nın önündeki Boğa ve Ayı. Boğa boynuzuyla yukarı savurur, ayı pençesiyle aşağı indirir — piyasa yönlerinin adı buradan gelir."
               credit="Foto: Eva K. · CC BY-SA 2.5 · Heykel: Reinhard Dachlauer"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="eko-img"
               src="/articles/ekonomi/borsa-salonu.webp"
               ratio="1600 / 2008"
@@ -142,7 +142,7 @@ export default function Page() {
               caption="New York Borsası'nın işlem salonu (tarih belirsiz, 1980–2006 arası). Bugünün borsası büyük ölçüde elektronik — bu kalabalık artık ekranların içinde."
               credit="Carol M. Highsmith · kamu malı"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="eko-img"
               src="/articles/ekonomi/doviz-banknot.webp"
               ratio="1600 / 898"

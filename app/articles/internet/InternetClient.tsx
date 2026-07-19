@@ -755,7 +755,7 @@ export default function InternetClient() {
         </p>
 
         <div className="net-img-pair">
-          <ArticleImage
+          <ArticleImage narrow
             className="net-img"
             src="/articles/internet/ev-router.webp"
             ratio="1600 / 1067"
@@ -763,7 +763,7 @@ export default function InternetClient() {
             caption="Zincirin ilk halkası: evdeki yönlendirici. Aşağıdaki şemada 📶 ile gösterilen düğüm bu kutu."
             credit="Hayden Schiff · CC BY 4.0"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="net-img"
             src="/articles/internet/ixp-anahtar-rafi.webp"
             ratio="1600 / 1195"
@@ -805,7 +805,7 @@ export default function InternetClient() {
         </div>
 
         <div className="net-img-pair">
-          <ArticleImage
+          <ArticleImage narrow
             className="net-img"
             src="/articles/internet/fiber-optik-kablo.webp"
             ratio="1600 / 1000"
@@ -813,7 +813,7 @@ export default function InternetClient() {
             caption="Fiber optik lifler. “Veriyi ışık olarak taşır” cümlesi mecaz değil: her lifin içinden geçen ışık darbeleri, saniyede milyarlarca bit anlamına geliyor."
             credit="Geek3 · CC BY-SA 4.0"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="net-img"
             src="/articles/internet/baz-istasyonu.webp"
             ratio="1600 / 1977"

@@ -78,7 +78,7 @@ export default function CiftYarikClient() {
       {/* 1. Işık kavgası */}
       <ArticleSection title="Bir ışık kavgasıyla başladı" max="max-w-4xl">
         <div className="cy-img-pair mb-6">
-          <ArticleImage
+          <ArticleImage narrow
             className="cy-img"
             src="/articles/cift-yarik/thomas-young-portre.webp"
             ratio="1600 / 2046"
@@ -87,7 +87,7 @@ export default function CiftYarikClient() {
             caption="Thomas Young. Işığın dalga olduğunu gösteren deneyi yaptı — ve boş vakitlerinde Rosetta Taşı'nın çözülmesine katkıda bulundu. İlk düzeneğinde aslında iki yarık değil, ışını bölen ince bir kart vardı."
             credit="Wikimedia Commons · kamu malı"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="cy-img"
             src="/articles/cift-yarik/girisim-seritleri.webp"
             ratio="1600 / 538"

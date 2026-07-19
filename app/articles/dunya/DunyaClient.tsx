@@ -66,7 +66,7 @@ export default function DunyaClient() {
         <Globe3D />
 
         <div className="dn-img-pair">
-          <ArticleImage
+          <ArticleImage narrow
             className="dn-img"
             src="/articles/dunya/mavi-bilye.webp"
             ratio="1600 / 1600"
@@ -75,7 +75,7 @@ export default function DunyaClient() {
             caption="“Mavi Bilye”: Apollo 17 mürettebatının 1972'de çektiği fotoğraf. Bu yazı, bu kürenin nasıl var olduğunun hikâyesi."
             credit="Harrison Schmitt / Apollo 17 · kamu malı"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="dn-img"
             src="/articles/dunya/gezegenimsi-disk.webp"
             ratio="1600 / 1600"
@@ -83,7 +83,7 @@ export default function DunyaClient() {
             caption="Başka bir yıldızın çevresindeki gezegen oluşum diski (ALMA). Aradaki boşlukları oluşmakta olan gezegenler süpürüyor — 4,6 milyar yıl önce buradaki sürecin bugün başka bir yerde çekilmiş hâli."
             credit="ALMA (ESO/NAOJ/NRAO) · CC BY 4.0"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="dn-img"
             src="/articles/dunya/hadeyan-erimis-dunya.webp"
             ratio="1600 / 860"
@@ -195,7 +195,7 @@ export default function DunyaClient() {
       {/* İnteraktif: gezegen karşılaştırma */}
       <ArticleSection kicker="İNTERAKTİF · KARŞILAŞTIR" title="Dünya mı, komşuları mı?">
         <div className="dn-img-pair">
-          <ArticleImage
+          <ArticleImage narrow
             className="dn-img"
             src="/articles/dunya/venus-kuresi.webp"
             ratio="1600 / 1600"
@@ -203,7 +203,7 @@ export default function DunyaClient() {
             caption="Venüs'ün yüzeyi. Bu bir fotoğraf DEĞİL: gezegen kalıcı bulut örtüsü yüzünden görünür ışıkta fotoğraflanamıyor. Gördüğünüz şey Magellan sondasının radar ölçümlerinin bilgisayarda bir küreye giydirilmesi; renkler de yapıları belirginleştirmek için eklendi."
             credit="NASA/JPL · kamu malı"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="dn-img"
             src="/articles/dunya/mars-kuresi.webp"
             ratio="1600 / 1600"

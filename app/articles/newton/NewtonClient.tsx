@@ -75,7 +75,7 @@ export default function NewtonClient() {
       {/* 1. Kimdi */}
       <ArticleSection title="Newton kimdi?" max="max-w-4xl">
         <div className="nw-img-pair mb-6">
-          <ArticleImage
+          <ArticleImage narrow
             className="nw-img"
             src="/articles/newton/newton-portre.webp"
             ratio="1600 / 1927"
@@ -84,7 +84,7 @@ export default function NewtonClient() {
             caption="Isaac Newton, 46 yaşında — Godfrey Kneller'ın 1689 tarihli portresi. Principia'nın yayımlanmasından iki yıl sonra çizildi."
             credit="Godfrey Kneller · kamu malı"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="nw-img"
             src="/articles/newton/principia-kapak.webp"
             ratio="1600 / 2100"
@@ -103,7 +103,7 @@ export default function NewtonClient() {
         <CardGrid items={miracleYears} cols={3} />
 
         <div className="nw-img-pair mt-6">
-          <ArticleImage
+          <ArticleImage narrow
             className="nw-img"
             src="/articles/newton/prizma-isik-ayrisimi.webp"
             ratio="1600 / 1065"
@@ -111,7 +111,7 @@ export default function NewtonClient() {
             caption="Mucize Yılların çıktılarından biri: beyaz ışık tek renk değil, renklerin toplamıdır. Newton bunu prizmayla ayırıp yeniden birleştirerek gösterdi."
             credit="Kelvinsong · CC0"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="nw-img"
             src="/articles/newton/woolsthorpe-elma-agaci.webp"
             ratio="1600 / 1060"

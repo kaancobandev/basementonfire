@@ -79,7 +79,7 @@ export default function KuantumClient() {
 
       <ArticleSection center max="max-w-3xl">
         <div className="kq-img-pair">
-          <ArticleImage
+          <ArticleImage narrow
             className="kq-img"
             src="/articles/kuantum-olumsuzlugu/schrodinger-portre.webp"
             ratio="1348 / 2103"
@@ -88,7 +88,7 @@ export default function KuantumClient() {
             caption="Erwin Schrödinger. Kutudaki kediyi kuramı savunmak için değil, ona itiraz etmek için tasarladı: “Teori bu kadar saçma bir sonuç veriyorsa, bir yerde tuhaflık var.”"
             credit="Kamu malı"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="kq-img"
             src="/articles/kuantum-olumsuzlugu/solvay-1927.webp"
             ratio="1600 / 1097"

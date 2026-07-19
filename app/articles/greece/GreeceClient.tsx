@@ -120,7 +120,7 @@ export default function GreecePage() {
             </div>
           </div>
           <div className="gr-img-pair">
-            <ArticleImage
+            <ArticleImage narrow
               className="gr-img"
               src="/articles/greece/parthenon-atina.webp"
               ratio="1600 / 1065"
@@ -128,7 +128,7 @@ export default function GreecePage() {
               caption="Atina’nın yüzü: Parthenon. (Fotoğrafçı, karedeki restorasyon vinçlerini dijital olarak silmiş — yapının kendisi gerçek, sahnedeki modern ekipman değil.)"
               credit="Wikimedia Commons · CC BY-SA"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="gr-img"
               src="/articles/greece/sparta-hoplit.webp"
               ratio="1600 / 2129"
@@ -161,7 +161,7 @@ export default function GreecePage() {
         </div>
 
         <div className="gr-img-pair" style={{ marginTop: 22 }}>
-          <ArticleImage
+          <ArticleImage narrow
             className="gr-img"
             src="/articles/greece/zeus-artemision.webp"
             ratio="1600 / 1600"
@@ -169,7 +169,7 @@ export default function GreecePage() {
             caption="Artemision Bronzu. Fırlatmaya hazırlandığı şey elinde kalmadığı için kimliği tartışmalı: yıldırımsa Zeus, üç dişli mızraksa Poseidon. Çoğunluk Zeus diyor, ama kesin değil."
             credit="Wikimedia Commons · CC BY-SA"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="gr-img"
             src="/articles/greece/athena-varvakeion.webp"
             ratio="1600 / 1067"
@@ -223,7 +223,7 @@ export default function GreecePage() {
         </div>
 
         <div className="gr-img-pair" style={{ marginTop: 22 }}>
-          <ArticleImage
+          <ArticleImage narrow
             className="gr-img"
             src="/articles/greece/olimpiya-stadyum.webp"
             ratio="1600 / 1067"
@@ -231,7 +231,7 @@ export default function GreecePage() {
             caption="Olympia’daki stadyumun kendisi: iki ucundaki taş çizgiler arasında tam 192 metre. Yazının başında geçen mesafe burada, hâlâ ölçülebilir hâlde duruyor."
             credit="dronepicr · CC BY 2.0"
           />
-          <ArticleImage
+          <ArticleImage narrow
             className="gr-img"
             src="/articles/greece/panathenaia-kosu.webp"
             ratio="1600 / 2421"

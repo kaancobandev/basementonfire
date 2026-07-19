@@ -94,7 +94,7 @@ export default function Page() {
             fotoğraflanabilen parçaları.
           </p>
           <div className="ayn-gallery-grid">
-            <ArticleImage
+            <ArticleImage narrow
               className="ayn-img"
               src="/articles/ayna-noronlari/parma-universitesi.webp"
               ratio="1600 / 2146"
@@ -102,7 +102,7 @@ export default function Page() {
               caption="Parma Üniversitesi. Keşif bu üniversitede yapıldı — ama bu bina merkezî yönetim binası; Rizzolatti'nin laboratuvarı şehrin başka bir yerindeki Nörobilim Bölümü'ndeydi."
               credit="Parma1983 · CC BY-SA 4.0"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="ayn-img"
               src="/articles/ayna-noronlari/makak-maymunu.webp"
               ratio="1600 / 1066"
@@ -110,7 +110,7 @@ export default function Page() {
               caption="Bir domuz kuyruklu makak (Macaca nemestrina) — Parma deneylerinde kullanılan tür. Bu kare 2022'de doğada çekildi; deneydeki hayvan değil."
               credit="Thompson Hyggen · CC0"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="ayn-img"
               src="/articles/ayna-noronlari/f5-premotor-korteks.webp"
               ratio="1200 / 1108"
@@ -118,7 +118,7 @@ export default function Page() {
               caption="Makak premotor korteksinin düzleştirilmiş haritası. Makalede F5 dediğimiz bölge burada PMv-r olarak etiketli — yani ventral premotor korteksin ön kısmı; iki adlandırma da aynı yeri gösterir."
               credit="Boussaoud ve ark., BMC Neuroscience 2005 · CC BY 2.0"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="ayn-img"
               src="/articles/ayna-noronlari/rizzolatti-portre.webp"
               ratio="1600 / 2400"
@@ -126,7 +126,7 @@ export default function Page() {
               caption="Giacomo Rizzolatti, keşfi yöneten ekibin başındaki isim."
               credit="Festival della Scienza / Cirone-Musi · CC BY-SA 2.0"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="ayn-img"
               src="/articles/ayna-noronlari/ramachandran-portre.webp"
               ratio="1600 / 2284"
@@ -134,7 +134,7 @@ export default function Page() {
               caption="V. S. Ramachandran. Ayna nöronlarının “medeniyeti şekillendirdiğini” ilan eden ve tartışmayı asıl büyüten isim."
               credit="David Shankbone · CC BY 3.0"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="ayn-img"
               src="/articles/ayna-noronlari/heyes-portre.webp"
               ratio="1600 / 2134"
@@ -142,7 +142,7 @@ export default function Page() {
               caption="Cecilia Heyes. Ayna nöronlarının doğuştan gelmediğini, sıradan çağrışımsal öğrenmeyle kazanılmış olabileceğini savunan itirazın arkasındaki isim."
               credit="Robert Taylor · CC BY-SA 4.0"
             />
-            <ArticleImage
+            <ArticleImage narrow
               className="ayn-img"
               src="/articles/ayna-noronlari/esneyen-kadin.webp"
               ratio="1600 / 1067"
