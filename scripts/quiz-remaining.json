@@ -1,0 +1,686 @@
+[
+ {
+  "slug": "sezar",
+  "questions": [
+   {
+    "question": "Korsanlar genç Caesar için yirmi talent fidye isteyince ne oldu?",
+    "options": [
+     "Fidyeyi düşürmeleri için pazarlık etti",
+     "Kaçmak için gemiden atladı",
+     "Sessizce kabul edip beklemeye başladı",
+     "Az bulup elli istemelerini söyledi"
+    ],
+    "correct_index": 3,
+    "explanation": "Yirmi talenti kendisi için hakaret saydı. Serbest kalınca da söylediğini yaptı ve gülüp geçtikleri tehdidini yerine getirdi."
+   },
+   {
+    "question": "Caesar'ın İskender karşısında ağladığı meşhur sahne için makale ne diyor?",
+    "options": [
+     "Suetonius ve Plutarkhos'un anlattığı, aslında birbirinden farklı iki hikâyedir",
+     "Caesar'ın kendi yazdığı raporda ayrıntısıyla geçer",
+     "Yalnızca 19. yüzyılda uydurulmuş bir efsanedir",
+     "Dört antik kaynağın tamamı aynı ayrıntılarla aktarır"
+    ],
+    "correct_index": 0,
+    "explanation": "Suetonius sahneyi Gades'te bir heykel önünde ve Caesar kvestörken anlatır; Plutarkhos ise bir kitap okurken ve yıllar sonra. İki bin yıldır tek sahne sandığımız şey iki ayrı anlatı."
+   },
+   {
+    "question": "“Alea iacta est” (zar atıldı) sözü hakkında makalenin verdiği ayrıntı nedir?",
+    "options": [
+     "Caesar bu sözü hiç söylememiş, Shakespeare uydurmuştur",
+     "Rubicon'u geçtikten günler sonra Senato'ya yazmıştır",
+     "Muhtemelen Latince değil Yunanca söylenmiş, komedya şairi Menandros'tan alıntıdır",
+     "Sözü söyleyen Caesar değil, ordusunun komutanlarından biridir"
+    ],
+    "correct_index": 2,
+    "explanation": "Adam dünyayı ateşe verirken bile edebiyat referansı yapıyordu. Latince biçim, sonraki aktarımların yerleştirdiği hâldir."
+   }
+  ]
+ },
+ {
+  "slug": "augustus",
+  "questions": [
+   {
+    "question": "Augustus'un kendi hayatını anlattığı Res Gestae metninin dünyadaki en eksiksiz kopyası nerededir?",
+    "options": [
+     "Roma'daki Augustus Forumu'nda",
+     "Atina'daki Agora müzesinde",
+     "İskenderiye Kütüphanesi kalıntılarında",
+     "Ankara'da, Ulus'ta bir tapınağın duvarında"
+    ],
+    "correct_index": 3,
+    "explanation": "Metnin Roma'daki aslı kayıp; bugün elimizdeki en tam hâli Ankara'daki Augustus Tapınağı'nın duvarlarında duruyor."
+   },
+   {
+    "question": "MÖ 27'de Octavianus Senato'ya girip bütün yetkilerini geri verince ne oldu?",
+    "options": [
+     "Senato teklifi kabul etti ve Cumhuriyet gerçekten yeniden kuruldu",
+     "Senatörler onu hain ilan edip sürgüne gönderdi",
+     "Senatörler paniğe kapılıp kalması için yalvardı; ona Augustus adı verildi",
+     "Ordu ayaklandı ve yetkileri zorla geri aldırdı"
+    ],
+    "correct_index": 2,
+    "explanation": "Yetkiyi bırakmak, onu geri istetmenin en zarif yoluydu. Karşılığında aldığı ad, o güne dek yalnız tapınaklar için kullanılan bir kelimeydi."
+   },
+   {
+    "question": "Üçlü yönetimin üçüncü adamı Lepidus'un sonu ne oldu?",
+    "options": [
+     "Öldürülmedi; unvanları alınıp ev hapsine gönderildi ve unutuldu",
+     "Bir deniz savaşında yenilip idam edildi",
+     "Mısır'a kaçıp orada kral oldu",
+     "Augustus'un ortağı olarak ölene dek yönetimde kaldı"
+    ],
+    "correct_index": 0,
+    "explanation": "Çok Augustusçu bir çözüm: adamı öldürmek onu şehit yapardı, yaşatıp hiçliğe çevirmek ise 24 yıl boyunca unutturdu."
+   }
+  ]
+ },
+ {
+  "slug": "fatih",
+  "questions": [
+   {
+    "question": "Fatih'in ilk saltanatı (1444) nasıl sonuçlandı?",
+    "options": [
+     "Konstantinopolis'i ilk kuşatmasıyla taçlandı",
+     "Kardeşiyle taht kavgasına girip Manisa'ya sürüldü",
+     "Haçlı ordusunu Varna'da yenerek tahtı sağlamlaştırdı",
+     "Halil Paşa yeniçerileri ayaklandırıp babasını geri çağırdı, çocuk tahttan indirildi"
+    ],
+    "correct_index": 3,
+    "explanation": "On iki yaşındaki sultan tahttan indirildi. Aynı Halil Paşa, 1453'te fetihten yalnızca üç gün sonra idam edilecekti."
+   },
+   {
+    "question": "Rumeli Hisarı'na (Boğazkesen) neden bu kadar stratejik önem atfedilir?",
+    "options": [
+     "Kuşatma topları buradan şehre atış yapabiliyordu",
+     "Şehrin surlarını denizden kuşatmayı mümkün kılıyordu",
+     "Karşı kıyıdaki Anadolu Hisarı ile birlikte Karadeniz'den gelen gıda gemilerini iki ateş hattı arasına alıyordu",
+     "Osmanlı donanmasının kışlık limanı olarak kullanılıyordu"
+    ],
+    "correct_index": 2,
+    "explanation": "Şehrin gıdası Karadeniz'den geliyordu. Kuşatma, ilk taş surlara atılmadan aylar önce, bir kaleyle başlamıştı."
+   },
+   {
+    "question": "Makaleye göre Konstantinopolis surlarını 1123 yıl boyunca aşılmaz kılan hesabı bozan şey neydi?",
+    "options": [
+     "Barut ve top: eski surların matematiği artık geçerli değildi",
+     "Şehirdeki nüfusun azalması",
+     "Bizans ordusunun dağılması",
+     "Deniz surlarının depremde yıkılması"
+    ],
+    "correct_index": 0,
+    "explanation": "Üç katmanlı savunma merdivenle aşılamaz, deniz açık olduğu için açlıkla da düşürülemezdi. Denklemi değiştiren teknolojiydi."
+   }
+  ]
+ },
+ {
+  "slug": "pirus",
+  "questions": [
+   {
+    "question": "“Pirus zaferi” deyimi neyi anlatır?",
+    "options": [
+     "Hiç kayıp verilmeden kazanılan kusursuz bir zaferi",
+     "Savaş alanında kazanılıp masada kaybedilen bir zaferi",
+     "Kazanana o kadar pahalıya mal olan bir zaferi ki bir tane daha kaldıramaz",
+     "Düşmanın kendi hatasıyla kaybettiği bir savaşı"
+    ],
+    "correct_index": 2,
+    "explanation": "Pirus Romalıları yendi ama en iyi askerlerini ve komutanlarını kaybetti; Roma kayıplarını yenileyebiliyordu, o yenileyemiyordu."
+   },
+   {
+    "question": "Danışmanı Kineas'ın Pirus'a sorduğu ve fetih planını çökerten soru neydi?",
+    "options": [
+     "“Peki ya sonra?”",
+     "“Bu savaşın parasını kim ödeyecek?”",
+     "“Ordunun kaç askeri var?”",
+     "“Tanrılar bundan ne der?”"
+    ],
+    "correct_index": 0,
+    "explanation": "Kineas her fetihten sonra aynı soruyu sordu; zincirin sonunda dinlenip keyif sürmek vardı — yani zaten yapılabilecek olan şey."
+   },
+   {
+    "question": "Pirus nasıl öldü?",
+    "options": [
+     "Roma lejyonlarıyla girdiği son meydan savaşında",
+     "Sicilya'da Kartacalılara esir düşerek",
+     "Kendi komutanları tarafından zehirlenerek",
+     "Argos'ta bir gece çarpışmasında, damdan atılan bir kiremitle"
+    ],
+    "correct_index": 3,
+    "explanation": "Onlarca orduyu bozguna uğratan komutanı, oğlunu korumaya çalışan yaşlı bir kadının attığı kiremit sersemletti ve yerde öldürüldü."
+   }
+  ]
+ },
+ {
+  "slug": "newton",
+  "questions": [
+   {
+    "question": "Newton'ın en verimli düşünce döneminin ortaya çıkma sebebi neydi?",
+    "options": [
+     "Kraliyet tarafından araştırma için görevlendirilmesi",
+     "Avrupa turuna çıkıp diğer bilim insanlarıyla çalışması",
+     "Royal Society'nin ona kurduğu laboratuvar",
+     "1665-66'da vebanın Cambridge'i kapatması üzerine köyüne dönmesi"
+    ],
+    "correct_index": 3,
+    "explanation": "Salgın yüzünden eve kapandığı 18 ayda, henüz 23 yaşındayken kalkülüs, optik ve kütleçekim üzerine çalıştı."
+   },
+   {
+    "question": "Newton'ın birinci yasası (eylemsizlik) gündelik hayatta neyi açıklar?",
+    "options": [
+     "Otobüs frene basınca öne savrulmanızı",
+     "Suyun 100 derecede kaynamasını",
+     "Mıknatısın demiri çekmesini",
+     "Gökyüzünün mavi görünmesini"
+    ],
+    "correct_index": 0,
+    "explanation": "Cisimler hâllerini değiştirmeye direnir: siz hareket hâlindeyken otobüs yavaşlar, bedeniniz hızını korumak ister."
+   },
+   {
+    "question": "Newton ikinci yasayı aslında hangi daha genel biçimde yazmıştı?",
+    "options": [
+     "Kuvvet, kütle bölü ivmeye eşittir",
+     "Kuvvet, hız ile mesafenin çarpımıdır",
+     "Kuvvet, enerjinin karesine eşittir",
+     "Kuvvet, momentumun zamanla değişim hızıdır"
+    ],
+    "correct_index": 3,
+    "explanation": "F = m·a bu genel ifadenin kütle sabitken aldığı hâldir. Roket gibi kütlesi değişen sistemlerde momentumlu biçim gerekir."
+   }
+  ]
+ },
+ {
+  "slug": "cift-yarik",
+  "questions": [
+   {
+    "question": "Çift yarık deneyinde girişim deseni ne zaman kaybolur?",
+    "options": [
+     "Işık kaynağı çok parlak olduğunda",
+     "Yarıklar birbirine çok yakın olduğunda",
+     "Parçacığın hangi yarıktan geçtiği ölçüldüğünde",
+     "Deney karanlıkta yapıldığında"
+    ],
+    "correct_index": 2,
+    "explanation": "Ölçüm eylemi sonucu değiştirir: hangi yoldan gittiğini bildiğiniz anda desen yerini iki basit yığına bırakır."
+   },
+   {
+    "question": "Elektronlar teker teker, aralarında asla ikinci bir elektron olmayacak kadar yavaş gönderildiğinde ne görülür?",
+    "options": [
+     "Ekranda yine girişim deseni birikir",
+     "Arkada iki basit yığın oluşur",
+     "Elektronlar ekrana hiç ulaşmaz",
+     "Desen yalnızca ilk birkaç elektronda görülür"
+    ],
+    "correct_index": 0,
+    "explanation": "Girişecek bir arkadaşı olmayan tek parçacık, deseni tek başına kurar. Feynman kuantum fiziğinin tek gerçek gizemi derken bunu kastediyordu."
+   },
+   {
+    "question": "Maddenin de dalga gibi davrandığı deneysel olarak nasıl gösterildi?",
+    "options": [
+     "Prizmayla ışığın renklere ayrılmasıyla",
+     "Fotoğraf plakasının kararmasıyla",
+     "Suda oluşan dalgaların ölçülmesiyle",
+     "Elektronların bir nikel kristalinde kırınıma uğramasıyla"
+    ],
+    "correct_index": 3,
+    "explanation": "De Broglie'nin madde dalgası fikri böyle doğrulandı. Günlük nesnelerde bunu görmeyiz çünkü momentumları büyük olduğu için dalga boyları akıl almaz derecede küçüktür."
+   }
+  ]
+ },
+ {
+  "slug": "fizik-101",
+  "questions": [
+   {
+    "question": "Kütle ile ağırlık arasındaki fark nedir?",
+    "options": [
+     "İkisi aynı şeydir, sadece birimleri farklıdır",
+     "Kütle yalnızca sıvılar için, ağırlık katılar için kullanılır",
+     "Ağırlık değişmez; kütle gezegene göre değişir",
+     "Kütle nerede olursan ol değişmez; ağırlık çekim kuvvetidir ve gezegene göre değişir"
+    ],
+    "correct_index": 3,
+    "explanation": "Ay'da kütlen aynı kalır ama daha az çekildiğin için ağırlığın azalır. Birimleri de farklıdır: kilogram ve newton."
+   },
+   {
+    "question": "Uzayda “ağırlıksız” olmak neyi değiştirmez?",
+    "options": [
+     "Bir cismi itmenin zorluğunu",
+     "Terazide okunan değeri",
+     "Yere düşme hissini",
+     "Ayakta durabilmeyi"
+    ],
+    "correct_index": 0,
+    "explanation": "Ağırlığın sıfıra inse de kütlen aynı kalır; kütle eylemsizliği belirlediği için uzayda da ağır bir cismi hızlandırmak zordur."
+   },
+   {
+    "question": "1 newton'luk kuvvet ne kadardır?",
+    "options": [
+     "1 kilogramı saniyede 10 metre hızlandıran kuvvet",
+     "Bir insanın kaldırabileceği en büyük kuvvet",
+     "1 kilogramlık kütleye 1 m/s² ivme veren kuvvet; kabaca orta boy bir elmanın ağırlığı",
+     "Bir metrelik mesafede yapılan iş"
+    ],
+    "correct_index": 2,
+    "explanation": "Tanım doğrudan F = m·a'dan gelir. Elma benzetmesi büyüklüğü sezmeyi kolaylaştırır."
+   }
+  ]
+ },
+ {
+  "slug": "takyon",
+  "questions": [
+   {
+    "question": "Takyon nedir?",
+    "options": [
+     "Laboratuvarda 1960'larda gözlenmiş bir parçacık",
+     "Işık hızında giden kütlesiz bir parçacık",
+     "Kanıtı olmayan, hep ışıktan hızlı olduğu varsayılan farazi bir parçacık",
+     "Kara deliklerden yayılan bir radyasyon türü"
+    ],
+    "correct_index": 2,
+    "explanation": "Sıradan madde ışık hızına asla ulaşamaz, foton hep ışık hızındadır; takyon ise varsayımsaldır ve ışık hızına yavaşlayamaz."
+   },
+   {
+    "question": "Bir gölge ya da lazer beneği neden ışıktan hızlı “hareket” edebilir?",
+    "options": [
+     "Gölge ışıktan daha hafif olduğu için",
+     "Gölge aslında ışıktan hızlı gitmez, bu bir yanılsamadır ve hiçbir şekilde ölçülemez",
+     "Karanlığın hızı ölçülemediği için",
+     "Gölge madde ya da bilgi taşımadığı, sadece ışığın yokluğu olduğu için"
+    ],
+    "correct_index": 3,
+    "explanation": "Kural bilgi ve madde taşıyan şeyler için geçerlidir. Duvarda kayan gölge bir desendir, taşıyıcı değil."
+   },
+   {
+    "question": "Çok uzak galaksilerin bizden ışıktan hızlı uzaklaşması kuralı nasıl bozmaz?",
+    "options": [
+     "Galaksiler uzayın içinde değil, uzayın kendisi genişlediği için uzaklaşıyor",
+     "Bu galaksiler aslında takyondan yapılmıştır",
+     "Ölçümler o kadar uzakta güvenilir değildir",
+     "Işık o mesafede yavaşladığı için"
+    ],
+    "correct_index": 0,
+    "explanation": "Genişleyen şey aradaki uzayın kendisi. Galaksiler uzayın İÇİNDE ışıktan hızlı gitmiyor, dolayısıyla görelilik ihlal edilmiyor."
+   }
+  ]
+ },
+ {
+  "slug": "kuantum-olumsuzlugu",
+  "questions": [
+   {
+    "question": "Schrödinger kedisi deneyini ortaya atarken Schrödinger'in amacı neydi?",
+    "options": [
+     "Kuantum kuramının doğruluğunu kanıtlamak",
+     "Ölçüm cihazlarının hassasiyetini artırmak",
+     "Kedilerin kuantum durumlarını incelemek",
+     "Kuramın bu kadar saçma bir sonuç vermesinin bir tuhaflığa işaret ettiğini göstermek"
+    ],
+    "correct_index": 3,
+    "explanation": "Deney bir savunma değil, itirazdı. Ama yüz yıl sonra tuhaflık hâlâ yerinde duruyor: ölçmediğimizde dünya gerçekten bulanık mı?"
+   },
+   {
+    "question": "“Kuantum ölümsüzlüğü” fikri neyi öne sürer?",
+    "options": [
+     "İnsanın kuantum teknolojisiyle sonsuza dek yaşayabileceğini",
+     "Ölümün kuantum düzeyinde geri alınabileceğini",
+     "Her ölümcül anda öldüğün dallarda bunu fark edecek bir “sen” kalmadığını, bilincin hayatta kaldığın dalda devam ettiğini",
+     "Bilincin ölümden sonra başka bir evrene taşındığının kanıtlandığını"
+    ],
+    "correct_index": 2,
+    "explanation": "Dışarıdan bakan sizi ölmüş görür; içeriden asla ölmezsiniz. Makale bunun kanıtlanmış bir teori değil, tartışmalı bir düşünce deneyi olduğunu vurguluyor."
+   },
+   {
+    "question": "Kopenhag yorumuna göre gözlem ne yapar?",
+    "options": [
+     "Dalga fonksiyonunu çökertir: sayısız ihtimalden yalnızca biri gerçek olur",
+     "Parçacığı ikiye böler",
+     "Zamanın akışını yavaşlatır",
+     "Parçacığın kütlesini artırır"
+    ],
+    "correct_index": 0,
+    "explanation": "Havada dönen yazı-tura gibi: ölçümden önce ikisinin ihtimali birlikte vardır, ölçüm anında biri gerçekleşir ve diğeri silinir."
+   }
+  ]
+ },
+ {
+  "slug": "mol",
+  "questions": [
+   {
+    "question": "Kimyada “mol” neye yarar?",
+    "options": [
+     "Sıvıların hacmini ölçmeye",
+     "Atomların büyüklüğünü ölçmeye",
+     "Sıcaklığı hesaplamaya",
+     "Tartılabilen gram ile sayılabilen tanecik arasında çeviri yapmaya"
+    ],
+    "correct_index": 3,
+    "explanation": "Kimyager atomları tek tek sayamaz ama tartabilir. Mol, iki dünya arasındaki çevirmendir."
+   },
+   {
+    "question": "1 mol kaç tanedir?",
+    "options": [
+     "1 milyon",
+     "Maddeye göre değişir",
+     "602 milyar",
+     "6,022 × 10²³"
+    ],
+    "correct_index": 3,
+    "explanation": "Avogadro sayısı artık deneyle ölçülen değil, üzerinde anlaşılmış sabit bir sayıdır — tıpkı düzinenin 12 olması gibi."
+   },
+   {
+    "question": "Makaledeki “çuval” benzetmesi mol mantığını nasıl anlatır?",
+    "options": [
+     "Birkaç taneyi sayıp tartarsın, sonra bütün çuvalı tartıp basit bir bölmeyle tane sayısını bulursun",
+     "Çuvalın hacmini ölçüp yoğunluğa bölersin",
+     "Taneleri renklerine göre ayırırsın",
+     "Çuvalı ısıtıp buharlaşan kısmı ölçersin"
+    ],
+    "correct_index": 0,
+    "explanation": "Saymadan sayma yöntemi budur; kimya da atomlarla tam olarak bunu yapar."
+   }
+  ]
+ },
+ {
+  "slug": "radyoaktivite",
+  "questions": [
+   {
+    "question": "Alfa ışıması hakkında hangisi doğrudur?",
+    "options": [
+     "Kurşun levhaları bile kolayca geçer",
+     "Deri onu durdurur; ama yutulursa son derece tehlikelidir",
+     "Yalnızca uzay boşluğunda oluşur",
+     "Canlı dokuya hiçbir etkisi yoktur"
+    ],
+    "correct_index": 1,
+    "explanation": "Litvinenko'yu öldüren polonyum-210 bir alfa yayıcısıydı. Dışarıda zararsız sayılan şey, içeri girdiğinde acımasız olabiliyor."
+   },
+   {
+    "question": "Karbon-14 arkeolojide neden kullanılır?",
+    "options": [
+     "Kemikleri sertleştirdiği için",
+     "Hızlı bozunup iz bırakmadığı için",
+     "Bir canlının ölümünden sonra karbonunun ne kadar tükendiğine bakılarak yaş hesaplanabildiği için",
+     "Toprakta hiç bulunmadığı için"
+    ],
+    "correct_index": 2,
+    "explanation": "Ötzi'nin yaşını böyle biliyoruz: ölçülen şey kalan karbon-14 miktarı, yani geçen zamanın kendisi."
+   },
+   {
+    "question": "Bir uranyum-238 atomunun 4,5 milyar yıldır bozunmamış olması, bozunma şansı için ne anlama gelir?",
+    "options": [
+     "Bozunma şansı her geçen yıl azalır",
+     "Bozunma şansı zamanla artar, yakında bozunur",
+     "Yaşlandığı için artık bozunamaz",
+     "Önümüzdeki saniyede bozunma şansı hâlâ dünküyle aynıdır"
+    ],
+    "correct_index": 3,
+    "explanation": "Radyoaktif bozunmanın hafızası yoktur: atom “yaşlanmaz”, her an aynı olasılıkla bozunur. Yarı ömür bir kalabalık istatistiğidir."
+   }
+  ]
+ },
+ {
+  "slug": "dunya",
+  "questions": [
+   {
+    "question": "Dünya'nın iç çekirdeği bu kadar sıcak olmasına rağmen neden katıdır?",
+    "options": [
+     "Sıcaklığı aslında düşüktür",
+     "Üzerindeki muazzam basınç atomları kenetlediği için sıvı hâle geçemez",
+     "Demir yerine kayadan oluştuğu için",
+     "Sürekli soğuduğu için"
+    ],
+    "correct_index": 1,
+    "explanation": "Atmosferin yaklaşık 3,5 milyon katı basınç altında demir, normalde eriyeceği sıcaklıkta bile katı kalır."
+   },
+   {
+    "question": "Altın ve platin gibi “demir-sever” değerli metaller neden hâlâ yerkabuğunda bulunabiliyor?",
+    "options": [
+     "Çekirdeğe hiçbir zaman çekilmedikleri için",
+     "Volkanlar onları yukarı taşıdığı için",
+     "Çekirdek oluştuktan sonra Dünya'ya çarpan asteroit yağmuruyla geldikleri ve artık inemedikleri için",
+     "Kabuğun içinde kendiliğinden oluştukları için"
+    ],
+    "correct_index": 2,
+    "explanation": "Teoride hepsinin çekirdeğe gömülmesi gerekirdi. Bugün çıkardığımız altın, geç gelen bir bombardımanın mantoda ve kabukta sıkışıp kalan mirası."
+   },
+   {
+    "question": "İç gezegenlerin kayalık, dış gezegenlerin gaz devi olmasının sebebi nedir?",
+    "options": [
+     "Güneş'e yakın sıcak bölgede uçucuların buharlaşması, uzaktaki soğuk bölgede gaz ve buzun bol kalması",
+     "Güneş'in manyetik alanının ağır elementleri dışarı itmesi",
+     "İç gezegenlerin daha sonra oluşması",
+     "Dış gezegenlerin başka bir yıldızdan gelmesi"
+    ],
+    "correct_index": 0,
+    "explanation": "Gezegenler, Güneş oluştuktan sonra artan kütlenin yüzde birinden azından yapıldı; hangi maddenin nerede yoğunlaştığını sıcaklık belirledi."
+   }
+  ]
+ },
+ {
+  "slug": "tardigrad",
+  "questions": [
+   {
+    "question": "Tardigradlar “tun” denen kuru hâle geçtiğinde ne olur?",
+    "options": [
+     "Suyunun %95'inden fazlasını kaybedip toz topağına döner ve onlarca yıl bekleyebilir",
+     "Kabuk salgılayıp yumurtaya dönüşür",
+     "Vücut sıcaklığını yükseltip donmayı önler",
+     "İkiye bölünüp çoğalır"
+    ],
+    "correct_index": 0,
+    "explanation": "Tek bir su damlası onu geri getirebiliyor. Bazı kayıtlarda bu bekleme 30 yılı aşıyor."
+   },
+   {
+    "question": "Tardigradları uzay boşluğunda hayatta kalan ilk hayvan yapan deney neydi?",
+    "options": [
+     "NASA'nın Ay yüzeyine bıraktığı numuneler",
+     "Avrupa Uzay Ajansı'nın onları doğrudan uzay boşluğuna çıkarması; 10 gün sonra Dünya'da canlandılar",
+     "Uluslararası Uzay İstasyonu'nda bir yıl tutulmaları",
+     "Mars'a gönderilen bir sonda"
+    ],
+    "correct_index": 1,
+    "explanation": "Havasızlığa ve basınçsızlığa on gün dayandılar. Bunu başaran ilk hayvan oldular."
+   },
+   {
+    "question": "Tardigradın yüksek radyasyona dayanmasını sağlayan mekanizma nedir?",
+    "options": [
+     "Kalın bir dış kabuk",
+     "Radyasyonu yansıtan metalik pullar",
+     "DNA'yı saran Dsup proteini ve serbest radikalleri etkisizleştiren pigmentler",
+     "Radyasyonu enerjiye çeviren bir organel"
+    ],
+    "correct_index": 2,
+    "explanation": "Bir insanı öldüren dozun yaklaşık bin katına dayanıyorlar; sır kalkanda değil, DNA'yı fiziksel olarak sarıp korumakta."
+   }
+  ]
+ },
+ {
+  "slug": "bagirsak",
+  "questions": [
+   {
+    "question": "Bağırsak ile beyin arasındaki vagus siniri trafiği hangi yönde ağır basar?",
+    "options": [
+     "Yaklaşık %90'ı bağırsaktan beyne doğrudur",
+     "Yaklaşık %90'ı beyinden bağırsağa doğrudur",
+     "İki yön tam olarak eşittir",
+     "Trafik yalnızca yemek sırasında oluşur"
+    ],
+    "correct_index": 0,
+    "explanation": "Yani beyin bu sohbette çoğunlukla dinleyen taraf. Aşağıya emir de yollar, ama akışın ana yönü yukarıdır."
+   },
+   {
+    "question": "Vücuttaki serotoninin yaklaşık %90'ı nerede üretilir?",
+    "options": [
+     "Beyinde",
+     "Bağırsakta",
+     "Karaciğerde",
+     "Böbrek üstü bezinde"
+    ],
+    "correct_index": 1,
+    "explanation": "Bu serotonin doğrudan beyne geçmez; etkisini vagus siniri üzerinden ruh hâli, iştah ve sindirim üzerinde gösterir."
+   },
+   {
+    "question": "Lif neden bağırsak sağlığının merkezinde sayılır?",
+    "options": [
+     "Mideyi doldurup iştahı kestiği için",
+     "Bağırsak duvarını mekanik olarak temizlediği için",
+     "Dost mikropların baş yakıtı olduğu, onların da karşılığında sağlıklı yağ asitleri ürettiği için",
+     "Suyu emip sindirimi yavaşlattığı için"
+    ],
+    "correct_index": 2,
+    "explanation": "Beslediğiniz şey aslında mikroplarınız. Çeşitli beslenme ise mikrobiyomu çeşitlendirir; çeşitlilik dayanıklılık demektir."
+   }
+  ]
+ },
+ {
+  "slug": "ayna-noronlari",
+  "questions": [
+   {
+    "question": "Ayna nöronları nasıl keşfedildi?",
+    "options": [
+     "İnsan gönüllülerde MR taramasıyla",
+     "Parma'da bir makak maymununun premotor korteksindeki hücrelerin, maymun izlerken de ateşlenmesiyle",
+     "Fare deneylerinde ilaç testleri sırasında",
+     "Bilgisayar simülasyonlarıyla öngörülerek"
+    ],
+    "correct_index": 1,
+    "explanation": "Hücrenin maymun üzüme uzanırken ateşlenmesi beklenendi; asıl sürpriz, maymun yalnızca izlerken de aynı hücrenin ateşlenmesiydi."
+   },
+   {
+    "question": "Ayna nöronunun temel mantığı nedir?",
+    "options": [
+     "Bir eylemi gözlemlemek, o eylemi yapmakla ilgili motor devreyi kısmen etkinleştirir",
+     "Beyin gördüğü her şeyi hafızaya kaydeder",
+     "Duygular kaslara doğrudan aktarılır",
+     "Görme merkezi hareket merkezini bastırır"
+    ],
+    "correct_index": 0,
+    "explanation": "Kol kımıldamadan, eylemin bir kopyası sessizce çalışır. Beyin dışarıdaki hareketi kendi eylem sözlüğüne çevirir."
+   },
+   {
+    "question": "Bu keşif neden devrimci sayıldı?",
+    "options": [
+     "Beynin yeni bir bölgesini ortaya çıkardığı için",
+     "Beynin kendi eylemi ile başkasının eylemi arasındaki sınırı umursamadığını gösterdiği için",
+     "Maymunların konuşabildiğini kanıtladığı için",
+     "Motor korteksin görme işlevi olduğunu gösterdiği için"
+    ],
+    "correct_index": 1,
+    "explanation": "Beynin başkalarını nasıl anladığına dair bir ipucuydu: anlamak, bir ölçüde içeride yeniden yapmak olabilir."
+   }
+  ]
+ },
+ {
+  "slug": "tibbi",
+  "questions": [
+   {
+    "question": "Cerrahlar hasta tamamen uyanıkken beyin ameliyatı yapabiliyor. Bunun sebebi nedir?",
+    "options": [
+     "Beyin ameliyatlarında güçlü lokal anestezi kullanılması",
+     "Beynin kendi içinde ağrı reseptörü taşımaması",
+     "Ameliyatın çok hızlı bitmesi",
+     "Hastanın hipnoz altında olması"
+    ],
+    "correct_index": 1,
+    "explanation": "Vücudun ağrı merkezi kendi ağrısını hissetmez. Hasta uyanık olduğu için cerrah konuşma ve hareket merkezlerine zarar vermeden ilerleyebilir."
+   },
+   {
+    "question": "Penisilin nasıl keşfedildi?",
+    "options": [
+     "Küf mantarları üzerinde planlanmış bir araştırma programıyla",
+     "Fleming tatilden döndüğünde küflenmiş bir Petri kabında, küfün çevresindeki bakterilerin eridiğini fark etmesiyle",
+     "Bir hastaya yanlış ilaç verilmesiyle",
+     "Antik bir reçetenin yeniden denenmesiyle"
+    ],
+    "correct_index": 1,
+    "explanation": "Modern tıbbın en büyük dönüm noktalarından biri, temizlenmemiş bir cam kaptan çıktı."
+   },
+   {
+    "question": "Greyfurt bazı ilaçlarla neden birlikte alınmamalı?",
+    "options": [
+     "İlaçların tadını bozduğu için",
+     "Mide asidini artırdığı için",
+     "Bağırsaktaki CYP3A4 enzimini bloke ettiği ve bu enzim onlarca ilacı parçalamakla görevli olduğu için",
+     "İlaçların emilimini tamamen durdurduğu için"
+    ],
+    "correct_index": 2,
+    "explanation": "Enzim bloke olunca ilaç vücutta beklenenden fazla birikir; yani sorun etkisizlik değil, doz aşımı riskidir."
+   }
+  ]
+ },
+ {
+  "slug": "bilgisayar",
+  "questions": [
+   {
+    "question": "Bir bilgisayar en temelde neye dayanır?",
+    "options": [
+     "Milyarlarca minik elektrik anahtarının açık/kapalı (1 ve 0) hâlde çok hızlı işbirliği yapmasına",
+     "Manyetik disklerin dönmesine",
+     "Ekrandaki piksellerin yenilenmesine",
+     "İnternet bağlantısının hızına"
+    ],
+    "correct_index": 0,
+    "explanation": "CPU, RAM, GPU gibi parçaların hepsi bu basit anahtar mantığının üst üste yığılmasıyla ortaya çıkar."
+   },
+   {
+    "question": "İşlemcinin saat hızı olan 3 GHz ne anlama gelir?",
+    "options": [
+     "3 milyar bayt bellek",
+     "Saniyede yaklaşık 3 milyar adım",
+     "3 milyar transistör",
+     "Saniyede 3 milyar piksel"
+    ],
+    "correct_index": 1,
+    "explanation": "Ritmi sistem kristali verir. Çok çekirdekli işlemcilerde bu adımlar aynı anda birden fazla hatta atılır."
+   },
+   {
+    "question": "Makaledeki benzetmeye göre CPU nasıl bir ofistir?",
+    "options": [
+     "Çok sayıda çalışanı olan, herkesin aynı basit işi yaptığı bir ofis",
+     "Çalışanı olmayan, tamamen otomatik bir ofis",
+     "Çok zeki ama az sayıda çalışanı olan, karmaşık problemleri sırayla çözen bir ofis",
+     "Yalnızca veri saklayan bir arşiv"
+    ],
+    "correct_index": 2,
+    "explanation": "Bu yüzden CPU karmaşık ve sıralı işlerde güçlüdür; aynı anda binlerce basit işlem gerektiren görevlerde ise GPU öne çıkar."
+   }
+  ]
+ },
+ {
+  "slug": "sanat-akimlari",
+  "questions": [
+   {
+    "question": "“İzlenimcilik” adı nereden geliyor?",
+    "options": [
+     "Sanatçıların kendi seçtiği bir manifestodan",
+     "Eleştirmen Louis Leroy'un Monet'nin İzlenim, Gün Doğumu tablosuyla alay etmesinden",
+     "Bir müzenin sergi başlığından",
+     "Bir sanat okulunun adından"
+    ],
+    "correct_index": 1,
+    "explanation": "Alay için takılan adı grup gururla sahiplendi. Sanat tarihinde birkaç akımın adı benzer şekilde hakaretten doğmuştur."
+   },
+   {
+    "question": "Duchamp'ın 1917'de pisuarı “Çeşme” adıyla sergiye göndermesi hangi soruyu değiştirdi?",
+    "options": [
+     "“Bu iyi mi?” sorusunu “Bu neden sanat, kim karar veriyor?” sorusuna",
+     "“Bu pahalı mı?” sorusunu “Bu satılır mı?” sorusuna",
+     "“Bu eski mi?” sorusunu “Bu modern mi?” sorusuna",
+     "Hiçbir soruyu; eser görmezden gelindi"
+    ],
+    "correct_index": 0,
+    "explanation": "Tartışma nesnenin güzelliğinden kurumun yetkisine kaydı: sanatı sanat yapan şey neydi, eser mi yoksa onu sergileyen çerçeve mi?"
+   },
+   {
+    "question": "Sanat merkezinin Paris'ten New York'a geçmesinin sebebi makalede nasıl açıklanıyor?",
+    "options": [
+     "Amerikan resminin estetik üstünlüğüyle",
+     "Paris'teki müzelerin kapanmasıyla",
+     "Totaliter rejimlerden kaçan sanatçıların göç dalgasıyla",
+     "Yeni boya tekniklerinin Amerika'da bulunmasıyla"
+    ],
+    "correct_index": 2,
+    "explanation": "Avrupa'nın kaybı Amerika'nın kazancı oldu. Akımlar estetik yarıştan çok para, teknoloji, siyaset ve kurumların kesişiminde yer değiştirir."
+   }
+  ]
+ }
+]
