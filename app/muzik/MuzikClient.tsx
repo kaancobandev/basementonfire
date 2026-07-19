@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Img from '@/app/components/Img';
 import { avatarSrc } from '@/lib/avatar';
 import { useNavUser } from '@/app/components/NavUserContext';
+import TimeAgo from '@/app/components/TimeAgo';
 import MusicPlayer, { type MusicTrack } from '@/app/components/MusicPlayer';
 import { uploadToStorage } from '@/lib/upload';
 
@@ -27,14 +28,6 @@ interface Props {
   spotifyItems: SpotifyItem[];
   youtubeItems: YouTubeItem[];
   trackItems: TrackItem[];
-}
-
-function timeAgo(d: string) {
-  const m = Math.floor((Date.now() - new Date(d).getTime()) / 60000);
-  if (m < 60) return `${m}d`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}sa`;
-  return `${Math.floor(h / 24)}g`;
 }
 
 // Spotify logosu SVG
@@ -399,7 +392,7 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
                           {t.title}{t.artist ? ` — ${t.artist}` : ''}
                         </span>
                         <span style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)' }}>
-                          {timeAgo(t.created_at)}{t.duration ? ` · ${Math.floor(t.duration / 60)}:${String(Math.floor(t.duration % 60)).padStart(2, '0')}` : ''}
+                          <TimeAgo iso={t.created_at} />{t.duration ? ` · ${Math.floor(t.duration / 60)}:${String(Math.floor(t.duration % 60)).padStart(2, '0')}` : ''}
                         </span>
                       </div>
                       {currentUserId === t.user_id && (
@@ -447,7 +440,7 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
                         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
                           {item.username && <Link href={`/u/${item.username}`} style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-text)', textDecoration: 'none' }}>{item.display_name}</Link>}
                           <span style={{ fontSize: '0.85rem', color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</span>
-                          <span style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)' }}>{timeAgo(item.created_at)}</span>
+                          <TimeAgo iso={item.created_at} style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)' }} />
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                           <button
@@ -558,7 +551,7 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
                         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
                           {item.username && <Link href={`/u/${item.username}`} style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-text)', textDecoration: 'none' }}>{item.display_name}</Link>}
                           <span style={{ fontSize: '0.85rem', color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</span>
-                          <span style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)' }}>{item.item_type === 'playlist' ? '▶ Playlist' : '▶ Video'} · {timeAgo(item.created_at)}</span>
+                          <span style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)' }}>{item.item_type === 'playlist' ? '▶ Playlist' : '▶ Video'} · <TimeAgo iso={item.created_at} /></span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                           <button

@@ -10,6 +10,7 @@ import { useState, useRef, useEffect, useCallback, Fragment } from 'react';
 import Link from 'next/link';
 import Caption from './Caption';
 import Logo from './Logo';
+import TimeAgo from './TimeAgo';
 import DailyQuestion from './DailyQuestion';
 import DidYouKnowCard from './DidYouKnowCard';
 import PostPoll from './PostPoll';
@@ -47,14 +48,9 @@ function storyAvatarBg(u: string): string {
   let h = 0; for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff; return gs[Math.abs(h) % gs.length];
 }
 
-function timeAgo(dateStr: string) {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `${mins}d`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}sa`;
-  return `${Math.floor(hrs / 24)}g`;
-}
+// timeAgo BURADAN KALDIRILDI: doğrudan render'a yazılınca sunucu ve istemci
+// Date.now()'u farklı anlarda okuyup farklı METİN üretiyordu → hidrasyon
+// hatası. Paylaşılan <TimeAgo> bileşeni bunu güvenli yapar.
 
 const HeartFilled = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1">
@@ -578,7 +574,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                       </Link>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <Link href={`/u/${item.username}`} style={{ display: 'block', fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-text)', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.display_name}</Link>
-                        <span style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)' }}>@{item.username} · {timeAgo(item.created_at)}</span>
+                        <span style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)' }}>@{item.username} · <TimeAgo iso={item.created_at} /></span>
                       </div>
                       <ReportButton targetType="post" targetId={item.id} subtitle={`@${item.username} gönderisi`} size={32} canReport={!!currentUser && currentUser.id !== item.user_id} />
                     </div>
@@ -657,7 +653,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                     </Link>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <Link href={`/u/${item.username}`} style={{ display: 'block', fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-text)', textDecoration: 'none' }}>{item.display_name}</Link>
-                      <span style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)' }}>@{item.username} · {timeAgo(item.created_at)}</span>
+                      <span style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)' }}>@{item.username} · <TimeAgo iso={item.created_at} /></span>
                     </div>
                     <span style={{ flexShrink: 0, fontSize: '0.7rem', fontWeight: 700, padding: '3px 8px', borderRadius: '9999px', marginLeft: 'auto', background: item.category === 'science' ? 'rgba(59,130,246,.15)' : item.category === 'history' ? 'rgba(245,158,11,.15)' : 'rgba(100,116,139,.15)', color: item.category === 'science' ? '#3b82f6' : item.category === 'history' ? '#b45309' : '#475569' }}>
                       {catLabel}
