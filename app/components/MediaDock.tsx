@@ -18,6 +18,8 @@
 import {
   createContext, useCallback, useContext, useEffect, useMemo, useRef, useState,
 } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import type { MusicTrack } from './MusicPlayer';
 
 type Embed = { provider: 'youtube' | 'spotify'; src: string; title: string };
@@ -83,7 +85,6 @@ export function MediaDockProvider({ children }: { children: React.ReactNode }) {
   const [playing, setPlaying] = useState(false);
   const [time, setTime] = useState(0);
   const [dur, setDur] = useState(0);
-  const [open, setOpen] = useState(true);
   const [buffered, setBuffered] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -95,6 +96,8 @@ export function MediaDockProvider({ children }: { children: React.ReactNode }) {
   // GİZLE ≠ KAPAT: gizlemek yalnız paneli saklar, çalma sürer ve küçük bir
   // düğme geri getirir. Kapatmak sesi durdurup dock'u tamamen kaldırır.
   const [hidden, setHidden] = useState(false);
+
+  const muzikteyiz = usePathname() === '/muzik';
 
   const tracks = media?.kind === 'audio' ? media.tracks : [];
   const track = media?.kind === 'audio' ? media.tracks[media.index] : null;
@@ -145,12 +148,12 @@ export function MediaDockProvider({ children }: { children: React.ReactNode }) {
 
   const playTracks = useCallback((t: MusicTrack[], index = 0) => {
     if (!t.length) return;
-    setOpen(true); setHidden(false);   // yeni parça başlatınca panel geri gelsin
+    setHidden(false);   // yeni parça başlatınca panel geri gelsin
     setMedia({ kind: 'audio', tracks: t, index: Math.min(Math.max(index, 0), t.length - 1) });
   }, []);
 
   const playEmbed = useCallback((embed: Embed) => {
-    setOpen(true); setHidden(false);
+    setHidden(false);
     setMedia({ kind: 'embed', embed });
   }, []);
 
@@ -272,22 +275,29 @@ export function MediaDockProvider({ children }: { children: React.ReactNode }) {
       )}
 
       {media && !hidden && (
-        <aside className={`mdock${open ? '' : ' is-min'}`} aria-label="Çalan medya">
+        <aside className="mdock" aria-label="Çalan medya">
           <div className="mdock-head">
             <span className="mdock-dot" data-on={playing ? '1' : '0'} aria-hidden="true" />
             <span className="mdock-title">
               {media.kind === 'audio' ? track?.title : embed?.title}
             </span>
-            <button type="button" onClick={() => setOpen(o => !o)} aria-label={open ? 'Küçült' : 'Büyüt'} aria-expanded={open}>
-              <I d={open ? 'M6 15l6-6 6 6' : 'M6 9l6 6 6-6'} />
-            </button>
+            {/* Buradaki chevron "küçült"tü ve HİÇBİR İŞE YARAMIYORDU: ses paneli
+                zaten küçük, işlevi de "gizle" ile çakışıyordu. Yerine gerçek bir
+                boşluk dolduruldu — başka sayfadayken sıradaki parçaya geçmenin
+                ya da listeyi görmenin yolu yoktu; bu düğme müzik sayfasına
+                götürür. /muzik'teyken zaten gereksiz, gösterilmez. */}
+            {!muzikteyiz && (
+              <Link href="/muzik" aria-label="Müzik sayfasını aç" className="mdock-link">
+                <I d="M9 18V5l12-2v13M9 13l12-2" size={16} />
+              </Link>
+            )}
             <button type="button" onClick={() => setHidden(true)} aria-label="Çaları gizle">
               <I d="M4 12h16" />
             </button>
             <button type="button" onClick={close} aria-label="Kapat"><I d="M18 6L6 18M6 6l12 12" /></button>
           </div>
 
-          {open && embed && (
+          {embed && (
             <div className={`mdock-frame ${embed.provider}`}>
               <iframe
                 ref={frameRef}
@@ -386,14 +396,14 @@ export function MediaDockProvider({ children }: { children: React.ReactNode }) {
         .mdock-dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.3); flex-shrink: 0; }
         .mdock-dot[data-on="1"] { background: var(--color-accent, #ff9d0a); box-shadow: 0 0 8px var(--color-accent, #ff9d0a); }
         .mdock-title { flex: 1; min-width: 0; font-size: 0.78rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .mdock-head button, .mdock-ctrl button {
+        .mdock-head button, .mdock-head .mdock-link, .mdock-ctrl button {
           display: flex; align-items: center; justify-content: center;
           min-width: 34px; min-height: 34px; padding: 0; flex-shrink: 0;
           background: none; border: none; color: #fff; opacity: 0.72; cursor: pointer; border-radius: 999px;
           transition: opacity 0.15s, background 0.15s, transform 0.26s cubic-bezier(0.34,1.56,0.64,1);
         }
-        .mdock-head button:hover, .mdock-ctrl button:hover { opacity: 1; background: rgba(255,255,255,0.12); }
-        .mdock-head button:active, .mdock-ctrl button:active { transform: scale(0.88); transition-duration: 0.09s; }
+        .mdock-head button:hover, .mdock-head .mdock-link:hover, .mdock-ctrl button:hover { opacity: 1; background: rgba(255,255,255,0.12); }
+        .mdock-head button:active, .mdock-head .mdock-link:active, .mdock-ctrl button:active { transform: scale(0.88); transition-duration: 0.09s; }
 
         .mdock-frame { position: relative; width: 100%; background: #000; }
         .mdock-frame.youtube { aspect-ratio: 16 / 9; }
@@ -415,7 +425,6 @@ export function MediaDockProvider({ children }: { children: React.ReactNode }) {
         .mdock-seek::before { content: ''; position: absolute; left: 0; right: 0; height: 4px; background: rgba(255,255,255,0.16); }
         .mdock-seek-fill { position: relative; height: 4px; background: linear-gradient(90deg, var(--color-primary, #5b2eef), var(--color-spark, #f5288e)); }
 
-        .mdock.is-min .mdock-head { padding: 6px 6px 6px 12px; }
 
         @media (prefers-reduced-motion: reduce) {
           .mdock-head button, .mdock-ctrl button { transition: none; }
