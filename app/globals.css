@@ -88,6 +88,15 @@
   --nav-space: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
 }
 
+/* Klavye açıkken dock GİZLENİR (bkz. AppShell focusin/focusout + .kb-open kuralı),
+   dolayısıyla onun için ayrılan yer de KALMAMALI. Tokenı burada sıfırlamak
+   tüketenlerin HEPSİNİ birden düzeltir: .dm-main yüksekliği, .main-content ve
+   .sk-wrap dolgusu, .match-page, .cc-banner, Sonner mobileOffset.
+   Bunu yapmazsak nav gizlenir ama ayrılan şerit yerinde kalır ve altındaki
+   sayfa zemini boş beyaz bir blok olarak görünür — mesajlar sayfasında
+   klavye açınca tam olarak bu oluyordu. */
+:root.kb-open { --nav-space: 0px; }
+
 * { box-sizing: border-box; }
 
 /* ── Küçük butonlar için görünmez dokunma alanı (hitSlop) — layout kaymadan

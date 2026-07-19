@@ -147,7 +147,14 @@ export default function AppShell({ children }: AppShellProps) {
       return n.tagName === 'INPUT' || n.tagName === 'TEXTAREA' || n.isContentEditable;
     };
     const open = (e: FocusEvent) => { if (isField(e.target)) document.documentElement.classList.add('kb-open'); };
-    const close = (e: FocusEvent) => { if (isField(e.target)) document.documentElement.classList.remove('kb-open'); };
+    // relatedTarget = odağı ALAN öğe. Bakılmazsa iki alan arasında geçerken
+    // focusout → focusin sırası yüzünden dock bir kare için geri gelip
+    // yanıp sönüyor; klavye ise hiç kapanmamış oluyor.
+    const close = (e: FocusEvent) => {
+      if (!isField(e.target)) return;
+      if (isField(e.relatedTarget)) return;
+      document.documentElement.classList.remove('kb-open');
+    };
     document.addEventListener('focusin', open);
     document.addEventListener('focusout', close);
     return () => {
