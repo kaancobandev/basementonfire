@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode, type CSSProperties } from 'react';
 import Link from 'next/link';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
+import ArticleImage from '@/app/components/article/ArticleImage';
 
 /* ════════════════════════ VERİ ════════════════════════ */
 
@@ -204,6 +205,17 @@ export default function TakyonClient() {
       <section className="tky-section reveal">
         <div className="tky-kicker">03 — Aşılmaz Duvar</div>
         <h2 className="tky-h2">Neden Işık Hızı Bir Limit?</h2>
+
+        <div className="tky-img-wrap">
+          <ArticleImage
+            className="tky-img"
+            src="/articles/takyon/einstein-patent-ofisi.webp"
+            ratio="1600 / 2303"
+            alt="Genç, bıyıklı bir adamın siyah beyaz portresi; takım elbise ve kravatla, kollarını kavuşturmuş oturuyor."
+            caption="Albert Einstein, Bern'deki patent ofisinde çalıştığı yıllarda. Işık bariyerini çizen 1905 tarihli özel görelilik kuramı bu dönemin ürünü."
+            credit="Lucien Chavan · kamu malı"
+          />
+        </div>
         <p className="tky-p">
           Bir nesneyi ne kadar hızlandırırsan, onu daha da hızlandırmak o kadar zorlaşır. Işık hızına yaklaştıkça
           gereken enerji <strong>roket gibi tırmanır</strong>; tam ışık hızı için <strong>sonsuz enerji</strong>
@@ -309,6 +321,18 @@ export default function TakyonClient() {
       <section className="tky-section reveal">
         <div className="tky-kicker">07 — Fikrin Tarihi</div>
         <h2 className="tky-h2">Takyon Fikrinin Yolculuğu</h2>
+
+        <div className="tky-img-wrap">
+          <ArticleImage
+            className="tky-img"
+            src="/articles/takyon/gargamelle-notrino-izi.webp"
+            ratio="1021 / 1506"
+            alt="Kabarcık odası fotoğrafı: koyu zeminde kıvrılan ince beyaz izler ve bir noktadan yayılan çizgiler."
+            caption="Kabarcık odasında gerçek bir nötrino etkileşiminin izi (Gargamelle, CERN). Nötrino görünmez; varlığını ancak çarptığı noktadan fırlayan parçacıkların izinden anlıyoruz."
+            credit="CERN · CC BY 4.0"
+          />
+        </div>
+
         <Stepper steps={history} accent="#a78bfa">
           {(i) => (
             <svg viewBox="0 0 300 180" className="tky-svg">
@@ -327,6 +351,25 @@ export default function TakyonClient() {
       <section className="tky-section reveal">
         <div className="tky-kicker">08 — Yanılgıyı Dağıtmak</div>
         <h2 className="tky-h2">Işıktan Hızlı Ama Kuralı Bozmayan Şeyler</h2>
+
+        <div className="tky-img-pair">
+          <ArticleImage
+            className="tky-img"
+            src="/articles/takyon/hubble-derin-alan.webp"
+            ratio="1600 / 1600"
+            alt="Derin uzay fotoğrafı: siyah zeminde farklı renk ve biçimlerde yüzlerce galaksi, kimi sarmal kimi lekemsi."
+            caption="Çok uzak galaksiler bizden ışıktan hızlı uzaklaşıyor olabilir — ama uzayda koştukları için değil, aradaki uzayın kendisi genişlediği için. Kural bozulmuyor."
+            credit="NASA ve ESA · kamu malı"
+          />
+          <ArticleImage
+            className="tky-img"
+            src="/articles/takyon/ay-lazer-olcumu.webp"
+            ratio="1600 / 1063"
+            alt="Gece gökyüzüne doğru ince yeşil bir lazer huzmesi gönderen gözlemevi kubbesi."
+            caption="Ay'a lazer gönderen bir ölçüm istasyonu. Bileğinizi çevirseniz Ay yüzeyindeki benek ışıktan hızlı süpürülebilir — ama benek bir desendir, taşıyıcı değil; oraya hiçbir şey ışıktan hızlı gitmez."
+            credit="Wikimedia Commons · CC BY-SA"
+          />
+        </div>
         <p className="tky-p">
           “Hiçbir şey ışıktan hızlı gidemez” derken kastedilen aslında şudur: hiçbir <strong>madde, enerji ya da
           bilgi</strong> ışıktan hızlı yolculuk edemez. Ama bir <strong>desen</strong> ya da <strong>gölge</strong>
@@ -361,6 +404,25 @@ export default function TakyonClient() {
           parçacıklar suda, <strong>ışığın sudaki hızından daha hızlı</strong> ilerleyebilir ve geride bir ışık
           “şok dalgası” bırakır: o mavi parıltı.
         </p>
+        <div className="tky-img-pair">
+          <ArticleImage
+            className="tky-img"
+            src="/articles/takyon/cherenkov-mavi-parilti.webp"
+            ratio="1600 / 2102"
+            alt="Su altındaki reaktör çekirdeğinden yayılan yoğun, elektrik mavisi parıltı; çevresinde metal yapı elemanları."
+            caption="Cherenkov ışıması: bir araştırma reaktörünün çekirdeğinden yayılan mavi parıltı. Parçacıklar suda, ışığın sudaki hızından hızlı ilerliyor — boşluktaki ışık hızını değil."
+            credit="Wikimedia Commons · CC BY-SA"
+          />
+          <ArticleImage
+            className="tky-img"
+            src="/articles/takyon/ses-bariyeri-koni.webp"
+            ratio="1600 / 1143"
+            alt="Alçaktan uçan savaş uçağının çevresinde huni biçiminde yoğuşmuş beyaz bulut."
+            caption="Görsel benzetme: uçağın çevresindeki yoğuşma konisi. Cherenkov ışıması bunun ışıktaki karşılığıdır — ama bu fotoğraftaki koni tek başına uçağın ses hızını aştığını kanıtlamaz, nem yoğuşması ses altında da oluşabilir."
+            credit="U.S. Navy · kamu malı"
+          />
+        </div>
+
         <div className="tky-callout">
           <span className="tky-callout-icon">💧</span>
           <p><strong>Benzetme:</strong> Bir uçak sesten hızlı uçunca <em>ses patlaması</em> (sonic boom) yaratır.
@@ -399,6 +461,25 @@ export default function TakyonClient() {
           Eylül 2011'de bilim dünyası çalkalandı: CERN'den Gran Sasso'ya gönderilen nötrinolar, ışıktan
           <strong> 60 nanosaniye hızlı</strong> görünüyordu. Einstein yanılmış mıydı? Manşetler patladı.
         </p>
+
+        <div className="tky-img-pair">
+          <ArticleImage
+            className="tky-img"
+            src="/articles/takyon/cngs-notrino-tuneli.webp"
+            ratio="1600 / 1071"
+            alt="Yeraltı tünelinde uzanan büyük metal boru hattı ve çevresindeki kablo tesisatı."
+            caption="Nötrinoları CERN'den 730 km uzaktaki Gran Sasso laboratuvarına gönderen demet hattı. Nötrinolar Alpler'in altından, doğrudan kayanın içinden geçiyordu."
+            credit="Maximilien Brice, CERN · CC BY 4.0"
+          />
+          <ArticleImage
+            className="tky-img"
+            src="/articles/takyon/opera-dedektoru.webp"
+            ratio="1024 / 768"
+            alt="Devasa, çok katmanlı ve turuncu çerçeveli parçacık dedektörü; yanında ölçek veren bir çalışan."
+            caption="OPERA dedektörü. Ölçümün sonu bir devrim değil, gevşek bir fiber-optik kablo oldu: düzeltilince nötrinolar tam ışık hızında çıktı."
+            credit="Wikimedia Commons · CC BY-SA 3.0"
+          />
+        </div>
         <p className="tky-p">
           Aylar süren titiz kontrolden sonra suçlu bulundu: <strong>gevşek bir fiber-optik kablo</strong>, zamanlama
           sinyalini tam 60 nanosaniye geciktiriyordu. Bağlantı sıkıştırılınca “ışıktan hızlı” sonuç buharlaştı.
@@ -514,6 +595,17 @@ export default function TakyonClient() {
 
         /* Section */
         .tky-section { max-width: 820px; margin: 0 auto; padding: 40px 16px; border-top: 1px solid rgba(167,139,250,0.08); }
+        /* ArticleImage'ın slate varsayılanlarını makalenin menekşe aksanına bağla. */
+        .tky-img {
+          --ai-caption: #cdc7e0;
+          --ai-credit: #9b96b8;
+          --ai-border: rgba(167,139,250,0.24);
+          --ai-fill: rgba(167,139,250,0.05);
+          --ai-mark: rgba(167,139,250,0.28);
+        }
+        .tky-img-wrap { max-width: 340px; margin: 0 auto; }
+        .tky-img-pair { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; align-items: start; }
+        @media (max-width: 700px) { .tky-img-pair { grid-template-columns: 1fr; } }
         .tky-kicker { font-size: .7rem; font-weight: 800; letter-spacing: .2em; color: var(--magenta); margin-bottom: 8px; text-transform: uppercase; }
         .tky-h2 { font-size: clamp(1.4rem, 4.4vw, 2.05rem); font-weight: 800; margin: 0 0 14px; letter-spacing: -.01em; color: var(--ink); }
         .tky-h3 { font-size: 1.05rem; font-weight: 700; margin: 28px 0 12px; color: var(--cyan); }

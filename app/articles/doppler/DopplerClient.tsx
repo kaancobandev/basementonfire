@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, type ReactNode } from 'react';
 import Link from 'next/link';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
+import ArticleImage from '@/app/components/article/ArticleImage';
 
 /* ════════════════════════ VERİ ════════════════════════ */
 
@@ -196,6 +197,18 @@ export default function DopplerClient() {
 
   return (
     <main className="main-content">
+      <style>{`
+        /* ArticleImage'ın slate varsayılanlarını makalenin gökyüzü mavisine bağla. */
+        .dp-img {
+          --ai-caption: #cbd5e1;
+          --ai-credit: #6f8ba3;
+          --ai-border: rgba(56,189,248,0.22);
+          --ai-fill: rgba(56,189,248,0.05);
+          --ai-mark: rgba(56,189,248,0.28);
+        }
+        .dp-img-pair { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; align-items: start; }
+        @media (max-width: 700px) { .dp-img-pair { grid-template-columns: 1fr; } }
+      `}</style>
       <div className="min-h-screen bg-gradient-to-b from-[#0a1226] via-[#070b16] to-[#070b16] text-slate-300">
 
         {/* Topbar */}
@@ -270,6 +283,25 @@ export default function DopplerClient() {
             <h2 className="mb-4 text-2xl font-bold text-slate-50 sm:text-3xl">Christian Doppler ve Trenli Trompetçiler</h2>
             <p className="mb-4 leading-relaxed">Olay adını Avusturyalı fizikçi <strong className="font-semibold text-slate-100">Christian Doppler</strong>'den (1803–1853) alır. 1842'de Prag'da sunduğu makalede çarpıcı bir öngörüde bulundu: bir yıldız bize yaklaşıyorsa ışığı <span className="text-sky-300">maviye</span>, uzaklaşıyorsa <span className="text-rose-300">kırmızıya</span> kaymalıydı. Temel fikir doğruydu ama örneği yanlıştı — yıldızlar görünür bir renk değişimi yaratamayacak kadar yavaştı.</p>
             <p className="mb-4 leading-relaxed">İlke çok geçmeden, bilim tarihinin en şirin deneylerinden biriyle doğrulandı. 1845'te Hollandalı meteorolog <strong className="font-semibold text-slate-100">Buys Ballot</strong>, Utrecht yakınındaki yeni demiryolunu kullandı: açık bir vagona trompetçiler koyup tek bir notayı kesintisiz çaldırdı; peronda mutlak kulağa sahip müzisyenler bekliyordu. Tren yaklaşırken nota daha tiz, uzaklaşırken daha kalın duyuldu — tam Doppler'in dediği gibi.</p>
+            <div className="dp-img-pair my-6">
+              <ArticleImage
+                className="dp-img"
+                src="/articles/doppler/christian-doppler.webp"
+                ratio="499 / 640"
+                alt="19. yüzyıl gravürü: favorili, ciddi bakışlı bir adamın omuz hizasından portresi, koyu ceket ve papyonla."
+                caption="Christian Doppler (1803–1853). Etkinin adını taşıyan Avusturyalı fizikçi, ilkeyi 1842'de yıldız ışığı için önerdi."
+                credit="Kamu malı"
+              />
+              <ArticleImage
+                className="dp-img"
+                src="/articles/doppler/buys-ballot.webp"
+                ratio="1600 / 2611"
+                alt="Sakallı, koyu takım elbiseli bir adamın ayakta çekilmiş siyah beyaz stüdyo fotoğrafı."
+                caption="Christophorus Buys Ballot: 1845'te açık vagona trompetçiler bindirip yanından geçirerek ilkeyi kulakla doğruladı. Fotoğraf deneyden yıllar sonra, 1860–80 arasında çekilmiş."
+                credit="Rijksmuseum · CC0"
+              />
+            </div>
+
             <blockquote className="rounded-r-xl border-l-4 border-amber-400 bg-amber-400/5 px-5 py-4 italic text-slate-100">Doppler etkisi, soyut bir formülden önce, bir buharlı lokomotifin üzerinde trompet çalan birkaç müzisyenle kanıtlandı.</blockquote>
           </section>
         </Reveal>
@@ -332,6 +364,17 @@ export default function DopplerClient() {
             <h2 className="mb-4 text-2xl font-bold text-slate-50 sm:text-3xl">Evrenin Genişlemesi: Kozmik Kırmızıya Kayma</h2>
             <p className="mb-4 leading-relaxed">20. yüzyılın en büyük keşiflerinden biri doğrudan bu kırmızıya kaymadan doğdu. 1910'larda <strong className="font-semibold text-slate-100">Vesto Slipher</strong> uzak galaksilerde belirgin kırmızıya kaymalar ölçtü. 1929'da <strong className="font-semibold text-slate-100">Edwin Hubble</strong> bunu uzaklıklarla birleştirip şaşırtıcı bir örüntü buldu: galaksiler bizden uzaklaşıyordu ve <strong className="font-semibold text-slate-100">ne kadar uzaktaysa o kadar hızlı.</strong></p>
             <p className="mb-4 leading-relaxed">Tek mantıklı açıklama vardı: <Link href="/articles/black-hole" className="article-ilink"><strong className="font-semibold text-sky-300">evren genişliyor.</strong></Link> Bu, Büyük Patlama modelinin temel taşlarından biri oldu.</p>
+            <div className="mx-auto my-6 max-w-xs">
+              <ArticleImage
+                className="dp-img"
+                src="/articles/doppler/edwin-hubble.webp"
+                ratio="846 / 1068"
+                alt="Pipo içen, takım elbiseli orta yaşlı bir adamın siyah beyaz portresi; kolları kavuşturulmuş, yana bakıyor."
+                caption="Edwin Hubble. Uzak galaksilerin kırmızıya kaymasını uzaklıklarıyla birleştirerek evrenin genişlediğini gösterdi (1929)."
+                credit="Johan Hagemeyer · kamu malı"
+              />
+            </div>
+
             <div className="flex gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
               <span className="text-xl">🍞</span>
               <p className="text-sm text-slate-300">Güzel incelik: kozmik kırmızıya kayma, galaksilerin uzayda "fırlatılmış top gibi" koşmasından değil; <strong className="font-semibold text-slate-100">uzayın kendisinin genişlemesinden</strong> kaynaklanır — ışığın dalga boyu da onunla gerilir. Galaksiler boşlukta koşmuyor, aralarındaki boşluk büyüyor. Hamuru gererken üzerindeki iki noktanın uzaklaşması gibi.</p>
@@ -355,6 +398,41 @@ export default function DopplerClient() {
                   </div>
                 </div>
               ))}
+            </div>
+
+            <div className="dp-img-pair mt-6">
+              <ArticleImage
+                className="dp-img"
+                src="/articles/doppler/doppler-radari.webp"
+                ratio="1600 / 1246"
+                alt="Açık alanda beyaz küresel bir radar kubbesi; arkasında koyu fırtına bulutları ve yağmur perdesi."
+                caption="Meteoroloji radarı: yağmur damlalarından yansıyan sinyalin frekans kayması, damlaların yaklaşıp uzaklaşma hızını verir. Hortum uyarıları bu ölçümden çıkar."
+                credit="Eric Kurth, NOAA · kamu malı"
+              />
+              <ArticleImage
+                className="dp-img"
+                src="/articles/doppler/doppler-ultrason.webp"
+                ratio="1024 / 698"
+                alt="Ultrason ekranı: üstte gri damar kesiti, altta düzenli tepeler hâlinde dalgalanan renkli akış grafiği."
+                caption="Doppler ultrasonu: alttaki dalgalı iz, kandaki hücrelerden yansıyan sesin frekans kaymasıdır — yani akışın hızı ve yönü. Aynı ilke, bu kez damarın içinde."
+                credit="Cerevisae · CC BY-SA 4.0"
+              />
+              <ArticleImage
+                className="dp-img"
+                src="/articles/doppler/radar-tabancasi.webp"
+                ratio="1600 / 1067"
+                alt="Üniformalı bir kişinin elinde tuttuğu, tabanca biçiminde el tipi radar cihazı."
+                caption="El tipi radar: cihaz bir sinyal yollar, araçtan dönen sinyalin frekans farkı doğrudan hızı verir."
+                credit="U.S. Army · kamu malı"
+              />
+              <ArticleImage
+                className="dp-img"
+                src="/articles/doppler/51-pegasi-b.webp"
+                ratio="1600 / 1006"
+                alt="Çizim: turuncu bir yıldızın çok yakınında dönen, sıcaktan parlayan dev bir gaz gezegeni."
+                caption="51 Pegasi b, Güneş benzeri bir yıldızın çevresinde bulunan ilk ötegezegen (1995) — yıldızın Doppler salınımından tespit edildi. Bu bir fotoğraf değil, sanatçı yorumu: gezegen hiç doğrudan görüntülenmedi."
+                credit="ESO/M. Kornmesser · CC BY 4.0"
+              />
             </div>
           </section>
         </Reveal>
@@ -386,6 +464,15 @@ export default function DopplerClient() {
                 <div className="text-sm text-slate-400">Dalgalar üst üste binip şok konisi oluşturur — tek, şiddetli bir basınç darbesi.</div>
               </div>
             </div>
+
+            <ArticleImage
+              className="dp-img mt-5"
+              src="/articles/doppler/ses-patlamasi.webp"
+              ratio="1600 / 1143"
+              alt="Deniz üzerinde alçaktan uçan savaş uçağının çevresinde oluşmuş, huni biçiminde beyaz bulut bulutu."
+              caption="Ses hızına yaklaşan bir uçağın çevresinde yoğuşan nem konisi. Doppler ile karıştırılan görüntü bu: burada frekans kaymasını değil, üst üste binen dalgaların yarattığı basınç konisini görüyorsunuz."
+              credit="Ensign John Gay, U.S. Navy · kamu malı"
+            />
           </section>
         </Reveal>
 
