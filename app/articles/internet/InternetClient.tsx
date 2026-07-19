@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode, type CSSProperties } from 'react';
 import Link from 'next/link';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
+import ArticleImage from '@/app/components/article/ArticleImage';
 
 const refs: BibItem[] = [
   { title: 'Computer Networks (5. baskı)', authors: 'Andrew S. Tanenbaum & David J. Wetherall', year: '2010', source: 'Pearson' },
@@ -267,6 +268,16 @@ export default function InternetClient() {
           sağlayıcına (ISP) bağlanır. ISP&apos;ler birbirine ve büyük <strong>omurga (backbone)</strong> hatlarına
           bağlanır. Sonuçta her cihaz, devasa bir örümcek ağının bir düğümü hâline gelir.
         </p>
+
+        <ArticleImage
+          className="net-img mx-auto"
+          src="/articles/internet/veri-merkezi.webp"
+          ratio="1600 / 2408"
+          priority
+          alt="Veri merkezi koridoru: iki yanda tavana kadar uzanan sunucu dolapları, önlerinde renkli kablo demetleri."
+          caption="Aşağıdaki diyagramda “veri merkezi” yazan kutunun gerçeği. Bulut dediğimiz şey burası: birinin elektriğini ödediği, soğuttuğu ve kablolarını çektiği raflar."
+          credit="Derrick Coetzee · CC0"
+        />
         <div className="net-diagram">
           <svg viewBox="0 0 720 300" className="net-svg">
             {/* kümeler */}
@@ -454,6 +465,15 @@ export default function InternetClient() {
           MAC (Media Access Control) adresi, cihazın ağ kartına üreticide kazınan <strong>fiziksel</strong> kimliktir.
           IP değişebilir ama MAC genelde sabittir. 48 bittir ve onaltılık (hex) yazılır:
         </p>
+
+        <ArticleImage
+          className="net-img"
+          src="/articles/internet/ag-karti.webp"
+          ratio="1600 / 1200"
+          alt="Yeşil devre kartı: üzerinde yongalar, bir ethernet soketi ve metal braket bulunuyor."
+          caption="Bir ağ kartı. MAC adresi tam olarak bu karta, üretim sırasında kazınır — işletim sisteminden bağımsız, donanımın kendi kimliği."
+          credit="Wikimedia Commons · kamu malı"
+        />
         <div className="net-diagram">
           <svg viewBox="0 0 700 130" className="net-svg">
             <rect x="60" y="45" width="280" height="48" rx="8" fill="rgba(167,139,250,0.1)" stroke="#a78bfa" strokeWidth="1.5" />
@@ -485,6 +505,15 @@ export default function InternetClient() {
           çerçeve iletir. <strong>Router (yönlendirici)</strong> ise <em>farklı</em> ağları birbirine bağlar ve
           paketleri IP adreslerine göre en iyi yoldan dış dünyaya taşır.
         </p>
+
+        <ArticleImage
+          className="net-img"
+          src="/articles/internet/ethernet-switch.webp"
+          ratio="1600 / 1200"
+          alt="Rafa monte edilmiş ince metal kutu: ön yüzünde sıra sıra ethernet portu ve durum ışıkları."
+          caption="Bir ethernet anahtarı. Aşağıdaki şemada SWITCH yazan kutu fiziksel olarak böyle görünüyor: portlara takılan her cihaz, MAC adresiyle bu tablonun bir satırı oluyor."
+          credit="Wikimedia Commons · kamu malı"
+        />
         <div className="net-diagram">
           <svg viewBox="0 0 700 260" className="net-svg">
             {/* cihazlar */}
@@ -724,6 +753,25 @@ export default function InternetClient() {
           uzanan bağlantıya <strong>“son kilometre” (last mile)</strong> denir. İsteğin oradan büyük omurga hatlarına,
           oradan da hedef sunucuya ulaşır:
         </p>
+
+        <div className="net-img-pair">
+          <ArticleImage
+            className="net-img"
+            src="/articles/internet/ev-router.webp"
+            ratio="1600 / 1067"
+            alt="Masaüstünde duran, antenli beyaz ev tipi yönlendirici; ön yüzünde gösterge ışıkları var."
+            caption="Zincirin ilk halkası: evdeki yönlendirici. Aşağıdaki şemada 📶 ile gösterilen düğüm bu kutu."
+            credit="Hayden Schiff · CC BY 4.0"
+          />
+          <ArticleImage
+            className="net-img"
+            src="/articles/internet/ixp-anahtar-rafi.webp"
+            ratio="1600 / 1195"
+            alt="Veri merkezinde raf dolusu ağ anahtarı; yüzlerce renkli fiber kablo portlara takılı."
+            caption="Bir internet değişim noktasındaki (IXP) anahtar rafı. Farklı sağlayıcıların ağları fiziksel olarak burada buluşuyor — şemadaki 🔀 düğümünün gerçeği."
+            credit="Wikimedia Commons · CC BY-SA"
+          />
+        </div>
         <div className="net-diagram">
           <svg viewBox="0 0 720 170" className="net-svg">
             {[
@@ -755,6 +803,26 @@ export default function InternetClient() {
             </div>
           ))}
         </div>
+
+        <div className="net-img-pair">
+          <ArticleImage
+            className="net-img"
+            src="/articles/internet/fiber-optik-kablo.webp"
+            ratio="1600 / 1000"
+            alt="Kesitten görünen fiber optik demet: uçlarından parlak ışık çıkan çok sayıda ince cam lif."
+            caption="Fiber optik lifler. “Veriyi ışık olarak taşır” cümlesi mecaz değil: her lifin içinden geçen ışık darbeleri, saniyede milyarlarca bit anlamına geliyor."
+            credit="Geek3 · CC BY-SA 4.0"
+          />
+          <ArticleImage
+            className="net-img"
+            src="/articles/internet/baz-istasyonu.webp"
+            ratio="1600 / 1977"
+            alt="Gökyüzüne karşı yükselen kafes kule; üstünde dikdörtgen anten panelleri ve çanaklar var."
+            caption="Mobil baz istasyonu. Telefonun “kablosuz” bağlantısı yalnızca buraya kadar kablosuz; kulenin arkasında yine fiber var."
+            credit="Obsidian Soul · CC0"
+          />
+        </div>
+
         <div className="net-callout">
           <span className="net-callout-icon">☎️</span>
           <p><strong>DSL</strong> (Digital Subscriber Line), var olan bakır telefon hatlarını kullanarak internet
@@ -839,6 +907,16 @@ export default function InternetClient() {
       </footer>
 
       <style>{`
+        /* ArticleImage'ın slate varsayılanlarını makalenin gökyüzü mavisine bağla. */
+        .net-img {
+          --ai-caption: #cbd5e1;
+          --ai-credit: #6f8ba3;
+          --ai-border: rgba(56,189,248,0.22);
+          --ai-fill: rgba(56,189,248,0.05);
+          --ai-mark: rgba(56,189,248,0.28);
+        }
+        .net-img-pair { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; align-items: start; margin: 18px 0; }
+        @media (max-width: 700px) { .net-img-pair { grid-template-columns: 1fr; } }
         .net-page {
           --c1:#38bdf8; --c2:#34d399; --c3:#a78bfa; --c4:#fbbf24; --c5:#fb7185;
           --bg:#070b16; --panel:rgba(255,255,255,0.03); --line:rgba(255,255,255,0.1);

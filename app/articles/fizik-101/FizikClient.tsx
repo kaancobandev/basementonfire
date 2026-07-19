@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import ArticleBibliography from '@/app/components/ArticleBibliography';
+import ArticleImage from '@/app/components/article/ArticleImage';
 import {
   BouncingHero, MassWeightScale, ForceLab, MotionSim, MomentumCollision, EnergyRamp,
   glossary, units, quizQs, refs, C,
@@ -87,6 +88,18 @@ function Glossary() {
 export default function FizikClient() {
   return (
     <main className="main-content">
+      <style>{`
+        /* ArticleImage varsayılanları KOYU tema için (beyaz kenarlık + beyaz
+           filigran). Bu makale AÇIK temalı → beşini de çevir, yoksa görünmezler. */
+        .fz-img {
+          --ai-caption: #334155;
+          --ai-credit: #64748b;
+          --ai-border: #e2e8f0;
+          --ai-fill: #ffffff;
+          --ai-mark: rgba(15,23,42,0.3);
+        }
+        .fz-img-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; align-items: start; margin: 16px 0; }
+      `}</style>
       <div className="min-h-screen" style={{ background: '#f4f7fb', color: '#0f172a' }}>
         {/* üst çubuk */}
         <div className="sticky top-0 z-40 flex items-center gap-3 border-b border-slate-200 bg-white/80 px-5 py-2.5 backdrop-blur">
@@ -120,6 +133,26 @@ export default function FizikClient() {
         {/* 1. Kütle & Ağırlık */}
         <Section color={C.green} kicker="1 · Temel" title="Kütle ve Ağırlık: aynı değiller!">
           <p><strong style={{ color: C.green }}>Kütle</strong>, bir cismin içinde ne kadar “madde” olduğudur — birimi kilogram (kg) ve nerede olursan ol değişmez. <strong style={{ color: C.orange }}>Ağırlık</strong> ise yerçekiminin o kütleyi çekme kuvvetidir; birimi newton (N) ve gezegene göre değişir. Ay'da kütlen aynı, ama daha az çekildiğin için ağırlığın azalır.</p>
+          <div className="fz-img-pair">
+            <ArticleImage
+              className="fz-img"
+              src="/articles/fizik-101/ayda-astronot.webp"
+              ratio="1600 / 1600"
+              priority
+              alt="Ay yüzeyinde beyaz uzay giysili bir astronot; arkada siyah gökyüzü ve gri, tozlu zemin."
+              caption="Ay'da bir astronot. Kütlesi Dünya'dakiyle tamamen aynı; değişen tek şey Ay'ın onu daha zayıf çekmesi — yani ağırlığı."
+              credit="NASA · kamu malı"
+            />
+            <ArticleImage
+              className="fz-img"
+              src="/articles/fizik-101/uzayda-agirliksizlik.webp"
+              ratio="1600 / 1065"
+              alt="Uzay istasyonunun içinde havada asılı duran küresel bir su damlası; arkada bir astronot."
+              caption="Havada süzülen su damlası. “Ağırlıksızlık” burada yerçekiminin yokluğu değil, serbest düşüş hâlidir — istasyon da içindekiler de Dünya'ya sürekli düşüyor. Damlanın kütlesi yerinde duruyor."
+              credit="NASA · kamu malı"
+            />
+          </div>
+
           <p>Kendin dene — kütleyi kaydır, gezegen değiştir:</p>
           <MassWeightScale />
           <Tip color={C.green}>Uzayda “ağırlıksız” olursun (g = 0) ama kütlen aynıdır — bu yüzden uzayda bile bir cismi itmek zorludur.</Tip>
@@ -147,6 +180,33 @@ export default function FizikClient() {
               </div>
             ))}
           </div>
+
+          <div className="fz-img-pair">
+            <ArticleImage
+              className="fz-img"
+              src="/articles/fizik-101/newton-portre.webp"
+              ratio="1600 / 1927"
+              alt="Uzun kıvırcık saçlı bir adamın yağlı boya portresi; koyu cüppe içinde, ciddi bir ifadeyle bakıyor."
+              caption="Isaac Newton, 1689. Üç yasanın da sahibi."
+              credit="Godfrey Kneller · kamu malı"
+            />
+            <ArticleImage
+              className="fz-img"
+              src="/articles/fizik-101/principia-kapak.webp"
+              ratio="1600 / 2100"
+              alt="Eski bir kitabın Latince başlık sayfası: büyük harflerle eser adı, altında baskı bilgileri."
+              caption="Principia'nın 1687 baskısının başlık sayfası — cilt kapağı değil, içteki başlık yaprağı. Üç yasa ilk kez burada yayımlandı."
+              credit="Wikimedia Commons · kamu malı"
+            />
+            <ArticleImage
+              className="fz-img"
+              src="/articles/fizik-101/roket-firlatma.webp"
+              ratio="1600 / 2000"
+              alt="Fırlatma anında roket: altından parlak turuncu alev ve büyük duman bulutu çıkıyor, roket yukarı yükseliyor."
+              caption="Üçüncü yasanın en görkemli örneği: roket gazı aşağı iter, gaz da roketi yukarı iter. Havaya “dayanarak” değil, kendi attığı kütleye tepkiyle yükselir."
+              credit="NASA · kamu malı"
+            />
+          </div>
         </Section>
 
         {/* 4. Hareket */}
@@ -159,6 +219,15 @@ export default function FizikClient() {
         {/* 5. Momentum */}
         <Section color={C.violet} kicker="5 · İnteraktif" title="Momentum: hareketin ağırlığı">
           <p><strong style={{ color: C.violet }}>Momentum = kütle × hız.</strong> Bir cismin hareketini durdurmanın ne kadar zor olduğudur. Yavaş giden bir kamyon bile büyük momentumludur — çünkü çok ağırdır. Fiziğin en güçlü kurallarından biri: <strong>çarpışmalarda toplam momentum korunur.</strong> İki arabayı çarpıştır:</p>
+          <ArticleImage
+            className="fz-img"
+            src="/articles/fizik-101/newton-besigi.webp"
+            ratio="1600 / 1425"
+            alt="Metal çerçeveye asılı beş çelik bilye yan yana; en soldaki kaldırılmış, diğerleri temas hâlinde duruyor."
+            caption="Newton beşiği: momentum korunumunun masaüstü kanıtı. Bir bilye çarpar, en sondaki fırlar — arada kalanlar yerinde durur, çünkü aktarılan şey hareket değil momentumdur."
+            credit="Wikimedia Commons · CC BY-SA"
+          />
+
           <MomentumCollision />
           <Tip color={C.violet}>Bu yüzden buz pateninde birini itersen sen de geri kayarsın: senin kazandığın momentum, karşındakinin kazandığına eşit ve zıttır (etki-tepki + momentum korunumu).</Tip>
         </Section>
@@ -166,12 +235,30 @@ export default function FizikClient() {
         {/* 6. Enerji */}
         <Section color={C.amber} kicker="6 · İnteraktif" title="Enerji, İş ve Güç">
           <p><strong style={{ color: C.amber }}>Enerji</strong>, iş yapabilme kapasitesidir (birimi joule, J). İki temel biçimi: <strong style={{ color: C.green }}>potansiyel enerji</strong> (konumda gizli — örneğin yüksekteki su) ve <strong style={{ color: C.orange }}>kinetik enerji</strong> (harekette — hızlı bir top). <strong>İş</strong>, bir kuvvetin cismi hareket ettirmesidir (kuvvet × yol). <strong>Güç</strong> ise birim zamanda yapılan iştir (watt, W). Topu bırak, enerjinin biçim değiştirişini izle:</p>
+          <ArticleImage
+            className="fz-img"
+            src="/articles/fizik-101/hiz-treni.webp"
+            ratio="1600 / 1200"
+            alt="Gökyüzüne karşı yükselen çelik hız treni rayları; vagonlar tepe noktasından aşağı iniyor."
+            caption="Hız treninin ilk tepesi neden hep en yüksektir? Çünkü bütün gezinti o tepede depolanan yerçekimi enerjisiyle ödenir; sonraki her tepe biraz daha alçaktır, aradaki fark sürtünmeye gider."
+            credit="Ntsimp · CC0"
+          />
+
           <EnergyRamp />
           <Tip color={C.amber}>Enerjinin korunumu: enerji yoktan var olmaz, yok da olmaz — yalnızca biçim değiştirir. Potansiyel → kinetik → sürtünmeyle ısı…</Tip>
         </Section>
 
         {/* 7. Sürtünme */}
         <Section color={C.red} kicker="7 · Görünmez fren" title="Sürtünme ve Yerçekimi">
+          <ArticleImage
+            className="fz-img"
+            src="/articles/fizik-101/surtunme-kibrit.webp"
+            ratio="1600 / 1200"
+            alt="Yakın çekim: kibrit çöpü kutunun sürtünme şeridine sürtülürken başındaki alev tutuşuyor."
+            caption="Sürtünme yalnızca fren değildir: kibriti yakan da odur. Hareketi durdururken kaybolan enerji ısıya dönüşür — burada tutuşmaya yetecek kadar."
+            credit="Wikimedia Commons · CC BY-SA"
+          />
+
           <p><strong style={{ color: C.red }}>Sürtünme</strong>, yüzeyler arasında harekete karşı koyan kuvvettir; hareketi yavaşlatır ve ısı üretir (ellerini ovuşturunca ısınması). Buzda kolayca kayarsın çünkü sürtünme azdır. <strong style={{ color: C.blue }}>Yerçekimi</strong> ise kütleli her şeyin birbirini çekmesidir; Dünya yüzeyinde bir cismi saniyede 9,8 m/s hızlandırır (g ≈ 9,8 m/s²). Bu ikisi olmasa ne yürüyebilir ne de yerde durabilirdik.</p>
         </Section>
 

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import {
   ArticleShell, ArticleHero, ArticleLede, ArticleSection, CardGrid, HorizontalTimeline, ArticleQuiz, ArticleBibliography, ArticleFooter,
 } from '@/app/components/article/ArticleBlocks';
+import ArticleImage from '@/app/components/article/ArticleImage';
 import {
   BranchField, SuperpositionCoin, QuantumSuicideSim, MobiusStrip,
   timeline, objections, quizQs, refs,
@@ -35,6 +36,19 @@ function Quote({ children, by }: { children: ReactNode; by?: string }) {
 export default function KuantumClient() {
   return (
     <ArticleShell accent={ACCENT} title="Kuantum Ölümsüzlüğü">
+      <style>{`
+        /* ArticleImage'ın slate varsayılanlarını makalenin turkuaz aksanına bağla. */
+        .kq-img {
+          --ai-caption: #cbd5e1;
+          --ai-credit: #6f9b95;
+          --ai-border: rgba(45,212,191,0.22);
+          --ai-fill: rgba(45,212,191,0.05);
+          --ai-mark: rgba(45,212,191,0.28);
+        }
+        .kq-img-pair { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; align-items: start; }
+        @media (max-width: 700px) { .kq-img-pair { grid-template-columns: 1fr; } }
+      `}</style>
+
       <BranchField />
 
       <ArticleHero
@@ -63,6 +77,28 @@ export default function KuantumClient() {
         </FunFact>
       </ArticleSection>
 
+      <ArticleSection center max="max-w-3xl">
+        <div className="kq-img-pair">
+          <ArticleImage
+            className="kq-img"
+            src="/articles/kuantum-olumsuzlugu/schrodinger-portre.webp"
+            ratio="1348 / 2103"
+            priority
+            alt="Gözlüklü, papyonlu bir adamın siyah beyaz portresi; dağınık saçları ve düşünceli bir ifadesi var."
+            caption="Erwin Schrödinger. Kutudaki kediyi kuramı savunmak için değil, ona itiraz etmek için tasarladı: “Teori bu kadar saçma bir sonuç veriyorsa, bir yerde tuhaflık var.”"
+            credit="Kamu malı"
+          />
+          <ArticleImage
+            className="kq-img"
+            src="/articles/kuantum-olumsuzlugu/solvay-1927.webp"
+            ratio="1600 / 1097"
+            alt="Siyah beyaz grup fotoğrafı: takım elbiseli yirmiden fazla bilim insanı üç sıra hâlinde poz veriyor."
+            caption="1927 Solvay Konferansı. Bu karedeki insanlar ölçümün ne yaptığını tartışıyordu; makalenin dayandığı Kopenhag yorumu da, ona itiraz edenler de bu odadan çıktı."
+            credit="Kamu malı"
+          />
+        </div>
+      </ArticleSection>
+
       {/* 1. Süperpozisyon */}
       <ArticleSection kicker="1. BASAMAK" title="Süperpozisyon: ölçülene kadar her şey mümkün" max="max-w-4xl">
         <p className="mb-4 leading-relaxed text-slate-300">
@@ -72,6 +108,15 @@ export default function KuantumClient() {
           Havada dönen bir yazı-turayı düşünün: henüz ne yazı ne tura, ikisinin ihtimali aynı anda. Buna <strong className="text-teal-300">süperpozisyon</strong> denir. Kendin dene — parayı gözlemleyene kadar sonuç yoktur:
         </p>
         <SuperpositionCoin />
+
+        <ArticleImage
+          className="kq-img mx-auto max-w-[220px]"
+          src="/articles/kuantum-olumsuzlugu/cift-yarik-tonomura.webp"
+          ratio="1156 / 3352"
+          alt="Üst üste dizilmiş kareler: en üstte birkaç dağınık nokta, aşağı indikçe noktalar çoğalıyor ve en altta belirgin dikey şeritler oluşuyor."
+          caption="Tek tek gönderilen elektronlar. Üstteki karelerde yalnızca rastgele noktalar var; binlercesi birikince desen kendiliğinden çıkıyor. Süperpozisyonun gözle görülür kanıtı bu."
+          credit="Dr. Tonomura · CC BY-SA 3.0"
+        />
       </ArticleSection>
 
       {/* 2. Ölçüm ve çöküş */}
@@ -96,6 +141,16 @@ export default function KuantumClient() {
 
       {/* 4. Kuantum intiharı — CENTERPIECE */}
       <ArticleSection kicker="4. BASAMAK · İNTERAKTİF" title="Kuantum intiharı ve ölümsüzlük" max="max-w-4xl">
+        <div className="mx-auto mb-6 max-w-[240px]">
+          <ArticleImage
+            className="kq-img"
+            src="/articles/kuantum-olumsuzlugu/tegmark-portre.webp"
+            ratio="1600 / 2027"
+            alt="Gülümseyen, orta yaşlı bir adamın konuşma yaparken çekilmiş fotoğrafı."
+            caption="Max Tegmark: düşünce deneyine 1998'de resmî biçimini verdi ve “kuantum silahı” kurgusunu tanımladı. Deneyin üç sıkı koşulu da ona ait — bu yüzden gerçek hayattaki kazalara uygulanamaz."
+            credit="Wikimedia Commons · CC BY-SA"
+          />
+        </div>
         <p className="mb-4 leading-relaxed text-slate-300">
           Fikrin kökleri 1980'lere uzanır: <strong className="text-teal-300">Hans Moravec</strong> (1987) ve filozof <strong className="text-teal-300">Bruno Marchal</strong> (1988) birbirinden habersiz benzer bir deney önerdi; MIT'li fizikçi <strong className="text-teal-300">Max Tegmark</strong> 1998'de ona resmî biçimini verdi. Tegmark'ın kurgusunda düzenek bir “kuantum silahı”dır: her tetikte bir parçacığın spinini ölçer, “aşağı” çıkarsa ateşler, “yukarı” çıkarsa yalnızca bir “klik” sesi verir.
         </p>
@@ -122,6 +177,15 @@ export default function KuantumClient() {
         </p>
         <div className="grid items-center gap-6 sm:grid-cols-2">
           <MobiusStrip />
+
+        <ArticleImage
+          className="kq-img mt-6"
+          src="/articles/kuantum-olumsuzlugu/mobius-heykeli.webp"
+          ratio="1600 / 1200"
+          alt="Açık havada duran metal heykel: kendi üzerine bükülerek kapanan, tek yüzlü şerit biçiminde bir halka."
+          caption="Möbius şeridinin gerçek dünyadaki hâli. Tek bir yüzü vardır: üstünde yürürseniz, hiç kenardan geçmeden başladığınız yere dönersiniz."
+          credit="Wikimedia Commons · CC BY-SA"
+        />
           <div>
             <Quote by="Rowan · Adam Fawer, Mobius">“Her yeni yol ayrımında evren çatallanıyor, ayrılıyor.”</Quote>
             <p className="mt-4 text-sm leading-relaxed text-slate-400">Tek cümlede, Everett'in altmış yıllık yorumu. Ama <em className="not-italic text-teal-300">Mobius</em> bir fizik dersi değil: Fawer bu mekaniği bir <strong className="text-white">pişmanlık makinesine</strong> çevirir. Kitabın asıl sorusu kuantumun değil, insanın: elimizde her şeyi geri alma şansı olsa, gerçekten daha iyisini yapar mıydık?</p>
@@ -157,6 +221,16 @@ export default function KuantumClient() {
 
       {/* Finale */}
       <ArticleSection center title="∞" max="max-w-3xl">
+        <div className="mx-auto mb-6 max-w-[240px]">
+          <ArticleImage
+            className="kq-img"
+            src="/articles/kuantum-olumsuzlugu/schrodinger-mezari.webp"
+            ratio="1600 / 2399"
+            alt="Küçük bir mezar taşı: üstünde isim ve tarihler, altında bir denklem kazınmış."
+            caption="Schrödinger'in mezar taşı. Kutudaki kediyi soran adam öldü; taşın üstünde kalan şey, ölümü hiç konu etmeyen denklemi."
+            credit="Wikimedia Commons · CC BY-SA"
+          />
+        </div>
         <p className="mx-auto max-w-2xl text-lg leading-relaxed text-slate-300">
           Möbius şeridinin tek bir yüzü vardır; üzerinde yürürseniz, başladığınız yere geri dönersiniz. Kuantum ölümsüzlüğü de öyle: <span className="text-teal-300">fizikle başlar, felsefeye kıvrılır</span>, araya biraz teoloji ve biraz korku iliştirir, sonra yine fiziğe döner ve elinize tam bir “kanıt” tutuşturmaz. Belki asıl mesele cevap değildir — iyi bir düşünce deneyi de, iyi bir roman da aynı şeyi yapar: bir cevap vermez, aklınıza takılır ve bir daha çıkmaz.
         </p>
