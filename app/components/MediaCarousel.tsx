@@ -15,12 +15,14 @@ const containStyle: React.CSSProperties = { maxWidth: '100%', maxHeight: '100%',
 const FEED_DEFAULT_RATIO = 1;   // 1:1 yer tutucu (ölçülene dek)
 const FEED_MIN_RATIO = 0.8;     // 4:5 dikey (en dar) — Instagram sınırı
 const FEED_MAX_RATIO = 1.91;    // 1.91:1 yatay (en geniş) — Instagram sınırı
+// `display` BİLEREK burada değil, .mc-nav sınıfında: satır içi stil medya
+// sorgusuyla ezilemez, dokunmatikte okları gizleyen kural CSS'te yaşıyor.
 const navBtn = (side: 'left' | 'right'): React.CSSProperties => ({
   position: 'absolute', top: '50%', transform: 'translateY(-50%)',
   ...(side === 'left' ? { left: 8 } : { right: 8 }),
   width: 34, height: 34, borderRadius: '50%', border: 'none', cursor: 'pointer',
   background: 'rgba(0,0,0,0.55)', color: '#fff', fontSize: '1.4rem', lineHeight: 1,
-  display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 4, backdropFilter: 'blur(3px)',
+  alignItems: 'center', justifyContent: 'center', zIndex: 4, backdropFilter: 'blur(3px)',
 });
 
 function NoteIcon({ size = 44 }: { size?: number }) {
@@ -432,8 +434,8 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
         </div>
       </div>
 
-      {idx > 0 && <button type="button" aria-label="Önceki" onClick={() => go(idx - 1)} style={navBtn('left')}>‹</button>}
-      {idx < visuals.length - 1 && <button type="button" aria-label="Sonraki" onClick={() => go(idx + 1)} style={navBtn('right')}>›</button>}
+      {idx > 0 && <button type="button" className="mc-nav" aria-label="Önceki" onClick={() => go(idx - 1)} style={navBtn('left')}>‹</button>}
+      {idx < visuals.length - 1 && <button type="button" className="mc-nav" aria-label="Sonraki" onClick={() => go(idx + 1)} style={navBtn('right')}>›</button>}
 
       <div style={{ position: 'absolute', top: 10, right: 10, background: 'rgba(0,0,0,0.6)', color: '#fff', fontSize: '0.72rem', fontWeight: 700, padding: '3px 9px', borderRadius: 9999, zIndex: 4 }}>
         {idx + 1}/{visuals.length}
@@ -446,7 +448,15 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
 
       {audio && <MusicLayer url={audio} targetRef={containerRef} />}
 
-      <style>{`.mc-track::-webkit-scrollbar{display:none}`}</style>
+      {/* Ok düğmeleri dokunmatikte GİZLİ: parmakla kaydırma zaten var (bkz.
+          onTouchStart/Move/End), oklar ise medyanın üstünü kapatıyor.
+          Ölçüt genişlik DEĞİL, giriş türü: `max-width` yazsaydık 700px'ten
+          geniş tabletlerde oklar kalırdı — oysa orada da parmak var. Tersi de
+          doğru: dar pencereli masaüstünde fare var ve çoğu farede yatay
+          tekerlek yok, orada oklar TEK gezinme yolu, o yüzden kalıyorlar. */}
+      <style>{`.mc-track::-webkit-scrollbar{display:none}
+.mc-nav{display:flex}
+@media (hover:none) and (pointer:coarse){.mc-nav{display:none}}`}</style>
     </div>
   );
 }
