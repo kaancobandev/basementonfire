@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Suspense } from 'react';
 import { Bricolage_Grotesque, DM_Sans } from 'next/font/google';
 import './globals.css';
@@ -29,6 +29,21 @@ const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
 const SITE_URL = 'https://basementonfire.com';
 const SITE_DESC = 'Bilim, tarih ve kültürü interaktif makaleler ve toplulukla keşfet: Antik Yunan, Roma İmparatorluğu, Kara Delikler, Kartaca, Türkler ve daha fazlası.';
+
+// viewportFit: 'cover' OLMADAN env(safe-area-inset-*) HER ZAMAN 0 döner ve iOS
+// düzen alanını güvenli alanların üstünde bitirir → dibe oturttuğumuz mobil
+// dock'un ALTINDA bir şerit zemin görünür (kullanıcının istemediği boşluk).
+// 'cover' ile düzen ekranın gerçek kenarına uzanır: dock'un camı ana ekran
+// çizgisinin arkasını da doldurur, ikonlar ise .mobile-nav'ın
+// padding-bottom: env(safe-area-inset-bottom) değeri sayesinde üstte kalır.
+// Bunu eklemek KÜRESEL bir karardır: yatay modda çentik tarafındaki kenara da
+// içerik girebilir, bu yüzden kenara sabitlenmiş öğeler (.notif-float)
+// güvenli alana göre ayrıca korundu.
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

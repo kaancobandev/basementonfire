@@ -398,9 +398,12 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
            Liste (.dm-sidebar-col) tam genişlik olur; bir konuşma açılınca inline
            display:none ile gizlenir (artık !important display:flex onu ezmiyor),
            sohbet paneli tüm ekranı kaplar. Geri butonu görünür olur. <main> alt
-           navigasyon (56px) payını bırakır ki giriş çubuğu nav'ın arkasında kalmasın. */
+           navigasyonun payını bırakır ki giriş çubuğu dock'un arkasında kalmasın.
+           Ölçü ELLE yazılmaz: --nav-space globals.css'te tek kaynaktır ve güvenli
+           alanı da içerir. Burada 56px sabiti vardı, nav 58'e çıkınca DM yazma
+           çubuğu dock'un altında kalmıştı. */
         @media (max-width: 699px) {
-          .dm-main { height: calc(100dvh - 56px) !important; }
+          .dm-main { height: calc(100dvh - var(--nav-space)) !important; }
           .dm-sidebar-col { width: 100% !important; border-right: none !important; }
           .dm-back-btn { display: inline-flex !important; }
         }

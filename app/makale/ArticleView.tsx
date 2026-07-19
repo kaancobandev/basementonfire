@@ -136,7 +136,10 @@ export default function ArticleView({ a, isOwner = false }: { a: ArticleRow; isO
       </article>
 
       <style>{`
+        /* Mobilde dock payını .main-content zaten veriyor; burada sabit 64px
+           güvenli alanı hesaba katmıyordu. Masaüstünde nefes payı kalsın. */
         .ua-view { padding-bottom: 64px; }
+        @media (max-width: 699px) { .ua-view { padding-bottom: 0; } }
         .ua-banner { display:flex; align-items:center; gap:12px; flex-wrap:wrap; background: var(--color-surface); border-bottom: 1px solid var(--color-border); color: var(--color-text); padding: 12px 16px; font-size: 0.88rem; }
         .ua-banner-edit { margin-left:auto; background: var(--color-primary); color:#fff; padding: 5px 14px; border-radius: 9999px; font-weight:700; font-size:0.8rem; text-decoration:none; }
         .ua-article { max-width: 820px; margin: 0 auto; padding: 28px 16px 0; }

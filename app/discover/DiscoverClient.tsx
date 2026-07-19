@@ -327,9 +327,11 @@ export default function DiscoverClient({ users, media, articles, communityArticl
           padding: 16px 16px 0;
           border-bottom: 1px solid var(--color-border);
         }
+        /* 64px + .main-content'in dock payı üst üste biniyordu (~126px boşluk).
+           Burada yalnızca görsel nefes payı kalsın. */
         .dc-section--last {
           border-bottom: none;
-          padding-bottom: 64px;
+          padding-bottom: 24px;
         }
         .dc-section-label {
           font-size: 0.78rem;

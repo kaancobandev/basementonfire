@@ -134,6 +134,29 @@ export default function AppShell({ children }: AppShellProps) {
     return () => obs.disconnect();
   }, []);
 
+  // Yumuşak klavye açıkken alt dock'u gizle.
+  // iOS Safari klavye açılınca LAYOUT viewport'unu küçültmez (Android'in aksine),
+  // yalnızca visual viewport küçülür. position:fixed layout viewport'una çakılı
+  // olduğu için dock klavyenin ARKASINDA kalır ve sayfa kaydırılınca ekranın
+  // ortasında yüzüyormuş gibi belirir. Yorum kutusu/arama alanı olan her sayfada
+  // görülür. visualViewport ölçmek yerine odak takibi yeterli ve ucuz.
+  useEffect(() => {
+    const isField = (el: EventTarget | null) => {
+      const n = el as HTMLElement | null;
+      if (!n || !n.tagName) return false;
+      return n.tagName === 'INPUT' || n.tagName === 'TEXTAREA' || n.isContentEditable;
+    };
+    const open = (e: FocusEvent) => { if (isField(e.target)) document.documentElement.classList.add('kb-open'); };
+    const close = (e: FocusEvent) => { if (isField(e.target)) document.documentElement.classList.remove('kb-open'); };
+    document.addEventListener('focusin', open);
+    document.addEventListener('focusout', close);
+    return () => {
+      document.removeEventListener('focusin', open);
+      document.removeEventListener('focusout', close);
+      document.documentElement.classList.remove('kb-open');
+    };
+  }, []);
+
   // Sheet chunk'ı (tam framer-motion çekirdeği, ~30-40KB gz) ilk açılışa kadar
   // İNMEZ: user set olur olmaz mount etmek, sheet'i hiç kullanmayan girişli
   // kullanıcıya her sayfada bu parçayı indirip parse ettiriyordu.
@@ -256,7 +279,13 @@ export default function AppShell({ children }: AppShellProps) {
       {user && sheetEverOpened && <MobileCreateSheet open={sheetOpen} onClose={closeSheet} />}
 
       {/* Toasts — sonner */}
-      <Toaster theme={theme} position="bottom-center" />
+      {/* mobileOffset: bildirimler alt-orta 16px ofsetle doğrudan cam dock'un
+          ÜZERİNE düşüyordu. Dock yüksekliği + güvenli alan kadar yukarı alınır. */}
+      <Toaster
+        theme={theme}
+        position="bottom-center"
+        mobileOffset={{ bottom: 'calc(var(--nav-space) + 12px)' }}
+      />
 
       {/* Supabase Realtime — sadece giriş yapılmışsa */}
       {myId && (

@@ -233,7 +233,9 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
 
   return (
     <>
-      <main className="main-content" style={{ paddingBottom: 40 }}>
+      {/* paddingBottom satır içi verilmiyordu: mobilde globals.css'in dock payını
+          eziyor ve içeriğin sonu dock'un altında kalıyordu. */}
+      <main className="main-content">
         <div className="feed-header">Müzik</div>
 
         {/* Tab bar */}
