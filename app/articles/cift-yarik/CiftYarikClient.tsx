@@ -5,6 +5,7 @@ import Link from 'next/link';
 import {
   ArticleShell, ArticleHero, ArticleLede, ArticleSection, CardGrid, HorizontalTimeline, ArticleQuiz, ArticleBibliography, ArticleFooter,
 } from '@/app/components/article/ArticleBlocks';
+import ArticleImage from '@/app/components/article/ArticleImage';
 import {
   ElectronField, DoubleSlitLab, RippleTank, DeBroglie,
   timeline, interpretations, quizQs, refs,
@@ -30,6 +31,18 @@ function Quote({ children }: { children: ReactNode }) {
 export default function CiftYarikClient() {
   return (
     <ArticleShell accent={ACCENT} title="Çift Yarık Deneyi">
+      <style>{`
+        /* ArticleImage'ın slate varsayılanlarını makalenin mor aksanına bağla. */
+        .cy-img {
+          --ai-caption: #cbd5e1;
+          --ai-credit: #8b76a8;
+          --ai-border: rgba(168,85,247,0.22);
+          --ai-fill: rgba(168,85,247,0.05);
+          --ai-mark: rgba(168,85,247,0.28);
+        }
+        .cy-img-pair { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; align-items: start; }
+        @media (max-width: 700px) { .cy-img-pair { grid-template-columns: 1fr; } }
+      `}</style>
       <ElectronField />
 
       <ArticleHero
@@ -49,11 +62,41 @@ export default function CiftYarikClient() {
       </ArticleLede>
 
       <ArticleSection center>
+        <div className="mx-auto mb-6 max-w-[200px]">
+          <ArticleImage
+            className="cy-img"
+            src="/articles/cift-yarik/feynman-portre.webp"
+            ratio="1364 / 1366"
+            alt="Orta yaşlı bir adamın siyah beyaz portresi: gülümsüyor, saçları dağınık, koyu renk ceket giymiş."
+            caption="Richard Feynman"
+            credit="Kamu malı"
+          />
+        </div>
         <Quote>“Bu deney kuantum fiziğinin tek gerçek gizemini içinde barındırıyor; gerisi sadece detay.”<br /><span className="text-sm not-italic text-slate-400">— Richard Feynman</span></Quote>
       </ArticleSection>
 
       {/* 1. Işık kavgası */}
       <ArticleSection title="Bir ışık kavgasıyla başladı" max="max-w-4xl">
+        <div className="cy-img-pair mb-6">
+          <ArticleImage
+            className="cy-img"
+            src="/articles/cift-yarik/thomas-young-portre.webp"
+            ratio="1600 / 2046"
+            priority
+            alt="19. yüzyıl portresi: kısa dalgalı saçlı, yüksek yakalı ceket giymiş genç bir adam, hafifçe yana dönük duruyor."
+            caption="Thomas Young. Işığın dalga olduğunu gösteren deneyi yaptı — ve boş vakitlerinde Rosetta Taşı'nın çözülmesine katkıda bulundu. İlk düzeneğinde aslında iki yarık değil, ışını bölen ince bir kart vardı."
+            credit="Wikimedia Commons · kamu malı"
+          />
+          <ArticleImage
+            className="cy-img"
+            src="/articles/cift-yarik/girisim-seritleri.webp"
+            ratio="1600 / 538"
+            alt="Koyu zemin üzerinde düzenli aralıklarla sıralanmış, ortadan kenarlara doğru soluklaşan parlak dikey şeritler."
+            caption="Girişim deseni: aydınlık ve karanlık şeritler. Dalgaların tepe tepeye geldiği yerler parlak, tepe çukura geldiği yerler karanlık. Bu desen dalgaların imzasıdır."
+            credit="Wikimedia Commons · kamu malı"
+          />
+        </div>
+
         <p className="mb-4 leading-relaxed text-slate-300">
           Hikâye kuantumdan çok önce, 1800'lerin başında başlıyor. O dönemde ışığın ne olduğu tartışmalıydı: <Link href="/articles/newton" className="article-ilink">Newton'ın parçacık (corpuscle) teorisi</Link> o kadar güçlüydü ki karşı çıkmak neredeyse kariyer intiharıydı.
         </p>
@@ -70,12 +113,32 @@ export default function CiftYarikClient() {
         <p className="mb-4 leading-relaxed text-slate-300">
           Bir havuz hayal et: iki taş aynı anda düşünce halkalar yayılır. İki halka dizisi buluştuğunda bazı noktalarda tepeler çakışıp <strong className="text-fuchsia-300">güçlenir</strong> (yapıcı girişim → parlak), bazı noktalarda birinin tepesi diğerinin çukuruna denk gelip <strong className="text-cyan-300">birbirini yok eder</strong> (yıkıcı girişim → karanlık). İşte ekrandaki şeritler tam olarak bu. Bu, dalgaların imza hareketidir — sesin, suyun, ışığın.
         </p>
+        <ArticleImage
+          className="cy-img"
+          src="/articles/cift-yarik/dalga-havuzu.webp"
+          ratio="1600 / 1022"
+          alt="Su yüzeyinde iki noktadan yayılan dairesel dalgalar; halkalar kesiştiği yerlerde düzenli bir örgü deseni oluşuyor."
+          caption="Aynı şey suda: iki kaynaktan yayılan halkalar kesiştiğinde bazı yerlerde birbirini büyütür, bazı yerlerde siler. Ekrandaki şeritlerin sudaki karşılığı bu."
+          credit="Wikimedia Commons · CC0"
+        />
+
         <p className="mb-6 text-sm text-slate-400">Aşağıda kendin dene: iki kaynağın dalgalarını karıştır, yarık aralığını ve dalga boyunu değiştir.</p>
         <RippleTank />
       </ArticleSection>
 
       {/* 3. Madde dalgası + DeBroglie */}
       <ArticleSection title="Madde de dalga olabilir mi?" max="max-w-4xl">
+        <div className="mx-auto mb-6 max-w-xs">
+          <ArticleImage
+            className="cy-img"
+            src="/articles/cift-yarik/de-broglie-portre.webp"
+            ratio="1600 / 2133"
+            alt="Takım elbiseli, geriye taranmış saçlı bir adamın siyah beyaz stüdyo fotoğrafı."
+            caption="Louis de Broglie: 1924'te doktora tezinde maddenin de dalga gibi davranabileceğini öne sürdü. Beş yıl sonra bu fikirle Nobel aldı."
+            credit="Agence Rol · kamu malı"
+          />
+        </div>
+
         <p className="mb-4 leading-relaxed text-slate-300">
           20. yüzyılın başında fizik altüst oldu. Einstein ışığın bazen parçacık (<strong className="text-violet-300">foton</strong>) gibi davrandığını gösterdi — ışık hem dalga hem parçacıktı. Peki tersi mümkün müydü? 1924'te <strong className="text-fuchsia-300">Louis de Broglie</strong> her parçacığın bir dalga boyu olduğunu öne sürdü: <strong className="text-cyan-300">λ = h/p</strong> (dalga boyu = Planck sabiti ÷ momentum).
         </p>
@@ -91,6 +154,15 @@ export default function CiftYarikClient() {
         <p className="mb-4 leading-relaxed text-slate-300">
           Elektronları öyle yavaş gönderelim ki sistemde asla aynı anda birden fazla elektron olmasın. Sezgi der ki: ortada tek parçacık var, girişecek “arkadaşı” yok — arkada iki basit yığın oluşmalı. <strong className="text-fuchsia-300">Ama olan bu değil.</strong>
         </p>
+        <ArticleImage
+          className="cy-img"
+          src="/articles/cift-yarik/tonomura-elektron-birikimi.webp"
+          ratio="1600 / 935"
+          alt="Beş kareli dizi: ilk karelerde dağınık tek tek noktalar, sonraki karelerde noktalar çoğaldıkça belirgin dikey şeritler ortaya çıkıyor."
+          caption="Tonomura'nın 1989 deneyi: elektronlar teker teker gönderiliyor. İlk karelerde sadece rastgele noktalar var; binlercesi birikince desen kendiliğinden ortaya çıkıyor. Her elektron tek bir noktaya çarpıyor, ama nereye çarpacağını bir dalga belirliyor."
+          credit="Dr. Tonomura ve Belsazar · CC BY-SA 3.0"
+        />
+
         <p className="mb-4 leading-relaxed text-slate-300">
           Her elektron ekranda tek bir noktaya çarpar (katıksız parçacık). Ama binlercesi birikince o “rastgele” noktalardan tanıdık bir desen doğar: <strong className="text-cyan-300">girişim şeritleri</strong>. Yani her elektron, tek başına giderken bile sanki iki yarıktan da aynı anda geçip <em className="not-italic text-fuchsia-300">kendisiyle</em> girişim yapıyor.
         </p>
@@ -145,6 +217,17 @@ export default function CiftYarikClient() {
 
       {/* 8. Ne kadar büyük? */}
       <ArticleSection title="Bu deney ne kadar büyük nesnelerle yapılabilir?" max="max-w-4xl">
+        <div className="mx-auto mb-6 max-w-xs">
+          <ArticleImage
+            className="cy-img"
+            src="/articles/cift-yarik/c60-buckyball.webp"
+            ratio="1600 / 1571"
+            alt="Altıgen ve beşgenlerden oluşan, futbol topuna benzeyen küresel bir molekül modeli."
+            caption="C60: altmış karbon atomundan oluşan futbol topu molekülü. 1999'da Zeilinger ekibi deneyi bununla yaptı — ve desen yine ortaya çıktı."
+            credit="Jynto · CC0"
+          />
+        </div>
+
         <p className="mb-4 leading-relaxed text-slate-300">
           1999'da Viyana'da <strong className="text-violet-300">Anton Zeilinger</strong> ve ekibi, deneyi 60 karbon atomlu futbol topu şeklindeki dev <strong className="text-fuchsia-300">C60 “buckyball”</strong> molekülleriyle yaptı — bir molekülde ya da bir avuç maddede kaç atom olduğunu ise <Link href="/articles/mol" className="article-ilink">mol kavramı</Link> sayar. Bu koca moleküller bile yarıklardan bir dalga gibi geçti. 2019'a gelindiğinde iki binden fazla atomlu moleküllerle bile girişim gözlenebiliyordu.
         </p>

@@ -5,6 +5,7 @@ import { type ReactNode } from 'react';
 import {
   ArticleShell, ArticleHero, ArticleLede, ArticleSection, CardGrid, HorizontalTimeline, ArticleQuiz, ArticleBibliography, ArticleFooter,
 } from '@/app/components/article/ArticleBlocks';
+import ArticleImage from '@/app/components/article/ArticleImage';
 import {
   ForceCalc, GravityCalc, LawStatus,
   miracleYears, contemporaries, inventions, funFacts, timeline, quizQs, refs,
@@ -35,6 +36,19 @@ function Law({ n, title, statement, children }: { n: number; title: string; stat
 export default function NewtonClient() {
   return (
     <ArticleShell accent={ACCENT} title="Isaac Newton">
+      <style>{`
+        /* ArticleImage'ın slate varsayılanlarını makalenin kehribar aksanına bağla. */
+        .nw-img {
+          --ai-caption: #cbd5e1;
+          --ai-credit: #9a7f4f;
+          --ai-border: rgba(245,158,11,0.22);
+          --ai-fill: rgba(245,158,11,0.05);
+          --ai-mark: rgba(245,158,11,0.28);
+        }
+        .nw-img-pair { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; align-items: start; }
+        @media (max-width: 700px) { .nw-img-pair { grid-template-columns: 1fr; } }
+      `}</style>
+
       <ArticleHero
         title="Newton"
         fullTitle="Isaac Newton: Bilimi Yeniden Kuran Adam"
@@ -60,6 +74,26 @@ export default function NewtonClient() {
 
       {/* 1. Kimdi */}
       <ArticleSection title="Newton kimdi?" max="max-w-4xl">
+        <div className="nw-img-pair mb-6">
+          <ArticleImage
+            className="nw-img"
+            src="/articles/newton/newton-portre.webp"
+            ratio="1600 / 1927"
+            priority
+            alt="Uzun kıvırcık saçlı, koyu kaşlı bir adamın yağlı boya portresi; koyu renk cüppe içinde, elleri önde, ciddi bir ifadeyle bakıyor."
+            caption="Isaac Newton, 46 yaşında — Godfrey Kneller'ın 1689 tarihli portresi. Principia'nın yayımlanmasından iki yıl sonra çizildi."
+            credit="Godfrey Kneller · kamu malı"
+          />
+          <ArticleImage
+            className="nw-img"
+            src="/articles/newton/principia-kapak.webp"
+            ratio="1600 / 2100"
+            alt="Eski bir kitabın Latince başlık sayfası: ortada büyük harflerle PHILOSOPHIAE NATURALIS PRINCIPIA MATHEMATICA yazıyor, altında baskı bilgileri ve bir mühür."
+            caption="Principia'nın 1687 baskısının başlık sayfası. Üç hareket yasası ve evrensel kütleçekim bu ciltte yayımlandı; bilim tarihinin en önemli kitabı sayılır."
+            credit="Wikimedia Commons · kamu malı"
+          />
+        </div>
+
         <p className="mb-4 leading-relaxed text-slate-300">
           25 Aralık 1642'de Lincolnshire'daki Woolsthorpe köyünde doğdu. Babası o doğmadan ölmüştü; son derece küçük, erken doğmuş bir bebekti — kimse yaşayacağını sanmıyordu. Cambridge'deki Trinity College'a 1661'de parasız bir <em className="not-italic text-amber-300">“subsizar”</em> olarak girdi.
         </p>
@@ -67,6 +101,26 @@ export default function NewtonClient() {
           Onu efsaneye çeviren şey bir salgındı: 1665–66'da veba Cambridge'i kapatınca köyüne döndü ve tek başına, 18 ayda — henüz 23 yaşında — insanlık tarihinin en verimli düşünce patlamalarından birini yaşadı. Bu <strong className="text-amber-300">“Mucize Yıllar”da</strong> (Annus Mirabilis):
         </p>
         <CardGrid items={miracleYears} cols={3} />
+
+        <div className="nw-img-pair mt-6">
+          <ArticleImage
+            className="nw-img"
+            src="/articles/newton/prizma-isik-ayrisimi.webp"
+            ratio="1600 / 1065"
+            alt="Karanlıkta cam bir prizmaya giren ince beyaz ışık huzmesi, prizmadan kırmızıdan mora uzanan renkli bir yelpaze olarak çıkıyor."
+            caption="Mucize Yılların çıktılarından biri: beyaz ışık tek renk değil, renklerin toplamıdır. Newton bunu prizmayla ayırıp yeniden birleştirerek gösterdi."
+            credit="Kelvinsong · CC0"
+          />
+          <ArticleImage
+            className="nw-img"
+            src="/articles/newton/woolsthorpe-elma-agaci.webp"
+            ratio="1600 / 1060"
+            alt="Yeşil bir bahçede, gövdesi yana doğru eğilmiş yaşlı bir elma ağacı; arkada taş bir ev."
+            caption="Woolsthorpe Manor'daki elma ağacı. Elma hikâyesi tamamen uydurma değil — ama ağaçtan kafasına düşmedi; Newton düşen elmayı görüp Ay'ı yörüngede tutan şeyin aynı kuvvet olabileceğini düşündü. Ağaç 1816'da fırtınada devrildi, kökünden yeniden sürdü."
+            credit="Wikimedia Commons · CC BY-SA"
+          />
+        </div>
+
         <p className="mt-6 leading-relaxed text-slate-300">
           1669'da Lucas Matematik Kürsüsü profesörü oldu (yüzyıllar sonra Hawking de bu kürsüyü tutacaktı). 1687'de Halley'in desteğiyle <strong className="text-amber-300">Principia</strong>'yı yayımladı; bilim tarihinin en önemli eseri sayılır. 1703'te Royal Society başkanı, 1705'te şövalye oldu; 1727'de öldü ve Westminster Abbey'e gömülen ilk bilim insanı oldu.
         </p>
@@ -78,6 +132,17 @@ export default function NewtonClient() {
           Newton, 17. yüzyılın “Bilim Devrimi”nin tam kalbindeydi; kendi deyimiyle <strong className="text-amber-300">“devlerin omuzlarında”</strong> duruyordu. Aristoteles'in 2000 yıllık dünya görüşü yıkılıyor, yerine ölçülebilir, hesaplanabilir bir evren kuruluyordu. İşte onunla aynı yüzyılı paylaşan devler:
         </p>
         <CardGrid items={contemporaries} cols={3} />
+
+        <div className="mx-auto mt-6 max-w-xs">
+          <ArticleImage
+            className="nw-img"
+            src="/articles/newton/leibniz-portre.webp"
+            ratio="1600 / 1975"
+            alt="Uzun siyah peruklu bir adamın yağlı boya portresi; koyu kaftan ve beyaz fularla, hafifçe yana dönük duruyor."
+            caption="Gottfried Wilhelm Leibniz: kalkülüsü Newton'dan bağımsız olarak geliştirdi ve tarihin en ünlü öncelik kavgasının öteki tarafı oldu. Bugün kullandığımız gösterim büyük ölçüde onunkidir."
+            credit="Christoph Bernhard Francke · kamu malı"
+          />
+        </div>
       </ArticleSection>
 
       {/* 3. Üç yasa */}
@@ -125,6 +190,17 @@ export default function NewtonClient() {
       {/* 5. Diğer buluşlar */}
       <ArticleSection title="Diğer formülleri ve buluşları" max="max-w-4xl">
         <CardGrid items={inventions} cols={2} />
+
+        <div className="mx-auto mt-6 max-w-sm">
+          <ArticleImage
+            className="nw-img"
+            src="/articles/newton/newton-teleskobu.webp"
+            ratio="1024 / 891"
+            alt="Kısa, silindirik metal gövdeli küçük bir teleskop; ahşap bir küre kaide üzerinde duruyor."
+            caption="Yansıtmalı teleskop: mercek yerine ayna kullanarak renk sapmasını ortadan kaldırdı. Fotoğraftaki, Newton'ın 1672'de Royal Society'ye sunduğu aletin müzedeki replikasıdır."
+            credit="Wikimedia Commons · CC BY-SA"
+          />
+        </div>
       </ArticleSection>
 
       {/* 6. Güney Denizi Balonu */}
@@ -132,6 +208,15 @@ export default function NewtonClient() {
         <p className="mb-4 leading-relaxed text-slate-300">
           Evrenin hareketini hesaplayabilen dâhi, sıra paraya gelince tarihin en ünlü borsa çöküşlerinden birinde kaybetti. 1720'de Güney Denizi Şirketi'nin hisseleri akıl almaz bir spekülasyon balonuna döndü.
         </p>
+        <ArticleImage
+          className="nw-img"
+          src="/articles/newton/guney-denizi-balonu.webp"
+          ratio="1600 / 1264"
+          alt="Kalabalık bir meydanı gösteren ayrıntılı gravür: dönme dolabın çevresinde itişen insanlar, alaycı figürler ve kaos."
+          caption="Güney Denizi Balonu — William Hogarth, 1721. Bir olay yeri fotoğrafı değil, alegorik bir hiciv: sanatçı spekülasyon çılgınlığını bir panayır sahnesi gibi çizmiş."
+          credit="William Hogarth · kamu malı"
+        />
+
         <div className="my-5 overflow-hidden rounded-xl bg-black/30 ring-1 ring-white/5">
           <svg viewBox="0 0 360 150" className="w-full">
             <polyline points="10,130 70,120 120,95 150,70 175,40 195,35 230,70 270,115 320,128 350,130" fill="none" stroke="#f59e0b" strokeWidth="2.5" />
@@ -174,6 +259,17 @@ export default function NewtonClient() {
       </ArticleSection>
 
       <ArticleSection center title="Sonuç">
+        <div className="mx-auto mb-6 max-w-xs">
+          <ArticleImage
+            className="nw-img"
+            src="/articles/newton/newton-aniti-westminster.webp"
+            ratio="1600 / 2133"
+            alt="Kilise içindeki görkemli mermer anıt: yarı uzanmış bir figür, çevresinde melek figürleri ve gök küresi kabartması."
+            caption="Westminster Abbey'deki anıtı. Newton, İngiltere'de burada gömülen ilk bilim insanıydı — bilime gösterilen saygının o çağda ne kadar değiştiğinin işareti."
+            credit="Wikimedia Commons · CC BY 2.0"
+          />
+        </div>
+
         <p className="mx-auto max-w-2xl text-lg leading-relaxed text-slate-300">
           Hareketi üç yasaya, evreni tek bir formüle sığdırdı; matematiğin dilini yarattı, ışığın sırrını çözdü. Bugün yasalarının büyük kısmını hâlâ her gün kullanıyoruz — çünkü gündelik dünyamızda kusursuz çalışıyorlar.
           En güçlü ders belki şu: <span className="text-amber-300">dünyanın en parlak zihni bile her alanda usta değildir</span>. Newton evreni hesapladı ama insan çılgınlığını hesaplayamadı.

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
+import ArticleImage from '@/app/components/article/ArticleImage';
 
 const refs: BibItem[] = [
   { title: 'Zamanın Kısa Tarihi', authors: 'Stephen Hawking', year: '1988', source: 'Bantam Books' },
@@ -161,6 +162,16 @@ export default function BlackHolePage() {
         {/* Section 1 */}
         <section id="nedir" className="reveal" style={{ maxWidth: 920, margin: '0 auto', padding: '60px 24px 20px' }}>
           <h2 style={{ fontFamily: 'monospace', fontSize: 'clamp(1.2rem,3vw,1.8rem)', color: '#ff4500', borderLeft: '4px solid #ff4500', paddingLeft: 16, marginBottom: 28 }}>Kara Delik Nedir?</h2>
+
+          <ArticleImage
+            className="bh-img"
+            src="/articles/black-hole/m87-ilk-fotograf.webp"
+            ratio="1600 / 1600"
+            priority
+            alt="Siyah zemin üzerinde turuncu-sarı, bulanık bir halka; ortası tamamen karanlık, halkanın alt kısmı daha parlak."
+            caption="Bir kara deliğin ilk fotoğrafı: M87 galaksisinin merkezindeki dev, Event Horizon Telescope tarafından 2019'da görüntülendi. Gördüğünüz karanlık, olay ufkunun gölgesi — ışığın geri dönemediği bölge."
+            credit="Event Horizon Telescope · CC BY 4.0"
+          />
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 32, alignItems: 'center' }}>
             <div>
               <p style={{ color: '#b0b0b0', lineHeight: 1.85, marginBottom: 14, fontSize: '0.95rem' }}>Kara delikler, evrendeki en yoğun nesnelerdir. Bir bowling topunu düşünün, ancak ağırlığı Everest Dağı kadar olsun. Bu yoğunluk, uzay-zaman dokusunu öylesine büker ki, <Link href="/articles/doppler" className="article-ilink"><strong style={{ color: '#ff8c00' }}>ışık bile kaçamaz</strong></Link>.</p>
@@ -170,7 +181,16 @@ export default function BlackHolePage() {
               <h3 style={{ fontSize: '1rem', marginBottom: 12 }}>Yoğunluk Deneyi</h3>
               <p style={{ fontSize: '0.8rem', color: '#888', marginBottom: 20 }}>Dünya'yı bir kara delik yapmak için ne kadar sıkıştırmalıyız?</p>
               {!densityShown ? (
-                <div><span style={{ fontSize: '3rem' }}>🌍</span><p style={{ color: '#888', fontSize: '0.85rem', marginTop: 8 }}>Dünya (12,742 km çapı)</p></div>
+                <div>
+                  <ArticleImage
+                    className="bh-img !my-0 mx-auto max-w-[150px]"
+                    src="/articles/black-hole/dunya-mavi-bilye.webp"
+                    ratio="1600 / 1600"
+                    alt="Uzaydan çekilmiş Dünya fotoğrafı: bulutlar, mavi okyanuslar ve Afrika kıtası görünüyor."
+                    caption=""
+                  />
+                  <p style={{ color: '#888', fontSize: '0.85rem', marginTop: 8 }}>Dünya (12,742 km çapı)</p>
+                </div>
               ) : (
                 <div>
                   <div style={{ width: 12, height: 12, background: '#3b82f6', borderRadius: '50%', boxShadow: '0 0 24px #3b82f6', margin: '0 auto 12px' }} />
@@ -197,6 +217,25 @@ export default function BlackHolePage() {
               </div>
             ))}
           </div>
+
+          <div className="bh-img-pair" style={{ marginTop: 28 }}>
+            <ArticleImage
+              className="bh-img"
+              src="/articles/black-hole/toplanma-diski.webp"
+              ratio="1600 / 900"
+              alt="Simülasyon görüntüsü: ortadaki karanlık küreyi çevreleyen parlak turuncu gaz diski; ışık bükülmesi yüzünden diskin arka tarafı kürenin üstünde ve altında da görünüyor."
+              caption="Toplanma diski: kara deliğin çevresinde ışık hızına yakın dönen, milyonlarca dereceye ısınan madde. Diskin arka tarafını hem üstte hem altta görüyoruz, çünkü kara delik arkasından gelen ışığı büküyor."
+              credit="NASA Scientific Visualization Studio · kamu malı"
+            />
+            <ArticleImage
+              className="bh-img"
+              src="/articles/black-hole/yengec-bulutsusu.webp"
+              ratio="1600 / 1600"
+              alt="Uzayda dağınık, lif lif turuncu ve mavi gaz bulutu; merkezinde soluk mavi bir parıltı, çevresinde yıldızlar."
+              caption="Yengeç Bulutsusu: 1054'te Çinli gökbilimcilerin kaydettiği süpernovanın kalıntısı. Dev bir yıldız çöktüğünde geriye böyle bir enkaz kalır — merkezde bu kez kara delik değil, bir nötron yıldızı var."
+              credit="NASA, ESA, J. Hester ve A. Loll · kamu malı"
+            />
+          </div>
         </section>
 
         {/* Section 3 — Types */}
@@ -218,6 +257,14 @@ export default function BlackHolePage() {
                     >👩‍🚀</span>
                     <p style={{ fontSize: '0.7rem', color: '#666', marginTop: 6 }}>(Astronotun üzerine gelin)</p>
                   </div>
+                  <ArticleImage
+                    className="bh-img"
+                    src="/articles/black-hole/spagettilesme.webp"
+                    ratio="1600 / 970"
+                    alt="Çizim: bir yıldız, kara deliğin çekimiyle uzun ve incelen parlak bir şerit hâlinde gerilerek etrafında dolanıyor."
+                    caption="Aynı şey yıldızların başına da geliyor: kara deliğe fazla yaklaşan bir yıldız uzun bir şerit hâlinde gerilir. Bu bir gözlem fotoğrafı değil, sanatçı canlandırması."
+                    credit="ESO/M. Kornmesser · CC BY 4.0"
+                  />
                 </div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -228,6 +275,25 @@ export default function BlackHolePage() {
                   </div>
                 ))}
               </div>
+            </div>
+
+            <div className="bh-img-pair" style={{ marginTop: 28 }}>
+              <ArticleImage
+                className="bh-img"
+                src="/articles/black-hole/sagittarius-a.webp"
+                ratio="1600 / 1600"
+                alt="Turuncu, pürüzlü bir ışık halkası; ortası karanlık, halka üzerinde üç parlak bölge var."
+                caption="Sagittarius A*: kendi galaksimizin merkezindeki süper kütleli kara delik, 2022'de görüntülendi. Dünya'dan 27 bin ışık yılı uzakta ve Güneş'in dört milyon katı kütlede."
+                credit="EHT Collaboration · CC BY 4.0"
+              />
+              <ArticleImage
+                className="bh-img"
+                src="/articles/black-hole/cygnus-x1.webp"
+                ratio="1600 / 667"
+                alt="İki panelli görsel: solda yıldız dolu gerçek gökyüzü fotoğrafı ve içinde küçük kırmızı bir kare, sağda bir yıldızdan madde çeken kara deliğin çizimi."
+                caption="Cygnus X-1, bilinen ilk yıldızsal kara delik adayı. Soldaki gerçek gökyüzü fotoğrafı, kırmızı karenin içinde yaklaşık 7.000 ışık yılı uzaktaki kaynağı gösteriyor; sağdaki ise sanatçı çizimi — kara deliğin kendisinin fotoğrafı değil."
+                credit="Optik: DSS; çizim: NASA/CXC/M. Weiss · kamu malı"
+              />
             </div>
           </div>
         </section>
@@ -281,6 +347,17 @@ export default function BlackHolePage() {
         <section className="reveal" style={{ maxWidth: 920, margin: '0 auto', padding: '60px 24px 80px', textAlign: 'center' }}>
           <h2 style={{ fontFamily: 'monospace', fontSize: 'clamp(1.2rem,3vw,1.8rem)', color: '#ff4500', textAlign: 'center', marginBottom: 20 }}>Hawking Radyasyonu ve Evrenin Sonu</h2>
           <p style={{ maxWidth: 640, margin: '0 auto 24px', color: '#aaa', lineHeight: 1.8, fontSize: '0.95rem' }}>Trilyonlarca yıl sonra yıldızlar söndüğünde, evrende sadece kara delikler kalacak. Stephen Hawking'in teorisine göre, onlar da çok yavaş bir şekilde radyasyon yayarak buharlaşacaklar. Ve sonunda, evren sessizliğe gömülecek. Yine de kara deliklerin en cüretkâr teorik akrabası, uzayda iki uzak noktayı birbirine bağlayan bir kestirme yol vaat eden <Link href="/articles/einstein-rosen" className="article-ilink"><strong style={{ color: '#ff8c00' }}>solucan delikleridir (Einstein-Rosen köprüsü)</strong></Link>.</p>
+          <div style={{ maxWidth: 420, margin: '0 auto 28px' }}>
+            <ArticleImage
+              className="bh-img"
+              src="/articles/black-hole/hawking-portre.webp"
+              ratio="1600 / 1673"
+              alt="Tekerlekli sandalyede oturan, gözlüklü yaşlı bir adam; başı hafifçe yana eğik, arkasında koyu bir fon."
+              caption="Stephen Hawking. Kara deliklerin tamamen kara olmadığını, yavaşça buharlaştığını öne süren teorisi bu bölümün konusu — ve adı hâlâ o radyasyonda yaşıyor."
+              credit="NASA/Paul Alers · kamu malı"
+            />
+          </div>
+
           <div style={{ display: 'inline-block', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, padding: '12px 24px', fontSize: '0.85rem' }}>
             <span style={{ color: '#888' }}>Hazırlayan:</span>
             <span style={{ color: '#ff4500', fontWeight: 700, marginLeft: 6 }}>Kaan Çoban</span>
@@ -293,6 +370,16 @@ export default function BlackHolePage() {
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(8px)} }
+        /* ArticleImage'ın slate varsayılanları bu siyah+turuncu paletle çakışıyor. */
+        .bh-img {
+          --ai-caption: #b0b0b0;
+          --ai-credit: #7a6a5f;
+          --ai-border: rgba(255,69,0,0.22);
+          --ai-fill: rgba(255,69,0,0.05);
+          --ai-mark: rgba(255,69,0,0.3);
+        }
+        .bh-img-pair { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; align-items: start; }
+        @media (max-width: 700px) { .bh-img-pair { grid-template-columns: 1fr; } }
         .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
         .reveal.visible { opacity: 1; transform: translateY(0); }
         /* React inline-style'ı iki nokta sonrası BOŞLUKSUZ üretir
