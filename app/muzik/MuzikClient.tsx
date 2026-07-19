@@ -104,6 +104,7 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
   const [trLoading, setTrLoading] = useState(false);
   const [trError, setTrError] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
+  const [trDrag, setTrDrag] = useState(false);   // sürükle-bırak vurgusu
 
   // Spotify ekle
   const [spUrl, setSpUrl] = useState('');
@@ -325,33 +326,91 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
               )}
 
               {currentUserId && (
-                <div style={{ ...cardStyle, padding: 14, marginBottom: 16 }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <input
-                      value={trTitle} onChange={e => setTrTitle(e.target.value)}
-                      placeholder="Parça adı" maxLength={120} autoComplete="off"
-                      style={{ ...inputStyle, background: 'color-mix(in srgb, var(--color-bg) 60%, transparent)', border: '1px solid color-mix(in srgb, var(--color-border) 70%, transparent)', borderRadius: 10, padding: '9px 12px' }}
-                    />
-                    <input
-                      value={trArtist} onChange={e => setTrArtist(e.target.value)}
-                      placeholder="Sanatçı (isteğe bağlı)" maxLength={80} autoComplete="off"
-                      style={{ ...inputStyle, background: 'color-mix(in srgb, var(--color-bg) 60%, transparent)', border: '1px solid color-mix(in srgb, var(--color-border) 70%, transparent)', borderRadius: 10, padding: '9px 12px' }}
-                    />
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                      <input
-                        ref={fileRef} type="file" accept="audio/*"
-                        onChange={e => { setTrFile(e.target.files?.[0] ?? null); setTrError(''); }}
-                        style={{ flex: 1, minWidth: 180, fontSize: '0.8rem', color: 'var(--color-text-muted)', fontFamily: 'inherit' }}
-                      />
+                <div style={{ ...cardStyle, padding: 16, marginBottom: 16 }}>
+                  <div style={{ fontSize: '0.68rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: 12 }}>
+                    Parça yükle
+                  </div>
+
+                  {/* ADIM 1 — DOSYA.
+                      Ham <input type="file"> tarayıcının kendi "Dosya Seç / Seçili
+                      dosya yok" metnini basıyordu: siteyle uyumsuz ve tıklanacak
+                      yer belirsiz. Gerçek input görsel olarak gizlendi (erişilebilir
+                      kalması için display:none DEĞİL, sr-only tekniği), yerine tam
+                      genişlikte bir bırakma alanı geçti. Sürükle-bırak da çalışır. */}
+                  <input
+                    ref={fileRef} type="file" accept="audio/*" id="mz-dosya"
+                    onChange={e => { setTrFile(e.target.files?.[0] ?? null); setTrError(''); }}
+                    style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0 0 0 0)', whiteSpace: 'nowrap', border: 0 }}
+                  />
+
+                  {!trFile ? (
+                    <label
+                      htmlFor="mz-dosya"
+                      onDragOver={e => { e.preventDefault(); setTrDrag(true); }}
+                      onDragLeave={() => setTrDrag(false)}
+                      onDrop={e => {
+                        e.preventDefault(); setTrDrag(false);
+                        const f = e.dataTransfer.files?.[0];
+                        if (f && f.type.startsWith('audio/')) { setTrFile(f); setTrError(''); }
+                        else if (f) setTrError('Bu bir ses dosyası değil.');
+                      }}
+                      style={{
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                        gap: 6, padding: '22px 16px', borderRadius: 14, cursor: 'pointer', textAlign: 'center',
+                        border: `1.5px dashed ${trDrag ? 'var(--color-primary)' : 'color-mix(in srgb, var(--color-border) 90%, transparent)'}`,
+                        background: trDrag ? 'color-mix(in srgb, var(--color-primary) 8%, transparent)' : 'color-mix(in srgb, var(--color-bg) 45%, transparent)',
+                        transition: 'border-color 0.15s, background 0.15s',
+                      }}
+                    >
+                      <span style={{ color: 'var(--color-primary)' }}><NoteIcon size={26} /></span>
+                      <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--color-text)' }}>
+                        Ses dosyası seç
+                      </span>
+                      <span style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)' }}>
+                        Sürükleyip bırakabilirsin · MP3, M4A, WAV, OGG · en fazla 100 MB
+                      </span>
+                    </label>
+                  ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 12px', borderRadius: 12, background: 'color-mix(in srgb, var(--color-primary) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--color-primary) 30%, transparent)' }}>
+                      <span style={{ color: 'var(--color-primary)', flexShrink: 0, display: 'flex' }}><NoteIcon size={18} /></span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{trFile.name}</div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>{(trFile.size / 1024 / 1024).toFixed(1)} MB</div>
+                      </div>
                       <button
-                        onClick={addTrack} disabled={trLoading}
-                        style={{ border: 'none', borderRadius: 10, padding: '9px 20px', fontSize: '0.82rem', fontWeight: 700, cursor: trLoading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', color: '#fff', background: 'var(--color-primary)', opacity: trLoading ? 0.6 : 1, whiteSpace: 'nowrap' }}
+                        type="button" aria-label="Dosyayı kaldır"
+                        onClick={() => { setTrFile(null); setTrError(''); if (fileRef.current) fileRef.current.value = ''; }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, borderRadius: '50%', color: 'var(--color-text-muted)', display: 'flex', flexShrink: 0 }}
+                      >
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* ADIM 2 — KÜNYE. Dosya seçilmeden istemek boş form doldurtmak olur. */}
+                  {trFile && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
+                      <input
+                        value={trTitle} onChange={e => setTrTitle(e.target.value)}
+                        placeholder="Parça adı" maxLength={120} autoComplete="off"
+                        style={{ ...inputStyle, background: 'color-mix(in srgb, var(--color-bg) 60%, transparent)', border: '1px solid color-mix(in srgb, var(--color-border) 70%, transparent)', borderRadius: 10, padding: '10px 12px' }}
+                      />
+                      <input
+                        value={trArtist} onChange={e => setTrArtist(e.target.value)}
+                        placeholder="Sanatçı (isteğe bağlı)" maxLength={80} autoComplete="off"
+                        style={{ ...inputStyle, background: 'color-mix(in srgb, var(--color-bg) 60%, transparent)', border: '1px solid color-mix(in srgb, var(--color-border) 70%, transparent)', borderRadius: 10, padding: '10px 12px' }}
+                      />
+                      {/* Ad boşken düğme KAPALI: eskiden basılabiliyor ve hata veriyordu. */}
+                      <button
+                        onClick={addTrack} disabled={trLoading || !trTitle.trim()}
+                        style={{ border: 'none', borderRadius: 10, padding: '11px 20px', fontSize: '0.86rem', fontWeight: 700, fontFamily: 'inherit', color: '#fff', background: 'var(--color-primary)', cursor: (trLoading || !trTitle.trim()) ? 'not-allowed' : 'pointer', opacity: (trLoading || !trTitle.trim()) ? 0.5 : 1, transition: 'opacity 0.15s' }}
                       >
                         {trLoading ? 'Yükleniyor…' : 'Yükle'}
                       </button>
                     </div>
-                  </div>
-                  {trError && <div style={{ fontSize: '0.8rem', color: '#ef4444', marginTop: 8 }}>{trError}</div>}
+                  )}
+
+                  {trError && <div style={{ fontSize: '0.8rem', color: '#ef4444', marginTop: 10 }}>{trError}</div>}
                 </div>
               )}
 

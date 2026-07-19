@@ -6,7 +6,7 @@
 // Bu yüzden iskelet yalnızca 404 üretmeyen segmentlere tek tek eklenir.
 export default function RouteSkeleton() {
   return (
-    <main className="main-content sk-wrap" aria-busy="true" aria-label="Yükleniyor">
+    <div className="main-content sk-wrap" aria-busy="true" aria-label="Yükleniyor" role="status">
       <div className="sk-inner">
         <div className="sk-head">
           <div className="sk-circle" />
@@ -41,6 +41,6 @@ export default function RouteSkeleton() {
         @keyframes sk-pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
         @media (prefers-reduced-motion: reduce) { .sk-circle, .sk-line, .sk-block { animation: none; opacity: 0.7; } }
       `}</style>
-    </main>
+    </div>
   );
 }
