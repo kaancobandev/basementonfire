@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
+import ArticleImage from '@/app/components/article/ArticleImage';
 
 /* ════════════════════════ VERİ ════════════════════════ */
 
@@ -180,6 +181,26 @@ export default function EndosimbiyozClient() {
           Fikrin tohumları çok eskiye dayanır — ama bedelini ödeyen biri oldu. İşte unutulmuş öncülerden büyük zafere
           uzanan yol:
         </p>
+        <div className="endo-img-pair" style={{ marginBottom: 20 }}>
+          <ArticleImage
+            className="endo-img"
+            src="/articles/endosimbiyoz/lynn-margulis.webp"
+            ratio="1600 / 2400"
+            priority
+            alt="Kısa saçlı, gözlüklü bir kadın konuşma yaparken; elleriyle bir şey anlatıyor."
+            caption="Lynn Margulis. Makalesi on beş dergiden geri çevrildi, yayımlandığında da yıllarca alaya alındı. Kuramı kanıtlarla kabul ettiren kişi oldu."
+            credit="Javier Pedreira · CC BY 2.0"
+          />
+          <ArticleImage
+            className="endo-img"
+            src="/articles/endosimbiyoz/mereschkowski.webp"
+            ratio="1600 / 1965"
+            alt="Bıyıklı, koyu ceketli bir adamın 20. yüzyıl başı siyah beyaz portresi."
+            caption="Konstantin Mereschkowski: “simbiyogenez” terimini 1905–10 arasında ortaya attı. Fikir Margulis'ten yarım yüzyıl önce ortadaydı, ama kimse üzerine kanıt koymadı."
+            credit="Kamu malı"
+          />
+        </div>
+
         <ol className="endo-timeline">
           {[
             ['1883', 'İlk fısıltı', 'Alman botanikçi Andreas Schimper, bitki hücrelerindeki kloroplastların tıpkı serbest bakteriler gibi ikiye bölünerek çoğaldığını fark eder ve bunların bir ortaklıktan doğmuş olabileceğini öne sürer.'],
@@ -206,6 +227,25 @@ export default function EndosimbiyozClient() {
           olmasıdır. Mitokondri ve kloroplastı incelediğinizde sürekli aynı şeyi haykırırlar: <strong>Biz bir zamanlar
           bağımsız bakterilerdik.</strong>
         </p>
+        <div className="endo-img-pair" style={{ marginBottom: 18 }}>
+          <ArticleImage
+            className="endo-img"
+            src="/articles/endosimbiyoz/mitokondri-tem.webp"
+            ratio="640 / 433"
+            alt="Elektron mikroskobu görüntüsü: oval bir yapı, dıştan iki zarla çevrili ve içinde kıvrımlı katmanlar bulunuyor."
+            caption="Bir mitokondri, elektron mikroskobunda. Kanıtın kendisi burada görünüyor: dıştan iki ayrı zar (biri yutulan bakteriye, diğeri onu saran keseye ait) ve içeriyi katlayan kristalar."
+            credit="Louisa Howard · kamu malı"
+          />
+          <ArticleImage
+            className="endo-img"
+            src="/articles/endosimbiyoz/kloroplast.webp"
+            ratio="1600 / 1629"
+            alt="Mikroskop görüntüsü: bitki hücrelerinin içinde sıralanmış, canlı yeşil renkli oval yapılar."
+            caption="Bitki hücrelerindeki kloroplastlar. Aynı hikâyenin ikinci perdesi: bunlar da bir zamanlar serbest yaşayan siyanobakterilerdi ve hâlâ kendi DNA'larını taşıyorlar."
+            credit="Wikimedia Commons · CC BY-SA"
+          />
+        </div>
+
         <div className="endo-cards">
           {evidence.map(([e, t, d], i) => (
             <div key={i} className="endo-card"><div className="endo-card-e">{e}</div><div><strong>{t}</strong><span>{d}</span></div></div>
@@ -310,6 +350,15 @@ export default function EndosimbiyozClient() {
           kollarla bakteri hücrelerine dolandığı görüldü. Belki de iki milyar yıl önceki o tarihi kucaklaşma, tam olarak
           böyle başlamıştı: bir arkenin, bir bakteriyi kollarıyla sarması.</p>
         </div>
+
+        <ArticleImage
+          className="endo-img mx-auto"
+          src="/articles/endosimbiyoz/asgard-arkesi.webp"
+          ratio="1600 / 1600"
+          alt="Elektron mikroskobu görüntüsü: küresel bir hücreden dışa doğru uzanan uzun, dallanan ince uzantılar."
+          caption="Laboratuvarda yetiştirilen Asgard arkesi (Imachi ve ekibi, 2020): hücreden uzanan dallanan kollar. Bu kare kolların bir bakteriyi sardığını göstermiyor — gösterdiği şey, sarmayı mümkün kılan yapının gerçekten var olduğu."
+          credit="Wikimedia Commons · CC BY"
+        />
       </section>
 
       {/* VI. ENERJİ DEVRİMİ */}
@@ -322,8 +371,19 @@ export default function EndosimbiyozClient() {
           sorun <strong>enerjiydi</strong>. Bir bakteri enerjisini hücre zarının üzerinde üretir; hücre büyüdükçe
           yüzey alanı yetersiz kalır. Enerji üretimi, hücre boyutunu sınırlar.
         </p>
+        <div className="mx-auto" style={{ maxWidth: 300, margin: '0 auto 18px' }}>
+          <ArticleImage
+            className="endo-img"
+            src="/articles/endosimbiyoz/nick-lane.webp"
+            ratio="1600 / 2133"
+            alt="Gözlüklü, kısa saçlı bir adamın konuşma yaparken çekilmiş fotoğrafı."
+            caption="Nick Lane: karmaşık hayatın neden yalnızca bir kez ortaya çıktığını enerjiyle açıklayan biyokimyacı. Bu bölümün argümanı onun."
+            credit="Ian Alexander · CC BY-SA 4.0"
+          />
+        </div>
+
         <p className="endo-p">
-          Mitokondri bu sınırı yok etti. Onu içeri alarak ökaryot hücre, enerji üretimini iç zarlara taşıdı; yüzlerce
+          Mitokondri bu sınırı yok etti. Onu içeri alarak ökaryot hücre, enerji üretimini iç zarlara taşıdı;yüzlerce
           mitokondri, her biri kendi enerji-üreten zarıyla paralel çalıştı. Bu devasa enerji fazlasıyla ökaryotlar dev
           genomlar taşıyabildi, binlerce yeni protein üretti, büyüdü, uzmanlaştı ve sonunda dokulara, organlara,
           beyinlere dönüştü.
@@ -395,6 +455,15 @@ export default function EndosimbiyozClient() {
           azot bağlayan gizemli bir bakteri dizisi (<em>UCYN-A</em>) bulmasıyla başladı; yıllar sonra bu bakterinin
           konağı <em>Braarudosphaera bigelowii</em> adlı alg olarak ortaya çıktı.
         </p>
+        <ArticleImage
+          className="endo-img"
+          src="/articles/endosimbiyoz/braarudosphaera.webp"
+          ratio="1600 / 1072"
+          alt="Çok panelli bilimsel figür: mikroskop altında farklı tekniklerle görüntülenmiş, plakalarla kaplı küresel tek hücreli algler; panellerde harf etiketleri ve ölçek çubukları var."
+          caption="Braarudosphaera bigelowii: nitroplastı taşıyan alg. Bilimsel yayından alınan çok panelli figür — her panel aynı canlıyı farklı görüntüleme tekniğiyle gösteriyor."
+          credit="Hagino ve ark., PLOS ONE · CC BY"
+        />
+
         <div className="endo-facts">
           {[
             ['Senkronize bölünme', 'Yumuşak X-ışını tomografisiyle UCYN-A\'nın bölünmesinin konağıyla sıkı sıkıya eşleştiği gösterildi — bir organelin yapması gereken şey.'],
@@ -423,6 +492,15 @@ export default function EndosimbiyozClient() {
           yaşandığı dünyanın en dayanıklı sakinlerinden biri, uzayın boşluğuna bile katlanabilen{' '}
           <Link href="/articles/tardigrad" className="article-ilink">su ayıları (tardigradlar)</Link>dır.
         </p>
+        <ArticleImage
+          className="endo-img"
+          src="/articles/endosimbiyoz/mercan-zooksantella.webp"
+          ratio="1600 / 1068"
+          alt="Su altı fotoğrafı: canlı renklerde mercan kolonileri, dokuları kahverengi-yeşil tonlarda."
+          caption="Mercanın rengi kendisinin değil: dokusunda yaşayan alglerin. Alg fotosentezle mercanı besliyor, mercan ona barınak veriyor — ısınan suda bu ortaklık bozulunca mercan ağarıyor ve ölüyor."
+          credit="Wikimedia Commons · CC BY-SA"
+        />
+
         <div className="endo-cards">
           {everywhere.map(([e, t, d], i) => (
             <div key={i} className="endo-card"><div className="endo-card-e">{e}</div><div><strong>{t}</strong><span>{d}</span></div></div>
@@ -507,6 +585,16 @@ export default function EndosimbiyozClient() {
       </footer>
 
       <style>{`
+        /* ArticleImage'ın slate varsayılanlarını makalenin menekşe-altın paletine bağla. */
+        .endo-img {
+          --ai-caption: #ded6e4;
+          --ai-credit: #a99fb0;
+          --ai-border: rgba(176,140,240,0.22);
+          --ai-fill: rgba(176,140,240,0.05);
+          --ai-mark: rgba(176,140,240,0.28);
+        }
+        .endo-img-pair { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; align-items: start; }
+        @media (max-width: 700px) { .endo-img-pair { grid-template-columns: 1fr; } }
         .endo-page { --bg:#0c0a14; --panel:rgba(255,255,255,0.03); --line:rgba(176,140,240,0.15); --ink:#efe9f2; --muted:#a99fb0; --gold:#f4b740; --violet:#b08cf0; --green:#34d399; --cyan:#7dd3fc; --rose:#f472b6;
           background:
             radial-gradient(1100px 540px at 80% -6%, rgba(244,183,64,0.08), transparent 60%),

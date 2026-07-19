@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
+import ArticleImage from '@/app/components/article/ArticleImage';
 
 /* ════════════════════════ VERİ ════════════════════════ */
 
@@ -225,6 +226,17 @@ export default function BakteriyofajClient() {
           bacağını andıran <strong>kuyruk lifleri</strong>. Çoğu kişi bu yapıyı bir "ay modülüne" benzetir — gerçekten
           de bir bakteri yüzeyine inen minik bir iniş aracı gibidir. Mekanizmayı adım adım izle:
         </p>
+
+        <ArticleImage
+          className="phg-img"
+          src="/articles/bakteriyofaj/t4-elektron-mikrograf.webp"
+          ratio="900 / 672"
+          priority
+          alt="Elektron mikroskobu görüntüsü: çok yüzlü bir başlık, altında düz bir kuyruk ve en altta ince, bacak benzeri uzantılar taşıyan minik yapılar."
+          caption="T4 fajı, elektron mikroskobunda. Aşağıdaki çizim bu yapının şeması: üstte DNA'yı taşıyan kapsid, ortada kasılabilen kuyruk, altta bakteriye tutunan lifler. Gerçekten bir iniş aracına benziyor."
+          credit="Wikimedia Commons · CC BY-SA"
+        />
+
         <Stepper steps={infectionSteps}>
           {(i) => (
             <svg viewBox="0 0 200 210" className="phg-svg" aria-hidden="true">
@@ -315,6 +327,41 @@ export default function BakteriyofajClient() {
           yöntemi keşfedildi, terk edildi, Demir Perde'nin bir yanında sessizce hayatta tutuldu — ve tam
           antibiyotiklerin sonu görünürken yeniden parladı.
         </p>
+        <div className="phg-img-pair" style={{ marginBottom: 20 }}>
+          <ArticleImage
+            className="phg-img"
+            src="/articles/bakteriyofaj/twort-portre.webp"
+            ratio="794 / 1139"
+            alt="Takım elbiseli, gözlüklü bir adamın siyah beyaz stüdyo portresi."
+            caption="Frederick Twort, 1915: bakteri kolonilerinin camlaşarak eridiğini fark etti ama peşini bırakmak zorunda kaldı — savaş ve fon yokluğu araya girdi."
+            credit="Kamu malı"
+          />
+          <ArticleImage
+            className="phg-img"
+            src="/articles/bakteriyofaj/dherelle-portre.webp"
+            ratio="520 / 693"
+            alt="Bıyıklı, koyu ceketli bir adamın siyah beyaz portresi."
+            caption="Félix d'Hérelle: 1917'de olguyu bağımsız olarak yeniden buldu, ona “bakteriyofaj” adını verdi ve 1919'da Paris'te dizanterili çocukları tedavi ederek faj terapisini başlattı."
+            credit="Institut Pasteur · kamu malı"
+          />
+          <ArticleImage
+            className="phg-img"
+            src="/articles/bakteriyofaj/eliava-portre.webp"
+            ratio="370 / 457"
+            alt="Takım elbiseli, kısa saçlı bir adamın siyah beyaz portresi."
+            caption="George Eliava: d'Hérelle ile birlikte Tiflis'te dünyanın ilk faj enstitüsünü kurdu. 1937'de Sovyet gizli polisi tarafından idam edildi."
+            credit="Kamu malı"
+          />
+          <ArticleImage
+            className="phg-img"
+            src="/articles/bakteriyofaj/eliava-enstitusu.webp"
+            ratio="1600 / 2228"
+            alt="Sütunlu girişi ve kemerli pencereleri olan tarihî bir bina; önünde ağaçlar."
+            caption="Eliava Enstitüsü'nün Tiflis'teki tarihî binası. Kurucusu idam edildi, Batı yöntemi terk etti — ama enstitü ayakta kaldı ve yüz yıldır faj terapisinin merkezi."
+            credit="Wikimedia Commons · CC BY-SA"
+          />
+        </div>
+
         <ol className="phg-timeline">
           {timeline.map((e, i) => (
             <li key={i} className="phg-tl-item">
@@ -324,6 +371,15 @@ export default function BakteriyofajClient() {
             </li>
           ))}
         </ol>
+
+        <ArticleImage
+          className="phg-img"
+          src="/articles/bakteriyofaj/faj-ilani.webp"
+          ratio="1600 / 1056"
+          alt="Eski bir gazete ilanı: ürün adı büyük harflerle yazılmış, altında kullanım alanlarını sayan metin bloğu."
+          caption="Fajlar bir zamanlar reklamı yapılan ticari bir üründü. Antibiyotik çağı başlayınca Batı bu yolu tamamen terk etti — ilanlar da onunla birlikte yok oldu."
+          credit="Kamu malı"
+        />
       </section>
 
       {/* V. CRISPR */}
@@ -342,6 +398,15 @@ export default function BakteriyofajClient() {
           moleküler makaslarla onu tam doğru noktadan keser. Yani CRISPR aslında bakterilerin virüslere karşı
           geliştirdiği <strong>uyarlanabilir bir bağışıklık sistemidir</strong>.
         </p>
+        <ArticleImage
+          className="phg-img"
+          src="/articles/bakteriyofaj/doudna-charpentier.webp"
+          ratio="1152 / 546"
+          alt="Yan yana yerleştirilmiş iki ayrı portre fotoğrafı: solda ve sağda birer kadın bilim insanı, farklı ortamlarda çekilmiş."
+          caption="Emmanuelle Charpentier (solda) ve Jennifer Doudna (sağda): CRISPR'ı gen düzenleme aracına çeviren çalışmayla 2020 Nobel Kimya Ödülü'nü paylaştılar. Bu bir montaj — birlikte çekilmiş bir fotoğraf değil, ödülden yıllar önce çekilmiş iki ayrı portre."
+          credit="Wikimedia Commons · CC BY-SA"
+        />
+
         <div className="phg-note">
           <span>🏅</span>
           <p>2012'de Jennifer Doudna ve Emmanuelle Charpentier'in dehası, bu bakteriyel savunmayı "programlanabilir
@@ -417,6 +482,15 @@ export default function BakteriyofajClient() {
         <div className="phg-num">IX</div>
         <h2 className="phg-h2">Modern Mucizeler: Kanıt Olarak Gerçek Vakalar</h2>
         <p className="phg-p">Teoriden çıkıp gerçek hayata bakalım — çünkü son on yılda faj terapisi, dramatik vakalarla yeniden gündeme oturdu:</p>
+        <ArticleImage
+          className="phg-img"
+          src="/articles/bakteriyofaj/acinetobacter-sem.webp"
+          ratio="1200 / 815"
+          alt="Elektron mikroskobu görüntüsü: yüzeyde dağılmış, kısa ve tombul çubuk biçimli bakteriler."
+          caption="Acinetobacter baumannii: aşağıdaki ilk vakada Tom Patterson'ı komaya sokan bakteri. “Süper bakteri” soyutlamasının gerçek yüzü bu."
+          credit="Janice Carr, CDC · kamu malı"
+        />
+
         <div className="phg-cases">
           {cases.map((c, i) => (
             <div key={i} className="phg-case">
@@ -511,6 +585,16 @@ export default function BakteriyofajClient() {
       </footer>
 
       <style>{`
+        /* ArticleImage'ın slate varsayılanlarını makalenin turkuaz paletine bağla. */
+        .phg-img {
+          --ai-caption: #cfe0da;
+          --ai-credit: #92a79f;
+          --ai-border: rgba(94,234,212,0.2);
+          --ai-fill: rgba(94,234,212,0.05);
+          --ai-mark: rgba(94,234,212,0.26);
+        }
+        .phg-img-pair { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; align-items: start; }
+        @media (max-width: 700px) { .phg-img-pair { grid-template-columns: 1fr; } }
         .phg-page { --bg:#070f0d; --bg2:#0b1714; --panel:rgba(255,255,255,0.03); --line:rgba(94,234,212,0.14); --ink:#e9f3ef; --muted:#92a79f; --green:#4ade80; --teal:#5eead4; --cyan:#38bdf8; --viral:#e879f9; --amber:#fbbf24;
           background:
             radial-gradient(1100px 520px at 78% -8%, rgba(74,222,128,0.10), transparent 60%),
