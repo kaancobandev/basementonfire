@@ -4,6 +4,7 @@
 // Google tarar). Ağır olanlar sim-*.tsx'te ve InView ile lazy yüklenir.
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { ProofShare } from '@/app/components/article/ProofCard';
 import {
   ACCENT, BG, GOLD, MARBLE, ASH, TRIUMVIR_COLOR,
   WidgetFrame, Stat, ActionButton, SourceNote,
@@ -71,6 +72,22 @@ export function RansomSlider() {
         Bu adam riski senin gibi hesaplamıyordu. Serbest kalınca döndü, korsanların hepsini yakaladı ve
         söz verdiği gibi çarmıha gerdi — ama önce, acı çekmesinler diye boğazlarını kestirdi. Onlara ısınmıştı.
       </p>
+
+      {/* Okurun kendi rakamı: kaç talent ettiğini seçti, kart onu somutlaştırıyor. */}
+      <ProofShare
+        label="Kendi fiyatını paylaş"
+        spec={{
+          kicker: '⚔  M Ö  7 5  ·  K O R S A N  F İ D Y E S İ',
+          value: `${tr(t)} talent`,
+          lines: ['Kendime biçtiğim fidye bu.'],
+          detail: `≈ ${tr(kg)} kg gümüş · bir lejyonerin ${tr(years)} yıllık maaşı`,
+          punch: `Korsanlar Sezar için 20 istedi. O 50 dayattı.`,
+          accent: tone,
+          bg: ['#0d0709', '#241109', '#3b1d0d'],
+          shareText: `Korsanlar beni kaçırsa ${tr(t)} talent ederdim — bir lejyonerin ${tr(years)} yıllık maaşı`,
+          fileName: 'sezar-fidye',
+        }}
+      />
     </WidgetFrame>
   );
 }
@@ -427,6 +444,8 @@ function PollBars({ poll, choices, mine }: { poll: PollData | null; choices: typ
     return null;
   }
   const total = poll.total;
+  const mineChoice = choices.find((c) => c.key === mine) ?? null;
+  const minePct = mineChoice ? Math.round(((poll.counts![mineChoice.key] ?? 0) / total) * 100) : 0;
   return (
     <div className="rounded-xl border border-white/10 bg-black/20 p-4">
       <div className="mb-3 text-xs font-bold tracking-wide text-slate-400">
@@ -455,6 +474,29 @@ function PollBars({ poll, choices, mine }: { poll: PollData | null; choices: typ
           );
         })}
       </div>
+
+      {/* Okur artık kendisine ait bir SAYI'ya sahip: hangi tarafı seçtiği ve
+          kaç kişinin onunla aynı fikirde olduğu. Paylaşılan şey link değil,
+          bu sonuç. Kart istemcide çizilir. */}
+      {mineChoice && (
+        <ProofShare
+          label="Kararını paylaş"
+          spec={{
+            kicker: '⚔  M Ö  4 9  ·  R U B I C O N',
+            value: `%${minePct}`,
+            lines: [
+              mineChoice.key === 'gec' ? 'okurun Rubicon\'u geçti.' : 'okurun orduyu dağıttı.',
+              'Ben de öyle yaptım.',
+            ],
+            detail: `${tr(total)} okur bu kararı verdi · senin seçimin: ${mineChoice.label}`,
+            punch: 'Sezar geçti. Sen ne yapardın?',
+            accent: ACCENT,
+            bg: ['#0d0709', '#2a0a12', '#3b0d16'],
+            shareText: `Sezar'ın yerinde olsam ${mineChoice.key === 'gec' ? 'Rubicon\'u geçerdim' : 'orduyu dağıtırdım'} — okurların %${minePct}'i benimle aynı fikirde`,
+            fileName: 'sezar-rubicon',
+          }}
+        />
+      )}
     </div>
   );
 }

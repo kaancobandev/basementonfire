@@ -5,6 +5,7 @@
 // mekanizmayı kendi eliyle kurmaya davet eder (IKEA etkisi + üretken başarısızlık).
 
 import { useEffect, useState } from 'react';
+import { ProofShare, type ProofSpec } from '@/app/components/article/ProofCard';
 import {
   ACCENT, BG, GOLD, CRIMSON, MARBLE, WATER, ASH,
   WidgetFrame, tr, clamp,
@@ -342,7 +343,23 @@ export function EmperorDecision() {
             <div className="font-mono text-2xl font-black tracking-tight" style={{ color: CRIMSON }}>{DECISION.truth}</div>
             <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-slate-400">{DECISION.truthSub}</p>
           </div>
-          <PollBars poll={poll} choices={DECISION_CHOICES.map((c) => ({ key: c.key, label: c.label }))} mine={st.choice} color={ACCENT} />
+          <PollBars
+            poll={poll}
+            choices={DECISION_CHOICES.map((c) => ({ key: c.key, label: c.label }))}
+            mine={st.choice}
+            color={ACCENT}
+            proof={({ label, pct, total }) => ({
+              kicker: '🏰  1 4 5 3  ·  S O N  K A R A R',
+              value: `%${pct}`,
+              lines: ['okur benimle aynı kararı verdi.'],
+              detail: `${tr(total)} okur oy verdi · senin seçimin: ${label}`,
+              punch: 'XI. Konstantin surda kaldı.',
+              accent: ACCENT,
+              bg: ['#0a0d17', '#131b33', '#1c2547'],
+              shareText: `Konstantinopolis'in son gününde "${label}" derdim — okurların %${pct}'i benimle aynı fikirde`,
+              fileName: 'fatih-son-karar',
+            })}
+          />
         </div>
       )}
     </WidgetFrame>
@@ -412,6 +429,17 @@ export function PoisonJury() {
             mine={voted}
             color={voted === 'zehir' ? CRIMSON : WATER}
             emptyNote="Oyun kaydedildi."
+            proof={({ label, key, pct, total }) => ({
+              kicker: '⚖  1 4 8 1  ·  H Ü N K Â R  Ç A Y I R I',
+              value: `%${pct}`,
+              lines: [key === 'zehir' ? 'okur "zehirlendi" dedi.' : 'okur "hastalıktan öldü" dedi.'],
+              detail: `${tr(total)} okur oy verdi · senin oyun: ${label}`,
+              punch: 'Beş yüz yıldır kapanmayan dosya.',
+              accent: key === 'zehir' ? CRIMSON : WATER,
+              bg: ['#0a0d17', '#131b33', '#1c2547'],
+              shareText: `Fatih'in ölümü: "${label}" diyorum — okurların %${pct}'i benimle aynı fikirde`,
+              fileName: 'fatih-zehir',
+            })}
           />
           <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4 text-center">
             <div className="text-base font-black" style={{ color: GOLD }}>{POISON.historiansVerdict}</div>
@@ -426,13 +454,18 @@ export function PoisonJury() {
 
 /* ══════════════════ Paylaşılan oy çubukları ══════════════════ */
 
-function PollBars({ poll, choices, mine, color = ACCENT, emptyNote }: {
+// proof: iki oylama da bu bileşeni paylaşıyor ama kart metinleri farklı →
+// spec'i çağıran üretir (seçim + yüzde + toplam verilir).
+function PollBars({ poll, choices, mine, color = ACCENT, emptyNote, proof }: {
   poll: PollData | null; choices: { key: string; label: string }[]; mine: string; color?: string; emptyNote?: string;
+  proof?: (a: { label: string; key: string; pct: number; total: number }) => ProofSpec;
 }) {
   if (!poll || !poll.available || !poll.counts || !poll.total) {
     return emptyNote ? <div className="rounded-xl border border-white/10 bg-black/20 p-3 text-center text-xs text-slate-500">{emptyNote}</div> : null;
   }
   const total = poll.total;
+  const mineChoice = choices.find((c) => c.key === mine) ?? null;
+  const minePct = mineChoice ? Math.round(((poll.counts![mineChoice.key] ?? 0) / total) * 100) : 0;
   return (
     <div className="rounded-xl border border-white/10 bg-black/20 p-4">
       <div className="mb-3 text-xs font-bold tracking-wide text-slate-400">{tr(total)} okur oy verdi</div>
@@ -454,6 +487,12 @@ function PollBars({ poll, choices, mine, color = ACCENT, emptyNote }: {
           );
         })}
       </div>
+      {proof && mineChoice && (
+        <ProofShare
+          label="Kararını paylaş"
+          spec={proof({ label: mineChoice.label, key: mineChoice.key, pct: minePct, total })}
+        />
+      )}
     </div>
   );
 }

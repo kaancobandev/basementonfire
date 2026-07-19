@@ -5,6 +5,7 @@
 // okur "dediği"nin altındaki "olan"ı kendi eliyle açar.
 
 import { useEffect, useRef, useState } from 'react';
+import { ProofShare } from '@/app/components/article/ProofCard';
 import {
   ACCENT, BG, CRIMSON, MARBLE, ASH,
   WidgetFrame, SourceNote, roman, tr,
@@ -370,6 +371,8 @@ export function RestoreDecision() {
 function PollBars({ poll, mine }: { poll: PollData | null; mine: string }) {
   if (!poll || !poll.available || !poll.counts || !poll.total) return null;
   const total = poll.total;
+  const mineChoice = RESTORE_CHOICES.find((c) => c.key === mine) ?? null;
+  const minePct = mineChoice ? Math.round(((poll.counts![mineChoice.key] ?? 0) / total) * 100) : 0;
   return (
     <div className="rounded-xl border border-white/10 bg-black/20 p-4">
       <div className="mb-3 text-xs font-bold tracking-wide text-slate-400">{tr(total)} okur bu sahnede seçim yaptı</div>
@@ -392,6 +395,28 @@ function PollBars({ poll, mine }: { poll: PollData | null; mine: string }) {
         })}
       </div>
       <p className="mt-3 text-[0.7rem] leading-relaxed text-slate-500">Ne seçersen seç, sonuç aynıydı — ama okurların dağılımı yine de bir şey söylüyor. İki bin yıl sonra bile insanlar aynı sahnede bölünüyor.</p>
+
+      {/* Bu makalenin özü okuru KANDIRILAN yapmak — kart da onu taşıyor:
+          "ben de kandım" cümlesi, linkten çok daha paylaşılabilir. */}
+      {mineChoice && (
+        <ProofShare
+          label="Kararını paylaş"
+          spec={{
+            kicker: '🏛  M Ö  2 7  ·  S E N A T O',
+            value: `%${minePct}`,
+            lines: [
+              mineChoice.key === 'kabul' ? 'okurun teklifi kabul etti.' : 'okurun yalvardı.',
+              'Ben de öyle yaptım.',
+            ],
+            detail: `${tr(total)} okur bu sahnede seçim yaptı · senin seçimin: ${mineChoice.label}`,
+            punch: 'Ne seçersen seç, sonuç aynıydı.',
+            accent: ACCENT,
+            bg: ['#0d0b13', '#1d1630', '#2c2038'],
+            shareText: `Augustus'un sahnesinde ${mineChoice.key === 'kabul' ? 'teklifi kabul ettim' : 'yalvardım'} — okurların %${minePct}'i benimle aynı. Ve ikisi de aynı kapıya çıkıyordu`,
+            fileName: 'augustus-karar',
+          }}
+        />
+      )}
     </div>
   );
 }
