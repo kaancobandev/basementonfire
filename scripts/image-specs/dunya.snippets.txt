@@ -1,0 +1,63 @@
+<ArticleImage
+  src="/articles/dunya/mavi-bilye.webp"
+  ratio="1600 / 1600"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Harrison Schmitt / Apollo 17 · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/dunya/gezegenimsi-disk.webp"
+  ratio="1600 / 1600"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="ALMA"
+/>
+
+<ArticleImage
+  src="/articles/dunya/hadeyan-erimis-dunya.webp"
+  ratio="1600 / 860"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Tim Bertelink · CC BY-SA 4.0"
+/>
+
+<ArticleImage
+  src="/articles/dunya/kutup-isiklari.webp"
+  ratio="1600 / 1067"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="NASA Johnson Space Center · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/dunya/venus-kuresi.webp"
+  ratio="1600 / 1600"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="NASA/JPL · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/dunya/mars-kuresi.webp"
+  ratio="1600 / 1600"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Mars_Valles_Marineris.jpeg : NASA picture derivative work: L · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/dunya/ay-yakin-yuz.webp"
+  ratio="1600 / 1600"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="NASA/GSFC/Arizona State University · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/dunya/apollo-ay-kayasi.webp"
+  ratio="1600 / 1247"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="NASA · kamu malı"
+/>

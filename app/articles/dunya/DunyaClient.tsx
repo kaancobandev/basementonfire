@@ -5,6 +5,7 @@ import Link from 'next/link';
 import {
   ArticleShell, ArticleHero, ArticleLede, ArticleSection, CardGrid, HorizontalTimeline, ArticleQuiz, ArticleBibliography, ArticleFooter,
 } from '@/app/components/article/ArticleBlocks';
+import ArticleImage from '@/app/components/article/ArticleImage';
 import {
   EarthLayers, PlanetCompare,
   accretion, heatSources, moonEvidence, moonEffects, uniqueFeatures, nicheFacts, timeline, quizQs, refs,
@@ -25,6 +26,17 @@ const HERO_COLORS: [[number, number, number], [number, number, number], [number,
 export default function DunyaClient() {
   return (
     <ArticleShell accent={ACCENT} title="Dünya">
+      <style>{`
+        /* ArticleImage'ın slate varsayılanlarını makalenin gökyüzü mavisine bağla. */
+        .dn-img {
+          --ai-caption: #cbd5e1;
+          --ai-credit: #6f8ba3;
+          --ai-border: rgba(56,189,248,0.22);
+          --ai-fill: rgba(56,189,248,0.05);
+          --ai-mark: rgba(56,189,248,0.28);
+        }
+        .dn-img-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; align-items: start; margin: 20px 0; }
+      `}</style>
       <ArticleHero
         title="Dünya"
         fullTitle="Dünya'nın Oluşumu, İç Yapısı ve Onu Eşsiz Kılan Özellikler"
@@ -52,6 +64,34 @@ export default function DunyaClient() {
       {/* 1. Güneş Bulutsusu */}
       <ArticleSection title="Her şeyin başlangıcı: Güneş Bulutsusu">
         <Globe3D />
+
+        <div className="dn-img-pair">
+          <ArticleImage
+            className="dn-img"
+            src="/articles/dunya/mavi-bilye.webp"
+            ratio="1600 / 1600"
+            priority
+            alt="Uzaydan çekilmiş tam Dünya fotoğrafı: bulut sarmalları, mavi okyanuslar, Afrika kıtası ve güney kutbundaki buz."
+            caption="“Mavi Bilye”: Apollo 17 mürettebatının 1972'de çektiği fotoğraf. Bu yazı, bu kürenin nasıl var olduğunun hikâyesi."
+            credit="Harrison Schmitt / Apollo 17 · kamu malı"
+          />
+          <ArticleImage
+            className="dn-img"
+            src="/articles/dunya/gezegenimsi-disk.webp"
+            ratio="1600 / 1600"
+            alt="Teleskop görüntüsü: parlak bir merkezin çevresinde iç içe geçmiş turuncu halkalar ve aralarındaki boşluklar."
+            caption="Başka bir yıldızın çevresindeki gezegen oluşum diski (ALMA). Aradaki boşlukları oluşmakta olan gezegenler süpürüyor — 4,6 milyar yıl önce buradaki sürecin bugün başka bir yerde çekilmiş hâli."
+            credit="ALMA (ESO/NAOJ/NRAO) · CC BY 4.0"
+          />
+          <ArticleImage
+            className="dn-img"
+            src="/articles/dunya/hadeyan-erimis-dunya.webp"
+            ratio="1600 / 860"
+            alt="Çizim: yüzeyi kızgın lav denizleriyle kaplı, üzerine göktaşları düşen erimiş bir gezegen."
+            caption="Hadeyan dönemi: erimiş bir Dünya. Fotoğraf değil, bilimsel canlandırma — o çağdan geriye kalan kaya bile neredeyse yok."
+            credit="Tim Bertelink · CC BY-SA 4.0"
+          />
+        </div>
         <p className="mb-4 mt-6 leading-relaxed text-slate-300">
           Dünya'nın hikâyesi ~4,6 milyar yıl önce, devasa bir gaz ve toz bulutunun çökmesiyle başlar: <strong className="text-sky-300">güneş bulutsusu</strong>.
           Çoğunlukla hidrojen ve helyumdan oluşan bu buluta, ölmüş yıldızların <Link href="/articles/black-hole" className="article-ilink">süpernova patlamalarından</Link> saçılan ağır elementler de karışmıştı.
@@ -142,10 +182,37 @@ export default function DunyaClient() {
           Bu kalkan, Güneş rüzgârının yüklü parçacıklarını saptırarak atmosferi korur; kutuplara yönlenen parçacıkların gazlarla çarpışması ise <strong className="text-sky-300">kutup ışıklarını (aurora)</strong> yaratır.
           Mars çarpıcı bir karşıt örnektir: çekirdeği soğuyup jeodinamosu durunca kalkanı kayboldu, Güneş rüzgârı atmosferini söküp aldı. Dünya ile Mars arasındaki en derin fark, <strong className="text-amber-300">çekirdeklerinin kaderidir</strong>.
         </p>
+        <ArticleImage
+          className="dn-img"
+          src="/articles/dunya/kutup-isiklari.webp"
+          ratio="1600 / 1067"
+          alt="Uzaydan çekilmiş gece görüntüsü: Dünya'nın kavisli ufku boyunca uzanan yeşil, dalgalı bir ışık perdesi; üstte yıldızlar, altta şehir ışıkları."
+          caption="Kutup ışıkları, Uluslararası Uzay İstasyonu'ndan. Manyetik kalkanın görülebilen tek kısmı bu: alanın kutuplara yönlendirdiği Güneş rüzgârı parçacıkları atmosferdeki oksijen ve azota çarpınca ortaya çıkan ışık. Yani bu yeşil perde, kalkanın kendisi değil — kalkanın çalıştığının kanıtı."
+          credit="NASA Johnson Space Center · kamu malı"
+        />
       </ArticleSection>
 
       {/* İnteraktif: gezegen karşılaştırma */}
       <ArticleSection kicker="İNTERAKTİF · KARŞILAŞTIR" title="Dünya mı, komşuları mı?">
+        <div className="dn-img-pair">
+          <ArticleImage
+            className="dn-img"
+            src="/articles/dunya/venus-kuresi.webp"
+            ratio="1600 / 1600"
+            alt="Turuncu-sarı tonlarda, yüzeyi girintili çıkıntılı görünen küresel gezegen görüntüsü."
+            caption="Venüs'ün yüzeyi. Bu bir fotoğraf DEĞİL: gezegen kalıcı bulut örtüsü yüzünden görünür ışıkta fotoğraflanamıyor. Gördüğünüz şey Magellan sondasının radar ölçümlerinin bilgisayarda bir küreye giydirilmesi; renkler de yapıları belirginleştirmek için eklendi."
+            credit="NASA/JPL · kamu malı"
+          />
+          <ArticleImage
+            className="dn-img"
+            src="/articles/dunya/mars-kuresi.webp"
+            ratio="1600 / 1600"
+            alt="Kızıl-kahve renkli gezegen küresi; ortasında uzun ve derin bir kanyon sistemi görünüyor."
+            caption="Mars — bu gerçek bir optik görüntü. Ortadaki yara izi Valles Marineris. Manyetik kalkanını kaybettikten sonra atmosferi de suyunu da yitirdi."
+            credit="NASA · kamu malı"
+          />
+        </div>
+
         <PlanetCompare />
       </ArticleSection>
 
@@ -155,6 +222,15 @@ export default function DunyaClient() {
           En geniş kabul gören açıklama <strong className="text-sky-300">Dev Çarpışma Hipotezi</strong>'dir. ~4,5 milyar yıl önce, Mars büyüklüğünde bir embriyo — <strong className="text-amber-300">Theia</strong> — genç Dünya'ya teğet çarptı.
           Her iki cismin dış katmanları eriyip buharlaştı; saçılan kızgın enkaz bir halka oluşturdu ve bu halka kendi <Link href="/articles/newton" className="article-ilink">kütleçekimiyle</Link> birleşerek Ay'ı yaptı. Theia'nın metalik çekirdeği ise büyük olasılıkla Dünya'nınkiyle birleşti.
         </p>
+        <ArticleImage
+          className="dn-img mx-auto max-w-md"
+          src="/articles/dunya/ay-yakin-yuz.webp"
+          ratio="1600 / 1600"
+          alt="Ay'ın tam yüzü: gri, kraterlerle kaplı yüzey ve koyu renkli geniş düzlükler."
+          caption="Ay'ın Dünya'ya bakan yüzü (LRO mozaiği). Yoğunluğu düşük, çekirdeği minik — çünkü çarpışmada ağır metal Dünya'da kaldı, uzaya saçılan hafif dış katmanlardı."
+          credit="NASA/GSFC/Arizona State University · kamu malı"
+        />
+
         <CardGrid items={moonEvidence} cols={2} />
         <p className="my-6 leading-relaxed text-slate-300">
           Yeni bir iddia daha da çarpıcı: çekirdek–manto sınırında, Afrika ve Pasifik'in altında kıta büyüklüğünde iki yoğun kütle (<strong className="text-sky-300">LLSVP</strong>) var. Bazı araştırmacılar bunların <strong className="text-amber-300">Theia'nın çarpışmadan arta kalan parçaları</strong> olabileceğini öne sürdü. Doğruysa, bizi var eden çarpışmanın kanıtını yalnızca gökyüzünde değil, gezegenin kalbinde de taşıyoruz.
@@ -171,6 +247,22 @@ export default function DunyaClient() {
       {/* 7. Niş bilgiler */}
       <ArticleSection title="Az bilinen detaylar" max="max-w-4xl">
         <CardGrid items={nicheFacts} cols={2} />
+
+        {/* Big Bertha BİLEREK izotop kanıtı kartlarının yanına konmadı: o kartın
+            tezi "Ay kayaları Dünya'ya benziyor, demek ki Ay Dünya malzemesinden".
+            Bu kayanın Dünya'ya benzemesinin sebebi ise muhtemelen GERÇEKTEN
+            Dünya'dan gelmiş olması — kanıtı onunla resmetmek döngüsel olurdu.
+            Kendi başına ise yazının en güzel merak kutusu. */}
+        <div className="mx-auto mt-8 max-w-lg">
+          <ArticleImage
+            className="dn-img"
+            src="/articles/dunya/apollo-ay-kayasi.webp"
+            ratio="1600 / 1247"
+            alt="Laboratuvar zemininde duran iri, açık gri kaya; yüzeyinde koyu renkli parçalar ve yanında ölçek çubuğu var."
+            caption="“Big Bertha”: Apollo 14'ün getirdiği 9 kilogramlık kaya. 2019'daki bir çalışmaya göre içindeki bir parça büyük olasılıkla Ay'a ait değil — bir çarpmayla Dünya'dan fırlamış, bilinen en yaşlı Dünya kayası olabilir. Yani astronotlar Ay'a gidip bizim kayamızı geri getirmiş olabilirler."
+            credit="NASA · kamu malı"
+          />
+        </div>
       </ArticleSection>
 
       {/* Yatay zaman çizelgesi */}

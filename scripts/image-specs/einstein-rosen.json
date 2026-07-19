@@ -2,13 +2,45 @@
   "slug": "einstein-rosen",
   "note": "Konu teorik/soyut: solucan deliğinin FOTOĞRAFI yok (makalenin kendi tezi de bu). O yüzden fotoğraflanabilir olan iki şeye bağlandı: (1) fikri kuran İNSANLAR — makalenin zaman çizelgesindeki her isim, (2) uzay-zaman bükülmesinin GERÇEKTEN gözlenmiş kanıtları (kara delik, kütleçekim merceği). Kamu malı > CC BY tercih edildi; NC/ND yok. Solucan deliği görselleri Commons'ta ya SVG şema ya kullanıcı render'ı → sadece NASA'nın kurumsal kavram çizimi alındı.",
   "files": [
-    { "title": "File:Wormhole travel as envisioned by Les Bossinas for NASA.jpg", "as": "nasa-solucan-deligi", "note": "Nedir · NASA'nın kavramsal geçit çizimi (bilimkurgu ilhamı — 'stargate değil' tezinin karşı görseli)" },
-    { "title": "File:Albert Einstein Head cleaned.jpg", "as": "einstein-portre", "note": "Nedir · 1935 köprüsünün mimarı" },
-    { "title": "File:Karl Schwarzschild.png", "as": "schwarzschild-portre", "note": "Zaman çizelgesi 1916 · çözümün kökeni (metrik kutusunun yanı)" },
-    { "title": "File:Black hole - Messier 87.jpg", "as": "m87-kara-delik", "note": "Nedir · kara delik iç linkinin yanı — EHT'nin ilk gerçek görüntüsü" },
-    { "title": "File:Einstein cross.jpg", "as": "einstein-carmigi", "note": "Uzay-zaman bükülmesi · ızgara widget'ının yanı: bükülmenin gökyüzündeki ölçülmüş kanıtı" },
-    { "title": "File:John Archibald Wheeler lecturing.jpg", "as": "wheeler-portre", "note": "Zaman çizelgesi 1957 · 'solucan deliği' terimini o koydu; 1962 çöküş kanıtı da onun" },
-    { "title": "File:Kip Thorne (27678302394).jpg", "as": "kip-thorne", "note": "Geçilebilir mi · 1988 egzotik madde önerisi (Morris ile)" },
-    { "title": "File:Physicist Stephen Hawking in Zero Gravity NASA.jpg", "as": "hawking-portre", "note": "Zaman makinesi · kronoloji koruma varsayımı" }
+    {
+      "title": "File:Wormhole travel as envisioned by Les Bossinas for NASA.jpg",
+      "as": "nasa-solucan-deligi",
+      "note": "Nedir · NASA'nın kavramsal geçit çizimi (bilimkurgu ilhamı — 'stargate değil' tezinin karşı görseli)"
+    },
+    {
+      "title": "File:Albert Einstein Head cleaned.jpg",
+      "as": "einstein-portre",
+      "note": "Nedir · 1935 köprüsünün mimarı"
+    },
+    {
+      "title": "File:Karl Schwarzschild.png",
+      "as": "schwarzschild-portre",
+      "note": "Zaman çizelgesi 1916 · çözümün kökeni (metrik kutusunun yanı)"
+    },
+    {
+      "title": "File:Black hole - Messier 87.jpg",
+      "as": "m87-kara-delik",
+      "note": "Nedir · kara delik iç linkinin yanı — EHT'nin ilk gerçek görüntüsü"
+    },
+    {
+      "title": "File:Einstein cross.jpg",
+      "as": "einstein-carmigi",
+      "note": "Uzay-zaman bükülmesi · ızgara widget'ının yanı: bükülmenin gökyüzündeki ölçülmüş kanıtı"
+    },
+    {
+      "title": "File:Wheeler,John-Archibald 1963 Kopenhagen.jpg",
+      "as": "wheeler-portre",
+      "note": "Zaman çizelgesi 1957 · 'solucan deliği' terimini o koydu; 1962 çöküş kanıtı da onun | LISANS DEGISIKLIGI (2026-07-19): onceki dosya (AIP Emilio Segre Visual Archives, 'Attribution' etiketi) standart CC degildi ve kurumsal arsiv kaynakliydi — Eid Mar sikkesindeki NC-dusurulmus hatanin ayni deseni. Temiz CC BY 3.0 (GFHund, 1963 Kopenhag) ile degistirildi; 1957'deki 'solucan deligi' adlandirmasina da tarihsel olarak daha yakin."
+    },
+    {
+      "title": "File:Kip Thorne (27678302394).jpg",
+      "as": "kip-thorne",
+      "note": "Geçilebilir mi · 1988 egzotik madde önerisi (Morris ile)"
+    },
+    {
+      "title": "File:Physicist Stephen Hawking in Zero Gravity NASA.jpg",
+      "as": "hawking-portre",
+      "note": "Zaman makinesi · kronoloji koruma varsayımı"
+    }
   ]
 }

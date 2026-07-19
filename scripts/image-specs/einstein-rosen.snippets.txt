@@ -1,0 +1,63 @@
+<ArticleImage
+  src="/articles/einstein-rosen/nasa-solucan-deligi.webp"
+  ratio="1200 / 900"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Les Bossinas (Cortez III Service Corp.) · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/einstein-rosen/einstein-portre.webp"
+  ratio="1600 / 1980"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Orren Jack Turner · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/einstein-rosen/schwarzschild-portre.webp"
+  ratio="1096 / 1498"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Unknown author Unknown author · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/einstein-rosen/m87-kara-delik.webp"
+  ratio="1600 / 932"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Event Horizon Telescope · CC BY 4.0"
+/>
+
+<ArticleImage
+  src="/articles/einstein-rosen/einstein-carmigi.webp"
+  ratio="1600 / 1545"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="NASA, ESA, and STScI · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/einstein-rosen/wheeler-portre.webp"
+  ratio="720 / 900"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="GFHund · CC BY 3.0"
+/>
+
+<ArticleImage
+  src="/articles/einstein-rosen/kip-thorne.webp"
+  ratio="1600 / 1067"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Victor R. Ruiz from Arinaga, Canary Islands, Spain · CC BY 2.0"
+/>
+
+<ArticleImage
+  src="/articles/einstein-rosen/hawking-portre.webp"
+  ratio="1600 / 1067"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Jim Campbell/Aero-News Network · CC BY 3.0"
+/>
