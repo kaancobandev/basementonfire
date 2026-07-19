@@ -92,6 +92,9 @@ export function MediaDockProvider({ children }: { children: React.ReactNode }) {
   const [repeat, setRepeat] = useState<Repeat>('all');
   const [shuffle, setShuffle] = useState(false);
   const [order, setOrder] = useState<number[]>([]);
+  // GİZLE ≠ KAPAT: gizlemek yalnız paneli saklar, çalma sürer ve küçük bir
+  // düğme geri getirir. Kapatmak sesi durdurup dock'u tamamen kaldırır.
+  const [hidden, setHidden] = useState(false);
 
   const tracks = media?.kind === 'audio' ? media.tracks : [];
   const track = media?.kind === 'audio' ? media.tracks[media.index] : null;
@@ -142,12 +145,12 @@ export function MediaDockProvider({ children }: { children: React.ReactNode }) {
 
   const playTracks = useCallback((t: MusicTrack[], index = 0) => {
     if (!t.length) return;
-    setOpen(true);
+    setOpen(true); setHidden(false);   // yeni parça başlatınca panel geri gelsin
     setMedia({ kind: 'audio', tracks: t, index: Math.min(Math.max(index, 0), t.length - 1) });
   }, []);
 
   const playEmbed = useCallback((embed: Embed) => {
-    setOpen(true);
+    setOpen(true); setHidden(false);
     setMedia({ kind: 'embed', embed });
   }, []);
 
@@ -258,7 +261,17 @@ export function MediaDockProvider({ children }: { children: React.ReactNode }) {
         }}
       />
 
-      {media && (
+      {media && hidden && (
+        <button
+          type="button" className="mdock-peek" onClick={() => setHidden(false)}
+          aria-label={playing ? 'Çaları göster (çalıyor)' : 'Çaları göster'}
+        >
+          <I d="M9 18V5l12-2v13" size={16} />
+          <span className="mdock-peek-dot" data-on={playing ? '1' : '0'} aria-hidden="true" />
+        </button>
+      )}
+
+      {media && !hidden && (
         <aside className={`mdock${open ? '' : ' is-min'}`} aria-label="Çalan medya">
           <div className="mdock-head">
             <span className="mdock-dot" data-on={playing ? '1' : '0'} aria-hidden="true" />
@@ -267,6 +280,9 @@ export function MediaDockProvider({ children }: { children: React.ReactNode }) {
             </span>
             <button type="button" onClick={() => setOpen(o => !o)} aria-label={open ? 'Küçült' : 'Büyüt'} aria-expanded={open}>
               <I d={open ? 'M6 15l6-6 6 6' : 'M6 9l6 6 6-6'} />
+            </button>
+            <button type="button" onClick={() => setHidden(true)} aria-label="Çaları gizle">
+              <I d="M4 12h16" />
             </button>
             <button type="button" onClick={close} aria-label="Kapat"><I d="M18 6L6 18M6 6l12 12" /></button>
           </div>
@@ -342,6 +358,29 @@ export function MediaDockProvider({ children }: { children: React.ReactNode }) {
           .mdock { background: rgba(24,20,52,0.96); }
         }
         @media (min-width: 700px) { .mdock { bottom: 16px; right: 16px; } }
+
+        /* Gizliyken kalan minik düğme — dokunma hedefi 44px, görsel olarak küçük. */
+        .mdock-peek {
+          position: fixed; right: 12px; z-index: 120;
+          bottom: calc(var(--nav-space, 0px) + 12px);
+          display: flex; align-items: center; justify-content: center; gap: 0;
+          width: 44px; height: 44px; padding: 0; border-radius: 999px; cursor: pointer;
+          color: #fff; border: 1px solid rgba(255,255,255,0.18);
+          background: rgba(24,20,52,0.72);
+          backdrop-filter: blur(14px) saturate(160%); -webkit-backdrop-filter: blur(14px) saturate(160%);
+          box-shadow: 0 8px 24px rgba(0,0,0,0.38);
+          transition: transform 0.26s cubic-bezier(0.34,1.56,0.64,1), background 0.15s;
+        }
+        .mdock-peek:hover { background: rgba(34,28,68,0.85); }
+        .mdock-peek:active { transform: scale(0.9); transition-duration: 0.09s; }
+        @media (min-width: 700px) { .mdock-peek { bottom: 16px; right: 16px; } }
+        .mdock-peek-dot {
+          position: absolute; top: 7px; right: 7px; width: 7px; height: 7px; border-radius: 50%;
+          background: rgba(255,255,255,0.3);
+        }
+        .mdock-peek-dot[data-on="1"] {
+          background: var(--color-accent, #ff9d0a); box-shadow: 0 0 7px var(--color-accent, #ff9d0a);
+        }
 
         .mdock-head { display: flex; align-items: center; gap: 8px; padding: 8px 8px 8px 12px; }
         .mdock-dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.3); flex-shrink: 0; }

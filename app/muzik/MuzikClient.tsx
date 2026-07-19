@@ -87,6 +87,16 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
   const [ytItems, setYtItems] = useState(initialYt);
   const [trItems, setTrItems] = useState(initialTr);
 
+  // Çalar ve liste kartları AYNI diziyi paylaşır → karttaki indis ile çalardaki
+  // indis birebir eşleşir. Ayrı ayrı üretilirse yanlış parça başlar.
+  const siteTracks: MusicTrack[] = trItems.map(t => ({
+    title: t.title,
+    artist: t.artist || t.display_name || 'Basements',
+    src: t.src,
+  }));
+  // Dock şu an BU listeyi çalıyorsa hangi parçada? Değilse -1.
+  const calanIndis = dock?.isCurrent(siteTracks) ? dock.index : -1;
+
   // Site çalma listesi — yükleme
   const [trTitle, setTrTitle] = useState('');
   const [trArtist, setTrArtist] = useState('');
@@ -286,19 +296,30 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
         <div style={{ padding: '0 16px' }}>
 
           {/* ── SİTE TAB — sitenin KENDİ ses dosyaları (tek çalınabilir kaynak) */}
+          {/* Tek kaynak: çalar da kartlar da AYNI diziyi kullanır, yoksa karttaki
+              indis ile çalardaki indis kayar ve yanlış parça başlar. */}
           {tab === 'site' && (
             <div>
               {trItems.length > 0 && (
                 <div style={{ ...cardStyle, padding: 16, marginBottom: 16, background: 'linear-gradient(135deg, #312e81, #4c1d95)', border: 'none' }}>
-                  <MusicPlayer
-                    tracks={trItems.map((t): MusicTrack => ({
-                      title: t.title,
-                      artist: t.artist || t.display_name || 'Basements',
-                      src: t.src,
-                    }))}
-                  />
+                  {/* Çalan parçanın adı çaların ÜSTÜNDE: çalar dar olduğu için
+                      başlık orada kırpılabiliyor; burada tam görünür. */}
+                  <div style={{ marginBottom: 12 }}>
+                    <div style={{ fontSize: '0.68rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)' }}>
+                      {calanIndis >= 0 ? 'Şimdi çalıyor' : 'Site çalma listesi'}
+                    </div>
+                    <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#fff', marginTop: 2, lineHeight: 1.25 }}>
+                      {calanIndis >= 0 ? siteTracks[calanIndis].title : `${trItems.length} parça`}
+                    </div>
+                    {calanIndis >= 0 && (
+                      <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.6)', marginTop: 1 }}>
+                        {siteTracks[calanIndis].artist}
+                      </div>
+                    )}
+                  </div>
+                  <MusicPlayer tracks={siteTracks} />
                   <p style={{ margin: '12px 0 0', fontSize: '0.72rem', color: 'rgba(255,255,255,0.6)' }}>
-                    {trItems.length} parça · ileri/geri ile listede gez
+                    {trItems.length} parça · listeden bir parçaya dokun ya da ileri/geri ile gez
                   </p>
                 </div>
               )}
@@ -341,21 +362,31 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
                     <p style={{ margin: 0 }}>Henüz parça yüklenmedi.</p>
                     {!currentUserId && <p style={{ margin: 0, fontSize: '0.82rem' }}>Yüklemek için giriş yap.</p>}
                   </div>
-                ) : trItems.map(t => (
-                  <div key={t.id} style={cardStyle}>
+                ) : trItems.map((t, i) => {
+                  const caliyor = calanIndis === i;
+                  return (
+                  <div key={t.id} style={{ ...cardStyle, ...(caliyor ? { borderColor: 'color-mix(in srgb, var(--color-primary) 55%, transparent)', background: 'color-mix(in srgb, var(--color-primary) 7%, var(--color-surface))' } : {}) }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px' }}>
-                      <Link href={t.username ? `/u/${t.username}` : '#'} style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, textDecoration: 'none', overflow: 'hidden' }}>
+                      {/* Avatar profile gider (küçük, kasıtlı hedef); satırın GERİ KALANI
+                          çalar. Eskiden bütün satır profile gidiyordu ve parçayı
+                          başlatmanın hiçbir yolu yoktu. */}
+                      <Link href={t.username ? `/u/${t.username}` : '#'} aria-label={t.display_name ? `${t.display_name} profili` : 'Profil'} style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, textDecoration: 'none', overflow: 'hidden' }}>
                         <Img src={avatarSrc(t.username, t.avatar)} alt="" fixedWidth={76} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       </Link>
-                      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        {t.username && <Link href={`/u/${t.username}`} style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-text)', textDecoration: 'none' }}>{t.display_name}</Link>}
-                        <span style={{ fontSize: '0.85rem', color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {t.title}{t.artist ? ` — ${t.artist}` : ''}
+                      <button
+                        type="button"
+                        onClick={() => dock?.playTracks(siteTracks, i)}
+                        aria-label={`${t.title} — çal`}
+                        style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'flex-start', textAlign: 'left', background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit' }}
+                      >
+                        <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-text-muted)' }}>{t.display_name}</span>
+                        <span style={{ fontSize: '0.85rem', fontWeight: caliyor ? 700 : 400, color: caliyor ? 'var(--color-primary)' : 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>
+                          {caliyor ? '▸ ' : ''}{t.title}{t.artist ? ` — ${t.artist}` : ''}
                         </span>
                         <span style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)' }}>
                           <TimeAgo iso={t.created_at} />{t.duration ? ` · ${Math.floor(t.duration / 60)}:${String(Math.floor(t.duration % 60)).padStart(2, '0')}` : ''}
                         </span>
-                      </div>
+                      </button>
                       {currentUserId === t.user_id && (
                         <button onClick={() => deleteTrack(t.id)}
                           aria-label="Parçayı sil"
@@ -366,7 +397,8 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
                       )}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
