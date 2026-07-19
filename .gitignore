@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# supabase CLI'nin yerel durumu — `supabase link` sonrası kendiliğinden oluşur.
+# Göçler bu klasörde DEĞİL, sql/ altında elle yürütülüyor; burada paylaşılmaya
+# değer hiçbir şey yok. Ayrıca .temp/ arka uç sürümlerini (Postgres, GoTrue,
+# Storage) tam tam yazıyor → depoya koymak karşılığında hiçbir fayda vermeden
+# sürüme özel açık aramayı kolaylaştırır. İleride migration workflow'una
+# geçilirse supabase/migrations ve supabase/config.toml AYRICA izin verilmeli.
+/supabase/.temp/
