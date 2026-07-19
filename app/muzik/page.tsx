@@ -12,15 +12,19 @@ export const revalidate = 120;
 // değil, sık değişmez → 120sn önbellek.
 const getMusic = unstable_cache(
   async () => {
-    const [spResult, ytResult] = await Promise.all([
+    const [spResult, ytResult, trResult] = await Promise.all([
       db.from('spotify_playlists').select('id, playlist_id, title, created_at, user_id, users(username, display_name, avatar)').order('created_at', { ascending: false }).limit(30),
       db.from('youtube_items').select('id, item_type, item_id, title, created_at, user_id, users(username, display_name, avatar)').order('created_at', { ascending: false }).limit(30),
+      // Site çalma listesi. Tablo henüz açılmadıysa (SQL çalıştırılmadı) hata
+      // yutulur ve sekme boş görünür — sayfanın kalanı çalışmaya devam eder.
+      db.from('music_tracks').select('id, title, artist, src, duration, created_at, user_id, users(username, display_name, avatar)').order('created_at', { ascending: false }).limit(50),
     ]);
     logIfError('muzik spotify_playlists', spResult.error);
     logIfError('muzik youtube_items', ytResult.error);
-    return { sp: spResult.data ?? [], yt: ytResult.data ?? [] };
+    logIfError('muzik music_tracks', trResult.error);
+    return { sp: spResult.data ?? [], yt: ytResult.data ?? [], tr: trResult.data ?? [] };
   },
-  ['muzik-content-v1'],
+  ['muzik-content-v2'],
   { revalidate: 120, tags: ['muzik'] },
 );
 
@@ -38,7 +42,7 @@ export const metadata: Metadata = {
 
 export default async function MuzikPage() {
   // Paylaşılan müzik içeriği önbellekten gelir (120sn).
-  const { sp: spRaw, yt: ytRaw } = await getMusic();
+  const { sp: spRaw, yt: ytRaw, tr: trRaw } = await getMusic();
 
   const spotifyItems = (spRaw ?? []).map((r: any) => ({
     id:           r.id           as number,
@@ -63,10 +67,24 @@ export default async function MuzikPage() {
     avatar:       (r.users?.avatar ?? null) as string | null,
   }));
 
+  const trackItems = (trRaw ?? []).map((r: any) => ({
+    id:           r.id         as number,
+    title:        r.title      as string,
+    artist:       (r.artist ?? null) as string | null,
+    src:          r.src        as string,
+    duration:     (r.duration ?? null) as number | null,
+    created_at:   r.created_at as string,
+    user_id:      r.user_id    as number,
+    username:     (r.users?.username     ?? '') as string,
+    display_name: (r.users?.display_name ?? '') as string,
+    avatar:       (r.users?.avatar ?? null) as string | null,
+  }));
+
   return (
     <MuzikClient
       spotifyItems={spotifyItems}
       youtubeItems={youtubeItems}
+      trackItems={trackItems}
     />
   );
 }

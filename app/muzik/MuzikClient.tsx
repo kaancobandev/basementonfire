@@ -5,6 +5,8 @@ import Link from 'next/link';
 import Img from '@/app/components/Img';
 import { avatarSrc } from '@/lib/avatar';
 import { useNavUser } from '@/app/components/NavUserContext';
+import MusicPlayer, { type MusicTrack } from '@/app/components/MusicPlayer';
+import { uploadToStorage } from '@/lib/upload';
 
 interface SpotifyItem {
   id: number; playlist_id: string; title: string; created_at: string;
@@ -15,9 +17,16 @@ interface YouTubeItem {
   user_id: number; username: string; display_name: string; avatar: string | null;
 }
 
+interface TrackItem {
+  id: number; title: string; artist: string | null; src: string;
+  duration: number | null; created_at: string;
+  user_id: number; username: string; display_name: string; avatar: string | null;
+}
+
 interface Props {
   spotifyItems: SpotifyItem[];
   youtubeItems: YouTubeItem[];
+  trackItems: TrackItem[];
 }
 
 function timeAgo(d: string) {
@@ -41,6 +50,11 @@ const YouTubeIcon = ({ size = 17 }: { size?: number }) => (
   </svg>
 );
 
+const NoteIcon = ({ size = 17 }: { size?: number }) => (
+  <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" />
+  </svg>
+);
 const PlayIcon = () => (
   <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="5 3 19 12 5 21"/></svg>
 );
@@ -53,20 +67,36 @@ const TrashIcon = () => (
   </svg>
 );
 
+// CAM DİL — üç bölüm de (Site / Spotify / YouTube) bu tek kaynağı kullanır,
+// böylece görünüm bir yerde değişince üçü birden değişir. Sınıflar globals.css
+// yerine burada: bu stil yalnızca /muzik'e ait, global ada ihtiyaç yok.
 const cardStyle: React.CSSProperties = {
-  background: 'var(--color-surface)',
-  border: '1px solid var(--color-border)',
-  borderRadius: 14,
+  background: 'color-mix(in srgb, var(--color-surface) 62%, transparent)',
+  border: '1px solid color-mix(in srgb, var(--color-border) 70%, transparent)',
+  borderRadius: 16,
   overflow: 'hidden',
+  backdropFilter: 'blur(16px) saturate(160%)',
+  WebkitBackdropFilter: 'blur(16px) saturate(160%)',
+  boxShadow: '0 4px 18px rgba(15,20,25,0.06), inset 0 1px 0 rgba(255,255,255,0.35)',
 };
 
-export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: initialYt }: Props) {
+export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: initialYt, trackItems: initialTr }: Props) {
   // Sayfa ISR (paylaşılan HTML) — kimlik NavUserContext'ten. Yalnız ekle/sil
   // butonlarının görünürlüğü için; asıl yetki kontrolü API'larda (sunucuda).
   const currentUserId = useNavUser()?.id ?? null;
-  const [tab, setTab] = useState<'spotify' | 'youtube'>('spotify');
+  // Site sekmesi ÖNCE gelir: sitenin kendi içeriği, gömülü içerikten önde.
+  const [tab, setTab] = useState<'site' | 'spotify' | 'youtube'>('site');
   const [spItems, setSpItems] = useState(initialSp);
   const [ytItems, setYtItems] = useState(initialYt);
+  const [trItems, setTrItems] = useState(initialTr);
+
+  // Site çalma listesi — yükleme
+  const [trTitle, setTrTitle] = useState('');
+  const [trArtist, setTrArtist] = useState('');
+  const [trFile, setTrFile] = useState<File | null>(null);
+  const [trLoading, setTrLoading] = useState(false);
+  const [trError, setTrError] = useState('');
+  const fileRef = useRef<HTMLInputElement>(null);
 
   // Spotify ekle
   const [spUrl, setSpUrl] = useState('');
@@ -91,6 +121,52 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
       next.has(key) ? next.delete(key) : next.add(key);
       return next;
     });
+  }
+
+  // ── Site çalma listesi: yükle ──
+  // Dosya tarayıcıdan DOĞRUDAN Storage'a gider (Netlify fonksiyon gövde
+  // limitini aşmamak için), sonra yalnızca künyesi API'ye "commit" edilir.
+  // Gönderi akışıyla birebir aynı desen (lib/upload.ts).
+  async function addTrack() {
+    const file = trFile;
+    if (!file) { setTrError('Bir ses dosyası seç.'); return; }
+    if (!trTitle.trim()) { setTrError('Parça adı gir.'); return; }
+    setTrLoading(true); setTrError('');
+    try {
+      const { path, mediaType } = await uploadToStorage(file, 'media');
+      if (mediaType !== 'audio') { setTrError('Bu bir ses dosyası değil.'); return; }
+
+      // Süreyi istemcide ölç: liste ve çalar için ücretsiz bilgi.
+      const duration = await new Promise<number | null>(res => {
+        const a = document.createElement('audio');
+        a.preload = 'metadata';
+        a.onloadedmetadata = () => res(Number.isFinite(a.duration) ? a.duration : null);
+        a.onerror = () => res(null);
+        a.src = URL.createObjectURL(file);
+      });
+
+      const r = await fetch('/api/music/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path, title: trTitle, artist: trArtist, duration }),
+      });
+      if (r.status === 401) { window.location.href = '/login'; return; }
+      if (!r.ok) { const d = await r.json().catch(() => ({})); setTrError(d.error ?? 'Yüklenemedi.'); return; }
+      const row = await r.json();
+      setTrItems(prev => [{ ...row, username: '', display_name: 'Sen', avatar: null, user_id: currentUserId ?? 0 }, ...prev]);
+      setTrTitle(''); setTrArtist(''); setTrFile(null);
+      if (fileRef.current) fileRef.current.value = '';
+    } catch (e) {
+      setTrError(e instanceof Error ? e.message : 'Yüklenemedi.');
+    } finally {
+      setTrLoading(false);
+    }
+  }
+
+  async function deleteTrack(id: number) {
+    if (!confirm('Bu parçayı kaldırmak istiyor musun?')) return;
+    const r = await fetch('/api/music/track', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
+    if (r.ok) setTrItems(prev => prev.filter(x => x.id !== id));
   }
 
   // Spotify ekle
@@ -173,7 +249,7 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
   }) {
     return (
       <div style={{ marginBottom: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--color-surface)', border: '1.5px solid var(--color-border)', borderRadius: 12, padding: '10px 14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'color-mix(in srgb, var(--color-surface) 62%, transparent)', border: '1px solid color-mix(in srgb, var(--color-border) 70%, transparent)', borderRadius: 14, padding: '10px 14px', backdropFilter: 'blur(16px) saturate(160%)', WebkitBackdropFilter: 'blur(16px) saturate(160%)' }}>
           <input value={value} onChange={e => onChange(e.target.value)} onKeyDown={e => e.key === 'Enter' && onSubmit()} placeholder={placeholder} autoComplete="off" style={inputStyle} />
           <button onClick={onSubmit} disabled={loading} style={{ border: 'none', borderRadius: 8, padding: '7px 18px', fontSize: '0.82rem', fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', color: '#fff', background: btnColor, opacity: loading ? 0.6 : 1, whiteSpace: 'nowrap', transition: 'opacity 0.15s' }}>
             {loading ? '…' : btnText}
@@ -224,8 +300,10 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
   const tabBtnStyle = (active: boolean, color: string): React.CSSProperties => ({
     display: 'flex', alignItems: 'center', gap: 7,
     padding: '8px 20px', borderRadius: '9999px',
-    border: `1.5px solid ${active ? color : 'var(--color-border)'}`,
-    background: active ? color : 'transparent',
+    border: `1px solid ${active ? color : 'color-mix(in srgb, var(--color-border) 70%, transparent)'}`,
+    background: active ? color : 'color-mix(in srgb, var(--color-surface) 55%, transparent)',
+    backdropFilter: 'blur(14px) saturate(150%)',
+    WebkitBackdropFilter: 'blur(14px) saturate(150%)',
     color: active ? '#fff' : 'var(--color-text-muted)',
     fontSize: '0.88rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
     transition: 'all 0.15s',
@@ -239,7 +317,10 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
         <div className="feed-header">Müzik</div>
 
         {/* Tab bar */}
-        <div style={{ display: 'flex', gap: 4, padding: '4px 16px 16px', borderBottom: '1px solid var(--color-border)', marginBottom: 16 }}>
+        <div style={{ display: 'flex', gap: 6, padding: '4px 16px 16px', borderBottom: '1px solid color-mix(in srgb, var(--color-border) 70%, transparent)', marginBottom: 16, overflowX: 'auto', scrollbarWidth: 'none' }}>
+          <button style={tabBtnStyle(tab === 'site', 'var(--color-primary)')} onClick={() => setTab('site')}>
+            <NoteIcon /> Site
+          </button>
           <button style={tabBtnStyle(tab === 'spotify', '#1db954')} onClick={() => setTab('spotify')}>
             <SpotifyIcon /> Spotify
           </button>
@@ -249,6 +330,92 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
         </div>
 
         <div style={{ padding: '0 16px' }}>
+
+          {/* ── SİTE TAB — sitenin KENDİ ses dosyaları (tek çalınabilir kaynak) */}
+          {tab === 'site' && (
+            <div>
+              {trItems.length > 0 && (
+                <div style={{ ...cardStyle, padding: 16, marginBottom: 16, background: 'linear-gradient(135deg, #312e81, #4c1d95)', border: 'none' }}>
+                  <MusicPlayer
+                    tracks={trItems.map((t): MusicTrack => ({
+                      title: t.title,
+                      artist: t.artist || t.display_name || 'Basements',
+                      src: t.src,
+                    }))}
+                  />
+                  <p style={{ margin: '12px 0 0', fontSize: '0.72rem', color: 'rgba(255,255,255,0.6)' }}>
+                    {trItems.length} parça · ileri/geri ile listede gez
+                  </p>
+                </div>
+              )}
+
+              {currentUserId && (
+                <div style={{ ...cardStyle, padding: 14, marginBottom: 16 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <input
+                      value={trTitle} onChange={e => setTrTitle(e.target.value)}
+                      placeholder="Parça adı" maxLength={120} autoComplete="off"
+                      style={{ ...inputStyle, background: 'color-mix(in srgb, var(--color-bg) 60%, transparent)', border: '1px solid color-mix(in srgb, var(--color-border) 70%, transparent)', borderRadius: 10, padding: '9px 12px' }}
+                    />
+                    <input
+                      value={trArtist} onChange={e => setTrArtist(e.target.value)}
+                      placeholder="Sanatçı (isteğe bağlı)" maxLength={80} autoComplete="off"
+                      style={{ ...inputStyle, background: 'color-mix(in srgb, var(--color-bg) 60%, transparent)', border: '1px solid color-mix(in srgb, var(--color-border) 70%, transparent)', borderRadius: 10, padding: '9px 12px' }}
+                    />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      <input
+                        ref={fileRef} type="file" accept="audio/*"
+                        onChange={e => { setTrFile(e.target.files?.[0] ?? null); setTrError(''); }}
+                        style={{ flex: 1, minWidth: 180, fontSize: '0.8rem', color: 'var(--color-text-muted)', fontFamily: 'inherit' }}
+                      />
+                      <button
+                        onClick={addTrack} disabled={trLoading}
+                        style={{ border: 'none', borderRadius: 10, padding: '9px 20px', fontSize: '0.82rem', fontWeight: 700, cursor: trLoading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', color: '#fff', background: 'var(--color-primary)', opacity: trLoading ? 0.6 : 1, whiteSpace: 'nowrap' }}
+                      >
+                        {trLoading ? 'Yükleniyor…' : 'Yükle'}
+                      </button>
+                    </div>
+                  </div>
+                  {trError && <div style={{ fontSize: '0.8rem', color: '#ef4444', marginTop: 8 }}>{trError}</div>}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {trItems.length === 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: '48px 0', color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+                    <NoteIcon size={36} />
+                    <p style={{ margin: 0 }}>Henüz parça yüklenmedi.</p>
+                    {!currentUserId && <p style={{ margin: 0, fontSize: '0.82rem' }}>Yüklemek için giriş yap.</p>}
+                  </div>
+                ) : trItems.map(t => (
+                  <div key={t.id} style={cardStyle}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px' }}>
+                      <Link href={t.username ? `/u/${t.username}` : '#'} style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, textDecoration: 'none', overflow: 'hidden' }}>
+                        <Img src={avatarSrc(t.username, t.avatar)} alt="" fixedWidth={76} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </Link>
+                      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        {t.username && <Link href={`/u/${t.username}`} style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-text)', textDecoration: 'none' }}>{t.display_name}</Link>}
+                        <span style={{ fontSize: '0.85rem', color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {t.title}{t.artist ? ` — ${t.artist}` : ''}
+                        </span>
+                        <span style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)' }}>
+                          {timeAgo(t.created_at)}{t.duration ? ` · ${Math.floor(t.duration / 60)}:${String(Math.floor(t.duration % 60)).padStart(2, '0')}` : ''}
+                        </span>
+                      </div>
+                      {currentUserId === t.user_id && (
+                        <button onClick={() => deleteTrack(t.id)}
+                          aria-label="Parçayı sil"
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, borderRadius: '50%', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', flexShrink: 0 }}
+                        >
+                          <TrashIcon />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* ── SPOTIFY TAB */}
           {tab === 'spotify' && (
