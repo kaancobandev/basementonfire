@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { breadcrumbJsonLd, jsonLdScript } from '@/lib/seo';
 import ArticleRuntime from '@/app/components/ArticleRuntime';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
+import ArticleImage from '@/app/components/article/ArticleImage';
 import { CSS, HTML, JS } from './content';
 
 const refs: BibItem[] = [
@@ -54,7 +55,99 @@ export default function Page() {
       <link rel="stylesheet" href={FONT_URL} />
       <div className="main-content eko-root">
         <style dangerouslySetInnerHTML={{ __html: CSS }} />
-        <div dangerouslySetInnerHTML={{ __html: HTML }} />
+        <style>{`
+          .eko-gallery { max-width: 1080px; margin: 0 auto; padding: 8px 22px 44px; }
+          .eko-gallery h2 { font-size: clamp(1.15rem, 3vw, 1.6rem); font-weight: 800; color: #eef2f8; margin: 30px 0 8px; }
+          .eko-gallery > p { color: #9fb0c6; margin: 0 0 18px; max-width: 68ch; line-height: 1.65; }
+          .eko-gallery-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; align-items: start; }
+          /* ArticleImage'ın slate varsayılanlarını makalenin gökmavisi paletine bağla. */
+          .eko-img {
+            --ai-caption: #c8d4e2;
+            --ai-credit: #6b7c92;
+            --ai-border: rgba(56,189,248,0.22);
+            --ai-fill: rgba(56,189,248,0.05);
+            --ai-mark: rgba(56,189,248,0.28);
+          }
+        `}</style>
+
+        {/* GÖRSELLER — gövde content.ts'te tek parça HTML string olduğu için galeri
+            hâlinde burada. Bu bir sözlük makalesi: likidite, arbitraj, F/K, IBAN
+            fotoğraflanamaz. Bu yüzden görseller yalnızca metnin ADIYLA andığı
+            somut çapalara bağlandı. Bölüm 3 (SWIFT/EFT/IBAN) kasıtlı görselsiz. */}
+        <section className="eko-gallery">
+          <h2>Terimlerin somut karşılığı</h2>
+          <p>
+            Bu sayfadaki kavramların çoğunun fotoğrafı yoktur. Aşağıdakiler,
+            metnin adını verdiği birkaç somut şeyin gerçek görüntüleri.
+          </p>
+          <div className="eko-gallery-grid">
+            <ArticleImage
+              className="eko-img"
+              src="/articles/ekonomi/merkez-banka-fed.webp"
+              ratio="1600 / 888"
+              alt="Beyaz mermerden, sütunlu ve simetrik cepheli anıtsal bir devlet binası; önünde geniş çimenlik."
+              caption="ABD Merkez Bankası'nın Eccles binası, Washington. Faiz kararları böyle binalarda alınır ve etkisi kredi kartı borcundan konut kredisine kadar herkese iner."
+              credit="AgnosticPreachersKid · CC BY-SA 3.0"
+            />
+            <ArticleImage
+              className="eko-img"
+              src="/articles/ekonomi/altin-kulce.webp"
+              ratio="1600 / 1200"
+              alt="Üst üste istiflenmiş, üzerlerinde damga ve seri numaraları bulunan parlak sarı külçeler."
+              caption="Altın külçeler. Emtia dediğimiz şey, en sert hâliyle: değeri bir kurumun sözünden değil, maddenin kendisinden gelen mal."
+              credit="Pixabay · CC0"
+            />
+            <ArticleImage
+              className="eko-img"
+              src="/articles/ekonomi/borsa-cokusu-1929.webp"
+              ratio="1600 / 1260"
+              alt="Siyah beyaz sokak fotoğrafı: şapkalı yüzlerce insan, taş bir binanın önünde caddeyi tıkamış hâlde toplanmış."
+              caption="1929'da New York Borsası'nın önünde toplanan kalabalık. Borsa çöküşü ile resesyon aynı şey değildir — ama bu çöküş, Büyük Buhran'a giden resesyonun fitilini ateşledi."
+              credit="Associated Press · kamu malı"
+            />
+            <ArticleImage
+              className="eko-img"
+              src="/articles/ekonomi/benzin-krizi-1974.webp"
+              ratio="1600 / 1080"
+              alt="Şehir içindeki bir benzin istasyonu; tabelasında günün kotasının tükendiğini bildiren yazı var, önünden bisikletli biri geçiyor."
+              caption="Mayıs 1974, Portland: istasyonun günlük benzin kotası tükendi. Petrol ambargosu mart ayında kalkmıştı, sıkıntı yine de sürüyordu — stagflasyonun görünen yüzü."
+              credit="ABD Ulusal Arşivleri / DOCUMERICA"
+            />
+            <ArticleImage
+              className="eko-img"
+              src="/articles/ekonomi/enflasyon-banknot-1923.webp"
+              ratio="1600 / 985"
+              alt="Eski bir kâğıt banknot; üzerinde çok basamaklı, olağandışı büyük bir rakam basılı."
+              caption="5 trilyon marklık banknot, 9 Kasım 1923 — Alman demiryollarının bastığı acil durum parası. Bir hafta sonra yapılan reform fiyatlardan on iki sıfır sildi."
+              credit="Kamu malı"
+            />
+            <ArticleImage
+              className="eko-img"
+              src="/articles/ekonomi/boga-ayi-heykeli.webp"
+              ratio="1600 / 1064"
+              alt="Meydanda karşı karşıya duran iki bronz heykel: boynuzlarını yukarı kaldırmış bir boğa ve pençesini indiren bir ayı."
+              caption="Frankfurt Borsası'nın önündeki Boğa ve Ayı. Boğa boynuzuyla yukarı savurur, ayı pençesiyle aşağı indirir — piyasa yönlerinin adı buradan gelir."
+              credit="Foto: Eva K. · CC BY-SA 2.5 · Heykel: Reinhard Dachlauer"
+            />
+            <ArticleImage
+              className="eko-img"
+              src="/articles/ekonomi/borsa-salonu.webp"
+              ratio="1600 / 2008"
+              alt="Yüksek tavanlı geniş salon; ekranlarla kaplı çalışma istasyonları ve aralarında hareket eden insanlar."
+              caption="New York Borsası'nın işlem salonu (tarih belirsiz, 1980–2006 arası). Bugünün borsası büyük ölçüde elektronik — bu kalabalık artık ekranların içinde."
+              credit="Carol M. Highsmith · kamu malı"
+            />
+            <ArticleImage
+              className="eko-img"
+              src="/articles/ekonomi/doviz-banknot.webp"
+              ratio="1600 / 898"
+              alt="Yan yana serilmiş, farklı ülkelere ait çeşitli renk ve boyutlarda kâğıt banknotlar."
+              caption="Farklı para birimlerinden banknotlar. Parite, bunlardan ikisinin birbiri cinsinden fiyatıdır — ve o fiyat her gün değişir."
+              credit="epSos.de · CC BY 2.0"
+            />
+          </div>
+        </section>
+
         <ArticleBibliography items={refs} accent="#38bdf8" />
       </div>
       <ArticleRuntime js={JS} />

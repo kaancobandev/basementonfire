@@ -1,0 +1,63 @@
+<ArticleImage
+  src="/articles/ekonomi/merkez-banka-fed.webp"
+  ratio="1600 / 888"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="AgnosticPreachersKid · CC BY-SA 3.0"
+/>
+
+<ArticleImage
+  src="/articles/ekonomi/altin-kulce.webp"
+  ratio="1600 / 1200"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Stevebidmead · CC0"
+/>
+
+<ArticleImage
+  src="/articles/ekonomi/borsa-cokusu-1929.webp"
+  ratio="1600 / 1260"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Associated Press · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/ekonomi/benzin-krizi-1974.webp"
+  ratio="1600 / 1080"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="The U.S. National Archives · No restrictions"
+/>
+
+<ArticleImage
+  src="/articles/ekonomi/enflasyon-banknot-1923.webp"
+  ratio="1600 / 985"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Berlin-George · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/ekonomi/boga-ayi-heykeli.webp"
+  ratio="1600 / 1064"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Eva K. · CC BY-SA 2.5"
+/>
+
+<ArticleImage
+  src="/articles/ekonomi/borsa-salonu.webp"
+  ratio="1600 / 2008"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Carol M. Highsmith · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/ekonomi/doviz-banknot.webp"
+  ratio="1600 / 898"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="epSos.de · CC BY 2.0"
+/>

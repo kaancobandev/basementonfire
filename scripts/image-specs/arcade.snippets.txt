@@ -1,0 +1,63 @@
+<ArticleImage
+  src="/articles/arcade/tennis-for-two-osiloskop.webp"
+  ratio="1600 / 1257"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Brookhaven National Laboratory · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/arcade/spacewar-pdp1.webp"
+  ratio="1600 / 1076"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Joi Ito from Inbamura, Japan · CC BY 2.0"
+/>
+
+<ArticleImage
+  src="/articles/arcade/pong-kabin.webp"
+  ratio="1461 / 1998"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Rob Boudon"
+/>
+
+<ArticleImage
+  src="/articles/arcade/pacman-kabin.webp"
+  ratio="1600 / 1200"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="inunami"
+/>
+
+<ArticleImage
+  src="/articles/arcade/toru-iwatani-portre.webp"
+  ratio="926 / 1159"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Official GDC · CC BY 2.0"
+/>
+
+<ArticleImage
+  src="/articles/arcade/donkey-kong-kabin.webp"
+  ratio="960 / 1280"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Joshua Driggs (ZapWizard) from Austin, Texas · CC BY-SA 2.0"
+/>
+
+<ArticleImage
+  src="/articles/arcade/miyamoto-portre.webp"
+  ratio="1250 / 1666"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="文部科学省ホームページ"
+/>
+
+<ArticleImage
+  src="/articles/arcade/oyun-salonu.webp"
+  ratio="1600 / 1066"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Xarathion · CC BY-SA 4.0"
+/>
