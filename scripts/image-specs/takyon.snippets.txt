@@ -1,0 +1,63 @@
+<ArticleImage
+  src="/articles/takyon/einstein-patent-ofisi.webp"
+  ratio="1600 / 2303"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Lucien Chavan / ETH Zürich · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/takyon/gargamelle-notrino-izi.webp"
+  ratio="1021 / 1506"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="CERN · CC BY 4.0"
+/>
+
+<ArticleImage
+  src="/articles/takyon/hubble-derin-alan.webp"
+  ratio="1600 / 1600"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="NASA and the European Space Agency. Edited by Noodle snacks · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/takyon/ay-lazer-olcumu.webp"
+  ratio="1600 / 1063"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Melirius · CC BY-SA 2.0"
+/>
+
+<ArticleImage
+  src="/articles/takyon/cherenkov-mavi-parilti.webp"
+  ratio="1600 / 2102"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Nuclear Regulatory Commission from US · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/takyon/ses-bariyeri-koni.webp"
+  ratio="1600 / 1143"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Ensign John Gay, U.S. Navy · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/takyon/cngs-notrino-tuneli.webp"
+  ratio="1600 / 1071"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Maximilien Brice · CC BY 4.0"
+/>
+
+<ArticleImage
+  src="/articles/takyon/opera-dedektoru.webp"
+  ratio="1024 / 768"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Mhier · CC BY-SA 3.0"
+/>

@@ -1,0 +1,63 @@
+<ArticleImage
+  src="/articles/endosimbiyoz/lynn-margulis.webp"
+  ratio="1600 / 2400"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Javier Pedreira from La Coruña, Spain · CC BY 2.0"
+/>
+
+<ArticleImage
+  src="/articles/endosimbiyoz/mereschkowski.webp"
+  ratio="1600 / 1965"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="anonymous/unknown · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/endosimbiyoz/mitokondri-tem.webp"
+  ratio="640 / 433"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Louisa Howard · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/endosimbiyoz/kloroplast.webp"
+  ratio="1600 / 1629"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Mjolk1 · CC0"
+/>
+
+<ArticleImage
+  src="/articles/endosimbiyoz/asgard-arkesi.webp"
+  ratio="1600 / 1600"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Hiroyuki Imachi, Masaru K. Nobu,Nozomi Nakahara,Yuki Morono, · CC BY-SA 4.0"
+/>
+
+<ArticleImage
+  src="/articles/endosimbiyoz/nick-lane.webp"
+  ratio="1600 / 2133"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Ian Alexander · CC BY-SA 4.0"
+/>
+
+<ArticleImage
+  src="/articles/endosimbiyoz/braarudosphaera.webp"
+  ratio="1600 / 1072"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Kyoko Hagino, Ryo Onuma, Masanobu Kawachi, Takeo Horiguchi · CC BY 3.0"
+/>
+
+<ArticleImage
+  src="/articles/endosimbiyoz/mercan-zooksantella.webp"
+  ratio="1600 / 1068"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Tim Wijgerde · CC BY-SA 4.0"
+/>

@@ -1,0 +1,55 @@
+<ArticleImage
+  src="/articles/cift-yarik/feynman-portre.webp"
+  ratio="1364 / 1366"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Unknown author Unknown author · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/cift-yarik/thomas-young-portre.webp"
+  ratio="1600 / 2046"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="After Thomas Lawrence · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/cift-yarik/girisim-seritleri.webp"
+  ratio="1600 / 538"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Pieter Kuiper · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/cift-yarik/dalga-havuzu.webp"
+  ratio="1600 / 1022"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Psgs123xyz at English Wikipedia · CC0"
+/>
+
+<ArticleImage
+  src="/articles/cift-yarik/de-broglie-portre.webp"
+  ratio="1600 / 2133"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Agence Rol · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/cift-yarik/tonomura-elektron-birikimi.webp"
+  ratio="1600 / 935"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Dr. Tonomura and Belsazar · CC BY-SA 3.0"
+/>
+
+<ArticleImage
+  src="/articles/cift-yarik/c60-buckyball.webp"
+  ratio="1600 / 1571"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Jynto ( talk ) · CC0"
+/>

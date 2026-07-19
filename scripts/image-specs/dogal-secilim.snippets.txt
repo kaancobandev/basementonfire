@@ -1,0 +1,63 @@
+<ArticleImage
+  src="/articles/dogal-secilim/darwin-portre.webp"
+  ratio="1600 / 2056"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Julia Margaret Cameron · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/dogal-secilim/wallace-portre.webp"
+  ratio="1600 / 2341"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="London Stereoscopic and Photographic Company (active 1855-19 · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/dogal-secilim/turlerin-kokeni-kapak.webp"
+  ratio="1600 / 2568"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Unknown author Unknown author · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/dogal-secilim/ispinoz-gagalari.webp"
+  ratio="1600 / 1207"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="John Gould (14.Sep.1804 - 3.Feb.1881) · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/dogal-secilim/biber-guvesi.webp"
+  ratio="1600 / 1066"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Charles J. Sharp · CC BY-SA 4.0"
+/>
+
+<ArticleImage
+  src="/articles/dogal-secilim/antibiyotik-direnci.webp"
+  ratio="1600 / 1449"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Photo Credit: Content Providers(s): CDC/Don Stalons · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/dogal-secilim/orak-hucre.webp"
+  ratio="1600 / 1066"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Ed Uthman from Houston, TX, USA · CC BY 2.0"
+/>
+
+<ArticleImage
+  src="/articles/dogal-secilim/tavus-kusu.webp"
+  ratio="1600 / 1066"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Trey Perry · CC BY 3.0"
+/>

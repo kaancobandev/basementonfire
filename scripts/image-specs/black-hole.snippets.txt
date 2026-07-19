@@ -1,0 +1,63 @@
+<ArticleImage
+  src="/articles/black-hole/m87-ilk-fotograf.webp"
+  ratio="1600 / 1600"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Event Horizon Telescope , uploader cropped and converted TIF · CC BY 4.0"
+/>
+
+<ArticleImage
+  src="/articles/black-hole/yengec-bulutsusu.webp"
+  ratio="1600 / 1600"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="NASA , ESA , J. Hester and A. Loll (Arizona State University · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/black-hole/toplanma-diski.webp"
+  ratio="1600 / 900"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="NASA's Scientific Visualization Studio - null · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/black-hole/dunya-mavi-bilye.webp"
+  ratio="1600 / 1600"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Harrison Schmitt / Apollo 17 · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/black-hole/cygnus-x1.webp"
+  ratio="1600 / 667"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Optical: DSS; Illustration: NASA/CXC/M.Weiss · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/black-hole/sagittarius-a.webp"
+  ratio="1600 / 1600"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="EHT Collaboration · CC BY 4.0"
+/>
+
+<ArticleImage
+  src="/articles/black-hole/spagettilesme.webp"
+  ratio="1600 / 970"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="ESO/M. Kornmesser · CC BY 4.0"
+/>
+
+<ArticleImage
+  src="/articles/black-hole/hawking-portre.webp"
+  ratio="1600 / 1673"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="NASA/Paul Alers · kamu malı"
+/>

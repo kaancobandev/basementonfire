@@ -1,0 +1,63 @@
+<ArticleImage
+  src="/articles/mol/avogadro-portre.webp"
+  ratio="1600 / 2204"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Luigi Cauda / Gaetano Bonatti · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/mol/cannizzaro-portre.webp"
+  ratio="1600 / 2273"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="This file was contributed to Wikimedia Commons by Science Hi · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/mol/perrin-portre.webp"
+  ratio="816 / 1074"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Agence de presse Meurisse · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/mol/perrin-gamboge-deneyi.webp"
+  ratio="926 / 760"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Bernard H. Lavenda · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/mol/silikon-28-kuresi.webp"
+  ratio="1600 / 1245"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="CSIRO ([Australian] Commonwealth Scientific and Industrial R · CC BY 3.0"
+/>
+
+<ArticleImage
+  src="/articles/mol/periyodik-tablo.webp"
+  ratio="1600 / 1236"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="R.A. Dragoset, A. Musgrove, C.W. Clark, and W.C. Martin — NI · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/mol/altin-kulcesi.webp"
+  ratio="1600 / 2000"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Marie-Lan Taÿ Pamart · CC BY 4.0"
+/>
+
+<ArticleImage
+  src="/articles/mol/kilogram-prototipi.webp"
+  ratio="1217 / 1512"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="BIPM · CC BY-SA 3.0 igo"
+/>

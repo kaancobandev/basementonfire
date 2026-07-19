@@ -1,0 +1,63 @@
+<ArticleImage
+  src="/articles/newton/newton-portre.webp"
+  ratio="1600 / 1927"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Godfrey Kneller · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/newton/prizma-isik-ayrisimi.webp"
+  ratio="1600 / 1065"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Kelvinsong · CC0"
+/>
+
+<ArticleImage
+  src="/articles/newton/woolsthorpe-elma-agaci.webp"
+  ratio="1600 / 1060"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="It's No Game from Leicestershire, UK · CC BY 2.0"
+/>
+
+<ArticleImage
+  src="/articles/newton/newton-teleskobu.webp"
+  ratio="1024 / 891"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="User:Solipsist (Andrew Dunn) · CC BY-SA 2.0"
+/>
+
+<ArticleImage
+  src="/articles/newton/principia-kapak.webp"
+  ratio="1600 / 2100"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Joseph Streater · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/newton/leibniz-portre.webp"
+  ratio="1600 / 1975"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Christoph Bernhard Francke · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/newton/guney-denizi-balonu.webp"
+  ratio="1600 / 1264"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Print made by: William Hogarth Published by: Mrs Chilcot Pub · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/newton/newton-aniti-westminster.webp"
+  ratio="1600 / 2133"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="amanderson2 · CC BY 2.0"
+/>

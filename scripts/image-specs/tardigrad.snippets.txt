@@ -1,0 +1,63 @@
+<ArticleImage
+  src="/articles/tardigrad/tardigrad-sem-aktif.webp"
+  ratio="1572 / 1205"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Schokraie E, Warnken U, Hotz-Wagenblatt A, Grohme MA, Henghe · CC BY 2.5"
+/>
+
+<ArticleImage
+  src="/articles/tardigrad/tardigrad-mikroskop.webp"
+  ratio="1600 / 1450"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="DSparrow14 · CC BY-SA 4.0"
+/>
+
+<ArticleImage
+  src="/articles/tardigrad/tun-hali-sem.webp"
+  ratio="1507 / 1176"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Schokraie E, Warnken U, Hotz-Wagenblatt A, Grohme MA, Henghe · CC BY 2.5"
+/>
+
+<ArticleImage
+  src="/articles/tardigrad/aktif-tun-karsilastirma.webp"
+  ratio="1600 / 621"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Halberg KA, Jørgensen A, Møbjerg N · CC BY 4.0"
+/>
+
+<ArticleImage
+  src="/articles/tardigrad/beresheet-carpma-noktasi.webp"
+  ratio="1100 / 1100"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="NASA/GSFC/Arizona State University · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/tardigrad/beresheet-uzay-araci.webp"
+  ratio="1600 / 1068"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="אלון הדר · CC BY-SA 4.0"
+/>
+
+<ArticleImage
+  src="/articles/tardigrad/goeze-portre.webp"
+  ratio="1600 / 2530"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Rijksmuseum · CC0"
+/>
+
+<ArticleImage
+  src="/articles/tardigrad/spallanzani-portre.webp"
+  ratio="1396 / 1654"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Caterina Piotti-Pirola · kamu malı"
+/>

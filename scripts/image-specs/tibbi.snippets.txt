@@ -1,0 +1,63 @@
+<ArticleImage
+  src="/articles/tibbi/trepanasyon-kafatasi.webp"
+  ratio="1600 / 1200"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Zde · CC BY-SA 4.0"
+/>
+
+<ArticleImage
+  src="/articles/tibbi/imhotep-heykeli.webp"
+  ratio="1600 / 2137"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="This file was donated to Wikimedia Commons as part of a proj · CC0"
+/>
+
+<ArticleImage
+  src="/articles/tibbi/fleming-penisilin.webp"
+  ratio="1600 / 1665"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Ministry of Information Photo Division Photographer · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/tibbi/jenner-ilk-asi.webp"
+  ratio="1600 / 1246"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="https://wellcomeimages.org/indexplus/obf_images/6d/52/d9bc9b · CC BY 4.0"
+/>
+
+<ArticleImage
+  src="/articles/tibbi/leeuwenhoek-mikroskop.webp"
+  ratio="1600 / 785"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="https://wellcomeimages.org/indexplus/obf_images/00/8e/c2936d · CC BY 4.0"
+/>
+
+<ArticleImage
+  src="/articles/tibbi/snow-kolera-haritasi.webp"
+  ratio="1600 / 1534"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="https://wellcomeimages.org/indexplus/obf_images/f8/d4/adc968 · CC BY 4.0"
+/>
+
+<ArticleImage
+  src="/articles/tibbi/eter-ilk-ameliyat.webp"
+  ratio="1600 / 1286"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Southworth &amp; Hawes · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/tibbi/phineas-gage.webp"
+  ratio="1600 / 2719"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Author of underlying work unknown. · kamu malı"
+/>

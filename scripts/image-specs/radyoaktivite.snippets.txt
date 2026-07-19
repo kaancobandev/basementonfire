@@ -1,0 +1,63 @@
+<ArticleImage
+  src="/articles/radyoaktivite/curie-defterleri.webp"
+  ratio="1600 / 2380"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="https://wellcomeimages.org/indexplus/obf_images/68/67/7551f5 · CC BY 4.0"
+/>
+
+<ArticleImage
+  src="/articles/radyoaktivite/becquerel-portre.webp"
+  ratio="1600 / 2152"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Smithsonian Institution · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/radyoaktivite/becquerel-plaka.webp"
+  ratio="492 / 397"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Henri Becquerel · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/radyoaktivite/curie-laboratuvar.webp"
+  ratio="1600 / 1116"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Unknown author Unknown author · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/radyoaktivite/bulut-odasi-alfa.webp"
+  ratio="1600 / 900"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Nuledo · CC BY-SA 4.0"
+/>
+
+<ArticleImage
+  src="/articles/radyoaktivite/radyum-kizlari.webp"
+  ratio="821 / 650"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Unknown author Unknown author · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/radyoaktivite/radithor-sise.webp"
+  ratio="1600 / 2406"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Sam LaRussa from United States of America · CC BY-SA 2.0"
+/>
+
+<ArticleImage
+  src="/articles/radyoaktivite/plutonyum-238-pelet.webp"
+  ratio="1600 / 1280"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Plutonium_pellet.jpg : DOE Photo derivative work: Aiyizo ( t · kamu malı"
+/>

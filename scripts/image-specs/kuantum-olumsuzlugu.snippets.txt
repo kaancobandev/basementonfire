@@ -1,0 +1,47 @@
+<ArticleImage
+  src="/articles/kuantum-olumsuzlugu/schrodinger-portre.webp"
+  ratio="1348 / 2103"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Smithsonian Institution from United States · No restrictions"
+/>
+
+<ArticleImage
+  src="/articles/kuantum-olumsuzlugu/cift-yarik-tonomura.webp"
+  ratio="1156 / 3352"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="user:Belsazar · CC BY-SA 3.0"
+/>
+
+<ArticleImage
+  src="/articles/kuantum-olumsuzlugu/solvay-1927.webp"
+  ratio="1600 / 1097"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Wilfredor / Benjamin Couprie · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/kuantum-olumsuzlugu/tegmark-portre.webp"
+  ratio="1600 / 2027"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Web Summit · CC BY 2.0"
+/>
+
+<ArticleImage
+  src="/articles/kuantum-olumsuzlugu/mobius-heykeli.webp"
+  ratio="1600 / 1200"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Fumikas Sagisavas · CC0"
+/>
+
+<ArticleImage
+  src="/articles/kuantum-olumsuzlugu/schrodinger-mezari.webp"
+  ratio="1600 / 2399"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="The wub · CC BY-SA 4.0"
+/>

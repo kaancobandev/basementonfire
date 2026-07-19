@@ -1,0 +1,63 @@
+<ArticleImage
+  src="/articles/bagirsak/miyenterik-pleksus.webp"
+  ratio="960 / 540"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Dr. Roshan Nasimudeen · CC BY-SA 3.0"
+/>
+
+<ArticleImage
+  src="/articles/bagirsak/vagus-uyarimi.webp"
+  ratio="1600 / 900"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Manu5 · CC BY-SA 4.0"
+/>
+
+<ArticleImage
+  src="/articles/bagirsak/serotonin-molekul.webp"
+  ratio="1600 / 1268"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Ben Mills · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/bagirsak/e-coli-mikrograf.webp"
+  ratio="1600 / 1163"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Photo by Eric Erbe, digital colorization by Christopher Pool · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/bagirsak/bagirsak-kolonizasyon.webp"
+  ratio="1600 / 724"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Dr William Ju, University of Toronto · CC BY 4.0"
+/>
+
+<ArticleImage
+  src="/articles/bagirsak/laboratuvar-faresi.webp"
+  ratio="1600 / 2401"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Andrey Chernogorodov · CC BY 4.0"
+/>
+
+<ArticleImage
+  src="/articles/bagirsak/damasio-portre.webp"
+  ratio="1600 / 1071"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Franek Vetulani · CC BY-SA 4.0"
+/>
+
+<ArticleImage
+  src="/articles/bagirsak/kefir-fermente.webp"
+  ratio="1600 / 1184"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Bermas66 · kamu malı"
+/>

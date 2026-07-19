@@ -1,0 +1,63 @@
+<ArticleImage
+  src="/articles/bakteriyofaj/t4-elektron-mikrograf.webp"
+  ratio="900 / 672"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="AFADadcADSasd · CC BY 4.0"
+/>
+
+<ArticleImage
+  src="/articles/bakteriyofaj/twort-portre.webp"
+  ratio="794 / 1139"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Obituary Notices of Fellows of the Royal Society, Vol. 7, No · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/bakteriyofaj/dherelle-portre.webp"
+  ratio="520 / 693"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="[Service photo Institut Pasteur - Photothèque] · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/bakteriyofaj/eliava-portre.webp"
+  ratio="370 / 457"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Unknown author Unknown author · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/bakteriyofaj/eliava-enstitusu.webp"
+  ratio="1600 / 2228"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Ejw0851 · CC BY-SA 4.0"
+/>
+
+<ArticleImage
+  src="/articles/bakteriyofaj/faj-ilani.webp"
+  ratio="1600 / 1056"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="https://wellcomeimages.org/indexplus/obf_images/b0/1d/ee6b64 · CC BY 4.0"
+/>
+
+<ArticleImage
+  src="/articles/bakteriyofaj/doudna-charpentier.webp"
+  ratio="1152 / 546"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="For Emmanuelle Charpentier portrait, credit Bianca Fioretti  · CC BY-SA 4.0"
+/>
+
+<ArticleImage
+  src="/articles/bakteriyofaj/acinetobacter-sem.webp"
+  ratio="1200 / 815"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Photo Credit: Janice Carr · kamu malı"
+/>

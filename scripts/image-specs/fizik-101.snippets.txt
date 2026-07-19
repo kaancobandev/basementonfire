@@ -1,0 +1,63 @@
+<ArticleImage
+  src="/articles/fizik-101/ayda-astronot.webp"
+  ratio="1600 / 1600"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Neil A. Armstrong · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/fizik-101/uzayda-agirliksizlik.webp"
+  ratio="1600 / 1065"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="NASA · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/fizik-101/newton-portre.webp"
+  ratio="1600 / 1927"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Godfrey Kneller · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/fizik-101/principia-kapak.webp"
+  ratio="1600 / 2100"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Joseph Streater · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/fizik-101/roket-firlatma.webp"
+  ratio="1600 / 2000"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="NASA; restored by Michel Vuijlsteke · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/fizik-101/newton-besigi.webp"
+  ratio="1600 / 1425"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="The Dean of Physics · CC BY-SA 4.0"
+/>
+
+<ArticleImage
+  src="/articles/fizik-101/hiz-treni.webp"
+  ratio="1600 / 1200"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Ntsimp · CC0"
+/>
+
+<ArticleImage
+  src="/articles/fizik-101/surtunme-kibrit.webp"
+  ratio="1600 / 1200"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Yann SEGALEN · CC BY-SA 4.0"
+/>

@@ -1,0 +1,55 @@
+<ArticleImage
+  src="/articles/internet/veri-merkezi.webp"
+  ratio="1600 / 2408"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Derrick Coetzee from Berkeley, CA, USA · CC0"
+/>
+
+<ArticleImage
+  src="/articles/internet/ag-karti.webp"
+  ratio="1600 / 1200"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="futase_tdkr · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/internet/ethernet-switch.webp"
+  ratio="1600 / 1200"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Sub · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/internet/ev-router.webp"
+  ratio="1600 / 1067"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Hayden Schiff · CC BY 4.0"
+/>
+
+<ArticleImage
+  src="/articles/internet/ixp-anahtar-rafi.webp"
+  ratio="1600 / 1195"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Stefan Funke from Frankfurt, Germany · CC BY-SA 2.0"
+/>
+
+<ArticleImage
+  src="/articles/internet/fiber-optik-kablo.webp"
+  ratio="1600 / 1000"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Geek3 · CC BY-SA 4.0"
+/>
+
+<ArticleImage
+  src="/articles/internet/baz-istasyonu.webp"
+  ratio="1600 / 1977"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Obsidian Soul · CC0"
+/>

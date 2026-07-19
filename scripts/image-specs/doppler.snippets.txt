@@ -1,0 +1,63 @@
+<ArticleImage
+  src="/articles/doppler/christian-doppler.webp"
+  ratio="499 / 640"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Unknown author Unknown author · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/doppler/buys-ballot.webp"
+  ratio="1600 / 2611"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Rijksmuseum · CC0"
+/>
+
+<ArticleImage
+  src="/articles/doppler/edwin-hubble.webp"
+  ratio="846 / 1068"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Johan Hagemeyer · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/doppler/radar-tabancasi.webp"
+  ratio="1600 / 1067"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="U.S. Army photo by Sgt. Raven Jones · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/doppler/doppler-radari.webp"
+  ratio="1600 / 1246"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Eric Kurth, NOAA/NWS/ER/WFO/Sacramento. · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/doppler/doppler-ultrason.webp"
+  ratio="1024 / 698"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Cerevisae · CC BY-SA 4.0"
+/>
+
+<ArticleImage
+  src="/articles/doppler/51-pegasi-b.webp"
+  ratio="1600 / 1006"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="ESO/M. Kornmesser/Nick Risinger (skysurvey.org) · CC BY 4.0"
+/>
+
+<ArticleImage
+  src="/articles/doppler/ses-patlamasi.webp"
+  ratio="1600 / 1143"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Ensign John Gay, U.S. Navy · kamu malı"
+/>
