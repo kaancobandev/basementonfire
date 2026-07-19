@@ -1,7 +1,10 @@
-// Sayfalar arası gezinmede ANINDA görünen iskelet. Hedef sayfanın sunucu render'ı
-// gelene kadar boş ekran yerine bu shimmer gösterilir → algılanan hız ciddi artar.
-// (.main-content kabuğun sağ kolonunu doldurur; tema değişkenleriyle açık/koyu uyumlu.)
-export default function Loading() {
+// Sayfalar arası gezinmede ANINDA görünen iskelet. Segment bazlı loading.tsx
+// dosyalarından çağrılır — KÖKTE loading.tsx YOK ve olmamalı: kökteki bir
+// loading.tsx her dinamik rotayı streaming'e sokuyor, streaming ise notFound()
+// çalışmadan önce HTTP 200'ü flush ediyordu → olmayan profil/gönderi/etiket
+// "bulunamadı" gösterip 200 dönüyordu (soft-404, Google çöp URL'leri indeksler).
+// Bu yüzden iskelet yalnızca 404 üretmeyen segmentlere tek tek eklenir.
+export default function RouteSkeleton() {
   return (
     <main className="main-content sk-wrap" aria-busy="true" aria-label="Yükleniyor">
       <div className="sk-inner">

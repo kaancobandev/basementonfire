@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { unstable_cache } from 'next/cache';
-import { redirect } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { db, logIfError } from '@/lib/supabase/server';
 import { breadcrumbJsonLd, jsonLdScript } from '@/lib/seo';
 import HashtagClient from './HashtagClient';
@@ -35,7 +35,7 @@ type HashtagPost = {
 // 'feed' tag'i: yeni gönderi yüklenince revalidateTag('feed') bunu da tazeler.
 // Not: unstable_cache anahtara argümanları (tag) otomatik dahil eder.
 const getHashtagContent = unstable_cache(
-  async (normalizedTag: string): Promise<{ posts: HashtagPost[]; related: { tag: string; count: number }[] }> => {
+  async (normalizedTag: string): Promise<{ posts: HashtagPost[]; related: { tag: string; count: number }[]; exists: boolean }> => {
     // hashtags tablosunda bu tag'i bul
     const { data: hashtagRow } = await db
       .from('hashtags')
@@ -109,7 +109,9 @@ const getHashtagContent = unstable_cache(
       }
     }
 
-    return { posts, related };
+    // exists: etiket hashtags tablosunda HİÇ yok mu? Varsa ama gönderisi
+    // kalmadıysa sayfa yine açılır (meşru boş koleksiyon); hiç yoksa 404.
+    return { posts, related, exists: Boolean(hashtagRow) };
   },
   ['hashtag-content-v1'],
   { revalidate: 60, tags: ['feed'] },
@@ -136,7 +138,12 @@ export default async function HashtagPage({ params }: { params: Promise<{ tag: s
 
   if (!normalizedTag) redirect('/');
 
-  const { posts, related } = await getHashtagContent(normalizedTag);
+  const { posts, related, exists } = await getHashtagContent(normalizedTag);
+
+  // Uydurulmuş etiket → 404. Aksi hâlde /hashtag/ sonrasına ne yazılırsa yazılsın
+  // 200 dönen sonsuz sayıda boş sayfa üretilir ve Google hepsini indekslemeye
+  // çalışır. Etiket gerçekten varsa, gönderisi kalmasa bile sayfa açık kalır.
+  if (!exists) notFound();
 
   const breadcrumbLd = breadcrumbJsonLd([
     { name: 'Ana Sayfa', path: '/' },

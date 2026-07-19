@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { cache } from 'react';
-import { redirect } from 'next/navigation';
+import { Suspense } from 'react';
+import { notFound, redirect } from 'next/navigation';
+import RouteSkeleton from '@/app/components/RouteSkeleton';
 import { db, getMe } from '@/lib/supabase/server';
 import { breadcrumbJsonLd, jsonLdScript } from '@/lib/seo';
 import { bannerGradient } from '@/lib/avatar';
@@ -37,6 +39,9 @@ export async function generateMetadata({ params }: { params: Promise<{ username:
   const { username } = await params;
   const u = await getProfileUser(username);
 
+  // Burada notFound() çağırmak DURUM KODUNU DÜZELTMEZ (ölçüldü 2026-07-19):
+  // 404'ü üreten şey sayfa gövdesindeki notFound(); burada sadece u null iken
+  // çökmemek için güvenli bir metadata döndürülür.
   if (!u) {
     return { title: 'Kullanıcı bulunamadı', robots: { index: false, follow: false } };
   }
@@ -71,17 +76,34 @@ function calcAge(bd: string | null): number | null {
   return a;
 }
 
+// Sayfa iki parçaya bölündü ÇÜNKÜ: durum kodu, ilk bayt gönderilirken kilitlenir.
+// Suspense sınırı varlık kontrolünün ÜSTÜNDEyse (eskiden kök app/loading.tsx
+// öyleydi) streaming 200'ü flush eder ve sonraki notFound() artık kodu
+// değiştiremez → "bulunamadı" gösterip 200 dönen soft-404. Sınırı kontrolün
+// ALTINA alınca ikisi de doğru olur: ucuz varlık sorgusu beklenir (404 gerçek
+// 404), pahalı gövde ise iskelet arkasında akar (~1,4s gecikme gizlenir).
 export default async function UserProfilePage({ params }: { params: Promise<{ username: string }> }) {
   const { username } = await params;
 
   // Profil sorgusu ile getMe (2 tur: auth + users) birbirinden bağımsız → paralel.
   const [profileUser, { me }] = await Promise.all([getProfileUser(username), getMe()]);
 
-  if (!profileUser) redirect('/');
+  // Olmayan kullanıcı ana sayfaya YÖNLENDİRİLMEZ: 307 ana sayfaya, Google'a
+  // "/u/herhangibirsey ana sayfadır" demektir ve sonsuz sayıda çöp URL'i ana
+  // sayfaya bağlar. Olmayan kaynağın doğru cevabı 404'tür.
+  if (!profileUser) notFound();
 
   // Kendi profili ise /profile'a yönlendir
   if (me?.id === profileUser.id) redirect('/profile');
 
+  return (
+    <Suspense fallback={<RouteSkeleton />}>
+      <ProfileBody profileUser={profileUser} me={me} />
+    </Suspense>
+  );
+}
+
+async function ProfileBody({ profileUser, me }: { profileUser: NonNullable<Awaited<ReturnType<typeof getProfileUser>>>; me: Awaited<ReturnType<typeof getMe>>['me'] }) {
   // Takip + engel durumu: birbirinden bağımsız iki sorgu → tek turda paralel.
   // blocks tablosu yoksa (SQL çalışmadı) sessizce false kalır.
   let isFollowing = false;
