@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from 'react';
 import Img from '@/app/components/Img';
+import MusicPlayer from '@/app/components/MusicPlayer';
 import { splitMedia, type MediaItem } from '@/lib/types';
 import { swipeTarget } from '@/lib/swipe';
 
@@ -109,8 +110,12 @@ function MusicLayer({ url, targetRef }: { url: string; targetRef: React.RefObjec
   );
 }
 
-/** Yalnızca ses içeren gönderi (görsel yok) için oynatıcı kartı. */
-function AudioCard({ url, variant }: { url: string; variant: 'lightbox' | 'feed' }) {
+/** Yalnızca ses içeren gönderi (görsel yok) için oynatıcı kartı.
+ *  Tarayıcının çıplak <audio controls> arayüzü yerine kendi cam çalarımız:
+ *  varsayılan denetimler her tarayıcıda farklı görünüyor ve sitenin diline
+ *  hiç uymuyordu. Başlık gönderi açıklamasından gelir. */
+function AudioCard({ url, variant, caption }: { url: string; variant: 'lightbox' | 'feed'; caption?: string }) {
+  const title = (caption ?? '').trim().split('\n')[0].slice(0, 60) || 'Ses kaydı';
   return (
     <div style={{
       width: '100%',
@@ -118,9 +123,8 @@ function AudioCard({ url, variant }: { url: string; variant: 'lightbox' | 'feed'
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 18,
       background: 'linear-gradient(135deg, #312e81, #4c1d95)', color: '#fff', padding: 24, boxSizing: 'border-box',
     }}>
-      <NoteIcon size={48} />
-      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-      <audio src={url} controls style={{ width: '100%', maxWidth: 440 }} />
+      <NoteIcon size={40} />
+      <MusicPlayer tracks={[{ title, artist: 'Basements', src: url }]} loop={false} />
     </div>
   );
 }
@@ -204,7 +208,7 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
 
   // Görsel yok → ses-only kart, yoksa null
   if (visuals.length === 0) {
-    return audio ? <AudioCard url={audio} variant={variant} /> : null;
+    return audio ? <AudioCard url={audio} variant={variant} caption={captionRaw} /> : null;
   }
 
   // TEK görsel
