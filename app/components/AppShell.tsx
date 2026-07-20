@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { Fragment, useEffect, useRef, useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { Toaster, toast } from 'sonner';
 import Logo from './Logo';
@@ -254,17 +254,45 @@ export default function AppShell({ children }: AppShellProps) {
             { href: '/akis', id: 'akis', label: 'Akış', icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg> },
             { href: '/muzik', id: 'muzik', label: 'Müzik', icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> },
           ].map(item => (
-            <Link key={item.id} href={item.id === 'home' ? (user ? '/feed' : '/') : item.href} aria-label={item.label} className={`mobile-nav-btn${activeId === item.id ? ' active' : ''}`}>
-              {item.icon}
-              <span className="mobile-nav-label">{item.label}</span>
-            </Link>
-          ))}
+            <Fragment key={item.id}>
+              <Link href={item.id === 'home' ? (user ? '/feed' : '/') : item.href} aria-label={item.label} className={`mobile-nav-btn${activeId === item.id ? ' active' : ''}`}>
+                {item.icon}
+                <span className="mobile-nav-label">{item.label}</span>
+              </Link>
 
-          {user && (
-            <button className="mobile-create-btn" type="button" aria-label="Paylaş" onClick={openSheet}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 5v14M5 12h14"/></svg>
-            </button>
-          )}
+              {/* PAYLAŞ (+) — barın TAM ORTASI. Yedi öğe var (4 link + bu + Mesajlar
+                  + Profil), ortadaki 4. sıra; o yüzden 'akis'ten SONRA basılıyor.
+                  Sırayı değiştirirsen bu koşulu da değiştir, yoksa + ortadan kayar.
+
+                  `user &&` KOŞULU BİLEREK YOK: `user` ancak /api/nav-state cevabı
+                  gelince dolduğu için düğme ilk boyamada hiç basılmıyordu ve
+                  telefonda gözle görülür şekilde GEÇ beliriyordu (sunucu HTML'inde
+                  mobile-create-btn sıfır kez geçiyordu). Artık her zaman basılır,
+                  görünürlüğü `.auth-in` sarmalayıcısına bırakılır: onu layout.tsx'teki
+                  satır içi auth-hint scripti ilk boyamadan ÖNCE çereze bakıp
+                  data-auth ile ayarlar. Masaüstü kenar çubuğu (DesktopCreateMenu)
+                  zaten aynı deseni kullanıyor. */}
+              {item.id === 'akis' && (
+                <div className="auth-in">
+                  {/* <button> DEĞİL <a>: düğme artık ilk boyamada basıldığı için
+                      React bağlanmadan ÖNCE de dokunulabiliyor, ama o anda
+                      onClick henüz bağlı olmadığından dokunuş sessizce yutulurdu
+                      — kullanıcı açısından "yine gelmedi" demek. Bağlantı olarak
+                      basılınca bağlanma öncesi dokunuş /gonderi-olustur'a gider
+                      (gerçek sunucu rotası); bağlandıktan sonra preventDefault
+                      devreye girip alt sayfayı açar. */}
+                  <a
+                    href="/gonderi-olustur"
+                    className="mobile-create-btn"
+                    aria-label="Paylaş"
+                    onClick={e => { e.preventDefault(); openSheet(); }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                  </a>
+                </div>
+              )}
+            </Fragment>
+          ))}
 
           <Link href="/messages" aria-label={`Mesajlar${msgCount > 0 ? ` (${msgCount} okunmamış)` : ''}`} className={`mobile-nav-btn${activeId === 'messages' ? ' active' : ''}`}>
             <span className="nav-icon-wrap">
@@ -283,7 +311,11 @@ export default function AppShell({ children }: AppShellProps) {
 
       {/* Mobil paylaş-sheet'i — lazy yüklenen ayrı parça (framer-motion ana bundle'da
           değil) ve İLK AÇILIŞA KADAR mount edilmez (chunk hiç inmesin). */}
-      {user && sheetEverOpened && <MobileCreateSheet open={sheetOpen} onClose={closeSheet} />}
+      {/* `user &&` kaldırıldı: düğme artık nav-state beklemeden basıldığı için,
+          cevap gelmeden basan kullanıcıda sheet mount olmuyordu. sheetEverOpened
+          zaten yalnız düğmeye BASILINCA true olur ve düğme çıkışlı ziyaretçide
+          CSS ile gizli → chunk hâlâ boşuna inmez. */}
+      {sheetEverOpened && <MobileCreateSheet open={sheetOpen} onClose={closeSheet} />}
 
       {/* Toasts — sonner */}
       {/* mobileOffset: bildirimler alt-orta 16px ofsetle doğrudan cam dock'un
