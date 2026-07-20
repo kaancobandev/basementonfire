@@ -36,7 +36,7 @@ const getHomeContent = unstable_cache(
       // (Aynı hata app/api/stories/route.ts'te de vardı.) Bkz. quick_facts satırı:
       // orada ipucu zaten var, bu yüzden o sorgu hiç bozulmadı.
       db.from('stories')
-        .select('id, media_url, media_type, created_at, user_id, music_track_id, music_start_sec, music:music_tracks(id, title, artist, src), users!stories_user_id_fkey(id, username, display_name, avatar, is_private)')
+        .select('id, media_url, media_type, created_at, user_id, music_track_id, music_start_sec, link_url, link_label, music:music_tracks(id, title, artist, src), users!stories_user_id_fkey(id, username, display_name, avatar, is_private)')
         .gt('expires_at', new Date().toISOString())
         .order('created_at', { ascending: false })
         // Büyüme sigortası: şerit zaten en yeni hikâyeleri gösterir; 24 saatte 100+
@@ -49,7 +49,7 @@ const getHomeContent = unstable_cache(
     // yukarıdaki sorgu patlar; sade sorguya düşmezsek hikâye şeridi tamamen boş
     // kalır (yeni düzeltilen hatanın aynısı). Özellik uykudayken de çalışmalı.
     let storiesFinal = storiesRaw;
-    if (storiesErr && /music_track_id|music_start_sec|music_tracks/i.test(storiesErr.message)) {
+    if (storiesErr && /music_track_id|music_start_sec|music_tracks|link_url|link_label/i.test(storiesErr.message)) {
       const { data: sade } = await db.from('stories')
         .select('id, media_url, media_type, created_at, user_id, users!stories_user_id_fkey(id, username, display_name, avatar, is_private)')
         .gt('expires_at', new Date().toISOString())
@@ -224,7 +224,7 @@ export default async function FeedPage() {
 
   // Stories
   // `music` opsiyonel — SQL çalıştırılana kadar hiç gelmez (bkz. yukarıdaki geri düşüş).
-  interface StoryItem { id: number; mediaUrl: string; mediaType: string; createdAt: string; music?: { title: string; artist: string | null; src: string; startSec: number } | null; }
+  interface StoryItem { id: number; mediaUrl: string; mediaType: string; createdAt: string; music?: { title: string; artist: string | null; src: string; startSec: number } | null; linkUrl?: string | null; linkLabel?: string | null; seen?: boolean; }
   interface StoryUser { userId: number; username: string; displayName: string; avatar: string | null; stories: StoryItem[]; }
 
   // storiesRaw yukarıda getHomeContent()'ten (önbellekli) geldi.
@@ -238,12 +238,32 @@ export default async function FeedPage() {
       // s.music yalnız SQL çalıştırıldıysa gelir; yoksa undefined kalır ve
       // görüntüleyici sessizce müziksiz oynatır.
       music: s.music ? { title: s.music.title, artist: s.music.artist ?? null, src: s.music.src, startSec: s.music_start_sec ?? 0 } : null,
+      linkUrl: s.link_url ?? null,
+      linkLabel: s.link_label ?? null,
     });
   }
 
   const ownStoryUser = me ? (storyMap.get(me.id) ?? null) : null;
   if (me) storyMap.delete(me.id);
-  const otherStoryUsers = [...storyMap.values()];
+
+  // GORULMEMIS HALKASI. KISIYE OZELDIR -> getHomeContent() onbellliginin DISINDA:
+  // oraya girseydi bir kullanicinin "gordum" bilgisi 30 saniye boyunca herkese
+  // servis edilirdi. story_views yoksa sorgu sessizce bos doner ve halkalar
+  // eskisi gibi hepsi renkli kalir; hicbir sey kirilmaz.
+  if (me) {
+    const ids = [...storyMap.values()].flatMap(u => u.stories.map(st => st.id));
+    if (ids.length) {
+      const { data: seen } = await db
+        .from('story_views').select('story_id').eq('viewer_id', me.id).in('story_id', ids);
+      const seenSet = new Set((seen ?? []).map((r: any) => r.story_id));
+      for (const u of storyMap.values()) for (const st of u.stories) st.seen = seenSet.has(st.id);
+    }
+  }
+
+  // Izlenmemis hikayesi olan kullanicilar ONE. Serit buyudukce kullanici hangisini
+  // gordugunu hatirlamak zorunda kalmasin; kendi aralarinda mevcut sira korunur.
+  const otherStoryUsers = [...storyMap.values()].sort((a, b) =>
+    (a.stories.some(st => !st.seen) ? 0 : 1) - (b.stories.some(st => !st.seen) ? 0 : 1));
 
   return (
     <HomeFeed

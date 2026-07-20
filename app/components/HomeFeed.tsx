@@ -21,6 +21,12 @@ import ReportButton from './ReportButton';
 import { toast } from 'sonner';
 import { uploadToStorage } from '@/lib/upload';
 import { useMediaDock } from './MediaDock';
+import { normalizeStoryLink } from '@/lib/storyLink';
+import { ARTICLES } from '@/lib/articles';
+
+// Bağlantı alanının önerileri: 32 makale. Serbest yol da yazılabilir (datalist
+// kısıtlamaz), ama en sık kullanılacak hedefler elle yazılmadan seçilebilsin.
+const articleLinkOptions = ARTICLES.map(a => ({ path: `/articles/${a.slug}`, title: a.title }));
 // Kırpıcı yalnız görsel seçilince insin — react-easy-crop akışın ilk yükünde yer almasın.
 const ImageCropper = dynamic(() => import('./ImageCropper'), { ssr: false });
 import { LazyMotion, m, AnimatePresence } from 'framer-motion';
@@ -33,7 +39,7 @@ const loadMotionFeatures = () => import('./motionFeatures').then(mod => mod.defa
 interface StoryMusic { title: string; artist: string | null; src: string; startSec: number }
 // `music` OPSİYONEL: sql/features-story-music.sql çalıştırılana kadar sunucu bu
 // alanı hiç göndermez ve görüntüleyici sessizce müziksiz oynatır.
-interface StoryItem { id: number; mediaUrl: string; mediaType: string; createdAt: string; music?: StoryMusic | null; }
+interface StoryItem { id: number; mediaUrl: string; mediaType: string; createdAt: string; music?: StoryMusic | null; linkUrl?: string | null; linkLabel?: string | null; seen?: boolean; }
 interface StoryUser { userId: number; username: string; displayName: string; avatar: string | null; stories: StoryItem[]; }
 interface SuggestedUser { id: number; username: string; display_name: string; bio: string | null; avatar: string | null; mutual_count: number; }
 
@@ -191,6 +197,10 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
   // bkz. sql/features-story-music.sql). Liste boşsa seçici hiç görünmez.
   const [storyTracks, setStoryTracks] = useState<{ id: number; title: string; artist: string | null; src: string }[]>([]);
   const [storyMusicId, setStoryMusicId] = useState<number | null>(null);
+  const [storyLink, setStoryLink] = useState('');
+  const [storyLinkLabel, setStoryLinkLabel] = useState('');
+  // Aynı doğrulayıcı sunucuda da çalışır; buradaki yalnız anında geri bildirim.
+  const linkGecerli = normalizeStoryLink(storyLink) !== null;
   const storyPreviewAudioRef = useRef<HTMLAudioElement | null>(null);
   const [storyPreviewUrl, setStoryPreviewUrl] = useState('');
   const [storyError, setStoryError] = useState('');
@@ -421,7 +431,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
       const res = await fetch('/api/stories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ path, mediaType, musicTrackId: storyMusicId }),
+        body: JSON.stringify({ path, mediaType, musicTrackId: storyMusicId, linkUrl: storyLink, linkLabel: storyLinkLabel }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Hata');
@@ -429,6 +439,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
       setStoryFile(null);
       setStoryPreviewUrl('');
       setStoryMusicId(null);
+      setStoryLink(''); setStoryLinkLabel('');
       // ŞERİDİ TAZELE. Bu satır olmadan kayıt 201 dönse bile ekranda hiçbir şey
       // değişmiyordu: modal kapanır, şerit aynı kalır, "Ekle" hâlâ kesikli çember
       // olarak durur → kullanıcı yüklemenin başarısız olduğunu sanır. Hikâyeler
@@ -540,7 +551,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
               style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px', background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0, padding: '2px' }}
               onClick={() => openViewer(ownStoryUser ? i + 1 : i)}
             >
-              <div style={{ width: 60, height: 60, borderRadius: '50%', padding: '2.5px', background: 'var(--gradient-story)', transition: 'transform 0.15s' }}>
+              <div style={{ width: 60, height: 60, borderRadius: '50%', padding: '2.5px', background: u.stories.every(st => st.seen) ? 'var(--color-border)' : 'var(--gradient-story)', transition: 'transform 0.15s' }}>
                 {u.avatar
                   ? <Img src={u.avatar} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', border: '2px solid white' }} />
                   : <div style={{ width: '100%', height: '100%', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '1.25rem', color: '#fff', background: storyAvatarBg(u.username), border: '2px solid white' }}>{u.displayName[0].toUpperCase()}</div>
@@ -950,6 +961,22 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
               </div>
             )}
           </div>
+          {/* BAĞLANTI ROZETİ — hikâyenin tek ölçülebilir çıkışı. Alt ortada,
+              dokunma bölgelerinin (ileri/geri) ÜSTÜNDE bir katmanda duruyor;
+              yoksa üstüne basınca hikâye ilerler, bağlantı hiç açılmazdı. */}
+          {currentSvStory?.linkUrl && (
+            <Link
+              href={currentSvStory.linkUrl}
+              onClick={() => closeViewer()}
+              style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', bottom: currentSvStory?.music ? 100 : 62,
+                zIndex: 7, display: 'inline-flex', alignItems: 'center', gap: 7, textDecoration: 'none',
+                background: 'rgba(255,255,255,0.94)', color: '#111', borderRadius: 9999, padding: '9px 16px',
+                fontSize: '0.82rem', fontWeight: 700, boxShadow: '0 4px 16px rgba(0,0,0,0.35)', whiteSpace: 'nowrap', maxWidth: '80%' }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{currentSvStory.linkLabel || 'Görüntüle'}</span>
+            </Link>
+          )}
           {/* Hikâye müziği. Viewer'a ait, dock'tan bağımsız (bkz. yukarıdaki efekt). */}
           <audio ref={svAudioRef} hidden />
           {currentSvStory?.music && (
@@ -1049,6 +1076,41 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                 <audio ref={storyPreviewAudioRef} hidden />
               </div>
             )}
+            {/* BAĞLANTI STICKER'I — hikâye şu ana kadar kapalı devreydi: izlenir,
+                biter, siteye hiçbir yere götürmezdi. Yalnız SİTE İÇİ yol kabul
+                edilir (lib/storyLink.ts); dışarı açık yönlendirme riski sıfır. */}
+            <div style={{ marginTop: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#b9ada0" strokeWidth="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                <span style={{ color: '#b9ada0', fontSize: '0.8rem', fontWeight: 700 }}>Bağlantı ekle</span>
+                <span style={{ color: '#7d7268', fontSize: '0.7rem' }}>site içi</span>
+              </div>
+              <input
+                list="story-link-suggestions"
+                value={storyLink}
+                onChange={e => setStoryLink(e.target.value)}
+                placeholder="/articles/rome"
+                inputMode="url"
+                style={{ width: '100%', padding: '9px 11px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.14)', background: 'transparent', color: '#e8e0d8', fontFamily: 'inherit', fontSize: '0.85rem' }}
+              />
+              <datalist id="story-link-suggestions">
+                {articleLinkOptions.map(a => <option key={a.path} value={a.path}>{a.title}</option>)}
+              </datalist>
+              {storyLink.trim() !== '' && !linkGecerli && (
+                <p style={{ color: '#f59e0b', fontSize: '0.75rem', margin: '6px 0 0' }}>
+                  Yalnızca site içi bir yol olabilir; “/” ile başlamalı (ör. /articles/rome).
+                </p>
+              )}
+              {linkGecerli && (
+                <input
+                  value={storyLinkLabel}
+                  onChange={e => setStoryLinkLabel(e.target.value)}
+                  placeholder="Düğme yazısı (ör. Makaleyi oku)"
+                  maxLength={40}
+                  style={{ width: '100%', marginTop: 8, padding: '9px 11px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.14)', background: 'transparent', color: '#e8e0d8', fontFamily: 'inherit', fontSize: '0.85rem' }}
+                />
+              )}
+            </div>
             {storyError && <p style={{ color: '#ef4444', fontSize: '0.85rem', margin: '8px 0 0' }}>{storyError}</p>}
             <button disabled={!storyFile || storySubmitting} onClick={submitStory} style={{ width: '100%', marginTop: 14, padding: 12, border: 'none', borderRadius: '9999px', background: 'var(--color-accent)', color: '#0f0e0d', fontWeight: 700, fontSize: '0.95rem', cursor: storyFile ? 'pointer' : 'not-allowed', opacity: storyFile ? 1 : 0.4 }}>
               {storySubmitting ? 'Yükleniyor…' : 'Hikayeyi Paylaş'}
