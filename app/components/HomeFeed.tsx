@@ -292,6 +292,9 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
   const [storyViews, setStoryViews] = useState<{ count: number; viewers: { username: string; display_name: string; avatar: string | null }[] } | null>(null);
   const [viewersOpen, setViewersOpen] = useState(false);
   const [reactionSent, setReactionSent] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState('');
+  const [replyFocused, setReplyFocused] = useState(false); // yazarken hikaye ilerlemesin
+  const [replySending, setReplySending] = useState(false);
   const isOwnStory = !!ownStoryUser && allStoryUsers[svUserIdx]?.userId === ownStoryUser.userId;
 
   // Hikaye değişince: izleyiciyse görüntülenme beacon'ı, sahibiyse liste çekilir.
@@ -302,6 +305,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
     setReactionSent(null);
     setViewersOpen(false);
     setStoryViews(null);
+    setReplyText(''); setReplyFocused(false);
     if (!currentUser) return;
     if (isOwnStory) {
       let alive = true;
@@ -332,16 +336,35 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
     }
   }
 
+  // Serbest metin yanıtı → sahibine DM (tepkiyle AYNI kapıdan: engel + dm_privacy).
+  async function sendStoryReply(storyId: number) {
+    const text = replyText.trim();
+    if (!text || replySending) return;
+    if (!currentUser) { window.location.href = '/login'; return; }
+    setReplySending(true);
+    try {
+      const r = await fetch(`/api/stories/${storyId}/view`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+      const d = await r.json();
+      if (!r.ok || !d.ok) { toast(d.error ?? 'Gönderilemedi'); return; }
+      setReplyText('');
+      toast('Yanıtın gönderildi', { description: 'Mesaj olarak iletildi.' });
+    } catch { toast('Gönderilemedi'); }
+    finally { setReplySending(false); }
+  }
+
   // svDuration hem ilerleme çubuğunu hem bu timer'ı sürer; metadata süreyi
   // güncelleyince (video) timer yeniden kurulur.
   useEffect(() => {
-    if (!viewerOpen) return;
+    if (!viewerOpen || replyFocused) return; // yanıt yazarken hikaye İLERLEMEZ
     const s = allStoryUsers[svUserIdx]?.stories[svStoryIdx];
     if (!s) return;
     clearSvTimer();
     svTimerRef.current = setTimeout(autoAdvance, svDuration * 1000);
     return clearSvTimer;
-  }, [viewerOpen, svUserIdx, svStoryIdx, svDuration]);
+  }, [viewerOpen, svUserIdx, svStoryIdx, svDuration, replyFocused]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -877,7 +900,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                 {currentSvUser.stories.map((_, i) => (
                   <div key={i} style={{ flex: 1, height: '2.5px', borderRadius: '9999px', background: i < svStoryIdx ? '#fff' : 'rgba(255,255,255,0.3)', overflow: 'hidden', position: 'relative' }}>
                     {i === svStoryIdx && (
-                      <div key={svDuration} style={{ position: 'absolute', inset: 0, background: '#fff', transformOrigin: 'left', animation: `sv-progress ${svDuration}s linear forwards` }} />
+                      <div key={svDuration} style={{ position: 'absolute', inset: 0, background: '#fff', transformOrigin: 'left', animation: `sv-progress ${svDuration}s linear forwards`, animationPlayState: replyFocused ? 'paused' : 'running' }} />
                     )}
                   </div>
                 ))}
@@ -917,7 +940,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
 
             {/* Alt şerit: SAHİBİ görüntülenme sayısını görür, İZLEYİCİ tepki verir.
                 Hikaye atan kullanıcı şimdiye kadar sıfır geri bildirim alıyordu. */}
-            <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 8, padding: '10px 12px', background: 'linear-gradient(to top, rgba(0,0,0,0.65), transparent)', display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', minHeight: 56 }}>
+            <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 8, padding: '10px 12px', background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)', display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', minHeight: 56 }}>
               {isOwnStory ? (
                 <button
                   type="button"
@@ -927,18 +950,45 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                   👁 {storyViews?.count ?? 0} kişi gördü
                 </button>
               ) : (
-                ['❤️', '🔥', '😮', '👏', '😂'].map(em => (
-                  <button
-                    key={em}
-                    type="button"
-                    onClick={() => sendStoryReaction(currentSvStory.id, em)}
-                    disabled={reactionSent !== null}
-                    aria-label={`${em} tepkisi gönder`}
-                    style={{ background: reactionSent === em ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.12)', border: 'none', borderRadius: '50%', width: 40, height: 40, fontSize: '1.15rem', cursor: reactionSent ? 'default' : 'pointer', lineHeight: 1 }}
+                // İZLEYİCİ: emoji tepkisi + serbest metin yanıtı. İkisi de aynı DM
+                // kapısından geçer (PUT /view). Yazarken hikaye duraklar (replyFocused).
+                <div style={{ width: '100%', maxWidth: 460, display: 'flex', flexDirection: 'column', gap: 9 }}>
+                  <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+                    {['❤️', '🔥', '😮', '👏', '😂'].map(em => (
+                      <button
+                        key={em}
+                        type="button"
+                        onClick={() => sendStoryReaction(currentSvStory.id, em)}
+                        disabled={reactionSent !== null}
+                        aria-label={`${em} tepkisi gönder`}
+                        style={{ background: reactionSent === em ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.12)', border: 'none', borderRadius: '50%', width: 40, height: 40, fontSize: '1.15rem', cursor: reactionSent ? 'default' : 'pointer', lineHeight: 1 }}
+                      >
+                        {em}
+                      </button>
+                    ))}
+                  </div>
+                  <form
+                    onSubmit={e => { e.preventDefault(); sendStoryReply(currentSvStory.id); }}
+                    style={{ display: 'flex', gap: 8, alignItems: 'center' }}
                   >
-                    {em}
-                  </button>
-                ))
+                    <input
+                      value={replyText}
+                      onChange={e => setReplyText(e.target.value)}
+                      onFocus={() => setReplyFocused(true)}
+                      onBlur={() => setReplyFocused(false)}
+                      placeholder="Yanıt gönder…"
+                      maxLength={1000}
+                      style={{ flex: 1, minWidth: 0, background: 'rgba(255,255,255,0.14)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: 9999, padding: '10px 16px', color: '#fff', fontFamily: 'inherit', fontSize: '0.86rem', outline: 'none' }}
+                    />
+                    <button
+                      type="submit"
+                      disabled={!replyText.trim() || replySending}
+                      style={{ flexShrink: 0, background: replyText.trim() ? '#fff' : 'rgba(255,255,255,0.25)', color: '#111', border: 'none', borderRadius: 9999, padding: '10px 16px', fontFamily: 'inherit', fontSize: '0.84rem', fontWeight: 700, cursor: replyText.trim() && !replySending ? 'pointer' : 'default' }}
+                    >
+                      {replySending ? '…' : 'Gönder'}
+                    </button>
+                  </form>
+                </div>
               )}
             </div>
 

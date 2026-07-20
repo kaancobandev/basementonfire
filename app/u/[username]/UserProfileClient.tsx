@@ -1,6 +1,7 @@
 'use client';
 
 import Img from '@/app/components/Img';
+import StoryHighlights from '@/app/components/StoryHighlights';
 import { avatarSrc } from '@/lib/avatar';
 import MediaCarousel, { MultiBadge, AudioThumb, MusicBadge } from '@/app/components/MediaCarousel';
 import { useIsMobile } from '@/lib/useIsMobile';
@@ -37,6 +38,7 @@ interface Props {
   articles?: { slug: string; title: string; summary: string; cover_url: string | null; category: string | null }[];
   progress?: { xp: number; current_streak: number; longest_streak: number; total_correct: number } | null;
   badgeKeys?: string[];
+  highlights?: { id: number; title: string; cover_url: string | null; count: number }[];
   me: { id: number; username: string; display_name: string; avatar: string | null } | null;
 }
 
@@ -47,7 +49,7 @@ function timeAgo(iso: string) {
 
 const GENDER_LABEL: Record<string, string> = { erkek: 'Erkek', kadin: 'Kadın', diger: 'Diğer' };
 
-export default function UserProfileClient({ profileUser, bg, age, followersCount, followingCount, isFollowing: initialFollowing, isHidden, iBlocked, blockedMe, mediaPosts, articles = [], progress = null, badgeKeys = [], me }: Props) {
+export default function UserProfileClient({ profileUser, bg, age, followersCount, followingCount, isFollowing: initialFollowing, isHidden, iBlocked, blockedMe, mediaPosts, articles = [], progress = null, badgeKeys = [], highlights = [], me }: Props) {
   const router = useRouter();
   const isMobile = useIsMobile();
   const [following, setFollowing] = useState(initialFollowing);
@@ -323,6 +325,14 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
           );
         })()}
       </div>
+
+      {/* Öne çıkanlar (highlights) — gizli değilse. isOwner=false: bu rota kendi
+          profiline /profile'a yönlendiriyor, o yüzden burada asla sahibi değiliz. */}
+      {!isHidden && highlights.length > 0 && (
+        <div style={{ padding: '0 12px' }}>
+          <StoryHighlights profileUserId={profileUser.id} isOwner={false} initial={highlights} />
+        </div>
+      )}
 
       {/* Makaleler — yayındaki kullanıcı makaleleri */}
       {!isHidden && articles.length > 0 && (

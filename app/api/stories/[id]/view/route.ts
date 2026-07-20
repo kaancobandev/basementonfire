@@ -60,7 +60,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   });
 }
 
-/** Hızlı emoji tepkisi → sahibine DM. dm_privacy + engel kontrolü ŞART. */
+/**
+ * Hikayeye yanıt → sahibine DM. İki biçim: hızlı emoji tepkisi VEYA serbest metin.
+ * dm_privacy + engel kontrolü ikisinde de ŞART (yanıt yolu tepkiyle aynı kapıdan
+ * geçer). Mesaj `story_id` taşır ki sohbette "hikayene yanıt" bağlamı gösterilebilsin.
+ */
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { me } = await getMe();
   if (!me) return json({ error: 'Giriş gerekli' }, 401);
@@ -68,17 +72,33 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const storyId = Number((await params).id);
   if (!Number.isInteger(storyId) || storyId < 1) return json({ error: 'Geçersiz id' }, 400);
 
-  let emoji = '';
-  try { emoji = String((await req.json())?.emoji ?? ''); } catch { return json({ error: 'Geçersiz istek' }, 400); }
-  const ALLOWED = ['❤️', '🔥', '😮', '👏', '😂'];
-  if (!ALLOWED.includes(emoji)) return json({ error: 'Geçersiz tepki' }, 400);
+  let body: { emoji?: string; text?: string };
+  try { body = await req.json(); } catch { return json({ error: 'Geçersiz istek' }, 400); }
+
+  // İki mod: emoji tepkisi ya da serbest metin yanıtı. İçerik buradan belirlenir.
+  // isReply: yalnız metin yanıtında sohbette "hikayene yanıt" rozeti + önizleme
+  // gösterilir. Emoji tepkisinin içeriği zaten "tepki verdi: ❤️" diye kendini
+  // anlattığı için ona rozet koymak gereksiz olurdu.
+  let content: string;
+  let isReply = false;
+  if (typeof body.text === 'string' && body.text.trim()) {
+    const text = body.text.trim();
+    if (text.length > 1000) return json({ error: 'Yanıt en fazla 1000 karakter' }, 400); // messages_content_check ile aynı
+    content = text;
+    isReply = true;
+  } else {
+    const emoji = String(body.emoji ?? '');
+    const ALLOWED = ['❤️', '🔥', '😮', '👏', '😂'];
+    if (!ALLOWED.includes(emoji)) return json({ error: 'Geçersiz tepki' }, 400);
+    content = `Hikayene tepki verdi: ${emoji}`;
+  }
 
   const { data: story } = await db.from('stories').select('user_id').eq('id', storyId).maybeSingle();
   if (!story) return json({ error: 'Hikaye bulunamadı' }, 404);
-  if (story.user_id === me.id) return json({ error: 'Kendi hikayene tepki veremezsin' }, 400);
+  if (story.user_id === me.id) return json({ error: 'Kendi hikayene yanıt veremezsin' }, 400);
 
   const targetId = story.user_id as number;
-  if (await isBlockedBetween(me.id, targetId)) return json({ error: 'Tepki gönderilemedi' }, 403);
+  if (await isBlockedBetween(me.id, targetId)) return json({ error: 'Gönderilemedi' }, 403);
 
   // DM gizlilik politikası — /api/dm/start ile AYNI kurallar.
   const { data: target } = await db.from('users').select('dm_privacy').eq('id', targetId).single();
@@ -86,7 +106,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   if (policy === 'none') return json({ error: 'Bu kullanıcı mesajlara kapalı' }, 403);
   if (policy === 'followers') {
     const { data: follows } = await db.from('follows').select('id').eq('follower_id', me.id).eq('following_id', targetId).maybeSingle();
-    if (!follows) return json({ error: 'Tepki için bu kişiyi takip etmelisin' }, 403);
+    if (!follows) return json({ error: 'Yanıt için bu kişiyi takip etmelisin' }, 403);
   }
 
   const u1 = Math.min(me.id, targetId);
@@ -98,12 +118,20 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     const { data: created } = await db.from('conversations').insert({ user1_id: u1, user2_id: u2 }).select('id').single();
     convId = created?.id ?? null;
   }
-  if (!convId) return json({ error: 'Tepki gönderilemedi' }, 500);
+  if (!convId) return json({ error: 'Gönderilemedi' }, 500);
 
-  const { error: msgErr } = await db.from('messages').insert({
-    conversation_id: convId, sender_id: me.id, content: `Hikayene tepki verdi: ${emoji}`,
-  });
-  if (msgErr) return json({ error: 'Tepki gönderilemedi' }, 500);
+  // story_id yalnız METİN yanıtında yazılır (rozet bağlamı). Kolon
+  // sql/features-story-highlights-reply.sql çalıştırılana kadar YOKTUR → kolon
+  // yoksa story_id'siz tekrar yaz. Yanıt yine gider (yalnız rozet düşer), kırılmaz.
+  const base = { conversation_id: convId, sender_id: me.id, content };
+  let msgErr;
+  if (isReply) {
+    ({ error: msgErr } = await db.from('messages').insert({ ...base, story_id: storyId }));
+    if (msgErr && /story_id/i.test(msgErr.message)) ({ error: msgErr } = await db.from('messages').insert(base));
+  } else {
+    ({ error: msgErr } = await db.from('messages').insert(base));
+  }
+  if (msgErr) return json({ error: 'Gönderilemedi' }, 500);
   await db.from('conversations').update({ last_message_at: new Date().toISOString() }).eq('id', convId);
 
   return json({ ok: true });

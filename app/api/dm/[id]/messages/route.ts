@@ -19,12 +19,26 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   // embed'iyle) taşıyordu. En YENİ 500 mesajı çekip ters çeviriyoruz; artan
   // sıralamayla limit koymak en ESKİ 500'ü verirdi (yanlış uç).
   // TODO: 500'ü aşan sohbetler için cursor'lı sayfalama (yukarı kaydırınca yükle).
-  const { data: messages } = await db
+  // story embed'i yalnız sql/features-story-highlights-reply.sql çalıştırıldıysa
+  // vardır (messages.story_id). Önce zenginini dene; kolon/ilişki yoksa sade
+  // select'e düş → mevcut DM yüklemesi ASLA kırılmaz, yalnız "hikayeye yanıt"
+  // rozeti düşer.
+  const BASE = 'id, content, sender_id, is_read, created_at, users:sender_id(id, username, display_name, avatar)';
+  // İki select farklı şekil taşıdığı için ortak gevşek tip (aşağıda düz JSON'a gider).
+  let { data: messages, error }: { data: any[] | null; error: { message: string } | null } = await db
     .from('messages')
-    .select('id, content, sender_id, is_read, created_at, users:sender_id(id, username, display_name, avatar)')
+    .select(`${BASE}, story_id, story:stories!messages_story_id_fkey(media_url, media_type)`)
     .eq('conversation_id', convId)
     .order('created_at', { ascending: false })
     .limit(500);
+  if (error && /story_id|messages_story_id_fkey|stories/i.test(error.message)) {
+    ({ data: messages } = await db
+      .from('messages')
+      .select(BASE)
+      .eq('conversation_id', convId)
+      .order('created_at', { ascending: false })
+      .limit(500));
+  }
 
   await markConversationRead(convId, me.id);
 

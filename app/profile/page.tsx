@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { db, getMe, isAdmin, logIfError } from '@/lib/supabase/server';
 import { bannerGradient } from '@/lib/avatar';
+import { getHighlights } from '@/lib/storyHighlights';
 import type { DbUser } from '@/lib/types';
 import ProfileClient from './ProfileClient';
 
@@ -32,6 +33,8 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
     // Kendi makaleleri (her durum). Tablo yoksa hata yutulur -> profil yine acilir.
     db.from('user_articles').select('id, slug, title, status, cover_url, reject_reason').eq('user_id', user.id).order('created_at', { ascending: false }),
   ]);
+  // Öne çıkanlar — tablo yoksa boş (getHighlights defansif); şerit gizli kalır.
+  const highlights = await getHighlights(user.id);
   logIfError('profile media', mediaRes.error);
   logIfError('profile bookmarks', bookmarksRes.error);
   logIfError('profile reposts', repostsRes.error);
@@ -71,6 +74,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
       isAdmin={isAdmin(user as any)}
       progress={progress}
       badgeKeys={badgeKeys}
+      highlights={highlights}
       error={error ?? null}
     />
   );

@@ -9,7 +9,7 @@ import { avatarSrc } from '@/lib/avatar';
 
 interface OtherUser { id: number; username: string; display_name: string; avatar: string | null; }
 interface Conversation { id: number; otherUser: OtherUser; lastMessage: any; unreadCount: number; lastTimeAgo: string; }
-interface Message { id: number; content: string; sender_id: number; created_at: string; sender?: any; }
+interface Message { id: number; content: string; sender_id: number; created_at: string; sender?: any; story?: { media_url: string; media_type: string } | null; }
 interface Me { id: number; username: string; display_name: string; avatar: string; }
 
 interface Props {
@@ -270,8 +270,23 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
             <img src={m.content.slice(7)} alt="GIF" loading="lazy" style={{ width: '100%', display: 'block' }} />
           </div>
         ) : (
-          <div style={{ padding: '9px 14px', borderRadius: 18, fontSize: '0.88rem', lineHeight: 1.5, wordBreak: 'break-word', whiteSpace: 'pre-wrap', ...(mine ? { background: 'var(--color-accent)', color: '#0f0e0d', borderBottomRightRadius: 4 } : { background: 'rgba(255,255,255,0.08)', color: '#e8e0d8', borderBottomLeftRadius: 4 }) }}>
-            {m.content}
+          // story taşıyan mesaj = hikayeye yanıt: baloncuğun üstünde küçük hikaye
+          // önizlemesi + "Hikayene/Hikayeye yanıt" etiketi. story alanı yalnız SQL
+          // çalıştırıldıysa gelir (defansif select); yoksa sade baloncuk görünür.
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: mine ? 'flex-end' : 'flex-start' }}>
+            {m.story?.media_url && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, opacity: 0.85 }}>
+                <span style={{ fontSize: '0.66rem', color: '#8a8178' }}>{mine ? 'Hikayeye yanıt' : 'Hikayene yanıt'}</span>
+                <span style={{ width: 26, height: 40, borderRadius: 6, overflow: 'hidden', flexShrink: 0, border: '1px solid rgba(255,255,255,0.18)' }}>
+                  {m.story.media_type === 'video'
+                    ? <video src={m.story.media_url} muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    : <img src={m.story.media_url} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                </span>
+              </div>
+            )}
+            <div style={{ padding: '9px 14px', borderRadius: 18, fontSize: '0.88rem', lineHeight: 1.5, wordBreak: 'break-word', whiteSpace: 'pre-wrap', ...(mine ? { background: 'var(--color-accent)', color: '#0f0e0d', borderBottomRightRadius: 4 } : { background: 'rgba(255,255,255,0.08)', color: '#e8e0d8', borderBottomLeftRadius: 4 }) }}>
+              {m.content}
+            </div>
           </div>
         )}
         <span style={{ fontSize: '0.65rem', color: '#666', whiteSpace: 'nowrap', padding: '0 4px 2px' }}>{timeStr(m.created_at)}</span>

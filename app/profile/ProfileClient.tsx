@@ -1,6 +1,7 @@
 'use client';
 
 import Img from '@/app/components/Img';
+import StoryHighlights from '@/app/components/StoryHighlights';
 import { avatarSrc } from '@/lib/avatar';
 import MediaCarousel, { MultiBadge, AudioThumb, MusicBadge } from '@/app/components/MediaCarousel';
 import { useIsMobile } from '@/lib/useIsMobile';
@@ -38,12 +39,13 @@ interface Props {
   isAdmin?: boolean;
   progress: UserProgress | null;
   badgeKeys: string[];
+  highlights: { id: number; title: string; cover_url: string | null; count: number }[];
   error: string | null;
 }
 
 const GENDER_LABEL: Record<string, string> = { erkek: 'Erkek', kadin: 'Kadın', diger: 'Diğer' };
 
-export default function ProfileClient({ user, bg, age, followersCount, followingCount, mediaPosts, savedPosts, repostedPosts, myArticles, isAdmin, progress, badgeKeys, error }: Props) {
+export default function ProfileClient({ user, bg, age, followersCount, followingCount, mediaPosts, savedPosts, repostedPosts, myArticles, isAdmin, progress, badgeKeys, highlights, error }: Props) {
   const isMobile = useIsMobile();
   const [tab, setTab] = useState<'posts' | 'saved' | 'reposts' | 'articles'>('posts');
   const [articles, setArticles] = useState<MyArticle[]>(myArticles);
@@ -226,6 +228,12 @@ export default function ProfileClient({ user, bg, age, followersCount, following
             </div>
           );
         })()}
+      </div>
+
+      {/* Öne çıkanlar (highlights) — header ile sekmeler arası, Instagram konumu.
+          Kendi profilim → isOwner (oluştur/sil). Tablo yoksa şerit hiç görünmez. */}
+      <div style={{ padding: '0 12px' }}>
+        <StoryHighlights profileUserId={user.id} isOwner initial={highlights} />
       </div>
 
       {/* Tabs */}

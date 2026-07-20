@@ -6,6 +6,7 @@ import RouteSkeleton from '@/app/components/RouteSkeleton';
 import { db, getMe } from '@/lib/supabase/server';
 import { breadcrumbJsonLd, jsonLdScript } from '@/lib/seo';
 import { bannerGradient } from '@/lib/avatar';
+import { getHighlights } from '@/lib/storyHighlights';
 import UserProfileClient from './UserProfileClient';
 
 export const dynamic = 'force-dynamic';
@@ -160,6 +161,8 @@ async function ProfileBody({ profileUser, me }: { profileUser: NonNullable<Await
 
   const progress = progressRes && !progressRes.error ? ((progressRes.data ?? null) as { xp: number; current_streak: number; longest_streak: number; total_correct: number } | null) : null;
   const badgeKeys: string[] = (badgesRes && !badgesRes.error ? ((badgesRes.data ?? []) as any[]) : []).map((b: any) => b.badge_key);
+  // Öne çıkanlar — gizli profilde gösterilmez; tablo yoksa boş (defansif).
+  const highlights = isHidden ? [] : await getHighlights(profileUser.id);
 
   const mediaPosts = (postsRes.data ?? []) as Array<{
     id: number; media_url: string; media_type: string; caption: string; likes: number; created_at: string;
@@ -224,6 +227,7 @@ async function ProfileBody({ profileUser, me }: { profileUser: NonNullable<Await
       articles={articles}
       progress={progress}
       badgeKeys={badgeKeys}
+      highlights={highlights}
       me={me ? { id: me.id, username: me.username, display_name: me.display_name, avatar: me.avatar ?? null } : null}
     />
     </>

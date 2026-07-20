@@ -70,6 +70,9 @@ export async function purgeAccount(userId: number): Promise<{ ok: boolean; error
     ['quick_facts', 'user_id'],
     ['posts', 'user_id'],
     ['stories', 'user_id'],
+    // story_highlight_items, stories/highlights silinince CASCADE gider; koleksiyon
+    // satırının kendisi user_id'li olduğu için elle. (Tablo yoksa hata loglanır, zararsız.)
+    ['story_highlights', 'user_id'],
     ['user_articles', 'user_id'],
     ['comments', 'user_id'],
     ['article_comments', 'user_id'],
