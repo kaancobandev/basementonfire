@@ -36,7 +36,7 @@ const getHomeContent = unstable_cache(
       // (Aynı hata app/api/stories/route.ts'te de vardı.) Bkz. quick_facts satırı:
       // orada ipucu zaten var, bu yüzden o sorgu hiç bozulmadı.
       db.from('stories')
-        .select('id, media_url, media_type, created_at, user_id, users!stories_user_id_fkey(id, username, display_name, avatar, is_private)')
+        .select('id, media_url, media_type, created_at, user_id, music_track_id, music_start_sec, music:music_tracks(id, title, artist, src), users!stories_user_id_fkey(id, username, display_name, avatar, is_private)')
         .gt('expires_at', new Date().toISOString())
         .order('created_at', { ascending: false })
         // Büyüme sigortası: şerit zaten en yeni hikâyeleri gösterir; 24 saatte 100+
@@ -45,13 +45,26 @@ const getHomeContent = unstable_cache(
     ]);
     logIfError('feed quick_facts', factsErr);
     logIfError('feed posts', postsErr);
-    logIfError('feed stories', storiesErr);
+    // Müzik alanları sql/features-story-music.sql çalıştırılana kadar YOK. O hâlde
+    // yukarıdaki sorgu patlar; sade sorguya düşmezsek hikâye şeridi tamamen boş
+    // kalır (yeni düzeltilen hatanın aynısı). Özellik uykudayken de çalışmalı.
+    let storiesFinal = storiesRaw;
+    if (storiesErr && /music_track_id|music_start_sec|music_tracks/i.test(storiesErr.message)) {
+      const { data: sade } = await db.from('stories')
+        .select('id, media_url, media_type, created_at, user_id, users!stories_user_id_fkey(id, username, display_name, avatar, is_private)')
+        .gt('expires_at', new Date().toISOString())
+        .order('created_at', { ascending: false })
+        .limit(100);
+      storiesFinal = sade as typeof storiesRaw;
+    } else {
+      logIfError('feed stories', storiesErr);
+    }
     // Gizli hesapların içeriği küresel ana akışta/story şeridinde gösterilmez (is_private truthy=gizli).
     const pub = (r: any) => !r.users?.is_private;
     return {
       rawFacts: (rawFacts ?? []).filter(pub).slice(0, 30),
       rawPosts: (rawPosts ?? []).filter(pub).slice(0, 30),
-      storiesRaw: (storiesRaw ?? []).filter(pub),
+      storiesRaw: (storiesFinal ?? []).filter(pub),   // storiesFinal: müzik kolonları yoksa sade sorgunun sonucu
     };
   },
   ['home-content-v1'],
@@ -210,7 +223,8 @@ export default async function FeedPage() {
   }
 
   // Stories
-  interface StoryItem { id: number; mediaUrl: string; mediaType: string; createdAt: string; }
+  // `music` opsiyonel — SQL çalıştırılana kadar hiç gelmez (bkz. yukarıdaki geri düşüş).
+  interface StoryItem { id: number; mediaUrl: string; mediaType: string; createdAt: string; music?: { title: string; artist: string | null; src: string; startSec: number } | null; }
   interface StoryUser { userId: number; username: string; displayName: string; avatar: string | null; stories: StoryItem[]; }
 
   // storiesRaw yukarıda getHomeContent()'ten (önbellekli) geldi.
@@ -219,7 +233,12 @@ export default async function FeedPage() {
     const u = s.users;
     const uid: number = s.user_id;
     if (!storyMap.has(uid)) storyMap.set(uid, { userId: uid, username: u.username, displayName: u.display_name, avatar: u.avatar ?? null, stories: [] });
-    storyMap.get(uid)!.stories.push({ id: s.id, mediaUrl: s.media_url, mediaType: s.media_type, createdAt: s.created_at });
+    storyMap.get(uid)!.stories.push({
+      id: s.id, mediaUrl: s.media_url, mediaType: s.media_type, createdAt: s.created_at,
+      // s.music yalnız SQL çalıştırıldıysa gelir; yoksa undefined kalır ve
+      // görüntüleyici sessizce müziksiz oynatır.
+      music: s.music ? { title: s.music.title, artist: s.music.artist ?? null, src: s.music.src, startSec: s.music_start_sec ?? 0 } : null,
+    });
   }
 
   const ownStoryUser = me ? (storyMap.get(me.id) ?? null) : null;

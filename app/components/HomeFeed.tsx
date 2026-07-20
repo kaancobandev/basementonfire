@@ -20,6 +20,7 @@ import FeedComposer from './FeedComposer';
 import ReportButton from './ReportButton';
 import { toast } from 'sonner';
 import { uploadToStorage } from '@/lib/upload';
+import { useMediaDock } from './MediaDock';
 // Kırpıcı yalnız görsel seçilince insin — react-easy-crop akışın ilk yükünde yer almasın.
 const ImageCropper = dynamic(() => import('./ImageCropper'), { ssr: false });
 import { LazyMotion, m, AnimatePresence } from 'framer-motion';
@@ -29,7 +30,10 @@ import { LazyMotion, m, AnimatePresence } from 'framer-motion';
 // çekirdeği ana sayfa first-load JS'ine gömüyordu). Davranış birebir aynı.
 const loadMotionFeatures = () => import('./motionFeatures').then(mod => mod.default);
 
-interface StoryItem { id: number; mediaUrl: string; mediaType: string; createdAt: string; }
+interface StoryMusic { title: string; artist: string | null; src: string; startSec: number }
+// `music` OPSİYONEL: sql/features-story-music.sql çalıştırılana kadar sunucu bu
+// alanı hiç göndermez ve görüntüleyici sessizce müziksiz oynatır.
+interface StoryItem { id: number; mediaUrl: string; mediaType: string; createdAt: string; music?: StoryMusic | null; }
 interface StoryUser { userId: number; username: string; displayName: string; avatar: string | null; stories: StoryItem[]; }
 interface SuggestedUser { id: number; username: string; display_name: string; bio: string | null; avatar: string | null; mutual_count: number; }
 
@@ -170,6 +174,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
   const [svUserIdx, setSvUserIdx] = useState(0);
   const [svStoryIdx, setSvStoryIdx] = useState(0);
   const svTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const svAudioRef = useRef<HTMLAudioElement | null>(null);
   // Geçerli hikayenin efektif süresi (sn). Foto = 5. Video = metadata gelene kadar
   // geçici 15, sonra Math.min(gerçekSüre, 15). Hem timer'ı hem ilerleme çubuğunu sürer.
   const [svDuration, setSvDuration] = useState(5);
@@ -179,8 +184,14 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
   // Story create modal
   const [createOpen, setCreateOpen] = useState(false);
   const router = useRouter();
+  const dock = useMediaDock();
   const [storyFile, setStoryFile] = useState<File | null>(null);
   const [storyCropFile, setStoryCropFile] = useState<File | null>(null);
+  // Hikâye müziği: yalnız `story_approved` işaretli parçalar (telif kapısı,
+  // bkz. sql/features-story-music.sql). Liste boşsa seçici hiç görünmez.
+  const [storyTracks, setStoryTracks] = useState<{ id: number; title: string; artist: string | null; src: string }[]>([]);
+  const [storyMusicId, setStoryMusicId] = useState<number | null>(null);
+  const storyPreviewAudioRef = useRef<HTMLAudioElement | null>(null);
   const [storyPreviewUrl, setStoryPreviewUrl] = useState('');
   const [storyError, setStoryError] = useState('');
   const [storySubmitting, setStorySubmitting] = useState(false);
@@ -227,6 +238,27 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
     if (nextUser >= 0 && nextUser < allStoryUsers.length) { setSvUserIdx(nextUser); setSvStoryIdx(dir === 1 ? 0 : allStoryUsers[nextUser].stories.length - 1); return; }
     closeViewer();
   }
+
+  // HİKÂYE MÜZİĞİ. Viewer KENDİ <audio>'sunu kullanır; MediaDock'a devretmiyoruz:
+  // dock gezinmede yaşar, repeat 'all' varsayılan ve kullanıcının dinlediği listeyi
+  // yok ederdi — viewer kapandıktan sonra 5 saniyelik hikâye klibi çalmaya devam
+  // ederdi. Dock yalnızca susturulur; viewer kapanınca kullanıcı kaldığı yerden
+  // devam ettirebilir (biz onun adına yeniden başlatmıyoruz — istemediği bir sesi
+  // aniden açmak, sustuğunu fark etmemesinden daha kötü).
+  useEffect(() => {
+    const a = svAudioRef.current;
+    if (!a) return;
+    const müzik = viewerOpen ? allStoryUsers[svUserIdx]?.stories[svStoryIdx]?.music : null;
+    if (!müzik) { a.pause(); a.removeAttribute('src'); return; }
+    if (dock?.playing) dock.toggle();         // dock çalıyorsa sustur (sağlayıcı yoksa null)
+    a.src = müzik.src;
+    a.currentTime = müzik.startSec || 0;
+    // Otomatik oynatma engeli normaldir (kullanıcı henüz sayfayla etkileşmediyse):
+    // hikâye sessiz oynar, hata göstermeyiz.
+    a.play().catch(() => {});
+    return () => { a.pause(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewerOpen, svUserIdx, svStoryIdx]);
 
   // Otomatik ilerleme (cap timer + video 'ended'): aynı hikayede yalnızca bir kez çalışır.
   function autoAdvance() {
@@ -351,6 +383,17 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
     setFollowedUsers(prev => { const n = new Set(prev); data.following ? n.add(username) : n.delete(username); return n; });
   }
 
+  // Modal açılınca onaylı parça listesini çek (kapalıyken istek yok).
+  useEffect(() => {
+    if (!createOpen) return;
+    let alive = true;
+    fetch('/api/stories/music')
+      .then(r => r.json())
+      .then(d => { if (alive) setStoryTracks(d.tracks ?? []); })
+      .catch(() => { if (alive) setStoryTracks([]); });
+    return () => { alive = false; };
+  }, [createOpen]);
+
   // Story create
   function applyStoryFile(file: File) {
     setStoryFile(file);
@@ -378,13 +421,14 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
       const res = await fetch('/api/stories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ path, mediaType }),
+        body: JSON.stringify({ path, mediaType, musicTrackId: storyMusicId }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Hata');
       setCreateOpen(false);
       setStoryFile(null);
       setStoryPreviewUrl('');
+      setStoryMusicId(null);
       // ŞERİDİ TAZELE. Bu satır olmadan kayıt 201 dönse bile ekranda hiçbir şey
       // değişmiyordu: modal kapanır, şerit aynı kalır, "Ekle" hâlâ kesikli çember
       // olarak durur → kullanıcı yüklemenin başarısız olduğunu sanır. Hikâyeler
@@ -906,6 +950,17 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
               </div>
             )}
           </div>
+          {/* Hikâye müziği. Viewer'a ait, dock'tan bağımsız (bkz. yukarıdaki efekt). */}
+          <audio ref={svAudioRef} hidden />
+          {currentSvStory?.music && (
+            <div style={{ position: 'absolute', left: 12, right: 12, bottom: 62, display: 'flex', alignItems: 'center', gap: 7, zIndex: 6,
+              background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(6px)', borderRadius: 9999, padding: '6px 12px', pointerEvents: 'none' }}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+              <span style={{ color: '#fff', fontSize: '0.74rem', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {currentSvStory.music.title}{currentSvStory.music.artist ? ` · ${currentSvStory.music.artist}` : ''}
+              </span>
+            </div>
+          )}
           <style>{`@keyframes sv-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }`}</style>
         </div>
       )}
@@ -927,11 +982,11 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
 
       {/* Story Create Modal */}
       {createOpen && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={e => { if (e.target === e.currentTarget) { setCreateOpen(false); setStoryFile(null); setStoryPreviewUrl(''); setStoryError(''); } }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={e => { if (e.target === e.currentTarget) { setCreateOpen(false); setStoryFile(null); setStoryPreviewUrl(''); setStoryError(''); storyPreviewAudioRef.current?.pause(); } }}>
           <div style={{ background: '#1a1510', borderRadius: 20, width: '100%', maxWidth: 400, padding: 20, position: 'relative', zIndex: 1 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, fontWeight: 700, fontSize: '1rem', color: '#e8e0d8' }}>
               <span>Yeni Hikaye</span>
-              <button onClick={() => { setCreateOpen(false); setStoryFile(null); setStoryPreviewUrl(''); setStoryError(''); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', color: '#aaa' }}>
+              <button onClick={() => { setCreateOpen(false); setStoryFile(null); setStoryPreviewUrl(''); setStoryError(''); storyPreviewAudioRef.current?.pause(); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', color: '#aaa' }}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
               </button>
             </div>
@@ -953,6 +1008,47 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
               )}
             </div>
             <input id="story-file-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif,video/mp4,video/webm,video/quicktime" hidden onChange={e => { const f = e.target.files?.[0]; if (f) chooseStoryFile(f); e.target.value = ''; }} />
+            {/* MÜZİK SEÇİCİ — yalnız onaylı parçalar. Liste boşsa (SQL çalışmadıysa
+                ya da hiçbir parça onaylanmadıysa) bölüm hiç görünmez, hikâye
+                paylaşımı müziksiz aynen çalışır. */}
+            {storyTracks.length > 0 && (
+              <div style={{ marginTop: 14 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#b9ada0" strokeWidth="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                  <span style={{ color: '#b9ada0', fontSize: '0.8rem', fontWeight: 700 }}>Müzik ekle</span>
+                  {storyMusicId !== null && (
+                    <button type="button" onClick={() => { setStoryMusicId(null); storyPreviewAudioRef.current?.pause(); }}
+                      style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#8a7f74', fontSize: '0.75rem', cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'underline' }}>
+                      Kaldır
+                    </button>
+                  )}
+                </div>
+                <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
+                  {storyTracks.map(t => {
+                    const secili = storyMusicId === t.id;
+                    return (
+                      <button key={t.id} type="button"
+                        onClick={() => {
+                          // Seçince kısa bir ön dinleme çal — hangi parça olduğunu
+                          // duymadan seçmek kör bir karar olurdu.
+                          const a = storyPreviewAudioRef.current;
+                          if (secili) { setStoryMusicId(null); a?.pause(); return; }
+                          setStoryMusicId(t.id);
+                          if (a) { a.src = t.src; a.currentTime = 0; a.play().catch(() => {}); }
+                        }}
+                        style={{ flex: '0 0 auto', maxWidth: 150, textAlign: 'left', padding: '8px 10px', borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit',
+                          border: secili ? '2px solid var(--color-accent)' : '1px solid rgba(255,255,255,0.14)',
+                          background: secili ? 'rgba(255,255,255,0.08)' : 'transparent', color: '#e8e0d8' }}>
+                        <span style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.title}</span>
+                        {t.artist && <span style={{ display: 'block', fontSize: '0.7rem', color: '#9d9086', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.artist}</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+                {/* Ön dinleme yalnız bu modalda yaşar; kapanınca durur. */}
+                <audio ref={storyPreviewAudioRef} hidden />
+              </div>
+            )}
             {storyError && <p style={{ color: '#ef4444', fontSize: '0.85rem', margin: '8px 0 0' }}>{storyError}</p>}
             <button disabled={!storyFile || storySubmitting} onClick={submitStory} style={{ width: '100%', marginTop: 14, padding: 12, border: 'none', borderRadius: '9999px', background: 'var(--color-accent)', color: '#0f0e0d', fontWeight: 700, fontSize: '0.95rem', cursor: storyFile ? 'pointer' : 'not-allowed', opacity: storyFile ? 1 : 0.4 }}>
               {storySubmitting ? 'Yükleniyor…' : 'Hikayeyi Paylaş'}
