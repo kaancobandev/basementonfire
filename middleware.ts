@@ -36,6 +36,11 @@ function tokenNeedsRefresh(request: NextRequest): boolean {
 /** Oturum çerezi VAR mı? Ağ çağrısı YOK — layout'taki inline auth-hint
  *  script'iyle (data-auth) birebir aynı sezgi, o yüzden ikisi tutarlı.
  *  Çerez bayat olabilir; o hâlde /feed getMe() ile çıkışlı render eder (kırılmaz). */
+// DİKKAT: Bu testin ikizi app/layout.tsx'teki satır içi auth-hint script'idir
+// (data-auth). Burası kullanıcının NEREYE gideceğine, orası nav'ın NE
+// göstereceğine karar verir; ikisi ayrışırsa nav ile gerçek davranış çelişir
+// (ör. nav "girişlisin" deyip paylaş düğmesini gösterir, middleware yönlendirmez).
+// Birini değiştirirsen ÖTEKİNİ DE değiştir.
 function hasSessionCookie(request: NextRequest): boolean {
   return request.cookies.getAll().some((c) => /^sb-.+-auth-token(\.\d+)?$/.test(c.name));
 }

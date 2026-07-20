@@ -134,7 +134,22 @@ export default function RootLayout({ children, modal }: { children: React.ReactN
             // AUTH-HINT: Supabase oturum çerezi (httpOnly değil) VARSA ilk boyamadan
             // ÖNCE data-auth="in" ekle → nav girişli/çıkışlı doğru çizilir, "flash"
             // olmaz (kesin veri /api/nav-state'ten sonradan gelir, hint'i düzeltir).
-            __html: `document.documentElement.classList.add('js');try{if(document.cookie.indexOf('-auth-token')>=0)document.documentElement.setAttribute('data-auth','in')}catch{}try{if(localStorage.getItem('theme')==='dark')document.documentElement.setAttribute('data-theme','dark')}catch{}try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('reduced')}catch{}`,
+            //
+            // ÇEREZ TESTİ middleware.ts'teki hasSessionCookie ile AYNI ANLAMDA
+            // olmak ZORUNDA: burası nav'ın NE göstereceğine, orası kullanıcının
+            // NEREYE gideceğine karar veriyor; ikisi ayrışırsa nav "girişlisin"
+            // deyip middleware yönlendirmez (ya da tersi). Önceden burada serbest
+            // `indexOf('-auth-token')` vardı: adında '-auth-token' geçen HERHANGİ
+            // bir üçüncü-parti çerez (analitik/CMP) çıkışlı ziyaretçiye paylaş (+)
+            // düğmesini gösterirdi, middleware ise aldanmazdı.
+            //
+            // Regex, middleware'deki /^sb-.+-auth-token(\.\d+)?$/ ile eşleştirilmiş
+            // hâli — çerez ADLARINA uygulanır: ad ya dizenin başında ya "; "den
+            // sonra başlar ve '='e kadar sürer, böylece bir çerez DEĞERİ içindeki
+            // aynı metin artık eşleşmez. BACKSLASH KULLANMA: bu bir template
+            // literal, `\.` ve `\d` kaçışları emit edilen JS'e ULAŞMADAN düşer ve
+            // regex sessizce başka bir şeye dönüşür — bu yüzden [.] ve [0-9] var.
+            __html: `document.documentElement.classList.add('js');try{if(/(?:^|; *)sb-[^=;]+-auth-token(?:[.][0-9]+)?=/.test(document.cookie))document.documentElement.setAttribute('data-auth','in')}catch{}try{if(localStorage.getItem('theme')==='dark')document.documentElement.setAttribute('data-theme','dark')}catch{}try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('reduced')}catch{}`,
           }}
         />
       </head>
