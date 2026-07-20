@@ -30,7 +30,9 @@ export async function uploadToStorage(
     // Dosya adları benzersiz (üzerine yazılmaz) → 1 yıl önbellek güvenli;
     // tekrar ziyaretlerde medya tarayıcı/CDN önbelleğinden anında gelir.
     .uploadToSignedUrl(sign.path, sign.token, file, { contentType: file.type, cacheControl: '31536000' });
-  if (error) throw new Error('Dosya yüklenemedi.');
+  // GERÇEK hatayı taşı: eskiden bucket bulunamadı, mime kısıtı, 413, süresi geçmiş
+  // imza — hepsi aynı tek cümleye iniyordu ve hangi katmanın patladığı anlaşılmıyordu.
+  if (error) throw new Error(error.message ? `Dosya yüklenemedi: ${error.message}` : 'Dosya yüklenemedi.');
 
   return { path: sign.path as string, mediaType: sign.mediaType as 'image' | 'video' | 'audio' };
 }

@@ -3,13 +3,16 @@ import { NextResponse } from 'next/server';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
 
-const IMG = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+// heic/heif: iPhone'un varsayılan fotoğraf biçimi. Fotoğraflar'dan seçince iOS
+// genelde JPEG'e çevirir ama Dosyalar üzerinden ham .heic gelebiliyordu ve istek
+// "Desteklenmeyen dosya türü" ile düşüyordu — kullanıcı için sebepsiz bir hata.
+const IMG = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'];
 const VID = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'];
 const LIMIT = { media: 100 * 1024 * 1024, story: 50 * 1024 * 1024, avatar: 10 * 1024 * 1024 } as const;
 
 // Uzantı → contentType eşlemesi. İstemcinin gönderdiği `ext` ARTIK KULLANILMIYOR.
 const EXT_BY_TYPE: Record<string, string> = {
-  'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif',
+  'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif', 'image/heic': 'heic', 'image/heif': 'heif',
   'video/mp4': 'mp4', 'video/webm': 'webm', 'video/ogg': 'ogv', 'video/quicktime': 'mov',
   'audio/mpeg': 'mp3', 'audio/mp4': 'm4a', 'audio/ogg': 'ogg', 'audio/wav': 'wav', 'audio/webm': 'weba',
 };

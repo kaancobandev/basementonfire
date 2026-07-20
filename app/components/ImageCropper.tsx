@@ -67,15 +67,25 @@ async function cropToFile(src: string, area: Area, origName: string): Promise<Fi
 }
 
 /** Instagram tarzı kırpma ekranı: oran seç (1:1/4:5/1.91:1) + yakınlaştır + sürükle. */
-export default function ImageCropper({ file, onCancel, onCropped }: {
+export default function ImageCropper({ file, onCancel, onCropped, aspects = ASPECTS, defaultAspect = 1, zIndex = 300 }: {
   file: File;
   onCancel: () => void;
   onCropped: (f: File) => void;
+  /** Sunulacak oran seçenekleri. Hikâye tek oranlıdır (9:16) → tek elemanlı dizi geç. */
+  aspects?: { label: string; value: number }[];
+  defaultAspect?: number;
+  /**
+   * Kırpıcının katmanı. VARSAYILAN 300 HER YERDE YETMEZ: hikâye oluşturma modalı
+   * ve hikâye görüntüleyici zIndex 500'de duruyor (HomeFeed), yani kırpıcı onların
+   * ALTINDA kalıp görünmez oluyordu — kullanıcı "dosya seçtim, hiçbir şey olmadı"
+   * derdi. Bir modalın içinden açan taraf kendi katmanının üstünü vermeli.
+   */
+  zIndex?: number;
 }) {
   const [url] = useState(() => URL.createObjectURL(file));
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-  const [aspect, setAspect] = useState(1);
+  const [aspect, setAspect] = useState(defaultAspect);
   const [areaPixels, setAreaPixels] = useState<Area | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -99,7 +109,7 @@ export default function ImageCropper({ file, onCancel, onCropped }: {
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', zIndex: 300, display: 'flex', flexDirection: 'column' }}>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', zIndex, display: 'flex', flexDirection: 'column' }}>
       <div style={{ position: 'relative', flex: 1, minHeight: 0 }}>
         <Cropper
           image={url}
@@ -114,7 +124,7 @@ export default function ImageCropper({ file, onCancel, onCropped }: {
       </div>
       <div style={{ padding: 16, background: '#0f0f0f', display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
-          {ASPECTS.map(a => {
+          {aspects.length > 1 && aspects.map(a => {
             const on = Math.abs(aspect - a.value) < 0.001;
             return (
               <button key={a.label} type="button" onClick={() => setAspect(a.value)}

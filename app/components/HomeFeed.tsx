@@ -8,6 +8,8 @@ import { cdnUrl } from '@/lib/img';
 
 import { useState, useRef, useEffect, useCallback, Fragment } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import Caption from './Caption';
 import Logo from './Logo';
 import TimeAgo from './TimeAgo';
@@ -18,6 +20,8 @@ import FeedComposer from './FeedComposer';
 import ReportButton from './ReportButton';
 import { toast } from 'sonner';
 import { uploadToStorage } from '@/lib/upload';
+// Kırpıcı yalnız görsel seçilince insin — react-easy-crop akışın ilk yükünde yer almasın.
+const ImageCropper = dynamic(() => import('./ImageCropper'), { ssr: false });
 import { LazyMotion, m, AnimatePresence } from 'framer-motion';
 
 // framer-motion'un animasyon çekirdeği (domAnimation) async chunk olarak iner:
@@ -174,7 +178,9 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
 
   // Story create modal
   const [createOpen, setCreateOpen] = useState(false);
+  const router = useRouter();
   const [storyFile, setStoryFile] = useState<File | null>(null);
+  const [storyCropFile, setStoryCropFile] = useState<File | null>(null);
   const [storyPreviewUrl, setStoryPreviewUrl] = useState('');
   const [storyError, setStoryError] = useState('');
   const [storySubmitting, setStorySubmitting] = useState(false);
@@ -349,6 +355,18 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
   function applyStoryFile(file: File) {
     setStoryFile(file);
     setStoryPreviewUrl(URL.createObjectURL(file));
+    // Eski hatayı TEMİZLE. Yoksa bir kez "Giriş gerekli" yazdıktan sonra kullanıcı
+    // yeniden giriş yapıp modalı tekrar açsa bile o satır ekranda asılı kalıyor ve
+    // hâlâ oturum sorunu varmış gibi görünüyordu.
+    setStoryError('');
+  }
+
+  // Görsel seçilince ÖNCE kırpıcıya uğrar (video doğrudan geçer — bu kırpıcı
+  // yalnız görsel işler). 9:16 TEK oran: hikâye zaten dikey tam ekran gösteriliyor,
+  // oran seçtirmek kullanıcıyı kadrajı bozacak bir karara sokardı.
+  function chooseStoryFile(file: File) {
+    if (file.type.startsWith('image/')) setStoryCropFile(file);
+    else applyStoryFile(file);
   }
 
   async function submitStory() {
@@ -367,8 +385,19 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
       setCreateOpen(false);
       setStoryFile(null);
       setStoryPreviewUrl('');
+      // ŞERİDİ TAZELE. Bu satır olmadan kayıt 201 dönse bile ekranda hiçbir şey
+      // değişmiyordu: modal kapanır, şerit aynı kalır, "Ekle" hâlâ kesikli çember
+      // olarak durur → kullanıcı yüklemenin başarısız olduğunu sanır. Hikâyeler
+      // sunucudan (app/feed/page.tsx) prop olarak geldiği için tazeleme sunucu
+      // bileşenini yeniden çalıştırmak demek.
+      router.refresh();
     } catch (e: any) {
-      setStoryError(e.message);
+      // 401'i sessiz bir çıkmaz olarak bırakma: feed'deki diğer tüm işlemler
+      // (beğeni, takip) 401'de /login'e yönlendiriyor, yalnız bu akış kırmızı bir
+      // satır yazıp bırakıyordu — kullanıcı "giriş yap" görüp ne yapacağını bilemiyordu.
+      if (/giriş gerekli/i.test(e?.message ?? '')) { window.location.href = '/login'; return; }
+      // Mesajsız istisnada ekranda HİÇBİR ŞEY yazmıyordu (yalnız "Yükleniyor…" sönüyordu).
+      setStoryError(e?.message || 'Hikâye paylaşılamadı, tekrar dene.');
     } finally {
       setStorySubmitting(false);
     }
@@ -881,13 +910,28 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
         </div>
       )}
 
+      {/* Hikâye kırpıcısı — zIndex 600: oluşturma modalı ve görüntüleyici 500'de.
+          Varsayılan 300 ile açsaydık modalın ALTINDA kalır, kullanıcı "dosya
+          seçtim ama bir şey olmadı" derdi (bu, bildirilen şikâyetin tarifiyle
+          birebir aynı görünürdü). Tek oran 9:16 — hikâye dikey tam ekran. */}
+      {storyCropFile && (
+        <ImageCropper
+          file={storyCropFile}
+          aspects={[{ label: 'Hikâye 9:16', value: 9 / 16 }]}
+          defaultAspect={9 / 16}
+          zIndex={600}
+          onCancel={() => setStoryCropFile(null)}
+          onCropped={f => { setStoryCropFile(null); applyStoryFile(f); }}
+        />
+      )}
+
       {/* Story Create Modal */}
       {createOpen && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={e => { if (e.target === e.currentTarget) { setCreateOpen(false); setStoryFile(null); setStoryPreviewUrl(''); } }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={e => { if (e.target === e.currentTarget) { setCreateOpen(false); setStoryFile(null); setStoryPreviewUrl(''); setStoryError(''); } }}>
           <div style={{ background: '#1a1510', borderRadius: 20, width: '100%', maxWidth: 400, padding: 20, position: 'relative', zIndex: 1 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, fontWeight: 700, fontSize: '1rem', color: '#e8e0d8' }}>
               <span>Yeni Hikaye</span>
-              <button onClick={() => { setCreateOpen(false); setStoryFile(null); setStoryPreviewUrl(''); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', color: '#aaa' }}>
+              <button onClick={() => { setCreateOpen(false); setStoryFile(null); setStoryPreviewUrl(''); setStoryError(''); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', color: '#aaa' }}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
               </button>
             </div>
@@ -908,7 +952,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                 </div>
               )}
             </div>
-            <input id="story-file-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" hidden onChange={e => { const f = e.target.files?.[0]; if (f) applyStoryFile(f); }} />
+            <input id="story-file-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif,video/mp4,video/webm,video/quicktime" hidden onChange={e => { const f = e.target.files?.[0]; if (f) chooseStoryFile(f); e.target.value = ''; }} />
             {storyError && <p style={{ color: '#ef4444', fontSize: '0.85rem', margin: '8px 0 0' }}>{storyError}</p>}
             <button disabled={!storyFile || storySubmitting} onClick={submitStory} style={{ width: '100%', marginTop: 14, padding: 12, border: 'none', borderRadius: '9999px', background: 'var(--color-accent)', color: '#0f0e0d', fontWeight: 700, fontSize: '0.95rem', cursor: storyFile ? 'pointer' : 'not-allowed', opacity: storyFile ? 1 : 0.4 }}>
               {storySubmitting ? 'Yükleniyor…' : 'Hikayeyi Paylaş'}
