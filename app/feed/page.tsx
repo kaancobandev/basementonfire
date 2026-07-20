@@ -30,8 +30,13 @@ const getHomeContent = unstable_cache(
     const [{ data: rawFacts, error: factsErr }, { data: rawPosts, error: postsErr }, { data: storiesRaw, error: storiesErr }] = await Promise.all([
       db.from('quick_facts').select('*, users!quick_facts_user_id_fkey(display_name, username, avatar, is_private), comments(count)').order('created_at', { ascending: false }).limit(60),
       Promise.resolve(postsRes),
+      // `users!stories_user_id_fkey` ŞART — çıplak `users(...)` DEĞİL. story_views
+      // tablosu stories↔users arasında ikinci bir ilişki yolu açtığından PostgREST
+      // gömmeyi belirsiz sayıp hata veriyor; sonuç sessizce BOŞ hikâye şeridi olur.
+      // (Aynı hata app/api/stories/route.ts'te de vardı.) Bkz. quick_facts satırı:
+      // orada ipucu zaten var, bu yüzden o sorgu hiç bozulmadı.
       db.from('stories')
-        .select('id, media_url, media_type, created_at, user_id, users(id, username, display_name, avatar, is_private)')
+        .select('id, media_url, media_type, created_at, user_id, users!stories_user_id_fkey(id, username, display_name, avatar, is_private)')
         .gt('expires_at', new Date().toISOString())
         .order('created_at', { ascending: false })
         // Büyüme sigortası: şerit zaten en yeni hikâyeleri gösterir; 24 saatte 100+
