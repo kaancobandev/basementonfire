@@ -10,14 +10,19 @@ import { db } from './supabase/server';
 // (geri uyumlu, kırılmaz).
 
 /**
- * İzleyiciye göre "bu hikayeyi görebilir mi" yordamı döndürür. İzleyicinin takip
- * ettikleri + onu yakın arkadaş ekleyenler ÖNDEN çekilir (yüzey başına tek sorgu).
- * meId null (anonim) → yalnız public.
+ * İzleyiciye göre "bu hikayeyi görebilir mi" yordamı döndürür. Hem HESAP gizliliği
+ * (is_private) hem HİKAYE kitlesi (audience) tek yordamda birleşir:
+ *  · Sahibi kendi hikayesini HER ZAMAN görür (gizli hesap olsa bile — Instagram'da
+ *    kendi hikayeni hep görürsün; eski `pub` filtresi bunu da gizliyordu = hata).
+ *  · Gizli hesabın içeriği yalnız TAKİPÇİLERİne + sahibine görünür.
+ *  · Sonra hikaye kitlesi uygulanır: public / followers / close.
+ * İzleyicinin takip ettikleri + onu yakın arkadaş ekleyenler ÖNDEN çekilir
+ * (yüzey başına tek sorgu). meId null (anonim) → yalnız açık-hesap + public.
  */
 export async function audiencePredicate(
   meId: number | null,
-): Promise<(ownerId: number, audience: string | null | undefined) => boolean> {
-  if (!meId) return (_ownerId, audience) => !audience || audience === 'public';
+): Promise<(ownerId: number, audience: string | null | undefined, isPrivate?: boolean) => boolean> {
+  if (!meId) return (_ownerId, audience, isPrivate) => !isPrivate && (!audience || audience === 'public');
 
   const [folRes, closeRes] = await Promise.all([
     db.from('follows').select('following_id').eq('follower_id', meId),
@@ -28,11 +33,12 @@ export async function audiencePredicate(
   const iFollow = new Set((folRes.data ?? []).map((f: any) => f.following_id as number));
   const closeOfMe = new Set((closeRes.data ?? []).map((c: any) => c.user_id as number));
 
-  return (ownerId, audience) => {
-    if (ownerId === meId) return true;                 // kendi hikayem her zaman
+  return (ownerId, audience, isPrivate) => {
+    if (ownerId === meId) return true;                        // kendi hikayem her zaman
+    if (isPrivate && !iFollow.has(ownerId)) return false;     // gizli hesap: yalnız takipçi
     if (!audience || audience === 'public') return true;
     if (audience === 'followers') return iFollow.has(ownerId);
     if (audience === 'close') return closeOfMe.has(ownerId);
-    return false;                                       // bilinmeyen değer → gizle
+    return false;                                             // bilinmeyen değer → gizle
   };
 }

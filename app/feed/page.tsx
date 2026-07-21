@@ -60,12 +60,16 @@ const getHomeContent = unstable_cache(
     } else {
       logIfError('feed stories', storiesErr);
     }
-    // Gizli hesapların içeriği küresel ana akışta/story şeridinde gösterilmez (is_private truthy=gizli).
+    // Gizli hesapların içeriği küresel ana akışta gösterilmez (is_private truthy=gizli).
     const pub = (r: any) => !r.users?.is_private;
     return {
       rawFacts: (rawFacts ?? []).filter(pub).slice(0, 30),
       rawPosts: (rawPosts ?? []).filter(pub).slice(0, 30),
-      storiesRaw: (storiesFinal ?? []).filter(pub),   // storiesFinal: müzik kolonları yoksa sade sorgunun sonucu
+      // HİKAYELER burada is_private ile FİLTRELENMEZ: bu önbellek HERKESE ortak,
+      // oysa "sahibi kendi gizli hikayesini görür + gizli hesap takipçisine görünür"
+      // KİŞİYE ÖZEL bir karardır → filtre aşağıda, `me` bilinince (audiencePredicate
+      // is_private'ı da işler). Burada elenince gizli hesap kendi hikayesini göremezdi.
+      storiesRaw: (storiesFinal ?? []),   // storiesFinal: müzik kolonları yoksa sade sorgunun sonucu
     };
   },
   ['home-content-v1'],
@@ -234,7 +238,7 @@ export default async function FeedPage() {
   // edilirdi — "seen" halkasıyla aynı gerekçe). audience yoksa hepsi public sayılır.
   const canSeeStory = await audiencePredicate(me?.id ?? null);
   const storyMap = new Map<number, StoryUser>();
-  for (const s of ((storiesRaw ?? []) as any[]).filter((s) => canSeeStory(s.user_id, s.audience))) {
+  for (const s of ((storiesRaw ?? []) as any[]).filter((s) => canSeeStory(s.user_id, s.audience, s.users?.is_private))) {
     const u = s.users;
     const uid: number = s.user_id;
     if (!storyMap.has(uid)) storyMap.set(uid, { userId: uid, username: u.username, displayName: u.display_name, avatar: u.avatar ?? null, stories: [] });

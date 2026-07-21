@@ -51,14 +51,12 @@ export async function GET() {
   // "hiç hikâye yok" görür. Artık sunucu günlüğüne düşer.
   logIfError('stories GET', error);
 
-  // Gizli hesapların story'leri küresel story şeridinde gösterilmez (is_private truthy=gizli).
-  let stories = ((data ?? []) as any[]).filter((s) => !s.users?.is_private);
-
-  // KİTLE KONTROLÜ — takipçiler/yakın arkadaşlar hikayesini yalnız hakkı olan görür.
-  // audience kolonu yoksa predicate hepsini public sayar (uykuda güvenli).
+  // GİZLİLİK + KİTLE tek yordamda: sahibi kendi (gizli) hikayesini görür, gizli
+  // hesap takipçisine görünür, sonra hikaye kitlesi (public/followers/close)
+  // uygulanır. audience/close_friends kolonları yoksa uykuda güvenli (public sayılır).
   const { me } = await getMe();
   const canSee = await audiencePredicate(me?.id ?? null);
-  stories = stories.filter((s) => canSee(s.user_id, s.audience));
+  const stories = ((data ?? []) as any[]).filter((s) => canSee(s.user_id, s.audience, s.users?.is_private));
 
   return NextResponse.json({ stories });
 }
