@@ -23,7 +23,7 @@ import { uploadToStorage } from '@/lib/upload';
 import { useMediaDock } from './MediaDock';
 import { normalizeStoryLink } from '@/lib/storyLink';
 import { ARTICLES } from '@/lib/articles';
-import { renderArticleStoryCard } from '@/lib/storyCard';
+import { renderArticleStoryCard, renderTextStoryCard, TEXT_STORY_BGS } from '@/lib/storyCard';
 
 // Bağlantı alanının önerileri: 32 makale. Serbest yol da yazılabilir (datalist
 // kısıtlamaz), ama en sık kullanılacak hedefler elle yazılmadan seçilebilsin.
@@ -41,7 +41,7 @@ const loadMotionFeatures = () => import('./motionFeatures').then(mod => mod.defa
 interface StoryMusic { title: string; artist: string | null; src: string; startSec: number }
 // `music` OPSİYONEL: sql/features-story-music.sql çalıştırılana kadar sunucu bu
 // alanı hiç göndermez ve görüntüleyici sessizce müziksiz oynatır.
-interface StoryItem { id: number; mediaUrl: string; mediaType: string; createdAt: string; music?: StoryMusic | null; linkUrl?: string | null; linkLabel?: string | null; poll?: { question: string; options: string[] } | null; seen?: boolean; }
+interface StoryItem { id: number; mediaUrl: string; mediaType: string; createdAt: string; music?: StoryMusic | null; linkUrl?: string | null; linkLabel?: string | null; poll?: { question: string; options: string[] } | null; caption?: string | null; seen?: boolean; }
 interface StoryUser { userId: number; username: string; displayName: string; avatar: string | null; stories: StoryItem[]; }
 interface SuggestedUser { id: number; username: string; display_name: string; bio: string | null; avatar: string | null; mutual_count: number; }
 
@@ -213,6 +213,13 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
   const [pollOpts, setPollOpts] = useState<string[]>(['', '']); // 2-4 seçenek
   const [storyAudience, setStoryAudience] = useState<'public' | 'followers' | 'close'>('public');
   const [closeMgrOpen, setCloseMgrOpen] = useState(false);
+  // CAPTION: fotoğraf/video üstüne binen yazı (≤200). SADECE-METİN modu: dosya
+  // yok, yazı bir gradyan karta gömülür (renderTextStoryCard) ve normal görsel
+  // hikaye olarak yüklenir — şema değişmez.
+  const [storyCaption, setStoryCaption] = useState('');
+  const [textMode, setTextMode] = useState(false);   // "Sadece yazı" modu açık mı
+  const [storyText, setStoryText] = useState('');     // sadece-metin içeriği
+  const [storyBg, setStoryBg] = useState(0);          // gradyan indeksi
 
   // Makaleyi hikayeye paylaş: 9:16 kart client'ta üretilir (reel kapağıyla aynı
   // kompozisyon, lib/storyCard.ts) → mevcut hikaye yükleme+POST akışına girer,
@@ -521,10 +528,18 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
   function applyStoryFile(file: File) {
     setStoryFile(file);
     setStoryPreviewUrl(URL.createObjectURL(file));
+    setTextMode(false); // dosya seçilince sadece-metin modundan çık
     // Eski hatayı TEMİZLE. Yoksa bir kez "Giriş gerekli" yazdıktan sonra kullanıcı
     // yeniden giriş yapıp modalı tekrar açsa bile o satır ekranda asılı kalıyor ve
     // hâlâ oturum sorunu varmış gibi görünüyordu.
     setStoryError('');
+  }
+
+  // Modalı kapat + TÜM oluşturma durumunu sıfırla (üç kapatma yolu da bunu çağırır).
+  function closeStoryCreate() {
+    setCreateOpen(false); setStoryFile(null); setStoryPreviewUrl(''); setStoryError(''); setArtPicker(false);
+    setStoryCaption(''); setTextMode(false); setStoryText(''); setStoryBg(0);
+    storyPreviewAudioRef.current?.pause();
   }
 
   // Görsel seçilince ÖNCE kırpıcıya uğrar (video doğrudan geçer — bu kırpıcı
@@ -536,11 +551,19 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
   }
 
   async function submitStory() {
-    if (!storyFile) return;
+    // SADECE-METİN: dosya yok ama yazı var → gradyan kartı ANINDA üret, dosya gibi
+    // davran. Böylece geri kalan yükleme akışı (Storage + POST) hiç değişmez.
+    let fileToSend = storyFile;
+    if (!fileToSend && textMode && storyText.trim()) {
+      const blob = await renderTextStoryCard(storyText.trim(), storyBg);
+      if (!blob) { setStoryError('Kart oluşturulamadı'); return; }
+      fileToSend = new File([blob], 'metin-hikaye.png', { type: 'image/png' });
+    }
+    if (!fileToSend) return;
     setStorySubmitting(true);
     setStoryError('');
     try {
-      const { path, mediaType } = await uploadToStorage(storyFile, 'story');
+      const { path, mediaType } = await uploadToStorage(fileToSend, 'story');
       const res = await fetch('/api/stories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -550,6 +573,9 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
           ...(pollQ.trim() && pollOpts.filter(o => o.trim()).length >= 2
             ? { pollQuestion: pollQ.trim(), pollOptions: pollOpts.map(o => o.trim()).filter(Boolean) } : {}),
           audience: storyAudience,
+          // CAPTION yalnız GERÇEK medya hikayede anlamlı (sadece-metinde yazı
+          // zaten karta gömülü). Boşsa gönderme.
+          ...(storyFile && storyCaption.trim() ? { caption: storyCaption.trim() } : {}),
         }),
       });
       const data = await res.json();
@@ -561,6 +587,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
       setStoryLink(''); setStoryLinkLabel('');
       setPollOpen(false); setPollQ(''); setPollOpts(['', '']);
       setStoryAudience('public');
+      setStoryCaption(''); setTextMode(false); setStoryText(''); setStoryBg(0);
       // ŞERİDİ TAZELE. Bu satır olmadan kayıt 201 dönse bile ekranda hiçbir şey
       // değişmiyordu: modal kapanır, şerit aynı kalır, "Ekle" hâlâ kesikli çember
       // olarak durur → kullanıcı yüklemenin başarısız olduğunu sanır. Hikâyeler
@@ -1155,6 +1182,17 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
               emoji+yanıt kutusuyla ~116px, sahibinde "N kişi gördü" ile ~64px.
               Müzik künyesi varsa onun da üstüne çıkar. Yoksa rozet yanıt
               kutusuna yapışıyordu (kullanıcı bildirdi). */}
+          {/* CAPTION — medya üstü yazı. Alttaki her şeyin (yanıt kutusu → link
+              rozeti → müzik künyesi) ÜSTÜNE yığılır, çakışmasın. pointerEvents:none
+              ki jest katmanını engellemesin. */}
+          {currentSvStory?.caption && (
+            <div style={{ position: 'absolute', left: 16, right: 16, textAlign: 'center', zIndex: 7, pointerEvents: 'none',
+              bottom: (isOwnStory ? 64 : 118) + (currentSvStory?.music ? 44 : 0) + (currentSvStory?.linkUrl ? 46 : 0) + 20 }}>
+              <span style={{ display: 'inline-block', maxWidth: '100%', padding: '8px 14px', borderRadius: 14, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(2px)', color: '#fff', fontWeight: 600, fontSize: '1rem', lineHeight: 1.35, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                {currentSvStory.caption}
+              </span>
+            </div>
+          )}
           {currentSvStory?.linkUrl && (
             <Link
               href={currentSvStory.linkUrl}
@@ -1202,24 +1240,30 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
 
       {/* Story Create Modal */}
       {createOpen && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={e => { if (e.target === e.currentTarget) { setCreateOpen(false); setStoryFile(null); setStoryPreviewUrl(''); setStoryError(''); setArtPicker(false); storyPreviewAudioRef.current?.pause(); } }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={e => { if (e.target === e.currentTarget) closeStoryCreate(); }}>
           <div style={{ background: '#1a1510', borderRadius: 20, width: '100%', maxWidth: 400, padding: 20, position: 'relative', zIndex: 1, maxHeight: '88vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, fontWeight: 700, fontSize: '1rem', color: '#e8e0d8' }}>
               <span>Yeni Hikaye</span>
-              <button onClick={() => { setCreateOpen(false); setStoryFile(null); setStoryPreviewUrl(''); setStoryError(''); setArtPicker(false); storyPreviewAudioRef.current?.pause(); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', color: '#aaa' }}>
+              <button onClick={closeStoryCreate} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', color: '#aaa' }}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
               </button>
             </div>
             <div
               role="button"
-              tabIndex={0}
+              tabIndex={textMode ? -1 : 0}
               aria-label="Fotoğraf veya video seç"
-              style={{ border: '2px dashed rgba(255,255,255,0.15)', borderRadius: 16, width: '100%', maxWidth: 'calc(50vh * 9 / 16)', aspectRatio: '9 / 16', maxHeight: '50vh', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', textAlign: 'center', overflow: 'hidden', position: 'relative', color: '#ccc', transition: 'border-color 0.2s' }}
-              onClick={() => document.getElementById('story-file-input')?.click()}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); document.getElementById('story-file-input')?.click(); } }}
+              style={{ border: textMode ? 'none' : '2px dashed rgba(255,255,255,0.15)', borderRadius: 16, width: '100%', maxWidth: 'calc(50vh * 9 / 16)', aspectRatio: '9 / 16', maxHeight: '50vh', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: textMode ? 'default' : 'pointer', textAlign: 'center', overflow: 'hidden', position: 'relative', color: '#ccc', transition: 'border-color 0.2s', ...(textMode ? { background: `linear-gradient(0deg, ${(TEXT_STORY_BGS[storyBg] ?? TEXT_STORY_BGS[0])[0]}, ${(TEXT_STORY_BGS[storyBg] ?? TEXT_STORY_BGS[0])[1]})` } : {}) }}
+              onClick={() => { if (!textMode) document.getElementById('story-file-input')?.click(); }}
+              onKeyDown={(e) => { if (!textMode && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); document.getElementById('story-file-input')?.click(); } }}
             >
               {storyPreviewUrl ? (
                 storyFile?.type.startsWith('video/') ? <video src={storyPreviewUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} controls /> : <img src={storyPreviewUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : textMode ? (
+                // Sadece-metin canlı önizleme: yüklenen kartla aynı görünsün diye
+                // ortalanmış beyaz yazı (renderTextStoryCard'ın CSS karşılığı).
+                <p style={{ margin: 0, padding: '0 22px', color: '#fff', fontWeight: 700, fontSize: storyText.length > 80 ? '1.05rem' : storyText.length > 40 ? '1.35rem' : '1.7rem', lineHeight: 1.25, wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
+                  {storyText.trim() || 'Yazmaya başla…'}
+                </p>
               ) : (
                 <div>
                   <p style={{ fontWeight: 600, marginBottom: 4 }}>Fotoğraf veya video seç</p>
@@ -1229,10 +1273,45 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
             </div>
             <input id="story-file-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif,video/mp4,video/webm,video/quicktime" hidden onChange={e => { const f = e.target.files?.[0]; if (f) chooseStoryFile(f); e.target.value = ''; }} />
 
-            {/* MAKALEYİ HİKAYENE PAYLAŞ — dosya seçilmemişken. Bir makale seçince
-                9:16 kartı üretilir (reel kapağıyla aynı), dosya olarak yüklenir ve
-                link otomatik makaleye ayarlanır → hikayen makaleye trafik çeker. */}
-            {!storyFile && (
+            {/* CAPTION — fotoğraf/video üstüne binen yazı (yalnız gerçek medyada;
+                sadece-metinde yazı zaten karta gömülü). */}
+            {storyFile && (
+              <div style={{ marginTop: 12 }}>
+                <textarea value={storyCaption} onChange={e => setStoryCaption(e.target.value.slice(0, 200))} rows={2} placeholder="Bir şeyler yaz… (isteğe bağlı)"
+                  style={{ width: '100%', resize: 'none', padding: '10px 12px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.04)', color: '#e8e0d8', fontFamily: 'inherit', fontSize: '0.9rem', lineHeight: 1.4 }} />
+                {storyCaption.length > 0 && <p style={{ margin: '4px 2px 0', textAlign: 'right', fontSize: '0.7rem', color: '#8a7f74' }}>{storyCaption.length}/200</p>}
+              </div>
+            )}
+
+            {/* SADECE-METİN — dosya seçilmemişken: yazıyı gradyan karta gömüp
+                normal görsel hikaye olarak paylaş (renderTextStoryCard). */}
+            {!storyFile && textMode && (
+              <div style={{ marginTop: 12 }}>
+                <textarea autoFocus value={storyText} onChange={e => setStoryText(e.target.value.slice(0, 240))} rows={3} placeholder="Ne düşünüyorsun?"
+                  style={{ width: '100%', resize: 'none', padding: '10px 12px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.04)', color: '#e8e0d8', fontFamily: 'inherit', fontSize: '0.95rem', lineHeight: 1.4 }} />
+                <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+                  {TEXT_STORY_BGS.map(([a, b], i) => (
+                    <button key={i} type="button" aria-label={`Renk ${i + 1}`} onClick={() => setStoryBg(i)}
+                      style={{ width: 30, height: 30, borderRadius: '50%', cursor: 'pointer', background: `linear-gradient(135deg, ${b}, ${a})`, border: storyBg === i ? '2px solid #fff' : '2px solid transparent', boxShadow: storyBg === i ? '0 0 0 1px rgba(0,0,0,0.4)' : 'none' }} />
+                  ))}
+                  <button type="button" onClick={() => { setTextMode(false); setStoryText(''); }} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#8a7f74', fontSize: '0.75rem', cursor: 'pointer', fontFamily: 'inherit' }}>vazgeç</button>
+                </div>
+              </div>
+            )}
+
+            {/* SADECE-METİN başlat düğmesi — dosya da metin modu da yokken. */}
+            {!storyFile && !textMode && (
+              <button type="button" onClick={() => { setTextMode(true); setArtPicker(false); }}
+                style={{ width: '100%', marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '10px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.15)', background: 'transparent', color: '#e8d9c6', fontFamily: 'inherit', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 7V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2M9 20h6M12 4v16"/></svg>
+                Sadece yazı
+              </button>
+            )}
+
+            {/* MAKALEYİ HİKAYENE PAYLAŞ — dosya da metin modu da yokken. Bir makale
+                seçince 9:16 kartı üretilir (reel kapağıyla aynı), dosya olarak
+                yüklenir ve link otomatik makaleye ayarlanır → makaleye trafik çeker. */}
+            {!storyFile && !textMode && (
               <div style={{ marginTop: 12 }}>
                 {!artPicker ? (
                   <button type="button" onClick={() => setArtPicker(true)}
@@ -1398,9 +1477,15 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
             </div>
 
             {storyError && <p style={{ color: '#ef4444', fontSize: '0.85rem', margin: '8px 0 0' }}>{storyError}</p>}
-            <button disabled={!storyFile || storySubmitting} onClick={submitStory} style={{ width: '100%', marginTop: 14, padding: 12, border: 'none', borderRadius: '9999px', background: 'var(--color-accent)', color: '#0f0e0d', fontWeight: 700, fontSize: '0.95rem', cursor: storyFile ? 'pointer' : 'not-allowed', opacity: storyFile ? 1 : 0.4 }}>
-              {storySubmitting ? 'Yükleniyor…' : 'Hikayeyi Paylaş'}
-            </button>
+            {(() => {
+              // Gönderilebilir: gerçek dosya VAR, ya da sadece-metin modunda dolu yazı.
+              const canSubmit = !!storyFile || (textMode && storyText.trim().length > 0);
+              return (
+                <button disabled={!canSubmit || storySubmitting} onClick={submitStory} style={{ width: '100%', marginTop: 14, padding: 12, border: 'none', borderRadius: '9999px', background: 'var(--color-accent)', color: '#0f0e0d', fontWeight: 700, fontSize: '0.95rem', cursor: canSubmit ? 'pointer' : 'not-allowed', opacity: canSubmit ? 1 : 0.4 }}>
+                  {storySubmitting ? 'Yükleniyor…' : 'Hikayeyi Paylaş'}
+                </button>
+              );
+            })()}
           </div>
         </div>
       )}

@@ -11,9 +11,9 @@ const json = (data: object, status = 200) => NextResponse.json(data, { status })
 const SELECT_BASE =
   'id, media_url, media_type, created_at, expires_at, user_id, users!stories_user_id_fkey(id, username, display_name, avatar, is_private)';
 const SELECT_WITH_MUSIC =
-  SELECT_BASE + ', music_track_id, music_start_sec, link_url, link_label, poll_question, poll_options, audience, music:music_tracks(id, title, artist, src)';
+  SELECT_BASE + ', music_track_id, music_start_sec, link_url, link_label, poll_question, poll_options, audience, caption, music:music_tracks(id, title, artist, src)';
 /** Kolon/ilişki henüz yoksa PostgREST böyle söyler (42703 / şema önbelleği). */
-const MUSIC_COLS_MISSING = /music_track_id|music_start_sec|music_tracks|link_url|link_label|poll_question|poll_options|audience/i;
+const MUSIC_COLS_MISSING = /music_track_id|music_start_sec|music_tracks|link_url|link_label|poll_question|poll_options|audience|caption/i;
 
 export async function GET() {
   const now = new Date().toISOString();
@@ -69,7 +69,7 @@ export async function POST(req: Request) {
   const { me } = await getMe();
   if (!me) return json({ error: 'Giriş gerekli' }, 401);
 
-  let body: { path?: string; mediaType?: string; musicTrackId?: number | null; musicStartSec?: number; linkUrl?: string; linkLabel?: string; pollQuestion?: string; pollOptions?: string[]; audience?: string };
+  let body: { path?: string; mediaType?: string; musicTrackId?: number | null; musicStartSec?: number; linkUrl?: string; linkLabel?: string; pollQuestion?: string; pollOptions?: string[]; audience?: string; caption?: string };
   try { body = await req.json(); } catch { return json({ error: 'Geçersiz istek' }, 400); }
 
   const path = body.path ?? '';
@@ -110,6 +110,8 @@ export async function POST(req: Request) {
 
   // KİTLE — yalnız bilinen üç değer; başka bir şey 'public'e düşer.
   const audience = ['followers', 'close'].includes(body.audience ?? '') ? body.audience! : 'public';
+  // CAPTION — medya üstü yazı; kırp (DB kısıtı 200).
+  const caption = typeof body.caption === 'string' && body.caption.trim() ? body.caption.trim().slice(0, 200) : null;
 
   const mediaUrl  = db.storage.from('media').getPublicUrl(path).data.publicUrl;
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 saat
@@ -123,15 +125,16 @@ export async function POST(req: Request) {
     ...(linkUrl ? { link_url: linkUrl, link_label: linkLabel } : {}),
     ...(pollQuestion ? { poll_question: pollQuestion, poll_options: pollOptions } : {}),
     ...(audience !== 'public' ? { audience } : {}), // varsayılanı yazma (kolon yoksa da çalışsın)
+    ...(caption ? { caption } : {}),
   };
   const COLS = 'id, media_url, media_type, created_at, expires_at';
   let { data: story, error } = await db.from('stories').insert(row).select(COLS).single();
-  // Opsiyonel kolonlar (müzik/link/anket/kitle) ilgili SQL çalıştırılana kadar
-  // YOK olabilir. Retry'ı KOLON-BAZLI yürüt: yalnız hata mesajında ADI GEÇEN
+  // Opsiyonel kolonlar (müzik/link/anket/kitle/caption) ilgili SQL çalıştırılana
+  // kadar YOK olabilir. Retry'ı KOLON-BAZLI yürüt: yalnız hata mesajında ADI GEÇEN
   // opsiyonel kolonu düş, insert başarılı olana ya da düşecek bilinen kolon
   // kalmayana kadar. Sabit silme kümesi KULLANMA — 'audience'ı başka bir kolonun
   // eksikliğinde silmek 'close' hikayeyi sessizce PUBLIC yapardı (gizlilik sızıntısı).
-  const OPTIONAL = ['music_track_id', 'music_start_sec', 'link_url', 'link_label', 'poll_question', 'poll_options', 'audience'];
+  const OPTIONAL = ['music_track_id', 'music_start_sec', 'link_url', 'link_label', 'poll_question', 'poll_options', 'audience', 'caption'];
   for (let guard = 0; error && guard < OPTIONAL.length; guard++) {
     const missing = OPTIONAL.find((c) => c in row && new RegExp(`\\b${c}\\b`, 'i').test(error!.message));
     if (!missing) break;
