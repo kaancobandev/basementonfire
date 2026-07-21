@@ -1,4 +1,5 @@
 import { db, getMe } from '@/lib/supabase/server';
+import { audiencePredicate } from '@/lib/storyAudience';
 import { NextResponse } from 'next/server';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
@@ -22,8 +23,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
   const ownerId = (hl as any).user_id as number;
   const isPrivate = !!(hl as any).users?.is_private;
+  const { me } = await getMe();
   if (isPrivate) {
-    const { me } = await getMe();
     const isOwner = me?.id === ownerId;
     let allowed = isOwner;
     if (!allowed && me) {
@@ -33,15 +34,29 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     if (!allowed) return json({ error: 'Bu içerik gizli' }, 403);
   }
 
-  const { data: items } = await db
+  // KİTLE KONTROLÜ — highlight'a takipçi/yakın-arkadaş hikayesi konmuşsa, hakkı
+  // olmayan izleyiciye o kare gösterilmez (vitrin kalıcı ama gizlilik geçerli).
+  // audience kolonu yoksa (SQL çalışmadıysa) select audience'sız denenir → hepsi public.
+  // Tip GEVŞEK: iki select farklı şekil taşır (biri audience'lı), aynı değişkene
+  // atanabilmeleri için ortak tip; aşağıda any[] olarak süzülür.
+  let itemsRes: { data: any[] | null; error: { message: string } | null } = await db
     .from('story_highlight_items')
-    .select('position, stories(id, media_url, media_type)')
+    .select('position, stories(id, media_url, media_type, audience)')
     .eq('highlight_id', hlId)
     .order('position', { ascending: true });
+  if (itemsRes.error && /audience/i.test(itemsRes.error.message)) {
+    itemsRes = await db
+      .from('story_highlight_items')
+      .select('position, stories(id, media_url, media_type)')
+      .eq('highlight_id', hlId)
+      .order('position', { ascending: true });
+  }
 
-  const stories = (items ?? [])
+  const canSee = await audiencePredicate(me?.id ?? null);
+  const stories = (itemsRes.data ?? [])
     .map((it: any) => it.stories)
     .filter(Boolean)
+    .filter((s: any) => canSee(ownerId, s.audience))
     .map((s: any) => ({ id: s.id, mediaUrl: s.media_url, mediaType: s.media_type }));
 
   return json({ title: (hl as any).title, stories });

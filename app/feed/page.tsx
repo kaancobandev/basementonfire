@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { unstable_cache } from 'next/cache';
 import { db, getMe, logIfError } from '@/lib/supabase/server';
+import { audiencePredicate } from '@/lib/storyAudience';
 import { flattenFacts, flattenPosts, type QuickFact, type Post, type DidYouKnow } from '@/lib/types';
 import { MATCH_MIN_AGE, isAtLeast } from '@/lib/age';
 import HomeFeed from '../components/HomeFeed';
@@ -36,7 +37,7 @@ const getHomeContent = unstable_cache(
       // (Aynı hata app/api/stories/route.ts'te de vardı.) Bkz. quick_facts satırı:
       // orada ipucu zaten var, bu yüzden o sorgu hiç bozulmadı.
       db.from('stories')
-        .select('id, media_url, media_type, created_at, user_id, music_track_id, music_start_sec, link_url, link_label, poll_question, poll_options, music:music_tracks(id, title, artist, src), users!stories_user_id_fkey(id, username, display_name, avatar, is_private)')
+        .select('id, media_url, media_type, created_at, user_id, music_track_id, music_start_sec, link_url, link_label, poll_question, poll_options, audience, music:music_tracks(id, title, artist, src), users!stories_user_id_fkey(id, username, display_name, avatar, is_private)')
         .gt('expires_at', new Date().toISOString())
         .order('created_at', { ascending: false })
         // Büyüme sigortası: şerit zaten en yeni hikâyeleri gösterir; 24 saatte 100+
@@ -49,7 +50,7 @@ const getHomeContent = unstable_cache(
     // yukarıdaki sorgu patlar; sade sorguya düşmezsek hikâye şeridi tamamen boş
     // kalır (yeni düzeltilen hatanın aynısı). Özellik uykudayken de çalışmalı.
     let storiesFinal = storiesRaw;
-    if (storiesErr && /music_track_id|music_start_sec|music_tracks|link_url|link_label|poll_question|poll_options/i.test(storiesErr.message)) {
+    if (storiesErr && /music_track_id|music_start_sec|music_tracks|link_url|link_label|poll_question|poll_options|audience/i.test(storiesErr.message)) {
       const { data: sade } = await db.from('stories')
         .select('id, media_url, media_type, created_at, user_id, users!stories_user_id_fkey(id, username, display_name, avatar, is_private)')
         .gt('expires_at', new Date().toISOString())
@@ -227,9 +228,13 @@ export default async function FeedPage() {
   interface StoryItem { id: number; mediaUrl: string; mediaType: string; createdAt: string; music?: { title: string; artist: string | null; src: string; startSec: number } | null; linkUrl?: string | null; linkLabel?: string | null; poll?: { question: string; options: string[] } | null; seen?: boolean; }
   interface StoryUser { userId: number; username: string; displayName: string; avatar: string | null; stories: StoryItem[]; }
 
-  // storiesRaw yukarıda getHomeContent()'ten (önbellekli) geldi.
+  // storiesRaw yukarıda getHomeContent()'ten (önbellekli — HERKESE aynı) geldi.
+  // KİTLE KONTROLÜ burada, KİŞİYE ÖZEL uygulanır: paylaşılan önbelleğe koyulamaz
+  // (bir kullanıcının takip/yakın-arkadaş durumu 30 sn boyunca herkese servis
+  // edilirdi — "seen" halkasıyla aynı gerekçe). audience yoksa hepsi public sayılır.
+  const canSeeStory = await audiencePredicate(me?.id ?? null);
   const storyMap = new Map<number, StoryUser>();
-  for (const s of (storiesRaw ?? []) as any[]) {
+  for (const s of ((storiesRaw ?? []) as any[]).filter((s) => canSeeStory(s.user_id, s.audience))) {
     const u = s.users;
     const uid: number = s.user_id;
     if (!storyMap.has(uid)) storyMap.set(uid, { userId: uid, username: u.username, displayName: u.display_name, avatar: u.avatar ?? null, stories: [] });

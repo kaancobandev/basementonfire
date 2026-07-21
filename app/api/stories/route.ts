@@ -1,6 +1,7 @@
 import { db, getMe, logIfError } from '@/lib/supabase/server';
 import { normalizeStoryLink, normalizeStoryLabel } from '@/lib/storyLink';
 import { normalizePollOptions } from '@/lib/polls';
+import { audiencePredicate } from '@/lib/storyAudience';
 import { NextResponse } from 'next/server';
 import { revalidateTag } from 'next/cache';
 
@@ -10,9 +11,9 @@ const json = (data: object, status = 200) => NextResponse.json(data, { status })
 const SELECT_BASE =
   'id, media_url, media_type, created_at, expires_at, user_id, users!stories_user_id_fkey(id, username, display_name, avatar, is_private)';
 const SELECT_WITH_MUSIC =
-  SELECT_BASE + ', music_track_id, music_start_sec, link_url, link_label, poll_question, poll_options, music:music_tracks(id, title, artist, src)';
+  SELECT_BASE + ', music_track_id, music_start_sec, link_url, link_label, poll_question, poll_options, audience, music:music_tracks(id, title, artist, src)';
 /** Kolon/ilişki henüz yoksa PostgREST böyle söyler (42703 / şema önbelleği). */
-const MUSIC_COLS_MISSING = /music_track_id|music_start_sec|music_tracks|link_url|link_label|poll_question|poll_options/i;
+const MUSIC_COLS_MISSING = /music_track_id|music_start_sec|music_tracks|link_url|link_label|poll_question|poll_options|audience/i;
 
 export async function GET() {
   const now = new Date().toISOString();
@@ -51,7 +52,13 @@ export async function GET() {
   logIfError('stories GET', error);
 
   // Gizli hesapların story'leri küresel story şeridinde gösterilmez (is_private truthy=gizli).
-  const stories = ((data ?? []) as any[]).filter((s) => !s.users?.is_private);
+  let stories = ((data ?? []) as any[]).filter((s) => !s.users?.is_private);
+
+  // KİTLE KONTROLÜ — takipçiler/yakın arkadaşlar hikayesini yalnız hakkı olan görür.
+  // audience kolonu yoksa predicate hepsini public sayar (uykuda güvenli).
+  const { me } = await getMe();
+  const canSee = await audiencePredicate(me?.id ?? null);
+  stories = stories.filter((s) => canSee(s.user_id, s.audience));
 
   return NextResponse.json({ stories });
 }
@@ -64,7 +71,7 @@ export async function POST(req: Request) {
   const { me } = await getMe();
   if (!me) return json({ error: 'Giriş gerekli' }, 401);
 
-  let body: { path?: string; mediaType?: string; musicTrackId?: number | null; musicStartSec?: number; linkUrl?: string; linkLabel?: string; pollQuestion?: string; pollOptions?: string[] };
+  let body: { path?: string; mediaType?: string; musicTrackId?: number | null; musicStartSec?: number; linkUrl?: string; linkLabel?: string; pollQuestion?: string; pollOptions?: string[]; audience?: string };
   try { body = await req.json(); } catch { return json({ error: 'Geçersiz istek' }, 400); }
 
   const path = body.path ?? '';
@@ -103,6 +110,9 @@ export async function POST(req: Request) {
     if (opts.length >= 2) { pollQuestion = body.pollQuestion.trim().slice(0, 100); pollOptions = opts; }
   }
 
+  // KİTLE — yalnız bilinen üç değer; başka bir şey 'public'e düşer.
+  const audience = ['followers', 'close'].includes(body.audience ?? '') ? body.audience! : 'public';
+
   const mediaUrl  = db.storage.from('media').getPublicUrl(path).data.publicUrl;
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 saat
 
@@ -114,13 +124,14 @@ export async function POST(req: Request) {
     ...(musicTrackId ? { music_track_id: musicTrackId, music_start_sec: musicStartSec } : {}),
     ...(linkUrl ? { link_url: linkUrl, link_label: linkLabel } : {}),
     ...(pollQuestion ? { poll_question: pollQuestion, poll_options: pollOptions } : {}),
+    ...(audience !== 'public' ? { audience } : {}), // varsayılanı yazma (kolon yoksa da çalışsın)
   };
   const COLS = 'id, media_url, media_type, created_at, expires_at';
   let { data: story, error } = await db.from('stories').insert(row).select(COLS).single();
-  // poll_* kolonları sql/features-story-poll.sql çalıştırılana kadar YOK olabilir →
-  // o hâlde anketi düşür, hikayeyi yine oluştur (diğer alanlar canlı).
-  if (error && pollQuestion && /poll_question|poll_options/i.test(error.message)) {
-    delete row.poll_question; delete row.poll_options;
+  // poll_*/audience kolonları ilgili SQL çalıştırılana kadar YOK olabilir → o hâlde
+  // eksik alanı düşür, hikayeyi yine oluştur (diğer alanlar canlı).
+  if (error && /poll_question|poll_options|audience/i.test(error.message)) {
+    delete row.poll_question; delete row.poll_options; delete row.audience;
     ({ data: story, error } = await db.from('stories').insert(row).select(COLS).single());
   }
 

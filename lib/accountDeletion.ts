@@ -73,6 +73,9 @@ export async function purgeAccount(userId: number): Promise<{ ok: boolean; error
     // story_highlight_items, stories/highlights silinince CASCADE gider; koleksiyon
     // satırının kendisi user_id'li olduğu için elle. (Tablo yoksa hata loglanır, zararsız.)
     ['story_highlights', 'user_id'],
+    // Yakın arkadaşlar: HEM benim listem (user_id) HEM beni ekleyenler (friend_id).
+    ['close_friends', 'user_id'],
+    ['close_friends', 'friend_id'],
     ['user_articles', 'user_id'],
     ['comments', 'user_id'],
     ['article_comments', 'user_id'],

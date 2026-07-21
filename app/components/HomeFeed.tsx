@@ -30,6 +30,7 @@ import { renderArticleStoryCard } from '@/lib/storyCard';
 const articleLinkOptions = ARTICLES.map(a => ({ path: `/articles/${a.slug}`, title: a.title }));
 // Kırpıcı yalnız görsel seçilince insin — react-easy-crop akışın ilk yükünde yer almasın.
 const ImageCropper = dynamic(() => import('./ImageCropper'), { ssr: false });
+const CloseFriendsModal = dynamic(() => import('./CloseFriendsModal'), { ssr: false });
 import { LazyMotion, m, AnimatePresence } from 'framer-motion';
 
 // framer-motion'un animasyon çekirdeği (domAnimation) async chunk olarak iner:
@@ -205,6 +206,8 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
   const [pollOpen, setPollOpen] = useState(false);
   const [pollQ, setPollQ] = useState('');
   const [pollOpts, setPollOpts] = useState<string[]>(['', '']); // 2-4 seçenek
+  const [storyAudience, setStoryAudience] = useState<'public' | 'followers' | 'close'>('public');
+  const [closeMgrOpen, setCloseMgrOpen] = useState(false);
 
   // Makaleyi hikayeye paylaş: 9:16 kart client'ta üretilir (reel kapağıyla aynı
   // kompozisyon, lib/storyCard.ts) → mevcut hikaye yükleme+POST akışına girer,
@@ -507,6 +510,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
           // Anket: soru + ≥2 dolu seçenek varsa gönder (sunucu ayrıca doğrular).
           ...(pollQ.trim() && pollOpts.filter(o => o.trim()).length >= 2
             ? { pollQuestion: pollQ.trim(), pollOptions: pollOpts.map(o => o.trim()).filter(Boolean) } : {}),
+          audience: storyAudience,
         }),
       });
       const data = await res.json();
@@ -517,6 +521,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
       setStoryMusicId(null);
       setStoryLink(''); setStoryLinkLabel('');
       setPollOpen(false); setPollQ(''); setPollOpts(['', '']);
+      setStoryAudience('public');
       // ŞERİDİ TAZELE. Bu satır olmadan kayıt 201 dönse bile ekranda hiçbir şey
       // değişmiyordu: modal kapanır, şerit aynı kalır, "Ekle" hâlâ kesikli çember
       // olarak durur → kullanıcı yüklemenin başarısız olduğunu sanır. Hikâyeler
@@ -1127,6 +1132,8 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
         </div>
       )}
 
+      {closeMgrOpen && <CloseFriendsModal onClose={() => setCloseMgrOpen(false)} />}
+
       {/* Hikâye kırpıcısı — zIndex 600: oluşturma modalı ve görüntüleyici 500'de.
           Varsayılan 300 ile açsaydık modalın ALTINDA kalır, kullanıcı "dosya
           seçtim ama bir şey olmadı" derdi (bu, bildirilen şikâyetin tarifiyle
@@ -1314,6 +1321,28 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                       style={{ marginTop: 8, background: 'none', border: 'none', color: '#8fa9ff', fontSize: '0.8rem', cursor: 'pointer', fontFamily: 'inherit' }}>+ seçenek ekle</button>
                   )}
                 </div>
+              )}
+            </div>
+
+            {/* KİTLE — kimin göreceği. Filtre hikayenin göründüğü her yüzeyde
+                sunucuda uygulanır (lib/storyAudience.ts). SQL yoksa 'public'e düşer. */}
+            <div style={{ marginTop: 14 }}>
+              <div style={{ color: '#b9ada0', fontSize: '0.78rem', fontWeight: 700, marginBottom: 6 }}>Kimler görsün?</div>
+              <div style={{ display: 'flex', gap: 6 }}>
+                {([['public', 'Herkes'], ['followers', 'Takipçiler'], ['close', 'Yakın arkadaşlar']] as const).map(([val, label]) => (
+                  <button key={val} type="button" onClick={() => setStoryAudience(val)}
+                    style={{ flex: 1, padding: '8px 4px', borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.76rem', fontWeight: 700,
+                      border: storyAudience === val ? '2px solid var(--color-accent)' : '1px solid rgba(255,255,255,0.14)',
+                      background: storyAudience === val ? 'rgba(255,157,10,0.15)' : 'transparent', color: '#e8e0d8' }}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {storyAudience === 'close' && (
+                <button type="button" onClick={() => setCloseMgrOpen(true)}
+                  style={{ marginTop: 8, background: 'none', border: 'none', color: '#8fa9ff', fontSize: '0.78rem', cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'underline' }}>
+                  Yakın arkadaşları düzenle
+                </button>
               )}
             </div>
 
