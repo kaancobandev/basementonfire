@@ -1103,12 +1103,16 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
           )}
           {/* BAĞLANTI ROZETİ — hikâyenin tek ölçülebilir çıkışı. Alt ortada,
               dokunma bölgelerinin (ileri/geri) ÜSTÜNDE bir katmanda duruyor;
-              yoksa üstüne basınca hikâye ilerler, bağlantı hiç açılmazdı. */}
+              yoksa üstüne basınca hikâye ilerler, bağlantı hiç açılmazdı.
+              `bottom` alt şeridin yüksekliğini HESABA KATAR: izleyicide şerit
+              emoji+yanıt kutusuyla ~116px, sahibinde "N kişi gördü" ile ~64px.
+              Müzik künyesi varsa onun da üstüne çıkar. Yoksa rozet yanıt
+              kutusuna yapışıyordu (kullanıcı bildirdi). */}
           {currentSvStory?.linkUrl && (
             <Link
               href={currentSvStory.linkUrl}
               onClick={() => closeViewer()}
-              style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', bottom: currentSvStory?.music ? 100 : 62,
+              style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', bottom: (isOwnStory ? 64 : 118) + (currentSvStory?.music ? 44 : 0) + 14,
                 zIndex: 7, display: 'inline-flex', alignItems: 'center', gap: 7, textDecoration: 'none',
                 background: 'rgba(255,255,255,0.94)', color: '#111', borderRadius: 9999, padding: '9px 16px',
                 fontSize: '0.82rem', fontWeight: 700, boxShadow: '0 4px 16px rgba(0,0,0,0.35)', whiteSpace: 'nowrap', maxWidth: '80%' }}
@@ -1120,7 +1124,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
           {/* Hikâye müziği. Viewer'a ait, dock'tan bağımsız (bkz. yukarıdaki efekt). */}
           <audio ref={svAudioRef} hidden />
           {currentSvStory?.music && (
-            <div style={{ position: 'absolute', left: 12, right: 12, bottom: 62, display: 'flex', alignItems: 'center', gap: 7, zIndex: 6,
+            <div style={{ position: 'absolute', left: 12, right: 12, bottom: isOwnStory ? 64 : 118, display: 'flex', alignItems: 'center', gap: 7, zIndex: 6,
               background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(6px)', borderRadius: 9999, padding: '6px 12px', pointerEvents: 'none' }}>
               <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
               <span style={{ color: '#fff', fontSize: '0.74rem', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
