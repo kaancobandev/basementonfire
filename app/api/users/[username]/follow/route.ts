@@ -18,29 +18,34 @@ export async function POST(_req: Request, { params }: { params: Promise<{ userna
   const { data: existing } = await db.from('follows').select('id').eq('follower_id', me.id).eq('following_id', target.id).single();
 
   if (existing) {
-    // Takipten çıkma HER ZAMAN serbest (gizli hesapta da).
+    // Zaten takipçi → takipten çık (gizli hesapta da HER ZAMAN serbest).
     await db.from('follows').delete().eq('follower_id', me.id).eq('following_id', target.id);
-  } else {
-    // GİZLİ HESAP — GEÇİCİ KORUMA.
-    // Bu route hedefin is_private'ını hiç okumuyordu: "Takip Et"e basan herkes
-    // anında takipçi oluyordu. Erişim kapısı ise tamamen buna dayanıyor
-    // (app/u/[username]/page.tsx: isHidden = is_private && !isFollowing), yani
-    // "gizli hesap" pratikte "bir fazladan tık gerektiren açık hesap"tı —
-    // kullanıcıya verilen gizlilik sözü karşılıksızdı.
-    //
-    // Doğru çözüm ONAY AKIŞI: follows'a status (pending/accepted), hedefe
-    // bildirim + kabul/red ucu, ve TÜM görünürlük kontrollerine
-    // .eq('status','accepted'). Şema + yeni UI istiyor, ayrı iş.
-    //
-    // O gelene kadar isteği REDDEDİYORUZ. Sessizce otomatik kabul etmekten
-    // dürüst: kullanıcı neden erişemediğini görüyor ve gizlilik sözü tutuluyor.
-    if (target.is_private) {
-      return json({ error: 'Bu hesap gizli. Takip istekleri henüz desteklenmiyor.' }, 403);
-    }
-    await db.from('follows').insert({ follower_id: me.id, following_id: target.id });
-    await createNotification({ userId: target.id, actorId: me.id, type: 'follow' });
+    const { count } = await db.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', target.id);
+    return json({ following: false, requested: false, followers_count: count ?? 0 });
   }
 
+  if (target.is_private) {
+    // GİZLİ HESAP → doğrudan takip YOK, İSTEK gönderilir (sahibi kabul edene dek
+    // takipçi olmaz → hiçbir görünürlük kontrolünü geçmez). İkinci tık = iptal.
+    // follow_requests tablosu sql/features-follow-requests.sql çalıştırılana kadar
+    // YOK olabilir → o hâlde eski davranışa (istek desteklenmiyor) düş.
+    const { data: pending } = await db.from('follow_requests').select('requester_id').eq('requester_id', me.id).eq('target_id', target.id).maybeSingle();
+    if (pending) {
+      await db.from('follow_requests').delete().eq('requester_id', me.id).eq('target_id', target.id);
+      return json({ following: false, requested: false });
+    }
+    const { error } = await db.from('follow_requests').insert({ requester_id: me.id, target_id: target.id });
+    if (error) {
+      if (/follow_requests/i.test(error.message)) return json({ error: 'Bu hesap gizli. Takip istekleri henüz desteklenmiyor.' }, 403);
+      return json({ error: 'İstek gönderilemedi.' }, 500);
+    }
+    await createNotification({ userId: target.id, actorId: me.id, type: 'follow_request' });
+    return json({ following: false, requested: true });
+  }
+
+  // AÇIK HESAP → anında takip.
+  await db.from('follows').insert({ follower_id: me.id, following_id: target.id });
+  await createNotification({ userId: target.id, actorId: me.id, type: 'follow' });
   const { count } = await db.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', target.id);
-  return json({ following: !existing, followers_count: count ?? 0 });
+  return json({ following: true, requested: false, followers_count: count ?? 0 });
 }

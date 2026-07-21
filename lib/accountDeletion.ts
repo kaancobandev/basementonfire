@@ -76,6 +76,9 @@ export async function purgeAccount(userId: number): Promise<{ ok: boolean; error
     // Yakın arkadaşlar: HEM benim listem (user_id) HEM beni ekleyenler (friend_id).
     ['close_friends', 'user_id'],
     ['close_friends', 'friend_id'],
+    // Takip istekleri: HEM gönderdiklerim (requester_id) HEM bana gelenler (target_id).
+    ['follow_requests', 'requester_id'],
+    ['follow_requests', 'target_id'],
     ['user_articles', 'user_id'],
     ['comments', 'user_id'],
     ['article_comments', 'user_id'],

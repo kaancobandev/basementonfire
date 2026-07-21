@@ -36,5 +36,9 @@ export async function POST(_req: Request, { params }: { params: Promise<{ userna
   await db.from('follows').delete()
     .or(`and(follower_id.eq.${me.id},following_id.eq.${target.id}),and(follower_id.eq.${target.id},following_id.eq.${me.id})`);
 
+  // Bekleyen takip istekleri de iki yönden temizlenir (tablo yoksa hata yutulur).
+  await db.from('follow_requests').delete()
+    .or(`and(requester_id.eq.${me.id},target_id.eq.${target.id}),and(requester_id.eq.${target.id},target_id.eq.${me.id})`);
+
   return json({ blocked: true });
 }

@@ -1,6 +1,6 @@
 import { db } from './supabase/server';
 
-type NotifType = 'follow' | 'comment' | 'like' | 'mention';
+type NotifType = 'follow' | 'comment' | 'like' | 'mention' | 'follow_request' | 'follow_accepted';
 
 interface NotifPayload {
   userId: number;

@@ -39,12 +39,14 @@ function getActiveId(pathname: string) {
   return '';
 }
 
-const NOTIF_ICONS: Record<string, string> = { follow: '👤', comment: '💬', like: '❤️', mention: '@' };
+const NOTIF_ICONS: Record<string, string> = { follow: '👤', comment: '💬', like: '❤️', mention: '@', follow_request: '🔒', follow_accepted: '✅' };
 const NOTIF_TEXT: Record<string, string> = {
   follow: 'Biri seni takip etmeye başladı',
   comment: 'Gönderine yeni bir yorum yapıldı',
   like: 'Gönderini biri beğendi',
   mention: 'Biri seni bir gönderide etiketledi',
+  follow_request: 'Yeni bir takip isteğin var',
+  follow_accepted: 'Takip isteğin kabul edildi',
 };
 
 export default function AppShell({ children }: AppShellProps) {

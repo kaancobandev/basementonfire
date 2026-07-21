@@ -4,6 +4,7 @@ import { db, getMe, logIfError } from '@/lib/supabase/server';
 import Link from 'next/link';
 import Img from '@/app/components/Img';
 import { avatarSrc } from '@/lib/avatar';
+import FollowRequests from '@/app/components/FollowRequests';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,8 +13,8 @@ function timeAgo(iso: string) {
   if (s < 60) return `${s}sn`; if (s < 3600) return `${Math.floor(s/60)}dk`; if (s < 86400) return `${Math.floor(s/3600)}sa`; return `${Math.floor(s/86400)}g`;
 }
 
-const TYPE_ICON: Record<string, string> = { follow: '👤', comment: '💬', like: '❤️', mention: '@' };
-const TYPE_TEXT: Record<string, string> = { follow: 'seni takip etmeye başladı', comment: 'gönderine yorum yaptı', like: 'gönderini beğendi', mention: 'seni bir gönderide etiketledi' };
+const TYPE_ICON: Record<string, string> = { follow: '👤', comment: '💬', like: '❤️', mention: '@', follow_request: '🔒', follow_accepted: '✅' };
+const TYPE_TEXT: Record<string, string> = { follow: 'seni takip etmeye başladı', comment: 'gönderine yorum yaptı', like: 'gönderini beğendi', mention: 'seni bir gönderide etiketledi', follow_request: 'seni takip etmek istiyor', follow_accepted: 'takip isteğini kabul etti' };
 
 export default async function NotificationsPage() {
   const { me } = await getMe();
@@ -39,7 +40,12 @@ export default async function NotificationsPage() {
     <main className="main-content">
       <div className="feed-header">Bildirimler</div>
 
-      {(!notifs || notifs.length === 0) ? (
+      {/* Gelen takip istekleri (yalnız gizli hesap sahibinde dolu). Kabul/reddet
+          burada; bu yüzden 'follow_request' bildirimleri aşağıdaki listeden elenir. */}
+      <FollowRequests />
+
+      {(() => { const list = (notifs ?? []).filter((n: any) => n.type !== 'follow_request'); return (
+      (list.length === 0) ? (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '64px 20px', color: 'var(--color-text-muted)' }}>
           <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
           <p style={{ fontWeight: 600, margin: 0 }}>Henüz bildirim yok</p>
@@ -47,7 +53,7 @@ export default async function NotificationsPage() {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          {(notifs ?? []).map((n: any) => {
+          {list.map((n: any) => {
             const actor = n.actor;
             if (!actor) return null;
             return (
@@ -67,7 +73,7 @@ export default async function NotificationsPage() {
             );
           })}
         </div>
-      )}
+      )); })()}
     </main>
   );
 }

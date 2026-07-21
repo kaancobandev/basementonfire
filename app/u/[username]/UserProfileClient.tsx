@@ -31,6 +31,7 @@ interface Props {
   followersCount: number;
   followingCount: number;
   isFollowing: boolean;
+  isRequested?: boolean;
   isHidden: boolean;
   iBlocked: boolean;
   blockedMe: boolean;
@@ -49,10 +50,11 @@ function timeAgo(iso: string) {
 
 const GENDER_LABEL: Record<string, string> = { erkek: 'Erkek', kadin: 'Kadın', diger: 'Diğer' };
 
-export default function UserProfileClient({ profileUser, bg, age, followersCount, followingCount, isFollowing: initialFollowing, isHidden, iBlocked, blockedMe, mediaPosts, articles = [], progress = null, badgeKeys = [], highlights = [], me }: Props) {
+export default function UserProfileClient({ profileUser, bg, age, followersCount, followingCount, isFollowing: initialFollowing, isRequested = false, isHidden, iBlocked, blockedMe, mediaPosts, articles = [], progress = null, badgeKeys = [], highlights = [], me }: Props) {
   const router = useRouter();
   const isMobile = useIsMobile();
   const [following, setFollowing] = useState(initialFollowing);
+  const [requested, setRequested] = useState(isRequested); // gizli hesaba bekleyen istek
   const [followers, setFollowers] = useState(followersCount);
   const [followLoading, setFollowLoading] = useState(false);
   const [dmLoading, setDmLoading] = useState(false);
@@ -102,7 +104,9 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
       if (!res.ok) throw new Error();
       const data = await res.json();
       setFollowing(data.following);
-      setFollowers(data.followers_count ?? (data.following ? followers + 1 : followers - 1));
+      setRequested(!!data.requested); // gizli hesapta 'İstek Gönderildi' durumu
+      // followers_count yalnız gerçek takip değişiminde döner (istekte dönmez).
+      if (data.followers_count != null) setFollowers(data.followers_count);
     } finally {
       setFollowLoading(false);
     }
@@ -206,14 +210,15 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
                   disabled={followLoading}
                   style={{
                     padding: '9px 22px', borderRadius: '9999px', fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s', fontFamily: 'inherit', whiteSpace: 'nowrap',
-                    background: following ? 'white' : 'var(--color-text)',
-                    color: following ? 'var(--color-text)' : 'white',
-                    border: following ? '2px solid var(--color-border)' : '2px solid var(--color-text)',
+                    background: (following || requested) ? 'white' : 'var(--color-text)',
+                    color: (following || requested) ? 'var(--color-text)' : 'white',
+                    border: (following || requested) ? '2px solid var(--color-border)' : '2px solid var(--color-text)',
                   }}
                   onMouseOver={e => { if (following) { (e.currentTarget as HTMLButtonElement).style.background = '#fee2e2'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#ef4444'; (e.currentTarget as HTMLButtonElement).style.color = '#ef4444'; } }}
                   onMouseOut={e => { if (following) { (e.currentTarget as HTMLButtonElement).style.background = 'white'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--color-border)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text)'; } }}
                 >
-                  {followLoading ? '…' : following ? 'Takip Ediliyor' : 'Takip Et'}
+                  {/* Gizli hesapta: istek yoksa "Takip İsteği Gönder", bekleyen istek "İstek Gönderildi" (iptal için tıkla). */}
+                  {followLoading ? '…' : following ? 'Takip Ediliyor' : requested ? 'İstek Gönderildi' : profileUser.is_private ? 'Takip İsteği Gönder' : 'Takip Et'}
                 </button>
                 <button
                   onClick={startDm}

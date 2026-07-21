@@ -107,10 +107,10 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
 async function ProfileBody({ profileUser, me }: { profileUser: NonNullable<Awaited<ReturnType<typeof getProfileUser>>>; me: Awaited<ReturnType<typeof getMe>>['me'] }) {
   // Takip + engel durumu: birbirinden bağımsız iki sorgu → tek turda paralel.
   // blocks tablosu yoksa (SQL çalışmadı) sessizce false kalır.
-  let isFollowing = false;
+  let isFollowing = false, isRequested = false;
   let iBlocked = false, blockedMe = false;
   if (me) {
-    const [followRes, blocksRes] = await Promise.all([
+    const [followRes, blocksRes, reqRes] = await Promise.all([
       db.from('follows')
         .select('id')
         .eq('follower_id', me.id)
@@ -119,8 +119,13 @@ async function ProfileBody({ profileUser, me }: { profileUser: NonNullable<Await
       db.from('blocks')
         .select('blocker_id')
         .or(`and(blocker_id.eq.${me.id},blocked_id.eq.${profileUser.id}),and(blocker_id.eq.${profileUser.id},blocked_id.eq.${me.id})`),
+      // Gizli hesaba bekleyen takip isteğim var mı? Tablo yoksa (SQL uykuda) sessizce yok.
+      profileUser.is_private
+        ? db.from('follow_requests').select('requester_id').eq('requester_id', me.id).eq('target_id', profileUser.id).maybeSingle()
+        : Promise.resolve({ data: null }),
     ]);
     isFollowing = !!followRes.data;
+    isRequested = !!(reqRes as any)?.data;
     for (const r of (blocksRes.data ?? []) as { blocker_id: number }[]) {
       if (r.blocker_id === me.id) iBlocked = true; else blockedMe = true;
     }
@@ -220,6 +225,7 @@ async function ProfileBody({ profileUser, me }: { profileUser: NonNullable<Await
       followersCount={followersRes.count ?? 0}
       followingCount={followingRes.count ?? 0}
       isFollowing={isFollowing}
+      isRequested={isRequested}
       isHidden={isHidden}
       iBlocked={iBlocked}
       blockedMe={blockedMe}
