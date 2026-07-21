@@ -183,6 +183,11 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
   const [svStoryIdx, setSvStoryIdx] = useState(0);
   const svTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const svAudioRef = useRef<HTMLAudioElement | null>(null);
+  // Basılı tut → duraklat + kaydır → geçiş jestleri (madde 3).
+  const [svPaused, setSvPaused] = useState(false);
+  const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const gStart = useRef<{ x: number; y: number } | null>(null);
+  const wasHold = useRef(false); // hold tetiklendi mi (stale closure'dan kaçın)
   // Geçerli hikayenin efektif süresi (sn). Foto = 5. Video = metadata gelene kadar
   // geçici 15, sonra Math.min(gerçekSüre, 15). Hem timer'ı hem ilerleme çubuğunu sürer.
   const [svDuration, setSvDuration] = useState(5);
@@ -275,6 +280,40 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
     closeViewer();
   }
 
+  // ── JESTLER (madde 3): tap = önceki/sonraki (x konumu), basılı tut = duraklat,
+  //    kaydır = sonraki/önceki, aşağı kaydır = kapat. "hold oldu mu" wasHold ref'inde
+  //    tutulur (pointerup closure'ı bayat svPaused okumasın). ─────────────────
+  function gestureDown(e: React.PointerEvent) {
+    try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch { /* sentetik pointer */ }
+    gStart.current = { x: e.clientX, y: e.clientY };
+    wasHold.current = false;
+    if (holdTimer.current) clearTimeout(holdTimer.current);
+    holdTimer.current = setTimeout(() => { wasHold.current = true; setSvPaused(true); }, 220);
+  }
+  function gestureMove(e: React.PointerEvent) {
+    const g = gStart.current;
+    if (g && holdTimer.current && (Math.abs(e.clientX - g.x) > 10 || Math.abs(e.clientY - g.y) > 10)) {
+      clearTimeout(holdTimer.current); holdTimer.current = null; // hareket → basılı tutma değil, kaydırma
+    }
+  }
+  function gestureUp(e: React.PointerEvent) {
+    if (holdTimer.current) { clearTimeout(holdTimer.current); holdTimer.current = null; }
+    const g = gStart.current; gStart.current = null;
+    if (wasHold.current) { wasHold.current = false; setSvPaused(false); return; } // basılı tutmayı bıraktı → devam
+    if (!g) return;
+    const dx = e.clientX - g.x, dy = e.clientY - g.y;
+    if (dy > 90 && dy > Math.abs(dx)) { closeViewer(); return; }   // aşağı kaydır → kapat
+    if (dx <= -45) { advanceStory(1); return; }                    // sola kaydır → sonraki
+    if (dx >= 45) { advanceStory(-1); return; }                    // sağa kaydır → önceki
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect(); // tap: sol %35 önceki, gerisi sonraki
+    advanceStory(e.clientX - rect.left < rect.width * 0.35 ? -1 : 1);
+  }
+  function gestureCancel() {
+    if (holdTimer.current) { clearTimeout(holdTimer.current); holdTimer.current = null; }
+    gStart.current = null;
+    if (wasHold.current) { wasHold.current = false; setSvPaused(false); }
+  }
+
   // HİKÂYE MÜZİĞİ. Viewer KENDİ <audio>'sunu kullanır; MediaDock'a devretmiyoruz:
   // dock gezinmede yaşar, repeat 'all' varsayılan ve kullanıcının dinlediği listeyi
   // yok ederdi — viewer kapandıktan sonra 5 saniyelik hikâye klibi çalmaya devam
@@ -333,7 +372,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
     setReactionSent(null);
     setViewersOpen(false);
     setStoryViews(null);
-    setReplyText(''); setReplyFocused(false);
+    setReplyText(''); setReplyFocused(false); setSvPaused(false);
     setStoryPoll(null);
     // Anket varsa mevcut dağılımı + kendi oyumu çek (çerezsiz, girişsiz de çalışır).
     if (s.poll) {
@@ -409,13 +448,13 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
   // svDuration hem ilerleme çubuğunu hem bu timer'ı sürer; metadata süreyi
   // güncelleyince (video) timer yeniden kurulur.
   useEffect(() => {
-    if (!viewerOpen || replyFocused) return; // yanıt yazarken hikaye İLERLEMEZ
+    if (!viewerOpen || replyFocused || svPaused) return; // yanıt yazarken ya da basılı tutarken İLERLEMEZ
     const s = allStoryUsers[svUserIdx]?.stories[svStoryIdx];
     if (!s) return;
     clearSvTimer();
     svTimerRef.current = setTimeout(autoAdvance, svDuration * 1000);
     return clearSvTimer;
-  }, [viewerOpen, svUserIdx, svStoryIdx, svDuration, replyFocused]);
+  }, [viewerOpen, svUserIdx, svStoryIdx, svDuration, replyFocused, svPaused]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -959,7 +998,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                 {currentSvUser.stories.map((_, i) => (
                   <div key={i} style={{ flex: 1, height: '2.5px', borderRadius: '9999px', background: i < svStoryIdx ? '#fff' : 'rgba(255,255,255,0.3)', overflow: 'hidden', position: 'relative' }}>
                     {i === svStoryIdx && (
-                      <div key={svDuration} style={{ position: 'absolute', inset: 0, background: '#fff', transformOrigin: 'left', animation: `sv-progress ${svDuration}s linear forwards`, animationPlayState: replyFocused ? 'paused' : 'running' }} />
+                      <div key={svDuration} style={{ position: 'absolute', inset: 0, background: '#fff', transformOrigin: 'left', animation: `sv-progress ${svDuration}s linear forwards`, animationPlayState: (replyFocused || svPaused) ? 'paused' : 'running' }} />
                     )}
                   </div>
                 ))}
@@ -991,11 +1030,19 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                 : <Img key={currentSvStory.mediaUrl} src={currentSvStory.mediaUrl} alt="" sizes="(max-width:520px) 100vw, 460px" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               }
             </div>
-            {/* Touch zones — klavye/ekran-okuyucu için <button> + aria-label.
-                Alt şerit (tepki/görüntülenme) dokunma alanının DIŞINDA kalsın
-                diye bottom değeri şerit yüksekliği kadar yukarıdan başlar. */}
-            <button type="button" aria-label="Önceki hikaye" onClick={() => advanceStory(-1)} style={{ position: 'absolute', top: 60, bottom: 56, left: 0, width: '40%', cursor: 'pointer', zIndex: 5, background: 'none', border: 'none', padding: 0 }} />
-            <button type="button" aria-label="Sonraki hikaye" onClick={() => advanceStory(1)} style={{ position: 'absolute', top: 60, bottom: 56, right: 0, width: '40%', cursor: 'pointer', zIndex: 5, background: 'none', border: 'none', padding: 0 }} />
+            {/* JEST KATMANI (madde 3): tek katman tap + basılı-tut + kaydır yönetir.
+                Alt şerit ve üst ilerleme çubukları bu alanın DIŞINDA (top:60/bottom:56)
+                kalır ki oradaki butonlar/kutu jestle çakışmasın. touchAction:'none'
+                ile pointer'ı biz sahipleniriz (tarayıcı kaydırma/geri-git yapmaz).
+                Klavye erişimi ayrı: ok tuşları + Esc window dinleyicisinde. */}
+            <div
+              aria-hidden
+              onPointerDown={gestureDown}
+              onPointerMove={gestureMove}
+              onPointerUp={gestureUp}
+              onPointerCancel={gestureCancel}
+              style={{ position: 'absolute', top: 60, bottom: 56, left: 0, right: 0, zIndex: 5, touchAction: 'none', cursor: 'pointer' }}
+            />
 
             {/* Alt şerit: SAHİBİ görüntülenme sayısını görür, İZLEYİCİ tepki verir.
                 Hikaye atan kullanıcı şimdiye kadar sıfır geri bildirim alıyordu. */}
