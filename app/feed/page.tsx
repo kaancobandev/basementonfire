@@ -36,7 +36,7 @@ const getHomeContent = unstable_cache(
       // (Aynı hata app/api/stories/route.ts'te de vardı.) Bkz. quick_facts satırı:
       // orada ipucu zaten var, bu yüzden o sorgu hiç bozulmadı.
       db.from('stories')
-        .select('id, media_url, media_type, created_at, user_id, music_track_id, music_start_sec, link_url, link_label, music:music_tracks(id, title, artist, src), users!stories_user_id_fkey(id, username, display_name, avatar, is_private)')
+        .select('id, media_url, media_type, created_at, user_id, music_track_id, music_start_sec, link_url, link_label, poll_question, poll_options, music:music_tracks(id, title, artist, src), users!stories_user_id_fkey(id, username, display_name, avatar, is_private)')
         .gt('expires_at', new Date().toISOString())
         .order('created_at', { ascending: false })
         // Büyüme sigortası: şerit zaten en yeni hikâyeleri gösterir; 24 saatte 100+
@@ -49,7 +49,7 @@ const getHomeContent = unstable_cache(
     // yukarıdaki sorgu patlar; sade sorguya düşmezsek hikâye şeridi tamamen boş
     // kalır (yeni düzeltilen hatanın aynısı). Özellik uykudayken de çalışmalı.
     let storiesFinal = storiesRaw;
-    if (storiesErr && /music_track_id|music_start_sec|music_tracks|link_url|link_label/i.test(storiesErr.message)) {
+    if (storiesErr && /music_track_id|music_start_sec|music_tracks|link_url|link_label|poll_question|poll_options/i.test(storiesErr.message)) {
       const { data: sade } = await db.from('stories')
         .select('id, media_url, media_type, created_at, user_id, users!stories_user_id_fkey(id, username, display_name, avatar, is_private)')
         .gt('expires_at', new Date().toISOString())
@@ -224,7 +224,7 @@ export default async function FeedPage() {
 
   // Stories
   // `music` opsiyonel — SQL çalıştırılana kadar hiç gelmez (bkz. yukarıdaki geri düşüş).
-  interface StoryItem { id: number; mediaUrl: string; mediaType: string; createdAt: string; music?: { title: string; artist: string | null; src: string; startSec: number } | null; linkUrl?: string | null; linkLabel?: string | null; seen?: boolean; }
+  interface StoryItem { id: number; mediaUrl: string; mediaType: string; createdAt: string; music?: { title: string; artist: string | null; src: string; startSec: number } | null; linkUrl?: string | null; linkLabel?: string | null; poll?: { question: string; options: string[] } | null; seen?: boolean; }
   interface StoryUser { userId: number; username: string; displayName: string; avatar: string | null; stories: StoryItem[]; }
 
   // storiesRaw yukarıda getHomeContent()'ten (önbellekli) geldi.
@@ -240,6 +240,9 @@ export default async function FeedPage() {
       music: s.music ? { title: s.music.title, artist: s.music.artist ?? null, src: s.music.src, startSec: s.music_start_sec ?? 0 } : null,
       linkUrl: s.link_url ?? null,
       linkLabel: s.link_label ?? null,
+      // Anket: soru + seçenek metinleri. Oy sayıları istemcide /api/article-poll'dan.
+      poll: (s.poll_question && Array.isArray(s.poll_options) && s.poll_options.length >= 2)
+        ? { question: s.poll_question as string, options: (s.poll_options as string[]) } : null,
     });
   }
 

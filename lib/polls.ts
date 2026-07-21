@@ -32,6 +32,18 @@ export function postIdFromPollKey(key: string): number | null {
   return Number.isInteger(n) && n > 0 ? n : null;
 }
 
+// ── Hikaye anketleri (2026-07-21) ────────────────────────────────────────
+// Gönderi anketleriyle AYNI mantık: poll_key = 'story-<id>', seçenek metinleri
+// stories.poll_options'ta, oy olarak indeks saklanır. Route pollChoices bunu çözer.
+export const STORY_POLL_PREFIX = 'story-';
+
+/** 'story-123' → 123; değilse null. */
+export function storyIdFromPollKey(key: string): number | null {
+  if (!key.startsWith(STORY_POLL_PREFIX)) return null;
+  const n = Number(key.slice(STORY_POLL_PREFIX.length));
+  return Number.isInteger(n) && n > 0 ? n : null;
+}
+
 /** Seçenek dizisini normalize eder (kırp, boşları at, tavan uygula). */
 export function normalizePollOptions(raw: unknown): string[] {
   if (!Array.isArray(raw)) return [];

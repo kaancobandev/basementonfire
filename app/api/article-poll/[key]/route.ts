@@ -2,7 +2,7 @@ import crypto from 'node:crypto';
 import { NextResponse, type NextRequest } from 'next/server';
 import { db, getMe } from '@/lib/supabase/server';
 import { clientIp } from '@/lib/geo';
-import { POLLS, isPollKey, isPollChoice, postIdFromPollKey } from '@/lib/polls';
+import { POLLS, isPollKey, isPollChoice, postIdFromPollKey, storyIdFromPollKey } from '@/lib/polls';
 
 // Makale içi karar noktası oylaması (ilk kullanan: /articles/sezar → Rubicon).
 // Giriş GEREKTİRMEZ: okur bir seçim yapar, dağılımı görür.
@@ -40,11 +40,23 @@ function voterHash(req: NextRequest, pollKey: string): string {
  */
 async function pollChoices(pollKey: string): Promise<readonly string[] | null> {
   if (isPollKey(pollKey)) return POLLS[pollKey];
+  // Gönderi anketi ('post-<id>') → post_polls.options; oy olarak indeks.
   const postId = postIdFromPollKey(pollKey);
-  if (postId === null) return null;
-  const { data, error } = await db.from('post_polls').select('options').eq('post_id', postId).maybeSingle();
-  if (error || !data || !Array.isArray(data.options)) return null;
-  return data.options.map((_: unknown, i: number) => String(i));
+  if (postId !== null) {
+    const { data, error } = await db.from('post_polls').select('options').eq('post_id', postId).maybeSingle();
+    if (error || !data || !Array.isArray(data.options)) return null;
+    return data.options.map((_: unknown, i: number) => String(i));
+  }
+  // Hikaye anketi ('story-<id>') → stories.poll_options; oy olarak indeks.
+  // Kolon sql/features-story-poll.sql çalıştırılana kadar YOKtur → hata/boş → null
+  // (route { available:false } döner, sticker gizli kalır).
+  const storyId = storyIdFromPollKey(pollKey);
+  if (storyId !== null) {
+    const { data, error } = await db.from('stories').select('poll_options').eq('id', storyId).maybeSingle();
+    if (error || !data || !Array.isArray((data as any).poll_options)) return null;
+    return ((data as any).poll_options as unknown[]).map((_, i) => String(i));
+  }
+  return null;
 }
 
 /** Seçenek başına sayım. Seçenekler doğrulanmış kümeden gelir → istemci veriyle oynayamaz. */

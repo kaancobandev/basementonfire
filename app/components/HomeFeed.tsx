@@ -40,7 +40,7 @@ const loadMotionFeatures = () => import('./motionFeatures').then(mod => mod.defa
 interface StoryMusic { title: string; artist: string | null; src: string; startSec: number }
 // `music` OPSİYONEL: sql/features-story-music.sql çalıştırılana kadar sunucu bu
 // alanı hiç göndermez ve görüntüleyici sessizce müziksiz oynatır.
-interface StoryItem { id: number; mediaUrl: string; mediaType: string; createdAt: string; music?: StoryMusic | null; linkUrl?: string | null; linkLabel?: string | null; seen?: boolean; }
+interface StoryItem { id: number; mediaUrl: string; mediaType: string; createdAt: string; music?: StoryMusic | null; linkUrl?: string | null; linkLabel?: string | null; poll?: { question: string; options: string[] } | null; seen?: boolean; }
 interface StoryUser { userId: number; username: string; displayName: string; avatar: string | null; stories: StoryItem[]; }
 interface SuggestedUser { id: number; username: string; display_name: string; bio: string | null; avatar: string | null; mutual_count: number; }
 
@@ -202,6 +202,9 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
   const [storyLinkLabel, setStoryLinkLabel] = useState('');
   const [artPicker, setArtPicker] = useState(false); // "makale paylaş" listesi açık mı
   const [artBusy, setArtBusy] = useState('');         // kartı üretilen makale slug'ı
+  const [pollOpen, setPollOpen] = useState(false);
+  const [pollQ, setPollQ] = useState('');
+  const [pollOpts, setPollOpts] = useState<string[]>(['', '']); // 2-4 seçenek
 
   // Makaleyi hikayeye paylaş: 9:16 kart client'ta üretilir (reel kapağıyla aynı
   // kompozisyon, lib/storyCard.ts) → mevcut hikaye yükleme+POST akışına girer,
@@ -315,6 +318,8 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
   const [replyText, setReplyText] = useState('');
   const [replyFocused, setReplyFocused] = useState(false); // yazarken hikaye ilerlemesin
   const [replySending, setReplySending] = useState(false);
+  // Hikaye anketi sonuçları (mevcut çerezsiz oy altyapısı, key='story-<id>').
+  const [storyPoll, setStoryPoll] = useState<{ counts: Record<string, number>; total: number; mine: string | null } | null>(null);
   const isOwnStory = !!ownStoryUser && allStoryUsers[svUserIdx]?.userId === ownStoryUser.userId;
 
   // Hikaye değişince: izleyiciyse görüntülenme beacon'ı, sahibiyse liste çekilir.
@@ -326,6 +331,15 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
     setViewersOpen(false);
     setStoryViews(null);
     setReplyText(''); setReplyFocused(false);
+    setStoryPoll(null);
+    // Anket varsa mevcut dağılımı + kendi oyumu çek (çerezsiz, girişsiz de çalışır).
+    if (s.poll) {
+      let alive = true;
+      fetch(`/api/article-poll/story-${s.id}`)
+        .then(r => r.json())
+        .then(d => { if (alive && d?.available) setStoryPoll({ counts: d.counts ?? {}, total: d.total ?? 0, mine: d.mine ?? null }); })
+        .catch(() => {});
+    }
     if (!currentUser) return;
     if (isOwnStory) {
       let alive = true;
@@ -373,6 +387,20 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
       toast('Yanıtın gönderildi', { description: 'Mesaj olarak iletildi.' });
     } catch { toast('Gönderilemedi'); }
     finally { setReplySending(false); }
+  }
+
+  // Hikaye anketine oy → mevcut çerezsiz oy ucu (giriş GEREKMEZ). Oy indeks olarak
+  // yazılır; sunucu tek-oy'u DB PK'siyle garantiler, dağılımı geri döner.
+  async function voteStoryPoll(storyId: number, idx: number) {
+    if (storyPoll?.mine != null) return; // zaten oy verdi
+    try {
+      const r = await fetch(`/api/article-poll/story-${storyId}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ choice: String(idx) }),
+      });
+      const d = await r.json();
+      if (d?.available) setStoryPoll({ counts: d.counts ?? {}, total: d.total ?? 0, mine: d.mine ?? String(idx) });
+    } catch { /* sessiz — anket kritik değil */ }
   }
 
   // svDuration hem ilerleme çubuğunu hem bu timer'ı sürer; metadata süreyi
@@ -474,7 +502,12 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
       const res = await fetch('/api/stories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ path, mediaType, musicTrackId: storyMusicId, linkUrl: storyLink, linkLabel: storyLinkLabel }),
+        body: JSON.stringify({
+          path, mediaType, musicTrackId: storyMusicId, linkUrl: storyLink, linkLabel: storyLinkLabel,
+          // Anket: soru + ≥2 dolu seçenek varsa gönder (sunucu ayrıca doğrular).
+          ...(pollQ.trim() && pollOpts.filter(o => o.trim()).length >= 2
+            ? { pollQuestion: pollQ.trim(), pollOptions: pollOpts.map(o => o.trim()).filter(Boolean) } : {}),
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Hata');
@@ -483,6 +516,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
       setStoryPreviewUrl('');
       setStoryMusicId(null);
       setStoryLink(''); setStoryLinkLabel('');
+      setPollOpen(false); setPollQ(''); setPollOpts(['', '']);
       // ŞERİDİ TAZELE. Bu satır olmadan kayıt 201 dönse bile ekranda hiçbir şey
       // değişmiyordu: modal kapanır, şerit aynı kalır, "Ekle" hâlâ kesikli çember
       // olarak durur → kullanıcı yüklemenin başarısız olduğunu sanır. Hikâyeler
@@ -1031,6 +1065,37 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
               </div>
             )}
           </div>
+          {/* ANKET STICKER'I — dokunma bölgelerinin (ileri/geri) ÜSTÜNDE (zIndex 7),
+              yoksa seçeneğe basınca hikâye ilerler, oy hiç gitmezdi. Oy verilene
+              kadar buton, sonrası dolan çubuk + yüzde. */}
+          {currentSvStory?.poll && (
+            <div style={{ position: 'absolute', left: '50%', top: '26%', transform: 'translateX(-50%)', width: '82%', maxWidth: 360, zIndex: 7,
+              background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)', borderRadius: 16, padding: '14px 14px 12px', boxShadow: '0 6px 24px rgba(0,0,0,0.4)' }}>
+              <p style={{ margin: '0 0 10px', color: '#fff', fontWeight: 700, fontSize: '0.92rem', textAlign: 'center' }}>{currentSvStory.poll.question}</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {currentSvStory.poll.options.map((opt, i) => {
+                  const voted = storyPoll?.mine != null;
+                  const count = storyPoll?.counts?.[String(i)] ?? 0;
+                  const pct = storyPoll && storyPoll.total > 0 ? Math.round((count / storyPoll.total) * 100) : 0;
+                  const mine = storyPoll?.mine === String(i);
+                  return (
+                    <button key={i} type="button" disabled={voted}
+                      onClick={() => voteStoryPoll(currentSvStory.id, i)}
+                      style={{ position: 'relative', overflow: 'hidden', width: '100%', textAlign: 'left', padding: '10px 12px', borderRadius: 10,
+                        border: mine ? '2px solid #fff' : '1px solid rgba(255,255,255,0.35)', background: 'rgba(255,255,255,0.12)', color: '#fff',
+                        fontFamily: 'inherit', fontSize: '0.86rem', fontWeight: 600, cursor: voted ? 'default' : 'pointer' }}>
+                      {voted && <span style={{ position: 'absolute', inset: 0, background: mine ? 'rgba(255,255,255,0.32)' : 'rgba(255,255,255,0.16)', width: `${pct}%`, transition: 'width 0.4s' }} />}
+                      <span style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{opt}</span>
+                        {voted && <span style={{ flexShrink: 0, fontWeight: 800 }}>%{pct}</span>}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              {storyPoll?.mine != null && <p style={{ margin: '8px 0 0', color: 'rgba(255,255,255,0.65)', fontSize: '0.72rem', textAlign: 'center' }}>{storyPoll.total} oy</p>}
+            </div>
+          )}
           {/* BAĞLANTI ROZETİ — hikâyenin tek ölçülebilir çıkışı. Alt ortada,
               dokunma bölgelerinin (ileri/geri) ÜSTÜNDE bir katmanda duruyor;
               yoksa üstüne basınca hikâye ilerler, bağlantı hiç açılmazdı. */}
@@ -1213,6 +1278,45 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
                 />
               )}
             </div>
+
+            {/* ANKET STICKER'I — soru + 2-4 seçenek. İzleyen hikayede dokunup oy
+                verir, sonucu görür. Oylar mevcut çerezsiz altyapıdan (article_poll_votes,
+                key='story-<id>'). SQL çalışmadıysa sunucu anketi sessizce düşürür. */}
+            <div style={{ marginTop: 14 }}>
+              {!pollOpen ? (
+                <button type="button" onClick={() => setPollOpen(true)}
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '10px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.15)', background: 'transparent', color: '#cfe3f2', fontFamily: 'inherit', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="7"/><rect x="14" y="6" width="3" height="11"/></svg>
+                  Anket ekle
+                </button>
+              ) : (
+                <div style={{ border: '1px solid rgba(255,255,255,0.15)', borderRadius: 12, padding: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <span style={{ color: '#b9ada0', fontSize: '0.8rem', fontWeight: 700 }}>Anket</span>
+                    <button type="button" onClick={() => { setPollOpen(false); setPollQ(''); setPollOpts(['', '']); }} style={{ background: 'none', border: 'none', color: '#8a7f74', fontSize: '0.75rem', cursor: 'pointer', fontFamily: 'inherit' }}>kaldır</button>
+                  </div>
+                  <input value={pollQ} onChange={e => setPollQ(e.target.value)} placeholder="Soru (ör. Sence hangisi doğru?)" maxLength={100}
+                    style={{ width: '100%', padding: '9px 11px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.14)', background: 'transparent', color: '#e8e0d8', fontFamily: 'inherit', fontSize: '0.85rem' }} />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}>
+                    {pollOpts.map((opt, i) => (
+                      <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                        <input value={opt} onChange={e => setPollOpts(prev => prev.map((o, j) => j === i ? e.target.value : o))} placeholder={`Seçenek ${i + 1}`} maxLength={60}
+                          style={{ flex: 1, minWidth: 0, padding: '8px 11px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.14)', background: 'transparent', color: '#e8e0d8', fontFamily: 'inherit', fontSize: '0.84rem' }} />
+                        {pollOpts.length > 2 && (
+                          <button type="button" onClick={() => setPollOpts(prev => prev.filter((_, j) => j !== i))} aria-label="Seçeneği kaldır"
+                            style={{ flexShrink: 0, width: 30, height: 30, borderRadius: 8, border: 'none', background: 'rgba(255,255,255,0.08)', color: '#c88', cursor: 'pointer' }}>×</button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  {pollOpts.length < 4 && (
+                    <button type="button" onClick={() => setPollOpts(prev => [...prev, ''])}
+                      style={{ marginTop: 8, background: 'none', border: 'none', color: '#8fa9ff', fontSize: '0.8rem', cursor: 'pointer', fontFamily: 'inherit' }}>+ seçenek ekle</button>
+                  )}
+                </div>
+              )}
+            </div>
+
             {storyError && <p style={{ color: '#ef4444', fontSize: '0.85rem', margin: '8px 0 0' }}>{storyError}</p>}
             <button disabled={!storyFile || storySubmitting} onClick={submitStory} style={{ width: '100%', marginTop: 14, padding: 12, border: 'none', borderRadius: '9999px', background: 'var(--color-accent)', color: '#0f0e0d', fontWeight: 700, fontSize: '0.95rem', cursor: storyFile ? 'pointer' : 'not-allowed', opacity: storyFile ? 1 : 0.4 }}>
               {storySubmitting ? 'Yükleniyor…' : 'Hikayeyi Paylaş'}

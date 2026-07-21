@@ -1,5 +1,6 @@
 import { db, getMe, logIfError } from '@/lib/supabase/server';
 import { normalizeStoryLink, normalizeStoryLabel } from '@/lib/storyLink';
+import { normalizePollOptions } from '@/lib/polls';
 import { NextResponse } from 'next/server';
 import { revalidateTag } from 'next/cache';
 
@@ -9,9 +10,9 @@ const json = (data: object, status = 200) => NextResponse.json(data, { status })
 const SELECT_BASE =
   'id, media_url, media_type, created_at, expires_at, user_id, users!stories_user_id_fkey(id, username, display_name, avatar, is_private)';
 const SELECT_WITH_MUSIC =
-  SELECT_BASE + ', music_track_id, music_start_sec, link_url, link_label, music:music_tracks(id, title, artist, src)';
+  SELECT_BASE + ', music_track_id, music_start_sec, link_url, link_label, poll_question, poll_options, music:music_tracks(id, title, artist, src)';
 /** Kolon/ilişki henüz yoksa PostgREST böyle söyler (42703 / şema önbelleği). */
-const MUSIC_COLS_MISSING = /music_track_id|music_start_sec|music_tracks|link_url|link_label/i;
+const MUSIC_COLS_MISSING = /music_track_id|music_start_sec|music_tracks|link_url|link_label|poll_question|poll_options/i;
 
 export async function GET() {
   const now = new Date().toISOString();
@@ -63,7 +64,7 @@ export async function POST(req: Request) {
   const { me } = await getMe();
   if (!me) return json({ error: 'Giriş gerekli' }, 401);
 
-  let body: { path?: string; mediaType?: string; musicTrackId?: number | null; musicStartSec?: number; linkUrl?: string; linkLabel?: string };
+  let body: { path?: string; mediaType?: string; musicTrackId?: number | null; musicStartSec?: number; linkUrl?: string; linkLabel?: string; pollQuestion?: string; pollOptions?: string[] };
   try { body = await req.json(); } catch { return json({ error: 'Geçersiz istek' }, 400); }
 
   const path = body.path ?? '';
@@ -92,21 +93,36 @@ export async function POST(req: Request) {
   const linkUrl = normalizeStoryLink(body.linkUrl);
   const linkLabel = linkUrl ? normalizeStoryLabel(body.linkLabel) : null;
 
+  // ANKET STICKER'I — soru + 2-4 seçenek. Oy olarak metin DEĞİL indeks saklanır
+  // (article_poll_votes, poll_key='story-<id>'). Seçenekler normalize edilir
+  // (kırp, boşları at, en çok 4, her biri ≤60). 2'den az geçerli seçenek → anket yok.
+  let pollQuestion: string | null = null;
+  let pollOptions: string[] | null = null;
+  if (typeof body.pollQuestion === 'string' && body.pollQuestion.trim()) {
+    const opts = normalizePollOptions(body.pollOptions);
+    if (opts.length >= 2) { pollQuestion = body.pollQuestion.trim().slice(0, 100); pollOptions = opts; }
+  }
+
   const mediaUrl  = db.storage.from('media').getPublicUrl(path).data.publicUrl;
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 saat
 
-  const { data: story, error } = await db
-    .from('stories')
-    .insert({
-      user_id:    me.id,
-      media_url:  mediaUrl,
-      media_type: mediaType,
-      expires_at: expiresAt,
-      ...(musicTrackId ? { music_track_id: musicTrackId, music_start_sec: musicStartSec } : {}),
-      ...(linkUrl ? { link_url: linkUrl, link_label: linkLabel } : {}),
-    })
-    .select('id, media_url, media_type, created_at, expires_at')
-    .single();
+  const row: Record<string, unknown> = {
+    user_id:    me.id,
+    media_url:  mediaUrl,
+    media_type: mediaType,
+    expires_at: expiresAt,
+    ...(musicTrackId ? { music_track_id: musicTrackId, music_start_sec: musicStartSec } : {}),
+    ...(linkUrl ? { link_url: linkUrl, link_label: linkLabel } : {}),
+    ...(pollQuestion ? { poll_question: pollQuestion, poll_options: pollOptions } : {}),
+  };
+  const COLS = 'id, media_url, media_type, created_at, expires_at';
+  let { data: story, error } = await db.from('stories').insert(row).select(COLS).single();
+  // poll_* kolonları sql/features-story-poll.sql çalıştırılana kadar YOK olabilir →
+  // o hâlde anketi düşür, hikayeyi yine oluştur (diğer alanlar canlı).
+  if (error && pollQuestion && /poll_question|poll_options/i.test(error.message)) {
+    delete row.poll_question; delete row.poll_options;
+    ({ data: story, error } = await db.from('stories').insert(row).select(COLS).single());
+  }
 
   if (error) {
     await db.storage.from('media').remove([path]);
