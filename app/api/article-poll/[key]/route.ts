@@ -3,6 +3,40 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { db, getMe } from '@/lib/supabase/server';
 import { clientIp } from '@/lib/geo';
 import { POLLS, isPollKey, isPollChoice, postIdFromPollKey, storyIdFromPollKey } from '@/lib/polls';
+import { audiencePredicate } from '@/lib/storyAudience';
+import { isBlockedBetween } from '@/lib/blocks';
+
+/**
+ * Hikaye anketi GÖRÜNÜRLÜK kapısı. Anket ucu makale/gönderi anketleri için giriş
+ * gerektirmez, ama HİKAYE anketi hikayenin kendisi kadar kısıtlı olmalı: aksi
+ * hâlde biri story-1, story-2… diye deneyerek gizli/kitle-kısıtlı hikayelerin
+ * VARLIĞINI (available:true) ve oy sayısını çıkarır, hatta göremediği ankete
+ * oy verir. İzleyici hikayeyi göremiyorsa anket de yokmuş gibi davranılır.
+ * audience kolonu yoksa (SQL uykuda) select audience'sız denenir → hepsi public.
+ */
+async function storyPollVisible(storyId: number, meId: number | null): Promise<boolean> {
+  let sel = await db.from('stories')
+    .select('user_id, audience, expires_at, users!stories_user_id_fkey(is_private)')
+    .eq('id', storyId).maybeSingle();
+  if (sel.error && /audience/i.test(sel.error.message)) {
+    sel = await db.from('stories')
+      .select('user_id, expires_at, users!stories_user_id_fkey(is_private)')
+      .eq('id', storyId).maybeSingle() as any;
+  }
+  const s: any = sel.data;
+  if (!s) return false;
+  if (new Date(s.expires_at).getTime() <= Date.now()) return false; // süresi dolmuş
+  const ownerId = s.user_id as number;
+  if (meId === ownerId) return true;
+  if (meId != null && await isBlockedBetween(meId, ownerId)) return false;
+  if (s.users?.is_private) {
+    if (meId == null) return false;
+    const { data: f } = await db.from('follows').select('id').eq('follower_id', meId).eq('following_id', ownerId).maybeSingle();
+    if (!f) return false;
+  }
+  const canSee = await audiencePredicate(meId);
+  return canSee(ownerId, s.audience);
+}
 
 // Makale içi karar noktası oylaması (ilk kullanan: /articles/sezar → Rubicon).
 // Giriş GEREKTİRMEZ: okur bir seçim yapar, dağılımı görür.
@@ -82,6 +116,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ key:
   const { key } = await params;
   const choices = await pollChoices(key);
   if (!choices) return json({ available: false });
+  // HİKAYE anketi: izleyici hikayeyi göremiyorsa anket de yokmuş gibi davran
+  // (varlık/oy sayısı sızmasın). Makale/gönderi anketleri bu kapıdan geçmez.
+  const sid = storyIdFromPollKey(key);
+  if (sid !== null) {
+    const { me } = await getMe();
+    if (!(await storyPollVisible(sid, me?.id ?? null))) return json({ available: false });
+  }
   try {
     // `mine` gerçek (head'siz) bir select → tablo yoksa hatayı GÜVENİLİR yüzeye
     // çıkarır (head:true count'un aksine); tally de null count'a karşı korumalı.
@@ -105,6 +146,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ key
   const { key } = await params;
   const choices = await pollChoices(key);
   if (!choices) return json({ available: false });
+
+  // HİKAYE anketi: göremediğin ankete OY VEREMEZSİN (sabotaj + varlık sızması).
+  const sid = storyIdFromPollKey(key);
+  if (sid !== null) {
+    const { me } = await getMe();
+    if (!(await storyPollVisible(sid, me?.id ?? null))) return json({ available: false });
+  }
 
   let choice = '';
   try {

@@ -128,10 +128,16 @@ export async function POST(req: Request) {
   };
   const COLS = 'id, media_url, media_type, created_at, expires_at';
   let { data: story, error } = await db.from('stories').insert(row).select(COLS).single();
-  // poll_*/audience kolonları ilgili SQL çalıştırılana kadar YOK olabilir → o hâlde
-  // eksik alanı düşür, hikayeyi yine oluştur (diğer alanlar canlı).
-  if (error && /poll_question|poll_options|audience/i.test(error.message)) {
-    delete row.poll_question; delete row.poll_options; delete row.audience;
+  // Opsiyonel kolonlar (müzik/link/anket/kitle) ilgili SQL çalıştırılana kadar
+  // YOK olabilir. Retry'ı KOLON-BAZLI yürüt: yalnız hata mesajında ADI GEÇEN
+  // opsiyonel kolonu düş, insert başarılı olana ya da düşecek bilinen kolon
+  // kalmayana kadar. Sabit silme kümesi KULLANMA — 'audience'ı başka bir kolonun
+  // eksikliğinde silmek 'close' hikayeyi sessizce PUBLIC yapardı (gizlilik sızıntısı).
+  const OPTIONAL = ['music_track_id', 'music_start_sec', 'link_url', 'link_label', 'poll_question', 'poll_options', 'audience'];
+  for (let guard = 0; error && guard < OPTIONAL.length; guard++) {
+    const missing = OPTIONAL.find((c) => c in row && new RegExp(`\\b${c}\\b`, 'i').test(error!.message));
+    if (!missing) break;
+    delete row[missing];
     ({ data: story, error } = await db.from('stories').insert(row).select(COLS).single());
   }
 
