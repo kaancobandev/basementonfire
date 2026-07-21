@@ -51,7 +51,7 @@ export async function generateMetadata({ params }: { params: Promise<{ username:
   const title = `${name} (@${u.username})`;
   const description = (u.bio && u.bio.trim())
     ? u.bio.trim().slice(0, 160)
-    : `${name} (@${u.username}) — Basements'teki profil ve paylaşımlar.`;
+    : `${name} (@${u.username}) — Basementonfire'teki profil ve paylaşımlar.`;
   const path = `/u/${u.username}`;
 
   // Gizli profiller arama motorlarına gösterilmez
@@ -63,8 +63,8 @@ export async function generateMetadata({ params }: { params: Promise<{ username:
     title,
     description,
     alternates: { canonical: path },
-    openGraph: { type: 'profile', title: `${title} · Basements`, description, url: path, images: ['/opengraph-image'] },
-    twitter: { card: 'summary_large_image', title: `${title} · Basements`, description },
+    openGraph: { type: 'profile', title: `${title} · Basementonfire`, description, url: path, images: ['/opengraph-image'] },
+    twitter: { card: 'summary_large_image', title: `${title} · Basementonfire`, description },
   };
 }
 

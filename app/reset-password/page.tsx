@@ -142,7 +142,7 @@ export default function ResetPasswordPage() {
       >
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
           <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--color-primary)', marginBottom: '4px' }}>
-            Basements
+            Basementonfire
           </div>
           <div style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Yeni şifre belirle</div>
         </div>

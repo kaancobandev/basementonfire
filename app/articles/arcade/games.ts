@@ -345,7 +345,7 @@ export const GAME_JS = `
   }
 
   /* =====================================================
-     ZIPZIP (Basements orijinali) — level-tabanli pixel platform.
+     ZIPZIP (Basementonfire orijinali) — level-tabanli pixel platform.
      Super Mario Bros DEGIL: ozgun karakter, ozgun harita, ozgun palet.
   ===================================================== */
   function startPlatformer(){
@@ -624,7 +624,7 @@ export const GAME_JS = `
       ctx.fillStyle='#cfe0ff'; ctx.fillText('HI '+hi,16,58);
       ctx.textAlign='right'; ctx.fillStyle='#ffffff'; ctx.fillText('BOLUM '+(LV+1)+'/'+LEVELS.length, W-16,28);
       for(var li=0;li<lives;li++){ ctx.fillStyle='#0f3345'; ctx.fillRect(W-19-li*16,39,12,12); ctx.fillStyle='#35e0d8'; ctx.fillRect(W-18-li*16,40,10,10); }
-      if(!started){ panel(150); ctext('ZIPZIP',H/2-42,26,'#ffffff'); ctext('ciftci platform',H/2-14,10,'#8fe3ff'); ctext('BASLA icin ZIPLA',H/2+22,12,'#ffe27a'); ctext('Basements orijinali',H/2+46,8,'#a9c0e6'); }
+      if(!started){ panel(150); ctext('ZIPZIP',H/2-42,26,'#ffffff'); ctext('ciftci platform',H/2-14,10,'#8fe3ff'); ctext('BASLA icin ZIPLA',H/2+22,12,'#ffe27a'); ctext('Basementonfire orijinali',H/2+46,8,'#a9c0e6'); }
       else if(over){ panel(96); ctext('OYUN BITTI',H/2-10,20,'#ff8a94'); ctext('tekrar icin ZIPLA',H/2+18,10,'#c9f5d8'); }
       else if(won){ panel(154); ctext('TEBRIKLER!',H/2-48,20,'#7dffb0'); ctext('tum bolumleri bitirdin',H/2-20,9,'#ffffff'); ctext('TOPLAM PUAN',H/2+4,9,'#a9c0e6'); ctext(String(score),H/2+30,16,'#ffe27a'); ctext('tekrar icin ZIPLA',H/2+54,8,'#c9f5d8'); }
       else if(cleared){ panel(160); ctext('BOLUM '+(LV+1)+' TAMAM',H/2-54,14,'#7dffb0'); ctext('ALTIN     x'+levelCoins,H/2-24,10,'#ffe27a'); ctext('BONUS   +'+clearBonus,H/2-1,10,'#8fe3ff'); ctext('PUAN     '+score,H/2+22,10,'#ffffff'); ctext('devam icin ZIPLA',H/2+50,8,'#a9c0e6'); }
@@ -651,7 +651,7 @@ export const GAME_JS = `
   (function(){ var fame=root.querySelector('.fame'); if(!fame) return;
     var card=document.createElement('div'); card.className='f';
     card.innerHTML='<svg class="ficon" viewBox="0 0 16 16" fill="#2ce6e6" aria-hidden="true"><rect x="6" y="2" width="4" height="3"/><rect x="5" y="5" width="6" height="4"/><rect x="4" y="9" width="2" height="2"/><rect x="10" y="9" width="2" height="2"/><rect x="7" y="12" width="2" height="1"/></svg>'
-      +'<div class="y">BONUS</div><div class="n">ZIPZIP</div><div class="d">Basements orijinali \\u00b7 level level pixel platform. Oyna!</div>';
+      +'<div class="y">BONUS</div><div class="n">ZIPZIP</div><div class="d">Basementonfire orijinali \\u00b7 level level pixel platform. Oyna!</div>';
     fame.appendChild(card);
   })();
   var cards = root.querySelectorAll('.fame .f');

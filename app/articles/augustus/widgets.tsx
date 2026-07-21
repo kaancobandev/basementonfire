@@ -515,7 +515,7 @@ export function ApplauseFinale() {
     const url = 'https://basementonfire.com/articles/augustus';
     const text = 'Caesar tacı istediği için öldürüldü. Augustus istemiyormuş gibi yaparak her şeyi aldı — ve ölüm döşeğinde "oyun bitti, alkışlayın" dedi. 2000 yıldır değişmeyen oyun.';
     try {
-      if (typeof navigator !== 'undefined' && navigator.share) await navigator.share({ title: 'Augustus · Basements', text, url });
+      if (typeof navigator !== 'undefined' && navigator.share) await navigator.share({ title: 'Augustus · Basementonfire', text, url });
       else if (typeof navigator !== 'undefined' && navigator.clipboard) { await navigator.clipboard.writeText(`${text}\n${url}`); setShared(true); setTimeout(() => setShared(false), 2200); }
     } catch { /* iptal */ }
   }

@@ -5,7 +5,7 @@ import { VERI_SORUMLUSU } from '@/lib/legal';
 
 export const metadata: Metadata = {
   title: 'Açık Rıza Metni',
-  description: 'Basements açık rıza metni — yalnızca rızaya bağlı (opsiyonel) veri işleme faaliyetleri.',
+  description: 'Basementonfire açık rıza metni — yalnızca rızaya bağlı (opsiyonel) veri işleme faaliyetleri.',
   alternates: { canonical: '/acik-riza' },
 };
 
@@ -35,7 +35,7 @@ export default function AcikRizaPage() {
       <h2 style={h2}>Önce en önemlisi: Hiçbiri zorunlu değil</h2>
       <p style={p}>
         Aşağıdaki üç başlığın <strong>hiçbirine rıza vermek zorunda değilsin</strong>. Rıza vermemen hâlinde
-        Basements&apos;ı normal şekilde kullanmaya devam edersin: okur, gönderi paylaşır, yorum yapar, mesajlaşırsın.
+        Basementonfire&apos;ı normal şekilde kullanmaya devam edersin: okur, gönderi paylaşır, yorum yapar, mesajlaşırsın.
         Hesabını açmak ve hizmeti almak <strong>bu rızalara bağlanmamıştır</strong> (KVKK m. 4 ve GDPR m. 7/4).
       </p>
 

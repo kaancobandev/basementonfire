@@ -2,7 +2,7 @@
 
 import Img from './Img';
 
-// Basements işareti — sekiz köşeli ateş yıldızı.
+// Basementonfire işareti — sekiz köşeli ateş yıldızı.
 //
 // 2026-07-16: elle çizilmiş SVG (iki kırmızı daire + 3 camgöbeği octagram) yerine
 // kullanıcının ürettiği gerçek logo geldi. Eskisi orijinalin koddaki taklidiydi
@@ -23,7 +23,7 @@ import Img from './Img';
 // kontrastı parlak turuncu UÇLAR taşıyor. Koyu temada (--color-bg #0f1419) 36px'te
 // ≥3:1 geçen mürekkep piksel oranı %5,9 (eski işaret %27,9 idi) → gerçek bir gerileme.
 // WCAG 1.4.11 logotype'ları kontrast şartından MUAF tutar → uyum ihlali değil, estetik.
-// Sidebar'da yanında `<span>Basements</span>` var (AppShell.tsx:140) → kimliği metin
+// Sidebar'da yanında `<span>Basementonfire</span>` var (AppShell.tsx:140) → kimliği metin
 // taşıyor, logo refakatçi. Glow/halo ÖNERİLMEZ: %25 mürekkep kaplamasında 36px'te
 // bulanık leke yapar. Gerekirse çözüm ayrı bir koyu-tema varyantıdır.
 export default function Logo({ size = 36, className }: { size?: number; className?: string }) {
@@ -34,7 +34,7 @@ export default function Logo({ size = 36, className }: { size?: number; classNam
       width={size}
       height={size}
       className={className}
-      alt="Basements"
+      alt="Basementonfire"
       style={{ objectFit: 'contain' }}
     />
   );

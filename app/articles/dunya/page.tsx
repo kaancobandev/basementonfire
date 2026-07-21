@@ -12,8 +12,8 @@ export const metadata: Metadata = {
   description,
   keywords: ['Dünyanın oluşumu', 'güneş bulutsusu', 'yığışma', 'demir felaketi', 'gezegensel farklılaşma', 'iç çekirdek', 'dış çekirdek', 'manto', 'kabuk', 'jeodinamo', 'manyetik alan', 'manyetik kutup tersine dönmesi', 'dev çarpışma hipotezi', 'Theia', 'Ayın oluşumu', 'levha tektoniği', 'geç cila', 'LLSVP', 'yaşanabilir bölge', 'Dünyanın iç yapısı'],
   alternates: { canonical: path },
-  openGraph: { type: 'article', title: `${title} · Basements`, description, url: path },
-  twitter: { card: 'summary_large_image', title: 'Dünya — Oluşumu, İç Yapısı ve Eşsiz Özellikleri · Basements', description },
+  openGraph: { type: 'article', title: `${title} · Basementonfire`, description, url: path },
+  twitter: { card: 'summary_large_image', title: 'Dünya — Oluşumu, İç Yapısı ve Eşsiz Özellikleri · Basementonfire', description },
 };
 
 const jsonLd = articleJsonLd({

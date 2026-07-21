@@ -91,7 +91,7 @@ export default function PostDetailClient({ post, initialComments, commentLikesEn
   }
   async function share() {
     const url = `https://basementonfire.com/p/${post.id}`;
-    try { if (navigator.share) { await navigator.share({ url, title: 'Basements gönderisi' }); return; } } catch { return; }
+    try { if (navigator.share) { await navigator.share({ url, title: 'Basementonfire gönderisi' }); return; } } catch { return; }
     try { await navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch {}
   }
 

@@ -50,7 +50,7 @@ export default function HeroDeck({ subline }: { subline: string }) {
 
         {/* Semantik H1 ≠ en büyük metin. Soru H1 OLSAYDI Google ana sayfanın
             konusunu Fatih sanır ve ana sayfa /articles/fatih ile yarışırdı. */}
-        <h1 className={s.h1}>Basements — bilim, tarih ve kültür</h1>
+        <h1 className={s.h1}>Basementonfire — bilim, tarih ve kültür</h1>
 
         <div className={s.meta} style={{ color: card.accent }}>{meta}</div>
         <p className={s.q}>{card.q}</p>

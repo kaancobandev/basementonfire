@@ -10,7 +10,7 @@ export default function LoginPage() {
     <main className="main-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--color-bg)' }}>
       <div style={{ background: 'var(--color-surface)', borderRadius: '20px', padding: '40px', width: '100%', maxWidth: '420px', boxShadow: 'var(--shadow-md)' }}>
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-          <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--color-primary)', marginBottom: '4px' }}>Basements</div>
+          <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--color-primary)', marginBottom: '4px' }}>Basementonfire</div>
           <div style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Hesabına giriş yap</div>
         </div>
 

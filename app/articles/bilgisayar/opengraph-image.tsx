@@ -1,6 +1,6 @@
 import { articleOgImage, OG_SIZE } from '@/lib/og';
 
-export const alt = 'Bilgisayar Nasıl Çalışır? Parçaların Tam Rehberi · Basements';
+export const alt = 'Bilgisayar Nasıl Çalışır? Parçaların Tam Rehberi · Basementonfire';
 export const size = OG_SIZE;
 export const contentType = 'image/png';
 

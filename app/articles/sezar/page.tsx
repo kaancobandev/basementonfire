@@ -19,8 +19,8 @@ export const metadata: Metadata = {
     'Augustus', 'Octavianus', 'Roma tarihi', 'antik Roma',
   ],
   alternates: { canonical: path },
-  openGraph: { type: 'article', title: `${title} · Basements`, description, url: path },
-  twitter: { card: 'summary_large_image', title: 'Julius Caesar · Basements', description },
+  openGraph: { type: 'article', title: `${title} · Basementonfire`, description, url: path },
+  twitter: { card: 'summary_large_image', title: 'Julius Caesar · Basementonfire', description },
 };
 
 const jsonLd = articleJsonLd({

@@ -613,7 +613,7 @@ export function NameTree() {
     const text = 'Caesar → Kaiser → Çar → Kayser-i Rûm. Bir adamın soyadı, iki bin yıl boyunca üç kıtada tek bir anlama geldi: hükmeden.';
     try {
       if (typeof navigator !== 'undefined' && navigator.share) {
-        await navigator.share({ title: 'Julius Caesar · Basements', text, url });
+        await navigator.share({ title: 'Julius Caesar · Basementonfire', text, url });
       } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
         await navigator.clipboard.writeText(`${text}\n${url}`);
         setShared(true);

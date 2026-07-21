@@ -30,10 +30,10 @@ const getMusic = unstable_cache(
 
 export const metadata: Metadata = {
   title: 'Müzik',
-  description: 'Basements topluluğunun paylaştığı Spotify çalma listeleri ve YouTube müzikleri — keşfet ve dinle.',
+  description: 'Basementonfire topluluğunun paylaştığı Spotify çalma listeleri ve YouTube müzikleri — keşfet ve dinle.',
   alternates: { canonical: '/muzik' },
   openGraph: {
-    title: 'Müzik · Basements',
+    title: 'Müzik · Basementonfire',
     description: 'Topluluğun paylaştığı Spotify ve YouTube müzikleri.',
     url: '/muzik',
     images: ['/opengraph-image'],

@@ -91,7 +91,7 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
   // indis birebir eşleşir. Ayrı ayrı üretilirse yanlış parça başlar.
   const siteTracks: MusicTrack[] = trItems.map(t => ({
     title: t.title,
-    artist: t.artist || t.display_name || 'Basements',
+    artist: t.artist || t.display_name || 'Basementonfire',
     src: t.src,
   }));
   // Dock şu an BU listeyi çalıyorsa hangi parçada? Değilse -1.

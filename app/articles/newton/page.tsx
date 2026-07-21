@@ -12,8 +12,8 @@ export const metadata: Metadata = {
   description,
   keywords: ['Isaac Newton', 'Newton hareket yasaları', 'F = ma', 'evrensel kütleçekim', 'ters kare yasası', 'kalkülüs', 'Principia', 'annus mirabilis', 'mucize yıllar', 'optik', 'prizma', 'yansıtmalı teleskop', 'Güney Denizi Balonu', 'Newton Leibniz kavgası', 'eylemsizlik', 'etki tepki', 'görelilik', 'kuantum', 'bilim devrimi'],
   alternates: { canonical: path },
-  openGraph: { type: 'article', title: `${title} · Basements`, description, url: path },
-  twitter: { card: 'summary_large_image', title: `${title} · Basements`, description },
+  openGraph: { type: 'article', title: `${title} · Basementonfire`, description, url: path },
+  twitter: { card: 'summary_large_image', title: `${title} · Basementonfire`, description },
 };
 
 const jsonLd = articleJsonLd({

@@ -12,8 +12,8 @@ export const metadata: Metadata = {
   description,
   keywords: ['sanat akımları', 'sanat tarihi', 'Rönesans', 'Barok', 'İzlenimcilik', 'Kübizm', 'Sürrealizm', 'Soyut Dışavurumculuk', 'Pop Art', 'kavramsal sanat', 'çağdaş sanat', 'Neoklasizm', 'Romantizm', 'Realizm', 'avangard', 'Türk resim sanatı', 'sanat akımları kronolojisi', 'modern sanat'],
   alternates: { canonical: path },
-  openGraph: { type: 'article', title: `${title} · Basements`, description, url: path },
-  twitter: { card: 'summary_large_image', title: `${title} · Basements`, description },
+  openGraph: { type: 'article', title: `${title} · Basementonfire`, description, url: path },
+  twitter: { card: 'summary_large_image', title: `${title} · Basementonfire`, description },
 };
 
 const jsonLd = articleJsonLd({

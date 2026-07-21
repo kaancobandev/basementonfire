@@ -438,7 +438,7 @@ export default function ProfileClient({ user, bg, age, followersCount, following
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-muted)' }}>Website</label>
-                  <input type="text" name="website" defaultValue={user.website ?? ''} maxLength={100} placeholder="basements.com" style={{ width: '100%', border: '1.5px solid var(--color-border)', borderRadius: 10, padding: '10px 14px', fontSize: '0.95rem', fontFamily: 'inherit', outline: 'none', background: 'var(--color-bg)', color: 'var(--color-text)', boxSizing: 'border-box' }} />
+                  <input type="text" name="website" defaultValue={user.website ?? ''} maxLength={100} placeholder="basementonfire.com" style={{ width: '100%', border: '1.5px solid var(--color-border)', borderRadius: 10, padding: '10px 14px', fontSize: '0.95rem', fontFamily: 'inherit', outline: 'none', background: 'var(--color-bg)', color: 'var(--color-text)', boxSizing: 'border-box' }} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-muted)' }}>Doğum Tarihi</label>

@@ -1,6 +1,6 @@
 import { articleOgImage, OG_SIZE } from '@/lib/og';
 
-export const alt = 'Sıfırdan Fizik — Temel Kavramlar · Basements';
+export const alt = 'Sıfırdan Fizik — Temel Kavramlar · Basementonfire';
 export const size = OG_SIZE;
 export const contentType = 'image/png';
 

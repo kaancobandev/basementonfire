@@ -5,7 +5,7 @@ import { VERI_SORUMLUSU } from '@/lib/legal';
 
 export const metadata: Metadata = {
   title: 'Gizlilik ve Çerez Politikası',
-  description: 'Basements gizlilik politikası: hangi verileri topluyoruz, neden, kimlerle paylaşıyoruz ve haklarınız.',
+  description: 'Basementonfire gizlilik politikası: hangi verileri topluyoruz, neden, kimlerle paylaşıyoruz ve haklarınız.',
   alternates: { canonical: '/gizlilik' },
 };
 
@@ -31,7 +31,7 @@ export default function GizlilikPage() {
     >
       <h2 style={h2}>1. Veri Sorumlusu</h2>
       <p style={p}>
-        &quot;Basements&quot; bir site/marka adıdır. Siteyi işleten ve verilerinden sorumlu olan
+        &quot;Basementonfire&quot; bir site/marka adıdır. Siteyi işleten ve verilerinden sorumlu olan
         <strong> gerçek kişi</strong> aşağıdadır:
       </p>
       <VeriSorumlusu />
@@ -133,7 +133,7 @@ export default function GizlilikPage() {
 
       <h2 style={h2}>7. Yaş Sınırı — 16+</h2>
       <p style={p}>
-        Basements 16 yaşından küçüklere yönelik değildir ve <strong>16 yaşından küçükler üye olamaz</strong>. 16
+        Basementonfire 16 yaşından küçüklere yönelik değildir ve <strong>16 yaşından küçükler üye olamaz</strong>. 16
         yaşından küçük birine ait bir hesap tespit edersek kapatır ve verilerini sileriz. Böyle bir durumu fark edersen{' '}
         <a href={`mailto:${MAIL}`} style={linkStyle}>{MAIL}</a> adresine bildir.
       </p>

@@ -1,7 +1,7 @@
 'use client';
 
 // ════════════════════════════════════════════════════════════════════════
-// KAYNAK KARŞILAŞTIRICI — Basements'ın imza / yeniden kullanılabilir öğesi.
+// KAYNAK KARŞILAŞTIRICI — Basementonfire'ın imza / yeniden kullanılabilir öğesi.
 // "Aynı olay, farklı tanıklara göre." Platformun doğrulama tezini birebir
 // anlatır: her tarih içeriğinde kullanılabilir. Palet-bağımsız (accent prop +
 // isteğe bağlı per-kaynak `color`), erişilebilir sekmeler.

@@ -183,7 +183,7 @@ export default function AppShell({ children }: AppShellProps) {
         <aside className="sidebar">
           <Link href="/" className="sidebar-logo">
             <Logo size={36} className="sidebar-logo-img" />
-            <span>Basements</span>
+            <span>Basementonfire</span>
           </Link>
 
           <nav className="sidebar-nav">

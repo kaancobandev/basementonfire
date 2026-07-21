@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const name = u.display_name || u.username || 'Kullanıcı';
   const cap = String(post.caption || '').replace(/\s+/g, ' ').trim();
   const title = cap ? `${name}: ${cap.slice(0, 70)}` : `${name} (@${u.username}) gönderisi`;
-  const description = cap ? cap.slice(0, 160) : `${name} (@${u.username}) kullanıcısının Basements gönderisi.`;
+  const description = cap ? cap.slice(0, 160) : `${name} (@${u.username}) kullanıcısının Basementonfire gönderisi.`;
   const path = `/p/${postId}`;
   const cover = factMediaList(post).find((m) => m.type === 'image')?.url || '/opengraph-image';
 
@@ -34,8 +34,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     title,
     description,
     alternates: { canonical: path },
-    openGraph: { type: 'article', title: `${title} · Basements`, description, url: path, images: [cover] },
-    twitter: { card: 'summary_large_image', title: `${title} · Basements`, description, images: [cover] },
+    openGraph: { type: 'article', title: `${title} · Basementonfire`, description, url: path, images: [cover] },
+    twitter: { card: 'summary_large_image', title: `${title} · Basementonfire`, description, images: [cover] },
   };
 }
 

@@ -640,7 +640,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
             <div style={{ position: 'absolute', inset: 0, padding: '20px 24px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <Logo size={54} />
-                <div style={{ fontSize: '1.7rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em', textShadow: '0 2px 20px rgba(0,0,0,0.5)' }}>Basements</div>
+                <div style={{ fontSize: '1.7rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em', textShadow: '0 2px 20px rgba(0,0,0,0.5)' }}>Basementonfire</div>
               </div>
               <div style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.78)', marginTop: 8, maxWidth: 340 }}>Bilim, tarih ve kültürü interaktif makaleler ve toplulukla keşfet.</div>
               <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>

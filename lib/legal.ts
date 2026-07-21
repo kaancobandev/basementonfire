@@ -4,7 +4,7 @@
  * Dört hukuki metin (/gizlilik, /aydinlatma, /acik-riza, /kosullar) bu dosyadan okur.
  * Bilgi değişirse SADECE BURAYI düzenle — yoksa metinler birbiriyle çelişir.
  *
- * ÖNEMLİ: "Basements" bir MARKA/site adıdır, hukuken bir kişi değildir. KVKK
+ * ÖNEMLİ: "Basementonfire" bir MARKA/site adıdır, hukuken bir kişi değildir. KVKK
  * veri sorumlusunun KİMLİĞİNİ ister; bu yüzden gerçek kişinin adı yazılır.
  */
 export const VERI_SORUMLUSU = {
@@ -15,7 +15,7 @@ export const VERI_SORUMLUSU = {
   tip: 'gerçek kişi',
 
   /** Marka / site adı (hukuki kimlikten AYRI). */
-  marka: 'Basements',
+  marka: 'Basementonfire',
   alanAdi: 'basementonfire.com',
 
   /** Başvuru ve iletişim kanalı. */

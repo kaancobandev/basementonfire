@@ -41,8 +41,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: a.title,
     description,
     alternates: { canonical: path },
-    openGraph: { type: 'article', title: `${a.title} · Basements`, description, url: path, images: a.cover_url ? [a.cover_url] : ['/opengraph-image'] },
-    twitter: { card: 'summary_large_image', title: `${a.title} · Basements`, description },
+    openGraph: { type: 'article', title: `${a.title} · Basementonfire`, description, url: path, images: a.cover_url ? [a.cover_url] : ['/opengraph-image'] },
+    twitter: { card: 'summary_large_image', title: `${a.title} · Basementonfire`, description },
   };
 }
 

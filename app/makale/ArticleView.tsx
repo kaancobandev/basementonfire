@@ -42,7 +42,7 @@ export default function ArticleView({ a, isOwner = false }: { a: ArticleRow; isO
     url: `https://basementonfire.com/makale/${a.slug}`,
     ...(a.cover_url ? { image: a.cover_url } : {}),
     author: { '@type': 'Person', name: authorName, ...(author?.username ? { url: `https://basementonfire.com/u/${author.username}` } : {}) },
-    publisher: { '@type': 'Organization', name: 'Basements' },
+    publisher: { '@type': 'Organization', name: 'Basementonfire' },
   } : null;
 
   const breadcrumbLd = a.status === 'approved' ? breadcrumbJsonLd([

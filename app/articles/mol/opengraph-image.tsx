@@ -1,6 +1,6 @@
 import { articleOgImage, OG_SIZE } from '@/lib/og';
 
-export const alt = 'Kimyada Mol Kavramı — Kapsamlı Rehber · Basements';
+export const alt = 'Kimyada Mol Kavramı — Kapsamlı Rehber · Basementonfire';
 export const size = OG_SIZE;
 export const contentType = 'image/png';
 

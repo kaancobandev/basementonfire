@@ -44,7 +44,7 @@ export function articleJsonLd(o: {
     dateModified: o.dateModified ?? o.datePublished,
     url: `${SITE}${o.path}`,
     image: `${SITE}${o.path}/opengraph-image`,
-    author: { '@type': 'Organization', name: 'Basements', url: SITE },
+    author: { '@type': 'Organization', name: 'Basementonfire', url: SITE },
     // 2026-07-16: /icon.svg → /icons/icon-512.png. Sebep MEKANİK, SEO DEĞİL: icon.svg
     // silindi, bu MUTLAK URL sessizce 404 olurdu (build de typecheck de string doğrulamaz).
     //
@@ -57,7 +57,7 @@ export function articleJsonLd(o: {
     // Google'ın logo için BELGELEDİĞİ tek yüzey, ana sayfadaki bağımsız Organization
     // işaretlemesidir — repoda o YOK. 112x112 minimumu ancak orada bağlayıcı olur
     // (512 fazlasıyla geçer). Eklenirse jsonLdScript() ile [[jsonld-script-xss-escaping]].
-    publisher: { '@type': 'Organization', name: 'Basements', logo: { '@type': 'ImageObject', url: `${SITE}/icons/icon-512.png` } },
+    publisher: { '@type': 'Organization', name: 'Basementonfire', logo: { '@type': 'ImageObject', url: `${SITE}/icons/icon-512.png` } },
     ...(o.about ? { about: { '@type': o.about.type ?? 'Thing', name: o.about.name, ...(o.about.sameAs ? { sameAs: o.about.sameAs } : {}) } } : {}),
     ...(o.citation && o.citation.length ? { citation: o.citation.map((c) => ({ '@type': 'CreativeWork', name: c.title, ...(c.url ? { url: c.url } : {}) })) } : {}),
   };

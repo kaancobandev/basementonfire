@@ -1,6 +1,6 @@
 import { articleOgImage, OG_SIZE } from '@/lib/og';
 
-export const alt = 'Kuantum Ölümsüzlüğü: Kendi Ölümünü Neden Hiç Deneyimlemeyebilirsin · Basements';
+export const alt = 'Kuantum Ölümsüzlüğü: Kendi Ölümünü Neden Hiç Deneyimlemeyebilirsin · Basementonfire';
 export const size = OG_SIZE;
 export const contentType = 'image/png';
 

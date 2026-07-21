@@ -1,6 +1,6 @@
 import { articleOgImage, OG_SIZE } from '@/lib/og';
 
-export const alt = 'Çift Yarık Deneyi: Gerçekliğin Kalbindeki Çatlak · Basements';
+export const alt = 'Çift Yarık Deneyi: Gerçekliğin Kalbindeki Çatlak · Basementonfire';
 export const size = OG_SIZE;
 export const contentType = 'image/png';
 

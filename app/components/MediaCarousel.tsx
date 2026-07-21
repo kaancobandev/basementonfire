@@ -126,7 +126,7 @@ function AudioCard({ url, variant, caption }: { url: string; variant: 'lightbox'
       background: 'linear-gradient(135deg, #312e81, #4c1d95)', color: '#fff', padding: 24, boxSizing: 'border-box',
     }}>
       <NoteIcon size={40} />
-      <MusicPlayer tracks={[{ title, artist: 'Basements', src: url }]} loop={false} />
+      <MusicPlayer tracks={[{ title, artist: 'Basementonfire', src: url }]} loop={false} />
     </div>
   );
 }

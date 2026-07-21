@@ -1,6 +1,6 @@
 import { articleOgImage, OG_SIZE } from '@/lib/og';
 
-export const alt = 'Doğal Seçilim — Evrimin Motoru · Basements';
+export const alt = 'Doğal Seçilim — Evrimin Motoru · Basementonfire';
 export const size = OG_SIZE;
 export const contentType = 'image/png';
 

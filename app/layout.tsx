@@ -49,23 +49,23 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: 'Basements — Bilim, Tarih ve Kültür',
-    template: '%s · Basements',
+    default: 'Basementonfire — Bilim, Tarih ve Kültür',
+    template: '%s · Basementonfire',
   },
   description: SITE_DESC,
-  applicationName: 'Basements',
+  applicationName: 'Basementonfire',
   keywords: ['bilim', 'tarih', 'kültür', 'antik yunan', 'roma imparatorluğu', 'kara delikler', 'kartaca', 'türk tarihi', 'interaktif makale'],
   openGraph: {
     type: 'website',
-    siteName: 'Basements',
+    siteName: 'Basementonfire',
     locale: 'tr_TR',
     url: SITE_URL,
-    title: 'Basements — Bilim, Tarih ve Kültür',
+    title: 'Basementonfire — Bilim, Tarih ve Kültür',
     description: SITE_DESC,
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Basements — Bilim, Tarih ve Kültür',
+    title: 'Basementonfire — Bilim, Tarih ve Kültür',
     description: SITE_DESC,
   },
   robots: {

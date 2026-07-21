@@ -265,7 +265,7 @@ export default function CarthagePage() {
 
       <footer className="ca-footer">
         <p>Hazırlayan: <strong>Kaan Çoban</strong></p>
-        <p className="ca-footer-copy">&copy; 2025 Basement — Savaş ve Uygarlıklar</p>
+        <p className="ca-footer-copy">&copy; 2025 Basementonfire — Savaş ve Uygarlıklar</p>
       </footer>
 
       <style>{`

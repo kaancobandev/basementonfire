@@ -10,7 +10,7 @@
 // Kartın metnini/paletini değiştirmek istiyorsan lib/og.tsx → rootOgImage().
 import { rootOgImage, OG_SIZE } from '@/lib/og';
 
-export const alt = 'Basements — Okumak yetmez. Oyna, karar ver, ölç, kuşkulan.';
+export const alt = 'Basementonfire — Okumak yetmez. Oyna, karar ver, ölç, kuşkulan.';
 export const size = OG_SIZE;
 export const contentType = 'image/png';
 

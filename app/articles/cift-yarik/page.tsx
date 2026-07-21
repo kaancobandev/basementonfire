@@ -12,8 +12,8 @@ export const metadata: Metadata = {
   description,
   keywords: ['çift yarık deneyi', 'dalga parçacık ikiliği', 'kuantum mekaniği', 'girişim deseni', 'elektron girişimi', 'süperpozisyon', 'dalga fonksiyonu', 'dekoherans', 'kuantum dolanıklık', 'de Broglie dalga boyu', 'belirsizlik ilkesi', 'tamamlayıcılık ilkesi', 'kuantum silgi', 'geciktirilmiş seçim', 'Feynman', 'gözlemci etkisi'],
   alternates: { canonical: path },
-  openGraph: { type: 'article', title: `${title} · Basements`, description, url: path },
-  twitter: { card: 'summary_large_image', title: `${title} · Basements`, description },
+  openGraph: { type: 'article', title: `${title} · Basementonfire`, description, url: path },
+  twitter: { card: 'summary_large_image', title: `${title} · Basementonfire`, description },
 };
 
 const jsonLd = articleJsonLd({

@@ -11,8 +11,8 @@ export const metadata: Metadata = {
   description,
   keywords: ['kaligrafi', 'hat sanatı', 'hüsn-i hat', 'hattat', 'aklâm-ı sitte', 'Şeyh Hamdullah', 'Çin kaligrafisi', 'shodō', 'Batı kaligrafisi', 'italik', 'copperplate', 'Edward Johnston', 'yazı türleri', 'broad-edge', 'fırça kalem'],
   alternates: { canonical: path },
-  openGraph: { type: 'article', title: `${title} · Basements`, description, url: path },
-  twitter: { card: 'summary_large_image', title: `${title} · Basements`, description },
+  openGraph: { type: 'article', title: `${title} · Basementonfire`, description, url: path },
+  twitter: { card: 'summary_large_image', title: `${title} · Basementonfire`, description },
 };
 
 const jsonLd = {
@@ -25,8 +25,8 @@ const jsonLd = {
   dateModified: '2026-06-23',
   url: `https://basementonfire.com${path}`,
   image: 'https://basementonfire.com/opengraph-image',
-  author: { '@type': 'Organization', name: 'Basements' },
-  publisher: { '@type': 'Organization', name: 'Basements' },
+  author: { '@type': 'Organization', name: 'Basementonfire' },
+  publisher: { '@type': 'Organization', name: 'Basementonfire' },
 };
 
 const breadcrumbLd = breadcrumbJsonLd([

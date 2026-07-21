@@ -211,7 +211,7 @@ export function MediaDockProvider({ children }: { children: React.ReactNode }) {
     const ms = typeof navigator !== 'undefined' ? navigator.mediaSession : undefined;
     if (!ms) return;
     if (!track) { ms.metadata = null; return; }
-    ms.metadata = new MediaMetadata({ title: track.title, artist: track.artist, album: 'Basements' });
+    ms.metadata = new MediaMetadata({ title: track.title, artist: track.artist, album: 'Basementonfire' });
     const set = (k: MediaSessionAction, fn: (() => void) | null) => {
       try { ms.setActionHandler(k, fn); } catch { /* desteklenmiyor */ }
     };

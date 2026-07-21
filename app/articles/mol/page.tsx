@@ -12,8 +12,8 @@ export const metadata: Metadata = {
   description,
   keywords: ['mol nedir', 'mol kavramı', 'Avogadro sayısı', '6.022 x 10^23', 'molar kütle', 'bağıl atom kütlesi', 'molekül kütlesi', 'molar hacim', '22.4 litre', 'molarite', 'derişim', 'stokiyometri', 'mol hesaplama', 'mol gram çevirme', 'kimya mol', 'normal koşullar'],
   alternates: { canonical: path },
-  openGraph: { type: 'article', title: `${title} · Basements`, description, url: path },
-  twitter: { card: 'summary_large_image', title: `${title} · Basements`, description },
+  openGraph: { type: 'article', title: `${title} · Basementonfire`, description, url: path },
+  twitter: { card: 'summary_large_image', title: `${title} · Basementonfire`, description },
 };
 
 const jsonLd = articleJsonLd({

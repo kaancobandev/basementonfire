@@ -1,6 +1,6 @@
 import { articleOgImage, OG_SIZE } from '@/lib/og';
 
-export const alt = 'Julius Caesar — Kendisini Öldürenleri Affeden Adam · Basements';
+export const alt = 'Julius Caesar — Kendisini Öldürenleri Affeden Adam · Basementonfire';
 export const size = OG_SIZE;
 export const contentType = 'image/png';
 

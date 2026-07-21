@@ -12,7 +12,7 @@ export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: 'Haftalık Lig',
-  description: 'Bu hafta günün sorusunda en çok doğru cevabı verenler — Basements haftalık bilgi ligi.',
+  description: 'Bu hafta günün sorusunda en çok doğru cevabı verenler — Basementonfire haftalık bilgi ligi.',
   alternates: { canonical: '/lig' },
 };
 

@@ -94,7 +94,7 @@ export function BodyActivity() {
     }
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = 'radyoaktivite-basements.png';
+    a.href = url; a.download = 'radyoaktivite-basementonfire.png';
     a.click();
     URL.revokeObjectURL(url);
     setCopied('indirildi');

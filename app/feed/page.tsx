@@ -167,7 +167,7 @@ const getSuggestedUsers = unstable_cache(
 // Kişiye özel akış → arama motoruna kapalı (ana sayfa landing'i indekslenir).
 export const metadata: Metadata = {
   title: 'Akışın',
-  description: 'Basements akışın: en yeni gönderiler, hikâyeler, günün sorusu ve bilgi kartları.',
+  description: 'Basementonfire akışın: en yeni gönderiler, hikâyeler, günün sorusu ve bilgi kartları.',
   alternates: { canonical: '/feed' },
   robots: { index: false, follow: true },
 };

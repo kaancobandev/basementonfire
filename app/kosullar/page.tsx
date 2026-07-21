@@ -4,7 +4,7 @@ import { VERI_SORUMLUSU } from '@/lib/legal';
 
 export const metadata: Metadata = {
   title: 'Kullanım Koşulları',
-  description: 'Basements kullanım koşulları — hesap, içerik kuralları, moderasyon ve sorumluluklar.',
+  description: 'Basementonfire kullanım koşulları — hesap, içerik kuralları, moderasyon ve sorumluluklar.',
   alternates: { canonical: '/kosullar' },
 };
 
@@ -17,7 +17,7 @@ export default function KosullarPage() {
       updated="14/07/2026"
       intro={
         <p style={{ ...p, background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 10, padding: '10px 12px' }}>
-          Basements&apos;a kayıt olarak bu koşulları kabul etmiş olursun. Kişisel verilerinin nasıl işlendiği ayrı
+          Basementonfire&apos;a kayıt olarak bu koşulları kabul etmiş olursun. Kişisel verilerinin nasıl işlendiği ayrı
           belgelerde: <a href="/aydinlatma" style={linkStyle}>KVKK Aydınlatma</a> ·{' '}
           <a href="/gizlilik" style={linkStyle}>Gizlilik ve Çerez</a>.
         </p>
@@ -26,7 +26,7 @@ export default function KosullarPage() {
       <h2 style={h2}>1. Taraflar ve Kabul</h2>
       <p style={p}>
         Bu koşullar; <strong>{VERI_SORUMLUSU.unvan}</strong> tarafından işletilen{' '}
-        {VERI_SORUMLUSU.marka} ({VERI_SORUMLUSU.alanAdi} — &quot;Basements&quot;, &quot;biz&quot;) ile siteyi kullanan
+        {VERI_SORUMLUSU.marka} ({VERI_SORUMLUSU.alanAdi} — &quot;Basementonfire&quot;, &quot;biz&quot;) ile siteyi kullanan
         sen (&quot;kullanıcı&quot;) arasındaki sözleşmedir. Hesap oluşturarak veya siteyi kullanarak bu koşulları kabul
         edersin. Kabul etmiyorsan siteyi kullanma.
       </p>
@@ -34,7 +34,7 @@ export default function KosullarPage() {
 
       <h2 style={h2}>2. Yaş Sınırı — 16+</h2>
       <p style={p}>
-        Basements <strong>16 yaşından küçüklere yönelik değildir</strong>. Kayıt olabilmek için
+        Basementonfire <strong>16 yaşından küçüklere yönelik değildir</strong>. Kayıt olabilmek için
         <strong> en az 16 yaşında olmalısın</strong> ve kayıt sırasında bunu beyan edersin. 16 yaşından küçük olduğun
         tespit edilirse hesabın kapatılır ve verilerin silinir.
       </p>
@@ -105,13 +105,13 @@ export default function KosullarPage() {
       <p style={p}>
         Özellik ayrıca <strong>isteğe bağlıdır</strong>. Kullanman hâlinde ilgi alanların ve kaydırma kararların işlenir
         (bkz. <a href="/acik-riza" style={linkStyle}>Açık Rıza Metni</a>). Eşleştiğin kişilerle yaptığın görüşmelerden ve
-        buluşmalardan doğacak sonuçlardan Basements sorumlu değildir. Tanımadığın kişilerle iletişimde{' '}
+        buluşmalardan doğacak sonuçlardan Basementonfire sorumlu değildir. Tanımadığın kişilerle iletişimde{' '}
         <strong>dikkatli ol</strong>.
       </p>
 
       <h2 style={h2}>9. Sitenin Kendi İçeriği</h2>
       <p style={p}>
-        Basements&apos;ın yayımladığı makaleler, görseller, tasarım ve yazılım Basements&apos;a veya lisans verenlerine
+        Basementonfire&apos;ın yayımladığı makaleler, görseller, tasarım ve yazılım Basementonfire&apos;a veya lisans verenlerine
         aittir. Kişisel ve ticari olmayan kullanım dışında, izinsiz çoğaltılamaz veya yeniden yayımlanamaz. Makalelerden
         <strong> kaynak göstererek ve bağlantı vererek</strong> alıntı yapabilirsin.
       </p>
@@ -124,10 +124,10 @@ export default function KosullarPage() {
 
       <h2 style={h2}>11. Hizmetin Sunumu ve Sorumluluğun Sınırı</h2>
       <p style={p}>
-        Basements ücretsiz olarak, <strong>&quot;olduğu gibi&quot;</strong> sunulur. Hizmetin kesintisiz veya hatasız
+        Basementonfire ücretsiz olarak, <strong>&quot;olduğu gibi&quot;</strong> sunulur. Hizmetin kesintisiz veya hatasız
         olacağını taahhüt etmiyoruz; bakım, güncelleme veya teknik sorunlar nedeniyle geçici kesintiler olabilir.
         Özellikleri değiştirme, ekleme veya kaldırma hakkımız saklıdır. Kullanıcıların ürettiği içeriğin doğruluğundan
-        Basements sorumlu değildir. Yürürlükteki hukukun izin verdiği azami ölçüde, dolaylı zararlardan sorumlu değiliz.
+        Basementonfire sorumlu değildir. Yürürlükteki hukukun izin verdiği azami ölçüde, dolaylı zararlardan sorumlu değiliz.
       </p>
       <p style={p}>
         <strong>Önemli:</strong> Sitedeki makale ve içerikler <strong>bilgilendirme amaçlıdır</strong>; tıbbi, hukuki

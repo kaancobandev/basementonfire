@@ -1,6 +1,6 @@
 import { articleOgImage, OG_SIZE } from '@/lib/og';
 
-export const alt = 'Dünya — Oluşumu, İç Yapısı ve Eşsiz Özellikleri · Basements';
+export const alt = 'Dünya — Oluşumu, İç Yapısı ve Eşsiz Özellikleri · Basementonfire';
 export const size = OG_SIZE;
 export const contentType = 'image/png';
 

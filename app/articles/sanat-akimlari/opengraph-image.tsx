@@ -1,6 +1,6 @@
 import { articleOgImage, OG_SIZE } from '@/lib/og';
 
-export const alt = "Sanat Akımları: Rönesans'tan Bugüne · Basements";
+export const alt = "Sanat Akımları: Rönesans'tan Bugüne · Basementonfire";
 export const size = OG_SIZE;
 export const contentType = 'image/png';
 

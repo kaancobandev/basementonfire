@@ -162,7 +162,7 @@ export function ProofShare({ spec, label = 'Sonucunu paylaş' }: { spec: ProofSp
 
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url; a.download = `${spec.fileName}-basements.png`;
+      a.href = url; a.download = `${spec.fileName}-basementonfire.png`;
       a.click();
       URL.revokeObjectURL(url);
       flash('indirildi');

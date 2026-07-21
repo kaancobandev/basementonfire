@@ -1,6 +1,6 @@
 import { articleOgImage, OG_SIZE } from '@/lib/og';
 
-export const alt = 'Fatih Sultan Mehmed — Bir Fikrin Ele Geçirdiği Adam · Basements';
+export const alt = 'Fatih Sultan Mehmed — Bir Fikrin Ele Geçirdiği Adam · Basementonfire';
 export const size = OG_SIZE;
 export const contentType = 'image/png';
 

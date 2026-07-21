@@ -22,7 +22,7 @@ onaylıyor ama giriş yapmış olmuyor.
 {{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=signup
 ```
 
-Hazır şablon (konu: `Basements hesabını onayla`):
+Hazır şablon (konu: `Basementonfire hesabını onayla`):
 
 ```html
 <h2>Aramıza hoş geldin 👋</h2>
@@ -110,13 +110,13 @@ Port:         587
 Username:     info@basementonfire.com
 Password:     (1. adımdaki uygulama şifresi)
 Sender email: info@basementonfire.com
-Sender name:  Basements
+Sender name:  Basementonfire
 ```
 
 Aynı ekrandaki **Rate limit** değerini de yükselt.
 
 **Test:** Yeni kayıtta gelen mailde gönderen
-`Basements <info@basementonfire.com>` görünmeli.
+`Basementonfire <info@basementonfire.com>` görünmeli.
 
 ---
 
@@ -139,7 +139,7 @@ PKCE `?code=`, eski implicit hash) ve `{{ .ConfirmationURL }}` ile
 **çalışıyor**. `token_hash`'e çevirirsen o sayfa bu biçimi tanımaz ve
 çalışan bir akışı kırmış olursun.
 
-Yalnızca **metni** Türkçeleştir. Konu: `Basements şifreni sıfırla`
+Yalnızca **metni** Türkçeleştir. Konu: `Basementonfire şifreni sıfırla`
 
 ```html
 <h2>Şifre sıfırlama</h2>

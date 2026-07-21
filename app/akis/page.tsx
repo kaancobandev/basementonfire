@@ -31,11 +31,11 @@ const getInitialFeed = unstable_cache(
 
 export const metadata: Metadata = {
   title: 'Akış',
-  description: 'Basements topluluğunun en yeni fotoğraf, video ve ses paylaşımları — akışı keşfet.',
+  description: 'Basementonfire topluluğunun en yeni fotoğraf, video ve ses paylaşımları — akışı keşfet.',
   alternates: { canonical: '/akis' },
   openGraph: {
-    title: 'Akış · Basements',
-    description: 'Basements topluluğunun en yeni fotoğraf, video ve ses paylaşımları.',
+    title: 'Akış · Basementonfire',
+    description: 'Basementonfire topluluğunun en yeni fotoğraf, video ve ses paylaşımları.',
     url: '/akis',
     images: ['/opengraph-image'],
   },

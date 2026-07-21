@@ -43,7 +43,7 @@ export default function RegisterForm() {
         />
       </div>
 
-      {/* Yaş kapısı — Basements 16+ */}
+      {/* Yaş kapısı — Basementonfire 16+ */}
       <div>
         <label style={labelStyle} htmlFor="reg-birthdate">Doğum tarihi</label>
         <input id="reg-birthdate" type="date" name="birthdate" required autoComplete="bday"
@@ -53,7 +53,7 @@ export default function RegisterForm() {
           onBlur={e => (e.target.style.borderColor = 'var(--color-border)')}
         />
         <p style={{ margin: '5px 0 0', fontSize: '0.76rem', color: 'var(--color-text-muted)', lineHeight: 1.45 }}>
-          Basements <strong>{MIN_AGE} yaş ve üzeri</strong> içindir. Doğum tarihin yaşını doğrulamak için kullanılır,
+          Basementonfire <strong>{MIN_AGE} yaş ve üzeri</strong> içindir. Doğum tarihin yaşını doğrulamak için kullanılır,
           profilinde gösterilmez.
         </p>
       </div>

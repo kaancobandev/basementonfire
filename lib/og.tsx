@@ -211,14 +211,14 @@ export async function rootOgImage() {
 export function ogAltFor(slug: string): string {
   const a = ARTICLE_MAP[slug];
   const q = questionFor(slug);
-  const title = a?.title ?? 'Basements';
-  return q ? `${title} — ${q} · Basements` : `${title} · Basements`;
+  const title = a?.title ?? 'Basementonfire';
+  return q ? `${title} — ${q} · Basementonfire` : `${title} · Basementonfire`;
 }
 
 export function articleOgFor(slug: string) {
   const a = ARTICLE_MAP[slug];
   return articleOgImage({
-    title: a?.title ?? 'Basements',
+    title: a?.title ?? 'Basementonfire',
     // Soru yoksa desc'e düşmek BİLİNÇLİ: kart hiç basılmamaktan iyidir. Ama desc
     // sıfat taşıyabilir ("en gizemli yapılar") → uzun vadede her makalenin
     // lib/questions.ts'te bir sorusu olmalı.

@@ -12,8 +12,8 @@ export const metadata: Metadata = {
   description,
   keywords: ['fizik temel kavramlar', 'kütle nedir', 'ağırlık nedir', 'kuvvet nedir', 'Newton yasaları', 'F=ma', 'ivme', 'hız ve sürat farkı', 'momentum nedir', 'kinetik enerji', 'potansiyel enerji', 'iş ve güç', 'sürtünme', 'yerçekimi', 'newton birimi', 'joule watt', 'sıfırdan fizik', 'fizik sözlüğü'],
   alternates: { canonical: path },
-  openGraph: { type: 'article', title: `${title} · Basements`, description, url: path },
-  twitter: { card: 'summary_large_image', title: `${title} · Basements`, description },
+  openGraph: { type: 'article', title: `${title} · Basementonfire`, description, url: path },
+  twitter: { card: 'summary_large_image', title: `${title} · Basementonfire`, description },
 };
 
 const jsonLd = articleJsonLd({

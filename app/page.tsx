@@ -28,7 +28,7 @@ import s from './landing.module.css';
 // ════════════════════════════════════════════════════════════════════════
 export const dynamic = 'force-static';
 
-const title = `Basements — ${ARTICLE_COUNT} interaktif bilim, tarih ve kültür makalesi`;
+const title = `Basementonfire — ${ARTICLE_COUNT} interaktif bilim, tarih ve kültür makalesi`;
 const description = `Bilim, tarih ve kültürde ${ARTICLE_COUNT} interaktif Türkçe makale. Simülasyonu çalıştır, kararı sen ver, kaynağı gör. Ücretsiz, üyeliksiz.`;
 
 export const metadata: Metadata = {
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
 const websiteJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
-  name: 'Basements',
+  name: 'Basementonfire',
   url: 'https://basementonfire.com',
   inLanguage: 'tr-TR',
   description: 'Bilim, tarih ve kültürü interaktif makaleler ve toplulukla keşfet.',
@@ -61,7 +61,7 @@ const websiteJsonLd = {
 const itemListJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'ItemList',
-  name: 'Basements makaleleri',
+  name: 'Basementonfire makaleleri',
   numberOfItems: ARTICLES.length,
   itemListElement: ARTICLES.map((a, i) => ({
     '@type': 'ListItem',
@@ -183,7 +183,7 @@ export default function HomePage() {
             Makalelerin altında yorum, akışta gönderi, günün sorusu, okuma listesi.
           </p>
           <p className={s.sub}>
-            Basements yeni: şu an topluluk küçük. Sayfayı doldurmak için sahte kalabalık koymuyoruz. Erken gelen burayı şekillendirir.
+            Basementonfire yeni: şu an topluluk küçük. Sayfayı doldurmak için sahte kalabalık koymuyoruz. Erken gelen burayı şekillendirir.
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
             <Link className={s.ctaQuiet} href="/akis">Akışa göz at →</Link>
@@ -267,7 +267,7 @@ export default function HomePage() {
           linkleri hiçbir yerden göremiyordu. Bu satır o boşluğu kapatıyor. */}
       <footer className={s.foot}>
         <div className={s.inner}>
-          Basements — bilim, tarih ve kültür.
+          Basementonfire — bilim, tarih ve kültür.
           <div className={s.footRow}>
             <Link href="/discover">İçerikler</Link>
             <Link href="/akis">Akış</Link>
@@ -279,7 +279,7 @@ export default function HomePage() {
             <Link href="/acik-riza">Açık Rıza</Link>
             <Link href="/kosullar">Koşullar</Link>
           </div>
-          <div style={{ marginTop: 12 }}>© 2026 Basements · basementonfire.com</div>
+          <div style={{ marginTop: 12 }}>© 2026 Basementonfire · basementonfire.com</div>
         </div>
       </footer>
     </div>

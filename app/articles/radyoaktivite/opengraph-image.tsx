@@ -1,6 +1,6 @@
 import { articleOgImage, OG_SIZE } from '@/lib/og';
 
-export const alt = 'Radyoaktivite — Atomlar Sabırsız · Basements';
+export const alt = 'Radyoaktivite — Atomlar Sabırsız · Basementonfire';
 export const size = OG_SIZE;
 export const contentType = 'image/png';
 

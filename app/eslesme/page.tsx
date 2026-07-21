@@ -44,7 +44,7 @@ function KapiEkrani({ dogumTarihiYok }: { dogumTarihiYok: boolean }) {
           <>
             <p style={{ margin: '0 0 22px', lineHeight: 1.65, color: 'var(--color-text-muted)' }}>
               Tanımadığın kişilerle kart kaydırıp özel mesajlaşma açan bu özellik, güvenlik gerekçesiyle yalnızca{' '}
-              <strong>{MATCH_MIN_AGE} yaşından büyük</strong> kullanıcılara açıktır. Basements&apos;ın geri kalanını
+              <strong>{MATCH_MIN_AGE} yaşından büyük</strong> kullanıcılara açıktır. Basementonfire&apos;ın geri kalanını
               (makaleler, akış, topluluk) kullanmaya devam edebilirsin.
             </p>
             <Link

@@ -78,10 +78,10 @@ const getDiscoverContent = unstable_cache(
 
 export const metadata: Metadata = {
   title: 'Keşfet',
-  description: 'Basements\'te kullanıcıları, gönderileri ve konuları keşfet; yeni insanlar ve içerikler bul.',
+  description: 'Basementonfire\'te kullanıcıları, gönderileri ve konuları keşfet; yeni insanlar ve içerikler bul.',
   alternates: { canonical: '/discover' },
   openGraph: {
-    title: 'Keşfet · Basements',
+    title: 'Keşfet · Basementonfire',
     description: 'Kullanıcıları, gönderileri ve konuları keşfet.',
     url: '/discover',
     images: ['/opengraph-image'],

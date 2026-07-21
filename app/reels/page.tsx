@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Reels',
-  description: 'Basements videolarını tam ekran, tek tek keşfet.',
+  description: 'Basementonfire videolarını tam ekran, tek tek keşfet.',
   alternates: { canonical: '/reels' },
 };
 

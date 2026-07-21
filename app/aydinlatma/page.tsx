@@ -4,7 +4,7 @@ import { VERI_SORUMLUSU } from '@/lib/legal';
 
 export const metadata: Metadata = {
   title: 'KVKK Aydınlatma Metni',
-  description: '6698 sayılı Kişisel Verilerin Korunması Kanunu m. 10 uyarınca Basements aydınlatma metni.',
+  description: '6698 sayılı Kişisel Verilerin Korunması Kanunu m. 10 uyarınca Basementonfire aydınlatma metni.',
   alternates: { canonical: '/aydinlatma' },
 };
 
@@ -25,7 +25,7 @@ export default function AydinlatmaPage() {
     >
       <h2 style={h2}>1. Veri Sorumlusu</h2>
       <p style={p}>
-        KVKK m. 10 uyarınca veri sorumlusunun kimliği aşağıdadır. &quot;Basements&quot; bir site/marka adıdır;
+        KVKK m. 10 uyarınca veri sorumlusunun kimliği aşağıdadır. &quot;Basementonfire&quot; bir site/marka adıdır;
         <strong> veri sorumlusu aşağıdaki gerçek kişidir</strong>.
       </p>
       <VeriSorumlusu />
@@ -159,7 +159,7 @@ export default function AydinlatmaPage() {
 
       <h2 style={h2}>6. Yaş Sınırları (16+ / eşleştirme 18+)</h2>
       <p style={p}>
-        Basements <strong>16 yaşından küçüklere yönelik değildir</strong> ve 16 yaşından küçükler üye olamaz. Kayıt
+        Basementonfire <strong>16 yaşından küçüklere yönelik değildir</strong> ve 16 yaşından küçükler üye olamaz. Kayıt
         sırasında yaşını doğruluyoruz. 16 yaşından küçük birinin hesabı olduğunu tespit edersek hesabı kapatır ve
         verilerini sileriz. Böyle bir durumu fark edersen{' '}
         <a href={`mailto:${MAIL}`} style={linkStyle}>{MAIL}</a> adresine bildir.

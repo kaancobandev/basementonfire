@@ -1,6 +1,6 @@
 import { articleOgImage, OG_SIZE } from '@/lib/og';
 
-export const alt = 'Augustus — Tacı Reddederek Kral Olan Adam · Basements';
+export const alt = 'Augustus — Tacı Reddederek Kral Olan Adam · Basementonfire';
 export const size = OG_SIZE;
 export const contentType = 'image/png';
 

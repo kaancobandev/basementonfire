@@ -12,8 +12,8 @@ export const metadata: Metadata = {
   description,
   keywords: ['kuantum ölümsüzlüğü', 'kuantum intiharı', 'çok dünyalı yorum', 'many-worlds', 'süperpozisyon', 'dalga fonksiyonu çöküşü', 'Kopenhag yorumu', 'Hugh Everett', 'Max Tegmark', 'Schrödinger kedisi', 'dekoherans', 'Born kuralı', 'düşünce deneyi', 'Adam Fawer Mobius', 'Möbius şeridi', 'kuantum felsefesi'],
   alternates: { canonical: path },
-  openGraph: { type: 'article', title: `${title} · Basements`, description, url: path },
-  twitter: { card: 'summary_large_image', title: `${title} · Basements`, description },
+  openGraph: { type: 'article', title: `${title} · Basementonfire`, description, url: path },
+  twitter: { card: 'summary_large_image', title: `${title} · Basementonfire`, description },
 };
 
 const jsonLd = articleJsonLd({

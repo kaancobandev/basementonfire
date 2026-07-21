@@ -84,7 +84,7 @@ export async function GET() {
 
   const disaAktarim = {
     _hakkinda: {
-      aciklama: 'Basements hesabındaki kişisel verilerinin dışa aktarımı (KVKK m. 11 / GDPR m. 15 ve m. 20).',
+      aciklama: 'Basementonfire hesabındaki kişisel verilerinin dışa aktarımı (KVKK m. 11 / GDPR m. 15 ve m. 20).',
       olusturulma: new Date().toISOString(),
       kullanici: me.username,
       not: 'Yalnızca SANA ait veriler yer alır. Özel mesajlarda sadece SENİN gönderdiğin mesajlar bulunur; karşı tarafın mesajları onun kişisel verisi olduğu için dahil edilmemiştir.',
@@ -108,7 +108,7 @@ export async function GET() {
     status: 200,
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
-      'Content-Disposition': `attachment; filename="basements-verilerim-${me.username}-${tarih}.json"`,
+      'Content-Disposition': `attachment; filename="basementonfire-verilerim-${me.username}-${tarih}.json"`,
       'Cache-Control': 'no-store',
     },
   });

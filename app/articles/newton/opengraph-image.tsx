@@ -1,6 +1,6 @@
 import { articleOgImage, OG_SIZE } from '@/lib/og';
 
-export const alt = 'Isaac Newton: Bilimi Yeniden Kuran Adam · Basements';
+export const alt = 'Isaac Newton: Bilimi Yeniden Kuran Adam · Basementonfire';
 export const size = OG_SIZE;
 export const contentType = 'image/png';
 

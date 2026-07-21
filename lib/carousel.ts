@@ -114,7 +114,7 @@ export function coverText(slug: string): { kicker: string; title: string; questi
   const a = ARTICLE_MAP[slug];
   return {
     kicker: (a?.category ?? 'BASEMENTS').toUpperCase(),
-    title: a?.title ?? 'Basements',
+    title: a?.title ?? 'Basementonfire',
     // Soru yoksa desc'e düş (OG kartıyla aynı kural).
     question: questionFor(slug) ?? a?.desc ?? '',
   };
