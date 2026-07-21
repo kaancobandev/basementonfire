@@ -6,28 +6,35 @@
    Reduced-motion: globals.css:125 global kuralı zaten tüm transition/animation'ı
    kesiyor → burada ek kod YOK. */
 
-.lp { --lp-glow: var(--gradient-brand); }
+/* flex:1 → landing, sidebar'ın YANINDAKİ tüm genişliği doldurur. Eskiden .lp
+   flex büyümediği için sağda boşluk kalıyor, hero ekranı tam kaplamıyordu. */
+.lp { flex: 1; min-width: 0; }
 
 /* ─────────────── HERO ─────────────── */
 .hero {
   position: relative;
-  background: var(--gradient-hero);
+  background: #14101f; /* görsel yüklenene kadar koyu zemin (gradyan kaldırıldı) */
   min-height: 78svh; /* svh: mobil URL çubuğu daralınca hero zıplamaz */
   display: flex;
   flex-direction: column;
-  /* justify-content: center KALDIRILDI: üst çubuk tepede sabit, gövde altta
-     kalan alanda ortalanır (heroInner flex:1). */
   padding: 16px 20px 32px;
   overflow: hidden;
 }
-.glow {
+/* Tam kaplayan arka plan görseli + üstünde koyu scrim (metin okunurluğu). */
+.heroBg { position: absolute; inset: 0; z-index: 0; display: block; }
+.heroBg img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
+.heroScrim {
   position: absolute;
-  inset: -20%;
-  background: var(--lp-glow);
-  filter: blur(48px); /* 60 değil: mobil GPU'da pahalı */
-  opacity: 0.5;
-  transition: opacity 0.4s ease;
+  inset: 0;
+  z-index: 0;
   pointer-events: none;
+  /* Görsel: solda-ortada parlak gün batımı penceresi, sağda küre/lamba. Metin
+     masaüstünde SOLA yaslı, mobilde ortada. İki katman: (1) soldan güçlenen —
+     masaüstü metnini gün batımı üstünde koyular; (2) dikey veil — mobilde ortadaki
+     metni ve alttaki alt-metni koyular. Sağ taraf açık kalır → görsel görünür. */
+  background:
+    linear-gradient(90deg, rgba(6, 5, 14, 0.62) 0%, rgba(6, 5, 14, 0.34) 50%, rgba(6, 5, 14, 0.22) 100%),
+    linear-gradient(180deg, rgba(6, 5, 14, 0.32) 0%, rgba(6, 5, 14, 0.34) 45%, rgba(6, 5, 14, 0.58) 100%);
 }
 .heroInner {
   position: relative;
@@ -36,6 +43,10 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  max-width: 760px; /* geniş ekranda metin sütunu okunur genişlikte, sola yaslı kalır */
+  /* Fotoğraf üstünde okunurluk sigortası (scrim'e ek): tüm hero metnine yumuşak
+     gölge miras kalır. ctaPrimary'de (dolu pill) etkisi ihmal edilebilir. */
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.55);
 }
 
 /* ── Üst çubuk (marka + giriş/üye ol) ── */
@@ -57,6 +68,7 @@
   letter-spacing: -0.01em;
   color: #fff;
   white-space: nowrap;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.55); /* fotoğraf üstünde okunurluk */
 }
 .heroTopActions { display: flex; align-items: center; flex-shrink: 0; }
 .authGroup { display: flex; align-items: center; gap: 8px; }
@@ -103,7 +115,7 @@
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(255, 255, 255, 0.75); /* fotoğraf üstünde 0.55 fazla soluktu */
 }
 .meta {
   margin-bottom: 10px;
@@ -127,7 +139,7 @@
   min-height: 3.6em;
 }
 .ctas { display: flex; flex-direction: column; gap: 10px; }
-.heroSub { margin: 16px 0 0; max-width: 34ch; font-size: 0.82rem; line-height: 1.55; color: rgba(255, 255, 255, 0.6); }
+.heroSub { margin: 16px 0 0; max-width: 34ch; font-size: 0.82rem; line-height: 1.55; color: rgba(255, 255, 255, 0.78); }
 
 @media (min-width: 700px) {
   .q { min-height: 2.4em; }

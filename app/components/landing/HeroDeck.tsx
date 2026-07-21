@@ -11,7 +11,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { ARTICLE_MAP } from '@/lib/articles';
-import { gradientFor } from '@/lib/article-gradients';
 import { HERO_DECK } from '@/lib/landing';
 import Logo from '../Logo';
 import s from '../../landing.module.css';
@@ -36,7 +35,19 @@ export default function HeroDeck({ subline }: { subline: string }) {
 
   return (
     <header className={s.hero}>
-      <div className={s.glow} aria-hidden style={{ background: gradientFor(card.slug), opacity: fading ? 0 : 0.5 }} />
+      {/* TAM GENİŞLİK ARKA PLAN GÖRSELİ — masaüstü yatay / mobil dikey (art
+          direction: ayrı 700px kırılımı). AVIF→WebP; hero LCP olduğundan eager +
+          yüksek öncelik yüklenir. Görsel dekoratif (alt=""), okunurluğu scrim sağlar. */}
+      <picture className={s.heroBg}>
+        <source media="(min-width: 700px)" type="image/avif" srcSet="/landing/hero-desktop.avif" />
+        <source media="(min-width: 700px)" type="image/webp" srcSet="/landing/hero-desktop.webp" />
+        <source media="(max-width: 699px)" type="image/avif" srcSet="/landing/hero-mobile.avif" />
+        <source media="(max-width: 699px)" type="image/webp" srcSet="/landing/hero-mobile.webp" />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/landing/hero-desktop.webp" alt="" aria-hidden="true" fetchPriority="high" decoding="async" />
+      </picture>
+      {/* Beyaz metin okunurluğu için koyu scrim (AA hedefi). */}
+      <div className={s.heroScrim} aria-hidden />
 
       {/* ÜST ÇUBUK — marka solda, kimlik eylemleri sağda (tepeye sabit).
           Çıkışlı ziyaretçi: Giriş yap + Üye ol (auth-out). Girişli: "Akışına git →"
@@ -65,8 +76,13 @@ export default function HeroDeck({ subline }: { subline: string }) {
             konusunu Fatih sanır ve ana sayfa /articles/fatih ile yarışırdı. */}
         <h1 className={s.h1}>Basementonfire — bilim, tarih ve kültür</h1>
 
-        <div className={s.meta} style={{ color: card.accent }}>{meta}</div>
-        <p className={s.q}>{card.q}</p>
+        {/* Kart değişince değişen kısım: yumuşak geçiş için opacity ile söner/yanar
+            (glow kaldırıldı, bu fade onun yerini tutar). reduced-motion global kural
+            transition'ı zaten keser. */}
+        <div style={{ opacity: fading ? 0 : 1, transition: 'opacity 0.18s ease' }}>
+          <div className={s.meta} style={{ color: card.accent }}>{meta}</div>
+          <p className={s.q}>{card.q}</p>
+        </div>
 
         <div className={s.ctas}>
           <Link className={s.ctaPrimary} href={`/articles/${card.slug}`}>Cevabı oku →</Link>
