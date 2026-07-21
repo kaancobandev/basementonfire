@@ -23,6 +23,7 @@ import { uploadToStorage } from '@/lib/upload';
 import { useMediaDock } from './MediaDock';
 import { normalizeStoryLink } from '@/lib/storyLink';
 import { ARTICLES } from '@/lib/articles';
+import { renderArticleStoryCard } from '@/lib/storyCard';
 
 // Bağlantı alanının önerileri: 32 makale. Serbest yol da yazılabilir (datalist
 // kısıtlamaz), ama en sık kullanılacak hedefler elle yazılmadan seçilebilsin.
@@ -199,6 +200,25 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
   const [storyMusicId, setStoryMusicId] = useState<number | null>(null);
   const [storyLink, setStoryLink] = useState('');
   const [storyLinkLabel, setStoryLinkLabel] = useState('');
+  const [artPicker, setArtPicker] = useState(false); // "makale paylaş" listesi açık mı
+  const [artBusy, setArtBusy] = useState('');         // kartı üretilen makale slug'ı
+
+  // Makaleyi hikayeye paylaş: 9:16 kart client'ta üretilir (reel kapağıyla aynı
+  // kompozisyon, lib/storyCard.ts) → mevcut hikaye yükleme+POST akışına girer,
+  // link otomatik /articles/<slug>'a ayarlanır. Ayrı boru hattı YOK.
+  async function shareArticleToStory(slug: string) {
+    if (artBusy) return;
+    setArtBusy(slug);
+    try {
+      const blob = await renderArticleStoryCard(slug);
+      if (!blob) { toast('Kart oluşturulamadı'); return; }
+      applyStoryFile(new File([blob], `makale-${slug}.png`, { type: 'image/png' }));
+      setStoryLink(`/articles/${slug}`);
+      setStoryLinkLabel('Makaleyi oku');
+      setArtPicker(false);
+    } catch { toast('Kart oluşturulamadı'); }
+    finally { setArtBusy(''); }
+  }
   // Aynı doğrulayıcı sunucuda da çalışır; buradaki yalnız anında geri bildirim.
   const linkGecerli = normalizeStoryLink(storyLink) !== null;
   const storyPreviewAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -1059,11 +1079,11 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
 
       {/* Story Create Modal */}
       {createOpen && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={e => { if (e.target === e.currentTarget) { setCreateOpen(false); setStoryFile(null); setStoryPreviewUrl(''); setStoryError(''); storyPreviewAudioRef.current?.pause(); } }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={e => { if (e.target === e.currentTarget) { setCreateOpen(false); setStoryFile(null); setStoryPreviewUrl(''); setStoryError(''); setArtPicker(false); storyPreviewAudioRef.current?.pause(); } }}>
           <div style={{ background: '#1a1510', borderRadius: 20, width: '100%', maxWidth: 400, padding: 20, position: 'relative', zIndex: 1 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, fontWeight: 700, fontSize: '1rem', color: '#e8e0d8' }}>
               <span>Yeni Hikaye</span>
-              <button onClick={() => { setCreateOpen(false); setStoryFile(null); setStoryPreviewUrl(''); setStoryError(''); storyPreviewAudioRef.current?.pause(); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', color: '#aaa' }}>
+              <button onClick={() => { setCreateOpen(false); setStoryFile(null); setStoryPreviewUrl(''); setStoryError(''); setArtPicker(false); storyPreviewAudioRef.current?.pause(); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', color: '#aaa' }}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
               </button>
             </div>
@@ -1085,6 +1105,38 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
               )}
             </div>
             <input id="story-file-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif,video/mp4,video/webm,video/quicktime" hidden onChange={e => { const f = e.target.files?.[0]; if (f) chooseStoryFile(f); e.target.value = ''; }} />
+
+            {/* MAKALEYİ HİKAYENE PAYLAŞ — dosya seçilmemişken. Bir makale seçince
+                9:16 kartı üretilir (reel kapağıyla aynı), dosya olarak yüklenir ve
+                link otomatik makaleye ayarlanır → hikayen makaleye trafik çeker. */}
+            {!storyFile && (
+              <div style={{ marginTop: 12 }}>
+                {!artPicker ? (
+                  <button type="button" onClick={() => setArtPicker(true)}
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '10px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.15)', background: 'transparent', color: '#cfe3f2', fontFamily: 'inherit', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                    veya bir makaleyi paylaş
+                  </button>
+                ) : (
+                  <div style={{ border: '1px solid rgba(255,255,255,0.15)', borderRadius: 12, overflow: 'hidden' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                      <span style={{ color: '#b9ada0', fontSize: '0.8rem', fontWeight: 700 }}>Makale seç</span>
+                      <button type="button" onClick={() => setArtPicker(false)} style={{ background: 'none', border: 'none', color: '#8a7f74', fontSize: '0.75rem', cursor: 'pointer', fontFamily: 'inherit' }}>vazgeç</button>
+                    </div>
+                    <div style={{ maxHeight: 220, overflowY: 'auto' }}>
+                      {ARTICLES.map(a => (
+                        <button key={a.slug} type="button" onClick={() => shareArticleToStory(a.slug)} disabled={!!artBusy}
+                          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', background: 'none', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.05)', color: '#e8e0d8', cursor: artBusy ? 'default' : 'pointer', textAlign: 'left', fontFamily: 'inherit' }}>
+                          <span style={{ fontSize: '1.1rem', width: 22, flexShrink: 0 }}>{a.emoji}</span>
+                          <span style={{ flex: 1, minWidth: 0, fontSize: '0.85rem', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.title}</span>
+                          {artBusy === a.slug && <span style={{ fontSize: '0.75rem', color: '#8a7f74' }}>hazırlanıyor…</span>}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
             {/* MÜZİK SEÇİCİ — yalnız onaylı parçalar. Liste boşsa (SQL çalışmadıysa
                 ya da hiçbir parça onaylanmadıysa) bölüm hiç görünmez, hikâye
                 paylaşımı müziksiz aynen çalışır. */}
