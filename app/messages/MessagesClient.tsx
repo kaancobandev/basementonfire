@@ -6,10 +6,11 @@ import { getSupa } from '@/lib/supabase/client';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 import Img from '@/app/components/Img';
 import { avatarSrc } from '@/lib/avatar';
+import { uploadToStorage } from '@/lib/upload';
 
 interface OtherUser { id: number; username: string; display_name: string; avatar: string | null; }
 interface Conversation { id: number; otherUser: OtherUser; lastMessage: any; unreadCount: number; lastTimeAgo: string; }
-interface Message { id: number; content: string; sender_id: number; created_at: string; sender?: any; story?: { media_url: string; media_type: string } | null; }
+interface Message { id: number; content: string; sender_id: number; created_at: string; sender?: any; media_url?: string | null; media_type?: string | null; story?: { media_url: string; media_type: string } | null; }
 interface Me { id: number; username: string; display_name: string; avatar: string; }
 
 interface Props {
@@ -34,6 +35,11 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
   const [messages, setMessages] = useState<Message[]>([]);
   const [msgLoading, setMsgLoading] = useState(false);
   const [msgText, setMsgText] = useState('');
+  // Medya (foto/video) gönderimi — özellik yalnız sql/features-dm-media.sql
+  // çalıştırıldıysa açık (liste yüklenince belirlenir). Kapalıysa ek butonu gizli.
+  const [mediaEnabled, setMediaEnabled] = useState(false);
+  const [mediaSending, setMediaSending] = useState(false);
+  const mediaInputRef = useRef<HTMLInputElement>(null);
   const [panelOpen, setPanelOpen] = useState(false);
   // Dar ekran (mobil ≤699px) = tek panel: konuşma açılınca liste gizlenir + geri butonu çıkar.
   // Geniş ekran (masaüstü) = iki panel: liste HER ZAMAN görünür (geri butonu gereksiz).
@@ -144,6 +150,7 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
       const res = await fetch(`/api/dm/${convId}/messages`);
       const data = await res.json();
       setMessages(data.messages ?? []);
+      setMediaEnabled(!!data.mediaEnabled);
       setConvs(prev => prev.map(c => c.id === convId ? { ...c, unreadCount: 0 } : c));
     } finally {
       setMsgLoading(false);
@@ -209,6 +216,42 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
     sendMsg(null as any, content);
   }
 
+  // Foto/video gönder: önce yerel önizlemeli iyimser baloncuk, sonra Storage'a
+  // yükle ('media' türü → me.id klasörü) ve send route'a yol+tür yolla. Sunucu
+  // yanıtı (public URL'li gerçek mesaj) iyimser baloncuğun yerine geçer; hata
+  // olursa baloncuk geri alınır. Yalnız-medya (metinsiz) mesaj desteklenir.
+  async function sendMedia(file: File) {
+    if (!activeConvId || mediaSending) return;
+    const convId = activeConvId;
+    const mt: 'image' | 'video' = file.type.startsWith('video/') ? 'video' : 'image';
+    const localUrl = URL.createObjectURL(file);
+    const tempId = Date.now();
+    const optimistic: Message = { id: tempId, content: '', sender_id: me.id, created_at: new Date().toISOString(), media_url: localUrl, media_type: mt };
+    setMessages(prev => [...prev, optimistic]);
+    setMediaSending(true);
+    try {
+      const { path, mediaType } = await uploadToStorage(file, 'media');
+      const res = await fetch(`/api/dm/${convId}/send`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path, mediaType }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.message) throw new Error(data.error ?? 'Gönderilemedi');
+      setMessages(prev => prev.map(m => m.id === tempId ? data.message : m));
+      setConvs(prev => {
+        const c = prev.find(x => x.id === convId);
+        if (!c) return prev;
+        const updated = { ...c, lastMessage: { content: '', media_type: mt, sender_id: me.id, created_at: new Date().toISOString() }, lastTimeAgo: 'şimdi' };
+        return [updated, ...prev.filter(x => x.id !== convId)];
+      });
+    } catch {
+      setMessages(prev => prev.filter(m => m.id !== tempId));
+    } finally {
+      setMediaSending(false);
+      URL.revokeObjectURL(localUrl); // sunucu URL'i yerine geçti ya da baloncuk silindi
+    }
+  }
+
   // Search users
   useEffect(() => {
     if (!searchQ.trim()) { setSearchResults([]); return; }
@@ -243,9 +286,12 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
 
   function msgPreview(msg: any) {
     if (!msg) return 'Konuşma başlatıldı';
-    if (msg.content.startsWith('__GIF__')) return (msg.sender_id === me.id ? 'Sen: ' : '') + 'GIF';
+    const pre = msg.sender_id === me.id ? 'Sen: ' : '';
+    if (msg.content?.startsWith('__GIF__')) return pre + 'GIF';
+    // İçerik boşsa mesaj yalnız-medyadır (kısıt gereği ya metin ya medya olmalı).
+    if (!msg.content) return pre + (msg.media_type === 'video' ? '🎥 Video' : '📷 Fotoğraf');
     const text = msg.content.length > 60 ? msg.content.slice(0, 60) + '…' : msg.content;
-    return (msg.sender_id === me.id ? 'Sen: ' : '') + text;
+    return pre + text;
   }
 
   let lastDay = '';
@@ -265,7 +311,21 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
             <Img src={avatarSrc(activeOtherUser?.username, activeOtherUser?.avatar)} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
         )}
-        {isGif ? (
+        {m.media_url ? (
+          // Foto/video mesajı. Altında metin (caption) varsa onu da göster.
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: mine ? 'flex-end' : 'flex-start' }}>
+            <div style={{ borderRadius: 14, overflow: 'hidden', maxWidth: 240, ...(mine ? { borderBottomRightRadius: 4 } : { borderBottomLeftRadius: 4 }) }}>
+              {m.media_type === 'video'
+                ? <video src={m.media_url} controls playsInline style={{ width: '100%', maxHeight: 360, display: 'block', background: '#000' }} />
+                : <img src={m.media_url} alt="" loading="lazy" style={{ width: '100%', display: 'block' }} />}
+            </div>
+            {m.content && (
+              <div style={{ padding: '9px 14px', borderRadius: 18, fontSize: '0.88rem', lineHeight: 1.5, wordBreak: 'break-word', whiteSpace: 'pre-wrap', ...(mine ? { background: 'var(--color-accent)', color: '#0f0e0d', borderBottomRightRadius: 4 } : { background: 'rgba(255,255,255,0.08)', color: '#e8e0d8', borderBottomLeftRadius: 4 }) }}>
+                {m.content}
+              </div>
+            )}
+          </div>
+        ) : isGif ? (
           <div style={{ borderRadius: 12, overflow: 'hidden', maxWidth: 200, ...(mine ? { borderBottomRightRadius: 4 } : { borderBottomLeftRadius: 4 }) }}>
             <img src={m.content.slice(7)} alt="GIF" loading="lazy" style={{ width: '100%', display: 'block' }} />
           </div>
@@ -381,6 +441,16 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
 
             {/* Input bar */}
             <form onSubmit={sendMsg} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderTop: '1px solid rgba(255,255,255,0.07)', flexShrink: 0 }}>
+              {/* Foto/video ekle — yalnız medya özelliği açıkken (SQL çalıştıysa). */}
+              {mediaEnabled && (
+                <>
+                  <button type="button" onClick={() => mediaInputRef.current?.click()} disabled={mediaSending} aria-label="Fotoğraf veya video ekle"
+                    style={{ width: 36, height: 36, borderRadius: 8, border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.05)', color: 'var(--color-accent)', cursor: mediaSending ? 'default' : 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: mediaSending ? 0.5 : 1 }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                  </button>
+                  <input ref={mediaInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif,video/mp4,video/webm,video/quicktime" hidden onChange={e => { const f = e.target.files?.[0]; if (f) sendMedia(f); e.target.value = ''; }} />
+                </>
+              )}
               <button type="button" onClick={() => setGifPickerOpen(p => !p)} style={{ width: 36, height: 36, borderRadius: 8, border: '1px solid rgba(255,255,255,0.12)', background: gifPickerOpen ? 'rgba(212,165,100,0.18)' : 'rgba(255,255,255,0.05)', color: 'var(--color-accent)', fontWeight: 800, fontSize: '0.65rem', letterSpacing: '0.02em', cursor: 'pointer', flexShrink: 0, fontFamily: 'inherit' }}>GIF</button>
               <input value={msgText} onChange={e => setMsgText(e.target.value)} placeholder="Mesaj yaz…" maxLength={1000} autoComplete="off" style={{ flex: 1, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '9999px', padding: '10px 16px', fontSize: '0.9rem', color: '#e8e0d8', outline: 'none', fontFamily: 'inherit' }} />
               <button type="submit" style={{ width: 40, height: 40, borderRadius: '50%', border: 'none', background: 'var(--color-accent)', color: '#0f0e0d', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 0.15s' }}>
