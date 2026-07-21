@@ -10,12 +10,14 @@ import Img from '@/app/components/Img';
 import { avatarSrc } from '@/lib/avatar';
 import { factMediaList } from '@/lib/types';
 import ReportButton from '@/app/components/ReportButton';
+import CommentLikeButton from '@/app/components/CommentLikeButton';
 import type { PostProp, DetailComment } from '@/app/p/[id]/postData';
 
 interface CurrentUser { id: number; username: string; display_name: string; avatar: string | null; }
 interface Props {
   post: PostProp;
   initialComments: DetailComment[];
+  commentLikesEnabled: boolean;
   initialLiked: boolean;
   initialBookmarked: boolean;
   initialReposted: boolean;
@@ -32,7 +34,7 @@ function timeAgo(iso: string) {
  * URL /p/[id] olur (paylaşılabilir); kapatma router.back() ile geri gider.
  * Yenileme/derin-bağlantıda intercepting devre dışı kalır → tam /p/[id] sayfası.
  */
-export default function PostModal({ post, initialComments, initialLiked, initialBookmarked, initialReposted, currentUser }: Props) {
+export default function PostModal({ post, initialComments, commentLikesEnabled, initialLiked, initialBookmarked, initialReposted, currentUser }: Props) {
   const router = useRouter();
   const [liked, setLiked] = useState(initialLiked);
   const [bookmarked, setBookmarked] = useState(initialBookmarked);
@@ -171,6 +173,7 @@ export default function PostModal({ post, initialComments, initialLiked, initial
                       <span style={{ fontSize: '0.82rem', color: 'var(--color-text)', lineHeight: 1.4, wordBreak: 'break-word' }}>{c.content}</span>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
                         <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>{timeAgo(c.created_at)}</span>
+                        {commentLikesEnabled && <CommentLikeButton commentId={c.id} initialLikes={c.likes} initialLiked={c.liked} />}
                         <button onClick={() => { setReplyToId(c.id); setCommentText(`@${c.username} `); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-muted)', padding: '1px 0', fontFamily: 'inherit' }}>Yanıtla</button>
                         <ReportButton targetType="comment" targetId={c.id} subtitle={`@${c.username} yorumu`} variant="inline" canReport={!!currentUser && currentUser.id !== c.user_id} />
                       </div>
@@ -187,6 +190,7 @@ export default function PostModal({ post, initialComments, initialLiked, initial
                         <span style={{ fontSize: '0.82rem', color: 'var(--color-text)', lineHeight: 1.4, wordBreak: 'break-word' }}>{r.content}</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
                           <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>{timeAgo(r.created_at)}</span>
+                          {commentLikesEnabled && <CommentLikeButton commentId={r.id} initialLikes={r.likes} initialLiked={r.liked} />}
                           <ReportButton targetType="comment" targetId={r.id} subtitle={`@${r.username} yorumu`} variant="inline" canReport={!!currentUser && currentUser.id !== r.user_id} />
                         </div>
                       </div>

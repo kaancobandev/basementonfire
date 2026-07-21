@@ -18,6 +18,7 @@ export const getPost = cache(async (id: number) => {
 export type DetailComment = {
   id: number; content: string; created_at: string; parent_id: number | null; user_id: number;
   username: string; display_name: string; avatar: string | null;
+  likes: number; liked: boolean;
 };
 
 export type PostProp = {
@@ -29,6 +30,7 @@ export type PostDetail = {
   post: any;
   u: any;
   comments: DetailComment[];
+  commentLikesEnabled: boolean;
   initialLiked: boolean;
   initialBookmarked: boolean;
   initialReposted: boolean;
@@ -53,10 +55,14 @@ export async function getPostDetail(postId: number, meId: number | null): Promis
     if (!follow) return null;
   }
 
-  // Yorumlar ile beğeni/kaydetme/repost durumu birbirinden bağımsız → tek turda paralel
-  const [commentsRes, likesRes] = await Promise.all([
+  // Yorumlar ile beğeni/kaydetme/repost durumu birbirinden bağımsız → tek turda paralel.
+  // Yorum beğeni SAYISI comment_likes(count) embed'inden gelir; tablo
+  // sql/features-comment-likes.sql çalıştırılana kadar YOKtur → embed patlar,
+  // embed'siz sorguya düşer ve özellik uykuda kalır (enabled=false).
+  const COMMENT_COLS = 'id, content, created_at, parent_id, user_id, users(username, display_name, avatar)';
+  const [commentsRes0, likesRes] = await Promise.all([
     db.from('comments')
-      .select('id, content, created_at, parent_id, user_id, users(username, display_name, avatar)')
+      .select(`${COMMENT_COLS}, comment_likes(count)`)
       .eq('post_id', postId)
       .order('created_at', { ascending: true })
       // Büyüme sigortası: viral bir gönderide tüm yorumların SSR'a girmesini
@@ -70,10 +76,26 @@ export async function getPostDetail(postId: number, meId: number | null): Promis
         ])
       : Promise.resolve(null),
   ]);
+  let commentsRes = commentsRes0;
+  const commentLikesEnabled = !commentsRes0.error;
+  if (commentsRes0.error) {
+    // Embed'siz sorgu comment_likes taşımaz → tip farklı; holding değişkenine cast.
+    commentsRes = await db.from('comments')
+      .select(COMMENT_COLS).eq('post_id', postId).order('created_at', { ascending: true }).limit(500) as typeof commentsRes0;
+  }
   const comments: DetailComment[] = (commentsRes.data ?? []).map((c: any) => ({
     id: c.id, content: c.content, created_at: c.created_at, parent_id: c.parent_id, user_id: c.user_id,
     username: c.users?.username ?? '', display_name: c.users?.display_name ?? '', avatar: c.users?.avatar ?? null,
+    likes: Array.isArray(c.comment_likes) && c.comment_likes[0] ? Number(c.comment_likes[0].count) || 0 : 0,
+    liked: false, // izleyicinin kendi beğenisi aşağıda doldurulur
   }));
+  // İzleyicinin beğendiği yorumlar (tek sorgu, sonra Set ile işaretle).
+  if (commentLikesEnabled && meId && comments.length) {
+    const { data: mineLikes } = await db.from('comment_likes')
+      .select('comment_id').eq('user_id', meId).in('comment_id', comments.map(c => c.id));
+    const likedSet = new Set((mineLikes ?? []).map((r: any) => r.comment_id));
+    for (const c of comments) c.liked = likedSet.has(c.id);
+  }
 
   let initialLiked = false;
   let initialBookmarked = false;
@@ -100,5 +122,5 @@ export async function getPostDetail(postId: number, meId: number | null): Promis
     avatar: u.avatar ?? null,
   };
 
-  return { post, u, comments, initialLiked, initialBookmarked, initialReposted, postProp };
+  return { post, u, comments, commentLikesEnabled, initialLiked, initialBookmarked, initialReposted, postProp };
 }

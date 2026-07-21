@@ -20,6 +20,7 @@ export default async function InterceptedPostModal({ params }: { params: Promise
     <PostModal
       post={detail.postProp}
       initialComments={detail.comments}
+      commentLikesEnabled={detail.commentLikesEnabled}
       initialLiked={detail.initialLiked}
       initialBookmarked={detail.initialBookmarked}
       initialReposted={detail.initialReposted}

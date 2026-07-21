@@ -15,6 +15,7 @@ import AnimatedNumber from '@/app/components/AnimatedNumber';
 import { BADGE_MAP, levelFromXp } from '@/lib/badges';
 import ReportModal from '@/app/components/ReportModal';
 import ReportButton from '@/app/components/ReportButton';
+import CommentLikeButton from '@/app/components/CommentLikeButton';
 
 interface ProfileUser {
   id: number; username: string; display_name: string; bio: string | null; avatar: string | null;
@@ -22,7 +23,7 @@ interface ProfileUser {
   birthdate: string | null; interests: string[];
 }
 interface MediaPost { id: number; media_url: string; media_type: string; caption: string; likes: number; created_at: string; media?: { url: string; type: 'image' | 'video' }[] | null; }
-interface Comment { id: number; parent_id: number | null; user_id: number; content: string; created_at: string; display_name: string; username: string; avatar: string | null; }
+interface Comment { id: number; parent_id: number | null; user_id: number; content: string; created_at: string; display_name: string; username: string; avatar: string | null; likes?: number; liked?: boolean; }
 
 interface Props {
   profileUser: ProfileUser;
@@ -92,6 +93,7 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
   // Lightbox
   const [lightbox, setLightbox] = useState<MediaPost | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
+  const [commentLikesEnabled, setCommentLikesEnabled] = useState(false);
   const [cmLoading, setCmLoading] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [replyToId, setReplyToId] = useState<number | null>(null);
@@ -137,6 +139,7 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
       const res = await fetch(`/api/quick-facts/${post.id}/comments`);
       const data = await res.json();
       setComments(data.comments ?? []);
+      setCommentLikesEnabled(!!data.likesEnabled);
     } finally {
       setCmLoading(false);
     }
@@ -457,6 +460,7 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
                           <span style={{ fontSize: '0.82rem', color: 'var(--color-text)', lineHeight: 1.4, wordBreak: 'break-word' }}>{c.content}</span>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
                             <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>{timeAgo(c.created_at)}</span>
+                            {commentLikesEnabled && <CommentLikeButton commentId={c.id} initialLikes={c.likes} initialLiked={c.liked} />}
                             {me && <button onClick={() => { setReplyToId(c.id); setCommentText(`@${c.username} `); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-muted)', padding: '1px 0', fontFamily: 'inherit' }}>Yanıtla</button>}
                             <ReportButton targetType="comment" targetId={c.id} subtitle={`@${c.username} yorumu`} variant="inline" canReport={!!me && me.id !== c.user_id} />
                           </div>
@@ -473,6 +477,7 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
                             <span style={{ fontSize: '0.82rem', color: 'var(--color-text)', lineHeight: 1.4, wordBreak: 'break-word' }}>{r.content}</span>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
                               <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>{timeAgo(r.created_at)}</span>
+                              {commentLikesEnabled && <CommentLikeButton commentId={r.id} initialLikes={r.likes} initialLiked={r.liked} />}
                               <ReportButton targetType="comment" targetId={r.id} subtitle={`@${r.username} yorumu`} variant="inline" canReport={!!me && me.id !== r.user_id} />
                             </div>
                           </div>

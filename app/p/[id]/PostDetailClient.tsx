@@ -7,6 +7,7 @@ import MediaCarousel from '@/app/components/MediaCarousel';
 import Img from '@/app/components/Img';
 import { factMediaList } from '@/lib/types';
 import ReportButton from '@/app/components/ReportButton';
+import CommentLikeButton from '@/app/components/CommentLikeButton';
 import { avatarSrc } from '@/lib/avatar';
 
 interface PostProp {
@@ -16,6 +17,7 @@ interface PostProp {
 interface CommentT {
   id: number; parent_id: number | null; user_id: number; content: string; created_at: string;
   username: string; display_name: string; avatar: string | null;
+  likes?: number; liked?: boolean;
 }
 interface CurrentUser { id: number; username: string; display_name: string; }
 
@@ -30,8 +32,8 @@ const Avatar = ({ username, avatar, size }: { username: string; display_name: st
   </span>
 );
 
-export default function PostDetailClient({ post, initialComments, initialLiked, initialBookmarked, initialReposted, currentUser }: {
-  post: PostProp; initialComments: CommentT[]; initialLiked: boolean; initialBookmarked: boolean; initialReposted: boolean; currentUser: CurrentUser | null;
+export default function PostDetailClient({ post, initialComments, commentLikesEnabled, initialLiked, initialBookmarked, initialReposted, currentUser }: {
+  post: PostProp; initialComments: CommentT[]; commentLikesEnabled: boolean; initialLiked: boolean; initialBookmarked: boolean; initialReposted: boolean; currentUser: CurrentUser | null;
 }) {
   const [liked, setLiked] = useState(initialLiked);
   const [likes, setLikes] = useState(post.likes);
@@ -160,6 +162,7 @@ export default function PostDetailClient({ post, initialComments, initialLiked, 
                   <span style={{ fontSize: '0.85rem', color: 'var(--color-text)', lineHeight: 1.45, wordBreak: 'break-word' }}>{c.content}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 3 }}>
                     <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>{timeAgo(c.created_at)}</span>
+                    {commentLikesEnabled && <CommentLikeButton commentId={c.id} initialLikes={c.likes} initialLiked={c.liked} />}
                     {currentUser && <button onClick={() => { setReplyToId(c.id); setCommentText(`@${c.username} `); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-muted)', padding: 0, fontFamily: 'inherit' }}>Yanıtla</button>}
                     <ReportButton targetType="comment" targetId={c.id} subtitle={`@${c.username} yorumu`} variant="inline" canReport={!!currentUser && currentUser.id !== c.user_id} />
                   </div>
@@ -174,6 +177,7 @@ export default function PostDetailClient({ post, initialComments, initialLiked, 
                     <span style={{ fontSize: '0.83rem', color: 'var(--color-text)', lineHeight: 1.45, wordBreak: 'break-word' }}>{r.content}</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 2 }}>
                       <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>{timeAgo(r.created_at)}</span>
+                      {commentLikesEnabled && <CommentLikeButton commentId={r.id} initialLikes={r.likes} initialLiked={r.liked} />}
                       <ReportButton targetType="comment" targetId={r.id} subtitle={`@${r.username} yorumu`} variant="inline" canReport={!!currentUser && currentUser.id !== r.user_id} />
                     </div>
                   </div>
