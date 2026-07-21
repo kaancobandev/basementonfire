@@ -41,7 +41,7 @@ const loadMotionFeatures = () => import('./motionFeatures').then(mod => mod.defa
 interface StoryMusic { title: string; artist: string | null; src: string; startSec: number }
 // `music` OPSİYONEL: sql/features-story-music.sql çalıştırılana kadar sunucu bu
 // alanı hiç göndermez ve görüntüleyici sessizce müziksiz oynatır.
-interface StoryItem { id: number; mediaUrl: string; mediaType: string; createdAt: string; music?: StoryMusic | null; linkUrl?: string | null; linkLabel?: string | null; poll?: { question: string; options: string[] } | null; caption?: string | null; seen?: boolean; }
+interface StoryItem { id: number; mediaUrl: string; mediaType: string; createdAt: string; music?: StoryMusic | null; linkUrl?: string | null; linkLabel?: string | null; poll?: { question: string; options: string[]; correct?: number | null } | null; caption?: string | null; seen?: boolean; }
 interface StoryUser { userId: number; username: string; displayName: string; avatar: string | null; stories: StoryItem[]; }
 interface SuggestedUser { id: number; username: string; display_name: string; bio: string | null; avatar: string | null; mutual_count: number; }
 
@@ -211,6 +211,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
   const [pollOpen, setPollOpen] = useState(false);
   const [pollQ, setPollQ] = useState('');
   const [pollOpts, setPollOpts] = useState<string[]>(['', '']); // 2-4 seçenek
+  const [pollCorrect, setPollCorrect] = useState<number | null>(null); // doğru cevap indeksi → anket QUIZ olur
   const [storyAudience, setStoryAudience] = useState<'public' | 'followers' | 'close'>('public');
   const [closeMgrOpen, setCloseMgrOpen] = useState(false);
   // CAPTION: fotoğraf/video üstüne binen yazı (≤200). SADECE-METİN modu: dosya
@@ -562,6 +563,15 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
     if (!fileToSend) return;
     setStorySubmitting(true);
     setStoryError('');
+    // ANKET/QUIZ gövdesi. Boş seçenekler atılınca indeksler KAYAR: pollCorrect
+    // orijinal pollOpts'a göredir, sunucuya giden dizi ise filtrelenmiştir →
+    // doğru cevabı filtrelenmiş dizideki konumuna çevir (yoksa yanlış şık doğru
+    // sanılırdı). filledOpts + correctInFiltered bunu birlikte hesaplar.
+    const filledOpts = pollOpts.map(o => o.trim()).filter(Boolean);
+    const hasPoll = !!pollQ.trim() && filledOpts.length >= 2;
+    const correctInFiltered = (hasPoll && pollCorrect != null && pollOpts[pollCorrect]?.trim())
+      ? pollOpts.slice(0, pollCorrect + 1).filter(o => o.trim()).length - 1
+      : null;
     try {
       const { path, mediaType } = await uploadToStorage(fileToSend, 'story');
       const res = await fetch('/api/stories', {
@@ -570,8 +580,9 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
         body: JSON.stringify({
           path, mediaType, musicTrackId: storyMusicId, linkUrl: storyLink, linkLabel: storyLinkLabel,
           // Anket: soru + ≥2 dolu seçenek varsa gönder (sunucu ayrıca doğrular).
-          ...(pollQ.trim() && pollOpts.filter(o => o.trim()).length >= 2
-            ? { pollQuestion: pollQ.trim(), pollOptions: pollOpts.map(o => o.trim()).filter(Boolean) } : {}),
+          // pollCorrect doluysa sunucu bunu quiz'e çevirir.
+          ...(hasPoll
+            ? { pollQuestion: pollQ.trim(), pollOptions: filledOpts, ...(correctInFiltered != null ? { pollCorrect: correctInFiltered } : {}) } : {}),
           audience: storyAudience,
           // CAPTION yalnız GERÇEK medya hikayede anlamlı (sadece-metinde yazı
           // zaten karta gömülü). Boşsa gönderme.
@@ -585,7 +596,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
       setStoryPreviewUrl('');
       setStoryMusicId(null);
       setStoryLink(''); setStoryLinkLabel('');
-      setPollOpen(false); setPollQ(''); setPollOpts(['', '']);
+      setPollOpen(false); setPollQ(''); setPollOpts(['', '']); setPollCorrect(null);
       setStoryAudience('public');
       setStoryCaption(''); setTextMode(false); setStoryText(''); setStoryBg(0);
       // ŞERİDİ TAZELE. Bu satır olmadan kayıt 201 dönse bile ekranda hiçbir şey
@@ -1147,34 +1158,56 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
           {/* ANKET STICKER'I — dokunma bölgelerinin (ileri/geri) ÜSTÜNDE (zIndex 7),
               yoksa seçeneğe basınca hikâye ilerler, oy hiç gitmezdi. Oy verilene
               kadar buton, sonrası dolan çubuk + yüzde. */}
-          {currentSvStory?.poll && (
+          {currentSvStory?.poll && (() => {
+            // QUIZ: poll.correct doluysa doğru cevap VAR. Oy verilene kadar
+            // gizli (casual sticker — devtools'la bakan olabilir, sınav değil);
+            // seçince doğru şık yeşil, yanlış seçim kırmızı vurgulanır.
+            const quizCorrect = currentSvStory.poll!.correct;
+            const isQuiz = quizCorrect != null && quizCorrect >= 0;
+            const voted = storyPoll?.mine != null;
+            const gotRight = isQuiz && voted && storyPoll?.mine === String(quizCorrect);
+            return (
             <div style={{ position: 'absolute', left: '50%', top: '26%', transform: 'translateX(-50%)', width: '82%', maxWidth: 360, zIndex: 7,
               background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)', borderRadius: 16, padding: '14px 14px 12px', boxShadow: '0 6px 24px rgba(0,0,0,0.4)' }}>
-              <p style={{ margin: '0 0 10px', color: '#fff', fontWeight: 700, fontSize: '0.92rem', textAlign: 'center' }}>{currentSvStory.poll.question}</p>
+              {isQuiz && <div style={{ textAlign: 'center', marginBottom: 6 }}><span style={{ display: 'inline-block', padding: '2px 10px', borderRadius: 9999, background: 'rgba(139,92,246,0.9)', color: '#fff', fontSize: '0.64rem', fontWeight: 800, letterSpacing: '0.06em' }}>QUIZ</span></div>}
+              <p style={{ margin: '0 0 10px', color: '#fff', fontWeight: 700, fontSize: '0.92rem', textAlign: 'center' }}>{currentSvStory.poll!.question}</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {currentSvStory.poll.options.map((opt, i) => {
-                  const voted = storyPoll?.mine != null;
+                {currentSvStory.poll!.options.map((opt, i) => {
                   const count = storyPoll?.counts?.[String(i)] ?? 0;
                   const pct = storyPoll && storyPoll.total > 0 ? Math.round((count / storyPoll.total) * 100) : 0;
                   const mine = storyPoll?.mine === String(i);
+                  // Quiz vurguları yalnız oy sonrası: doğru şık = yeşil, benim yanlış seçimim = kırmızı.
+                  const showCorrect = isQuiz && voted && i === quizCorrect;
+                  const showWrong = isQuiz && voted && mine && i !== quizCorrect;
+                  const borderCol = showCorrect ? '#22c55e' : showWrong ? '#ef4444' : mine ? '#fff' : 'rgba(255,255,255,0.35)';
+                  const barCol = showCorrect ? 'rgba(34,197,94,0.4)' : showWrong ? 'rgba(239,68,68,0.4)' : mine ? 'rgba(255,255,255,0.32)' : 'rgba(255,255,255,0.16)';
                   return (
                     <button key={i} type="button" disabled={voted}
                       onClick={() => voteStoryPoll(currentSvStory.id, i)}
                       style={{ position: 'relative', overflow: 'hidden', width: '100%', textAlign: 'left', padding: '10px 12px', borderRadius: 10,
-                        border: mine ? '2px solid #fff' : '1px solid rgba(255,255,255,0.35)', background: 'rgba(255,255,255,0.12)', color: '#fff',
+                        border: (showCorrect || showWrong) ? `2px solid ${borderCol}` : mine ? `2px solid ${borderCol}` : `1px solid ${borderCol}`, background: 'rgba(255,255,255,0.12)', color: '#fff',
                         fontFamily: 'inherit', fontSize: '0.86rem', fontWeight: 600, cursor: voted ? 'default' : 'pointer' }}>
-                      {voted && <span style={{ position: 'absolute', inset: 0, background: mine ? 'rgba(255,255,255,0.32)' : 'rgba(255,255,255,0.16)', width: `${pct}%`, transition: 'width 0.4s' }} />}
-                      <span style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                      {voted && <span style={{ position: 'absolute', inset: 0, background: barCol, width: `${pct}%`, transition: 'width 0.4s' }} />}
+                      <span style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
                         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{opt}</span>
-                        {voted && <span style={{ flexShrink: 0, fontWeight: 800 }}>%{pct}</span>}
+                        <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
+                          {showCorrect && <span aria-hidden style={{ fontWeight: 900 }}>✓</span>}
+                          {showWrong && <span aria-hidden style={{ fontWeight: 900 }}>✕</span>}
+                          {voted && <span style={{ fontWeight: 800 }}>%{pct}</span>}
+                        </span>
                       </span>
                     </button>
                   );
                 })}
               </div>
-              {storyPoll?.mine != null && <p style={{ margin: '8px 0 0', color: 'rgba(255,255,255,0.65)', fontSize: '0.72rem', textAlign: 'center' }}>{storyPoll.total} oy</p>}
+              {voted && (
+                isQuiz
+                  ? <p style={{ margin: '8px 0 0', color: gotRight ? '#4ade80' : '#f87171', fontSize: '0.78rem', fontWeight: 800, textAlign: 'center' }}>{gotRight ? 'Doğru! 🎉' : 'Yanlış'} <span style={{ color: 'rgba(255,255,255,0.55)', fontWeight: 600 }}>· {storyPoll!.total} kişi</span></p>
+                  : <p style={{ margin: '8px 0 0', color: 'rgba(255,255,255,0.65)', fontSize: '0.72rem', textAlign: 'center' }}>{storyPoll!.total} oy</p>
+              )}
             </div>
-          )}
+            );
+          })()}
           {/* BAĞLANTI ROZETİ — hikâyenin tek ölçülebilir çıkışı. Alt ortada,
               dokunma bölgelerinin (ileri/geri) ÜSTÜNDE bir katmanda duruyor;
               yoksa üstüne basınca hikâye ilerler, bağlantı hiç açılmazdı.
@@ -1429,27 +1462,47 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
               ) : (
                 <div style={{ border: '1px solid rgba(255,255,255,0.15)', borderRadius: 12, padding: 12 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                    <span style={{ color: '#b9ada0', fontSize: '0.8rem', fontWeight: 700 }}>Anket</span>
-                    <button type="button" onClick={() => { setPollOpen(false); setPollQ(''); setPollOpts(['', '']); }} style={{ background: 'none', border: 'none', color: '#8a7f74', fontSize: '0.75rem', cursor: 'pointer', fontFamily: 'inherit' }}>kaldır</button>
+                    <span style={{ color: '#b9ada0', fontSize: '0.8rem', fontWeight: 700 }}>{pollCorrect != null ? 'Quiz' : 'Anket'}</span>
+                    <button type="button" onClick={() => { setPollOpen(false); setPollQ(''); setPollOpts(['', '']); setPollCorrect(null); }} style={{ background: 'none', border: 'none', color: '#8a7f74', fontSize: '0.75rem', cursor: 'pointer', fontFamily: 'inherit' }}>kaldır</button>
                   </div>
                   <input value={pollQ} onChange={e => setPollQ(e.target.value)} placeholder="Soru (ör. Sence hangisi doğru?)" maxLength={100}
                     style={{ width: '100%', padding: '9px 11px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.14)', background: 'transparent', color: '#e8e0d8', fontFamily: 'inherit', fontSize: '0.85rem' }} />
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}>
-                    {pollOpts.map((opt, i) => (
+                    {pollOpts.map((opt, i) => {
+                      const isCorrect = pollCorrect === i;
+                      return (
                       <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                        {/* DOĞRU işaretle → anket QUIZ olur. Boş seçenek işaretlenemez
+                            (gönderimde indeks kayması sadece dolu seçenekler üzerinden). */}
+                        <button type="button" disabled={!opt.trim()} aria-pressed={isCorrect} aria-label={isCorrect ? 'Doğru cevap' : 'Doğru olarak işaretle'}
+                          onClick={() => setPollCorrect(prev => prev === i ? null : i)}
+                          style={{ flexShrink: 0, width: 30, height: 30, borderRadius: '50%', cursor: opt.trim() ? 'pointer' : 'not-allowed',
+                            border: isCorrect ? 'none' : '1px solid rgba(255,255,255,0.25)', background: isCorrect ? '#22c55e' : 'transparent',
+                            color: isCorrect ? '#0f0e0d' : '#8a7f74', opacity: opt.trim() ? 1 : 0.4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6 9 17l-5-5"/></svg>
+                        </button>
                         <input value={opt} onChange={e => setPollOpts(prev => prev.map((o, j) => j === i ? e.target.value : o))} placeholder={`Seçenek ${i + 1}`} maxLength={60}
-                          style={{ flex: 1, minWidth: 0, padding: '8px 11px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.14)', background: 'transparent', color: '#e8e0d8', fontFamily: 'inherit', fontSize: '0.84rem' }} />
+                          style={{ flex: 1, minWidth: 0, padding: '8px 11px', borderRadius: 10, border: isCorrect ? '1px solid #22c55e' : '1px solid rgba(255,255,255,0.14)', background: 'transparent', color: '#e8e0d8', fontFamily: 'inherit', fontSize: '0.84rem' }} />
                         {pollOpts.length > 2 && (
-                          <button type="button" onClick={() => setPollOpts(prev => prev.filter((_, j) => j !== i))} aria-label="Seçeneği kaldır"
+                          <button type="button" aria-label="Seçeneği kaldır"
+                            onClick={() => {
+                              // Silinen seçenek doğru cevabıysa işareti kaldır; öncesindeyse indeks bir azalır.
+                              setPollCorrect(prev => prev == null ? null : prev === i ? null : prev > i ? prev - 1 : prev);
+                              setPollOpts(prev => prev.filter((_, j) => j !== i));
+                            }}
                             style={{ flexShrink: 0, width: 30, height: 30, borderRadius: 8, border: 'none', background: 'rgba(255,255,255,0.08)', color: '#c88', cursor: 'pointer' }}>×</button>
                         )}
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                   {pollOpts.length < 4 && (
                     <button type="button" onClick={() => setPollOpts(prev => [...prev, ''])}
                       style={{ marginTop: 8, background: 'none', border: 'none', color: '#8fa9ff', fontSize: '0.8rem', cursor: 'pointer', fontFamily: 'inherit' }}>+ seçenek ekle</button>
                   )}
+                  <p style={{ margin: '10px 2px 0', color: '#8a7f74', fontSize: '0.72rem', lineHeight: 1.4 }}>
+                    {pollCorrect != null ? '✓ Doğru cevabı işaretledin — bu bir quiz. İzleyici seçince doğru/yanlış görecek.' : 'İpucu: bir seçeneği ✓ ile doğru işaretlersen anket quize dönüşür.'}
+                  </p>
                 </div>
               )}
             </div>

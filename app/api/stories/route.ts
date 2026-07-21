@@ -11,9 +11,9 @@ const json = (data: object, status = 200) => NextResponse.json(data, { status })
 const SELECT_BASE =
   'id, media_url, media_type, created_at, expires_at, user_id, users!stories_user_id_fkey(id, username, display_name, avatar, is_private)';
 const SELECT_WITH_MUSIC =
-  SELECT_BASE + ', music_track_id, music_start_sec, link_url, link_label, poll_question, poll_options, audience, caption, music:music_tracks(id, title, artist, src)';
+  SELECT_BASE + ', music_track_id, music_start_sec, link_url, link_label, poll_question, poll_options, poll_correct, audience, caption, music:music_tracks(id, title, artist, src)';
 /** Kolon/ilişki henüz yoksa PostgREST böyle söyler (42703 / şema önbelleği). */
-const MUSIC_COLS_MISSING = /music_track_id|music_start_sec|music_tracks|link_url|link_label|poll_question|poll_options|audience|caption/i;
+const MUSIC_COLS_MISSING = /music_track_id|music_start_sec|music_tracks|link_url|link_label|poll_question|poll_options|poll_correct|audience|caption/i;
 
 export async function GET() {
   const now = new Date().toISOString();
@@ -69,7 +69,7 @@ export async function POST(req: Request) {
   const { me } = await getMe();
   if (!me) return json({ error: 'Giriş gerekli' }, 401);
 
-  let body: { path?: string; mediaType?: string; musicTrackId?: number | null; musicStartSec?: number; linkUrl?: string; linkLabel?: string; pollQuestion?: string; pollOptions?: string[]; audience?: string; caption?: string };
+  let body: { path?: string; mediaType?: string; musicTrackId?: number | null; musicStartSec?: number; linkUrl?: string; linkLabel?: string; pollQuestion?: string; pollOptions?: string[]; pollCorrect?: number | null; audience?: string; caption?: string };
   try { body = await req.json(); } catch { return json({ error: 'Geçersiz istek' }, 400); }
 
   const path = body.path ?? '';
@@ -103,9 +103,17 @@ export async function POST(req: Request) {
   // (kırp, boşları at, en çok 4, her biri ≤60). 2'den az geçerli seçenek → anket yok.
   let pollQuestion: string | null = null;
   let pollOptions: string[] | null = null;
+  // QUIZ: anket + BİR doğru cevap. pollCorrect, pollOptions'a geçerli bir indeksse
+  // (0..n-1) saklanır → sticker quiz'e döner, izleyici doğru/yanlış görür.
+  // İndeks aralık dışı ya da yoksa null = normal anket.
+  let pollCorrect: number | null = null;
   if (typeof body.pollQuestion === 'string' && body.pollQuestion.trim()) {
     const opts = normalizePollOptions(body.pollOptions);
-    if (opts.length >= 2) { pollQuestion = body.pollQuestion.trim().slice(0, 100); pollOptions = opts; }
+    if (opts.length >= 2) {
+      pollQuestion = body.pollQuestion.trim().slice(0, 100); pollOptions = opts;
+      const c = Number(body.pollCorrect);
+      if (Number.isInteger(c) && c >= 0 && c < opts.length) pollCorrect = c;
+    }
   }
 
   // KİTLE — yalnız bilinen üç değer; başka bir şey 'public'e düşer.
@@ -124,6 +132,7 @@ export async function POST(req: Request) {
     ...(musicTrackId ? { music_track_id: musicTrackId, music_start_sec: musicStartSec } : {}),
     ...(linkUrl ? { link_url: linkUrl, link_label: linkLabel } : {}),
     ...(pollQuestion ? { poll_question: pollQuestion, poll_options: pollOptions } : {}),
+    ...(pollCorrect != null ? { poll_correct: pollCorrect } : {}), // AYRI spread: kolon yoksa retry yalnız bunu düşsün, anket kalsın
     ...(audience !== 'public' ? { audience } : {}), // varsayılanı yazma (kolon yoksa da çalışsın)
     ...(caption ? { caption } : {}),
   };
@@ -134,7 +143,7 @@ export async function POST(req: Request) {
   // opsiyonel kolonu düş, insert başarılı olana ya da düşecek bilinen kolon
   // kalmayana kadar. Sabit silme kümesi KULLANMA — 'audience'ı başka bir kolonun
   // eksikliğinde silmek 'close' hikayeyi sessizce PUBLIC yapardı (gizlilik sızıntısı).
-  const OPTIONAL = ['music_track_id', 'music_start_sec', 'link_url', 'link_label', 'poll_question', 'poll_options', 'audience', 'caption'];
+  const OPTIONAL = ['music_track_id', 'music_start_sec', 'link_url', 'link_label', 'poll_question', 'poll_options', 'poll_correct', 'audience', 'caption'];
   for (let guard = 0; error && guard < OPTIONAL.length; guard++) {
     const missing = OPTIONAL.find((c) => c in row && new RegExp(`\\b${c}\\b`, 'i').test(error!.message));
     if (!missing) break;
