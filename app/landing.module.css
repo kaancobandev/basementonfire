@@ -15,8 +15,9 @@
   min-height: 78svh; /* svh: mobil URL çubuğu daralınca hero zıplamaz */
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: 26px 20px 32px;
+  /* justify-content: center KALDIRILDI: üst çubuk tepede sabit, gövde altta
+     kalan alanda ortalanır (heroInner flex:1). */
+  padding: 16px 20px 32px;
   overflow: hidden;
 }
 .glow {
@@ -28,9 +29,73 @@
   transition: opacity 0.4s ease;
   pointer-events: none;
 }
-.heroInner { position: relative; z-index: 1; }
-.authbar { margin-bottom: 14px; font-size: 0.72rem; color: rgba(255, 255, 255, 0.5); }
-.authbar a { color: rgba(255, 255, 255, 0.82); text-decoration: none; border-bottom: 1px solid rgba(255, 255, 255, 0.28); }
+.heroInner {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* ── Üst çubuk (marka + giriş/üye ol) ── */
+.heroTop {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: env(safe-area-inset-top, 0px); /* çentik/Dynamic Island güvenli */
+  margin-bottom: 10px;
+}
+.brand { display: inline-flex; align-items: center; gap: 9px; min-width: 0; }
+.brandWord {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+  color: #fff;
+  white-space: nowrap;
+}
+.heroTopActions { display: flex; align-items: center; flex-shrink: 0; }
+.authGroup { display: flex; align-items: center; gap: 8px; }
+.authGhost {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 16px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 999px;
+  background: transparent;
+  color: #fff;
+  font: 600 0.88rem/1 var(--font-body), system-ui, sans-serif;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s;
+}
+.authGhost:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.5); }
+/* Birincil (Üye ol): renkli hero üstünde BEYAZ zemin + indigo metin = en yüksek
+   kontrast, markadan sapmadan öne çıkar. */
+.authSolid {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--color-primary);
+  font: 700 0.88rem/1 var(--font-body), system-ui, sans-serif;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: box-shadow 0.15s, transform 0.12s;
+}
+.authSolid:hover { box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22); transform: translateY(-1px); }
+@media (max-width: 559px) {
+  .brandWord { display: none; } /* mobilde yalnız ateş yıldızı işareti */
+  .authGhost, .authSolid { padding: 0 14px; font-size: 0.84rem; }
+}
 .h1 {
   margin: 0 0 22px;
   font-family: var(--font-body), system-ui, sans-serif;

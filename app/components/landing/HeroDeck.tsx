@@ -13,6 +13,7 @@ import Link from 'next/link';
 import { ARTICLE_MAP } from '@/lib/articles';
 import { gradientFor } from '@/lib/article-gradients';
 import { HERO_DECK } from '@/lib/landing';
+import Logo from '../Logo';
 import s from '../../landing.module.css';
 
 export default function HeroDeck({ subline }: { subline: string }) {
@@ -36,18 +37,30 @@ export default function HeroDeck({ subline }: { subline: string }) {
   return (
     <header className={s.hero}>
       <div className={s.glow} aria-hidden style={{ background: gradientFor(card.slug), opacity: fading ? 0 : 0.5 }} />
-      <div className={s.heroInner}>
-        {/* Girişli ziyaretçi: tek satır. CSS ile ayrılır (globals.css:349-351),
-            ilk boyamadan önce çerezden → flash yok. Metin MİNİMUM: bu HTML
-            statik, Googlebot ikisini de görür; uzun tutulursa snippet'e sızar.
-            DİKKAT: `.auth-in { display: contents }` (globals.css:349) → sarmalayıcı
-            ŞEFFAFTIR, ona stil verilmez. Stil daima İÇ elemanda. */}
-        <div className="auth-in">
-          <div className={s.authbar}>
-            <Link href="/feed">Akışına git →</Link>
-          </div>
-        </div>
 
+      {/* ÜST ÇUBUK — marka solda, kimlik eylemleri sağda (tepeye sabit).
+          Çıkışlı ziyaretçi: Giriş yap + Üye ol (auth-out). Girişli: "Akışına git →"
+          (auth-in). globals.css .auth-in/.auth-out ilk boyamadan ÖNCE çerezle
+          ayrışır → flash yok. `.auth-in { display: contents }` şeffaftır; stil
+          daima İÇ elemanda. auth-out'un display kuralı yok → module .authGroup
+          flex'i geçerli olur, girişte :root[data-auth=in] .auth-out onu ezip gizler. */}
+      <div className={s.heroTop}>
+        <span className={s.brand}>
+          <Logo size={30} />
+          <span className={s.brandWord}>Basementonfire</span>
+        </span>
+        <span className={s.heroTopActions}>
+          <span className={`${s.authGroup} auth-out`}>
+            <Link className={s.authGhost} href="/login">Giriş yap</Link>
+            <Link className={s.authSolid} href="/register">Üye ol</Link>
+          </span>
+          <span className="auth-in">
+            <Link className={s.authGhost} href="/feed">Akışına git →</Link>
+          </span>
+        </span>
+      </div>
+
+      <div className={s.heroInner}>
         {/* Semantik H1 ≠ en büyük metin. Soru H1 OLSAYDI Google ana sayfanın
             konusunu Fatih sanır ve ana sayfa /articles/fatih ile yarışırdı. */}
         <h1 className={s.h1}>Basementonfire — bilim, tarih ve kültür</h1>
