@@ -144,6 +144,48 @@ void main(){
 }
 `;
 
+/* Taş/dökme yüzey: konuma bağlı 3B değer-gürültüsüyle benekli/aşınmış görünüm +
+   geniş mat highlight (metal değil taş). Namlu için. */
+const stoneVertex = `
+precision highp float;
+attribute vec3 position; attribute vec3 normal;
+uniform mat4 modelViewMatrix; uniform mat4 projectionMatrix; uniform mat3 normalMatrix;
+varying vec3 vNormal; varying vec3 vViewPos; varying vec3 vPos;
+void main(){
+  vNormal = normalize(normalMatrix * normal);
+  vPos = position;
+  vec4 mv = modelViewMatrix * vec4(position, 1.0);
+  vViewPos = mv.xyz;
+  gl_Position = projectionMatrix * mv;
+}
+`;
+const stoneFragment = `
+precision highp float;
+uniform vec3 uColor; uniform vec3 uLightDir; uniform vec3 uFog; uniform float uGlow;
+varying vec3 vNormal; varying vec3 vViewPos; varying vec3 vPos;
+float hash(vec3 p){ p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
+float noise3(vec3 x){
+  vec3 i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(mix(hash(i + vec3(0.,0.,0.)), hash(i + vec3(1.,0.,0.)), f.x), mix(hash(i + vec3(0.,1.,0.)), hash(i + vec3(1.,1.,0.)), f.x), f.y),
+             mix(mix(hash(i + vec3(0.,0.,1.)), hash(i + vec3(1.,0.,1.)), f.x), mix(hash(i + vec3(0.,1.,1.)), hash(i + vec3(1.,1.,1.)), f.x), f.y), f.z);
+}
+void main(){
+  float n = noise3(vPos * 9.0) * 0.55 + noise3(vPos * 26.0) * 0.30 + noise3(vPos * 62.0) * 0.15;
+  vec3 N = normalize(vNormal);
+  vec3 L = normalize(uLightDir);
+  vec3 V = normalize(-vViewPos);
+  vec3 H = normalize(L + V);
+  float diff = max(dot(N, L), 0.0);
+  float spec = pow(max(dot(N, H), 0.0), 16.0) * 0.22 * (0.4 + n); // taş: geniş, mat
+  float fres = pow(1.0 - max(dot(N, V), 0.0), 3.0);
+  vec3 albedo = uColor * (0.70 + 0.55 * n);      // benekli taş
+  vec3 col = albedo * (0.32 + 0.72 * diff) + spec + uColor * fres * uGlow;
+  float fog = smoothstep(6.5, 13.5, -vViewPos.z);
+  col = mix(col, uFog, fog * 0.9);
+  gl_FragColor = vec4(col, 1.0);
+}
+`;
+
 const TAU = Math.PI * 2;
 type GL = ConstructorParameters<typeof Geometry>[0];
 
@@ -413,10 +455,10 @@ export default function Object3DHero({ kind = 'dna', colors, src }: { kind?: Obj
       } else if (kind === 'cannon') {
         dust = [0.95, 0.72, 0.38]; spinY = 0.26; tiltX = 0.14;
         root.rotation.x = tiltX;
-        const stone: Rgb = [0.57, 0.55, 0.52];   // gri taş rengi (bronz değil)
+        const stone: Rgb = [0.50, 0.51, 0.53];   // nötr gri taş
         const bProg = new Program(gl, {
-          vertex: litVertex, fragment: litFragment, cullFace: false,
-          uniforms: { uColor: { value: stone }, uLightDir: { value: lightDir }, uFog: { value: c[0] }, uGlow: { value: 0.42 } },
+          vertex: stoneVertex, fragment: stoneFragment, cullFace: false,
+          uniforms: { uColor: { value: stone }, uLightDir: { value: lightDir }, uFog: { value: c[0] }, uGlow: { value: 0.30 } },
         });
         // Namlu profili [z, yarıçap] — daha kıvrımlı/detaylı: dipçik topuzu →
         // ogee dipçik → hazne → 3 yuvarlak ÇİFT takviye halkası → ogee ağız
@@ -437,8 +479,19 @@ export default function Object3DHero({ kind = 'dna', colors, src }: { kind?: Obj
         const cannon = new Transform(); cannon.setParent(root);
         cannon.rotation.y = 1.12; cannon.rotation.x = -0.08;  // yatay + 3/4 açı (ağız kameraya dönük)
         cannon.position.set(0.1, 0, 0.2);
-        const barrel = new Mesh(gl, { geometry: buildLathe(gl, P, 64), program: bProg });
-        barrel.scale.set(1.02, 1.02, 1.02); barrel.setParent(cannon);
+        const barrelGroup = new Transform(); barrelGroup.scale.set(1.02, 1.02, 1.02); barrelGroup.setParent(cannon);
+        new Mesh(gl, { geometry: buildLathe(gl, P, 64), program: bProg }).setParent(barrelGroup);
+        // kapstan yuva çıkıntıları: namlu çevresinde küçük düğme sıraları (Dardanel topu detayı)
+        const bossGeo = new Sphere(gl, { radius: 1, widthSegments: 10, heightSegments: 8 });
+        for (const band of [[-0.34, 0.585], [0.63, 0.55]]) {
+          const z = band[0], rr = band[1], cnt = 12;
+          for (let k = 0; k < cnt; k++) {
+            const a = (k / cnt) * TAU;
+            const b = new Mesh(gl, { geometry: bossGeo, program: bProg });
+            b.position.set(Math.cos(a) * rr, Math.sin(a) * rr, z);
+            b.scale.set(0.052, 0.052, 0.052); b.setParent(barrelGroup);
+          }
+        }
       }
 
       // Parçacıklar (toz)
