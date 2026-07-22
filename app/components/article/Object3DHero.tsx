@@ -288,6 +288,19 @@ void main(){
 }
 `;
 
+/* Yumuşak akkor küre (merkez parlak, kenar söner) — additive hâle. */
+const glowFragment = `
+precision highp float;
+uniform vec3 uColor;
+varying vec3 vNormal; varying vec3 vViewPos;
+void main(){
+  vec3 N = normalize(vNormal);
+  vec3 V = normalize(-vViewPos);
+  float f = pow(max(dot(N, V), 0.0), 3.2);
+  gl_FragColor = vec4(uColor * f, f * 0.42);
+}
+`;
+
 const TAU = Math.PI * 2;
 type GL = ConstructorParameters<typeof Geometry>[0];
 
@@ -747,24 +760,33 @@ export default function Object3DHero({ kind = 'dna', colors, src }: { kind?: Obj
           vertex: litVertex, fragment: litFragment, cullFace: false,
           uniforms: { uColor: { value: col }, uLightDir: { value: lightDir }, uFog: { value: c[0] }, uGlow: { value: glow } },
         });
-        const protonProg = litP([0.93, 0.28, 0.22], 0.5), neutronProg = litP([0.44, 0.52, 0.74], 0.5);
+        const protonProg = litP([1.0, 0.30, 0.24], 0.8), neutronProg = litP([0.46, 0.56, 0.8], 0.8);
         const sph = new Sphere(gl, { radius: 1, widthSegments: 18, heightSegments: 14 });
         const jit = (n: number) => { const x = Math.sin(n * 127.1) * 43758.5453; return x - Math.floor(x); };
-        // kararsız çekirdek (titreşir → pulseGroup)
         const nuc = new Transform(); nuc.setParent(root); pulseGroup = nuc;
-        for (let i = 0; i < 28; i++) {
-          const theta = jit(i * 3) * TAU, phi = Math.acos(2 * jit(i * 3 + 1) - 1), rad = 0.44 * Math.cbrt(jit(i * 3 + 2));
+        // radyoaktif AKKOR HÂLE (additive; çekirdekle titreşir → nabız gibi parlar)
+        const glowProg = new Program(gl, {
+          vertex: litVertex, fragment: glowFragment, cullFace: false, transparent: true, depthTest: false, depthWrite: false,
+          uniforms: { uColor: { value: [0.5, 1.0, 0.42] as Rgb } },
+        });
+        glowProg.setBlendFunc(gl.SRC_ALPHA, gl.ONE);
+        const halo = new Mesh(gl, { geometry: sph, program: glowProg }); halo.scale.set(1.75, 1.75, 1.75); halo.renderOrder = -1; halo.setParent(nuc);
+        // kararsız çekirdek (titreşir)
+        for (let i = 0; i < 30; i++) {
+          const theta = jit(i * 3) * TAU, phi = Math.acos(2 * jit(i * 3 + 1) - 1), rad = 0.48 * Math.cbrt(jit(i * 3 + 2));
           const m = new Mesh(gl, { geometry: sph, program: i % 2 ? protonProg : neutronProg });
           m.position.set(rad * Math.sin(phi) * Math.cos(theta), rad * Math.sin(phi) * Math.sin(theta), rad * Math.cos(phi));
-          m.scale.set(0.18, 0.18, 0.18); m.setParent(nuc);
+          m.scale.set(0.19, 0.19, 0.19); m.setParent(nuc);
         }
-        // dışa fırlayan ışıma parçacıkları (α amber, β camgöbeği, γ mor)
-        const rayProgs = [litP([1.0, 0.62, 0.15], 2.2), litP([0.35, 0.9, 1.0], 2.2), litP([0.85, 0.55, 1.0], 2.2)];
-        for (let i = 0; i < 16; i++) {
+        // dışa DRAMATİK fırlayan ışıma İZLERİ (streak): α amber, β camgöbeği, γ mor
+        const rayProgs = [litP([1.0, 0.6, 0.12], 2.6), litP([0.3, 0.92, 1.0], 2.6), litP([0.88, 0.5, 1.0], 2.6)];
+        for (let i = 0; i < 22; i++) {
           const th = jit(i * 5) * TAU, ph = Math.acos(2 * jit(i * 5 + 1) - 1);
+          const dir = [Math.sin(ph) * Math.cos(th), Math.sin(ph) * Math.sin(th), Math.cos(ph)];
           const m = new Mesh(gl, { geometry: sph, program: rayProgs[i % 3] });
+          m.rotation.y = Math.atan2(dir[0], dir[2]); m.rotation.x = -Math.asin(Math.max(-1, Math.min(1, dir[1]))); // yerel Z'yi yöne çevir → iz dışa uzasın
           m.setParent(root);
-          emitters.push({ m, dir: [Math.sin(ph) * Math.cos(th), Math.sin(ph) * Math.sin(th), Math.cos(ph)], sp: 0.35 + jit(i * 5 + 2) * 0.3, ph: jit(i * 5 + 3) });
+          emitters.push({ m, dir, sp: 0.4 + jit(i * 5 + 2) * 0.35, ph: jit(i * 5 + 3) });
         }
       }
 
@@ -805,10 +827,10 @@ export default function Object3DHero({ kind = 'dna', colors, src }: { kind?: Obj
         if (coinSpin) coinSpin.rotation.y = t * spinY; else root.rotation.y = t * spinY;
         root.position.y = Math.sin(t * 0.5) * 0.12;
         for (const o of orbiters) o.t.rotation.z = t * o.sp + o.ph; // elektronlar yörüngede döner
-        if (pulseGroup) { const s = 1 + 0.05 * Math.sin(t * 5); pulseGroup.scale.set(s, s, s); } // çekirdek titreşir
-        for (const e of emitters) { // ışıma parçacıkları dışa fırlar (yakında doğar, uzakta söner)
-          const d = ((t * e.sp + e.ph) % 1 + 1) % 1, dist = 0.42 + d * 2.9, s = 0.13 * Math.sin(d * Math.PI);
-          e.m.position.set(e.dir[0] * dist, e.dir[1] * dist, e.dir[2] * dist); e.m.scale.set(s, s, s);
+        if (pulseGroup) { const s = 1 + 0.085 * Math.sin(t * 6); pulseGroup.scale.set(s, s, s); } // çekirdek şiddetle titreşir
+        for (const e of emitters) { // ışıma izleri dışa fırlar (yakında doğar, uzayarak uçar, uzakta söner)
+          const d = ((t * e.sp + e.ph) % 1 + 1) % 1, dist = 0.45 + d * 3.4, s = 0.11 * Math.sin(d * Math.PI);
+          e.m.position.set(e.dir[0] * dist, e.dir[1] * dist, e.dir[2] * dist); e.m.scale.set(s * 0.7, s * 0.7, s * 3.0);
         }
         renderer.render({ scene: bgMesh });
         renderer.render({ scene, camera, clear: false, frustumCull: false });
