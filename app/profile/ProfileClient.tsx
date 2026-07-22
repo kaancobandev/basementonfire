@@ -12,6 +12,7 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import Caption from '@/app/components/Caption';
 import AnimatedNumber from '@/app/components/AnimatedNumber';
+import FollowListModal from '@/app/components/FollowListModal';
 import type { DbUser, UserProgress } from '@/lib/types';
 import { BADGE_MAP, levelFromXp } from '@/lib/badges';
 import { toast } from 'sonner';
@@ -48,6 +49,7 @@ const GENDER_LABEL: Record<string, string> = { erkek: 'Erkek', kadin: 'Kadın', 
 export default function ProfileClient({ user, bg, age, followersCount, followingCount, mediaPosts, savedPosts, repostedPosts, myArticles, isAdmin, progress, badgeKeys, highlights, error }: Props) {
   const isMobile = useIsMobile();
   const [tab, setTab] = useState<'posts' | 'saved' | 'reposts' | 'articles'>('posts');
+  const [followModal, setFollowModal] = useState<'followers' | 'following' | null>(null);
   const [articles, setArticles] = useState<MyArticle[]>(myArticles);
   const [editOpen, setEditOpen] = useState(false);
   const [lightbox, setLightbox] = useState<MediaPost | null>(null);
@@ -192,9 +194,16 @@ export default function ProfileClient({ user, bg, age, followersCount, following
 
         <div style={{ display: 'flex', gap: 20, fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
           <span><strong style={{ color: 'var(--color-text)' }}><AnimatedNumber value={posts.length} /></strong> Gönderi</span>
-          <span><strong style={{ color: 'var(--color-text)' }}><AnimatedNumber value={followersCount} /></strong> Takipçi</span>
-          <span><strong style={{ color: 'var(--color-text)' }}><AnimatedNumber value={followingCount} /></strong> Takip</span>
+          <button type="button" onClick={() => setFollowModal('followers')} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'inherit', color: 'var(--color-text-muted)' }}>
+            <strong style={{ color: 'var(--color-text)' }}><AnimatedNumber value={followersCount} /></strong> Takipçi
+          </button>
+          <button type="button" onClick={() => setFollowModal('following')} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'inherit', color: 'var(--color-text-muted)' }}>
+            <strong style={{ color: 'var(--color-text)' }}><AnimatedNumber value={followingCount} /></strong> Takip
+          </button>
         </div>
+        {followModal && (
+          <FollowListModal username={user.username} type={followModal} loggedIn onClose={() => setFollowModal(null)} />
+        )}
 
         {/* Bilgi & Seri — Günün Sorusu ilerlemesi (XP / seviye / rozet). progress
             yoksa (henüz çözmemiş ya da SQL çalışmamış) bölüm gizlenir. */}

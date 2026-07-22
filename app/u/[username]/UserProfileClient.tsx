@@ -16,6 +16,7 @@ import { BADGE_MAP, levelFromXp } from '@/lib/badges';
 import ReportModal from '@/app/components/ReportModal';
 import ReportButton from '@/app/components/ReportButton';
 import CommentLikeButton from '@/app/components/CommentLikeButton';
+import FollowListModal from '@/app/components/FollowListModal';
 
 interface ProfileUser {
   id: number; username: string; display_name: string; bio: string | null; avatar: string | null;
@@ -59,6 +60,7 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
   const [followers, setFollowers] = useState(followersCount);
   const [followLoading, setFollowLoading] = useState(false);
   const [dmLoading, setDmLoading] = useState(false);
+  const [followModal, setFollowModal] = useState<'followers' | 'following' | null>(null);
 
   // Engelleme + şikayet
   const [blocked, setBlocked] = useState(iBlocked);
@@ -298,12 +300,19 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
           </div>
         )}
 
-        {/* Stats */}
+        {/* Stats — Takipçi/Takip tıklanınca liste modalı (gizlilik sunucuda). */}
         <div style={{ display: 'flex', gap: 20, fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
           <span><strong style={{ color: 'var(--color-text)' }}><AnimatedNumber value={mediaPosts.length} /></strong> Gönderi</span>
-          <span><strong style={{ color: 'var(--color-text)' }}><AnimatedNumber value={followers} /></strong> Takipçi</span>
-          <span><strong style={{ color: 'var(--color-text)' }}><AnimatedNumber value={followingCount} /></strong> Takip</span>
+          <button type="button" onClick={() => setFollowModal('followers')} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'inherit', color: 'var(--color-text-muted)' }}>
+            <strong style={{ color: 'var(--color-text)' }}><AnimatedNumber value={followers} /></strong> Takipçi
+          </button>
+          <button type="button" onClick={() => setFollowModal('following')} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'inherit', color: 'var(--color-text-muted)' }}>
+            <strong style={{ color: 'var(--color-text)' }}><AnimatedNumber value={followingCount} /></strong> Takip
+          </button>
         </div>
+        {followModal && (
+          <FollowListModal username={profileUser.username} type={followModal} loggedIn={!!me} onClose={() => setFollowModal(null)} />
+        )}
 
         {/* Bilgi & Seri vitrini — /profile'daki bloğun herkese açık, kompakt hali.
             progress yoksa (hiç soru çözmemiş / SQL çalışmamış / gizli profil) gizli.
