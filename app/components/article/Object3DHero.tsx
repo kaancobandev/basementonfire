@@ -16,7 +16,7 @@ import type { Rgb } from './ShaderHero';
 // `kind`: 'dna' | 'coin'. 'coin' + `src` (görsel) → dokulu altın sikke.
 // ─────────────────────────────────────────────────────────────────────────
 
-export type Object3DKind = 'dna' | 'coin' | 'wreath' | 'cannon' | 'helmet' | 'prism';
+export type Object3DKind = 'dna' | 'coin' | 'wreath' | 'cannon' | 'helmet' | 'prism' | 'atom';
 
 const DEFAULT_COLORS: [Rgb, Rgb, Rgb, Rgb] = [
   [0.016, 0.086, 0.063], [0.063, 0.45, 0.30], [0.40, 0.83, 0.31], [0.98, 0.74, 0.18],
@@ -526,6 +526,7 @@ export default function Object3DHero({ kind = 'dna', colors, src }: { kind?: Obj
       let spinY = 0.3, tiltX = 0.16;
       let coinSpin: Transform | null = null;
       let renderOnce: ((n: number) => void) | null = null;
+      const orbiters: { t: Transform; sp: number; ph: number }[] = []; // dönen elektronlar (atom)
 
       if (kind === 'dna') {
         const R = 1.02, HGT = 5.2, TURNS = 2.5, N = 20;
@@ -705,6 +706,38 @@ export default function Object3DHero({ kind = 'dna', colors, src }: { kind?: Obj
         specProg.setBlendFunc(gl.SRC_ALPHA, gl.ONE);
         const spec = new Mesh(gl, { geometry: buildQuad(gl, [0.5, -0.05, 0.01], [3.7, -0.95, 0.01], [3.7, 1.15, 0.01], [0.5, 0.32, 0.01]), program: specProg });
         spec.renderOrder = 2; spec.setParent(newton);
+      } else if (kind === 'atom') {
+        dust = [0.55, 0.80, 1.0]; spinY = 0.14; tiltX = 0.12;
+        root.rotation.x = tiltX;
+        const litP = (col: Rgb, glow: number) => new Program(gl, {
+          vertex: litVertex, fragment: litFragment, cullFace: false,
+          uniforms: { uColor: { value: col }, uLightDir: { value: lightDir }, uFog: { value: c[0] }, uGlow: { value: glow } },
+        });
+        const protonProg = litP([0.93, 0.28, 0.22], 0.55);   // proton kırmızı
+        const neutronProg = litP([0.44, 0.52, 0.74], 0.55);  // nötron mavi-gri
+        const orbitProg = litP([0.42, 0.78, 1.0], 1.3);      // camgöbeği yörünge
+        const elProg = litP([0.72, 0.95, 1.0], 1.8);         // parlak elektron
+        const sph = new Sphere(gl, { radius: 1, widthSegments: 20, heightSegments: 16 });
+        const jit = (n: number) => { const x = Math.sin(n * 127.1) * 43758.5453; return x - Math.floor(x); };
+        // çekirdek: proton+nötron kümesi
+        for (let i = 0; i < 14; i++) {
+          const theta = jit(i * 3) * TAU, phi = Math.acos(2 * jit(i * 3 + 1) - 1), rad = 0.30 * Math.cbrt(jit(i * 3 + 2));
+          const m = new Mesh(gl, { geometry: sph, program: i % 2 ? protonProg : neutronProg });
+          m.position.set(rad * Math.sin(phi) * Math.cos(theta), rad * Math.sin(phi) * Math.sin(theta), rad * Math.cos(phi));
+          m.scale.set(0.17, 0.17, 0.17); m.setParent(root);
+        }
+        // 3 eğik yörünge + üzerinde dönen elektron (klasik atom simgesi)
+        const orbitR = 1.45;
+        const torus = new Torus(gl, { radius: orbitR, tube: 0.018, radialSegments: 8, tubularSegments: 120 });
+        for (let k = 0; k < 3; k++) {
+          const outerG = new Transform(); outerG.setParent(root); outerG.rotation.z = k * TAU / 3; // görüş ekseni etrafında 120° aç
+          const innerG = new Transform(); innerG.setParent(outerG); innerG.rotation.x = 1.25;       // çemberi elipse eğ
+          new Mesh(gl, { geometry: torus, program: orbitProg }).setParent(innerG);
+          const spinner = new Transform(); spinner.setParent(innerG);
+          const e = new Mesh(gl, { geometry: sph, program: elProg });
+          e.position.set(orbitR, 0, 0); e.scale.set(0.11, 0.11, 0.11); e.setParent(spinner);
+          orbiters.push({ t: spinner, sp: 1.1 + k * 0.55, ph: k * 2.1 });
+        }
       }
 
       // Parçacıklar (toz)
@@ -743,6 +776,7 @@ export default function Object3DHero({ kind = 'dna', colors, src }: { kind?: Obj
         if (dotProgram) dotProgram.uniforms.uTime.value = t;
         if (coinSpin) coinSpin.rotation.y = t * spinY; else root.rotation.y = t * spinY;
         root.position.y = Math.sin(t * 0.5) * 0.12;
+        for (const o of orbiters) o.t.rotation.z = t * o.sp + o.ph; // elektronlar yörüngede döner
         renderer.render({ scene: bgMesh });
         renderer.render({ scene, camera, clear: false, frustumCull: false });
         renderer.render({ scene: fx, camera, clear: false, frustumCull: false });

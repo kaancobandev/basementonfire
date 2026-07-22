@@ -59,6 +59,7 @@ export default function MolClient() {
         eyebrow="KİMYA · İNTERAKTİF REHBER"
         subtitle={<>Kimyanın belki de en temel ama en çok <em className="not-italic text-amber-300">gözü korkutan</em> kavramı. Aslında düşündüğünden çok daha basit — gündelik örneklerle, baştan sona.</>}
         colors={HERO_COLORS}
+        object3d="atom"
       />
 
       <ArticleLede points={[
