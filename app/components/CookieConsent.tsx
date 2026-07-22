@@ -7,10 +7,14 @@ import { GoogleAnalytics } from '@next/third-parties/google';
 const STORAGE_KEY = 'cookie-consent'; // 'accepted' | 'rejected'
 
 /**
- * KVKK/GDPR çerez onayı. Google Analytics YALNIZCA ziyaretçi "Kabul Et"
- * dediğinde yüklenir; "Reddet"te hiç yüklenmez. Seçim localStorage'da saklanır
- * ve /gizlilik sayfasındaki "sıfırla" butonuyla geri alınabilir.
+ * KVKK/GDPR çerez onayı — Google Consent Mode v2 ile.
+ * gtag/GA HER ZAMAN yüklenir (cihaz ?notrack ile hariç tutulmadıysa) ama izinler
+ * layout'taki head script'inde 'denied' başlar → onaya kadar ÇEREZSİZ ping (uyumlu).
+ * "Kabul Et" → consent update: granted (tam ölçüm). "Reddet" → denied kalır
+ * (Google modeller). Seçim localStorage'da; /gizlilik'ten sıfırlanabilir.
  */
+const GRANTED = { ad_storage: 'granted', analytics_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted' } as const;
+const DENIED = { ad_storage: 'denied', analytics_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied' } as const;
 export default function CookieConsent({ gaId }: { gaId?: string }) {
   const [choice, setChoice] = useState<'accepted' | 'rejected' | null>(null);
   const [ready, setReady] = useState(false);
@@ -39,12 +43,19 @@ export default function CookieConsent({ gaId }: { gaId?: string }) {
   function decide(value: 'accepted' | 'rejected') {
     try { localStorage.setItem(STORAGE_KEY, value); } catch {}
     setChoice(value);
+    // Consent Mode: izinleri güncelle. gtag layout head script'inde tanımlı.
+    try {
+      (window as unknown as { gtag?: (...a: unknown[]) => void }).gtag?.(
+        'consent', 'update', value === 'accepted' ? GRANTED : DENIED,
+      );
+    } catch {}
   }
 
   return (
     <>
-      {/* GA yalnızca onay verildiyse VE cihaz ?notrack ile hariç tutulmadıysa yüklenir */}
-      {gaId && choice === 'accepted' && !trackDisabled && <GoogleAnalytics gaId={gaId} />}
+      {/* Consent Mode v2: GA HER ZAMAN yüklenir (izinler head'de 'denied' başlar,
+          onaya kadar çerezsiz ping). Cihaz ?notrack ile hariç tutulduysa hiç yüklenmez. */}
+      {gaId && !trackDisabled && <GoogleAnalytics gaId={gaId} />}
 
       {ready && choice === null && (
         <div

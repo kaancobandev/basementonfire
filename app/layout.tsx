@@ -152,6 +152,26 @@ export default function RootLayout({ children, modal }: { children: React.ReactN
             __html: `document.documentElement.classList.add('js');try{if(/(?:^|; *)sb-[^=;]+-auth-token(?:[.][0-9]+)?=/.test(document.cookie))document.documentElement.setAttribute('data-auth','in')}catch{}try{if(localStorage.getItem('theme')==='dark')document.documentElement.setAttribute('data-theme','dark')}catch{}try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('reduced')}catch{}`,
           }}
         />
+        {/* ── Google Consent Mode v2 ──
+            gtag.js'den (CookieConsent → GoogleAnalytics, async) ÖNCE çalışan
+            SENKRON head script'i: tüm izin türleri 'denied' başlar. Böylece GA/Ads
+            onaydan ÖNCE de yüklenir ama ÇEREZSİZ, kimliksiz "ping" yollar (KVKK
+            uyumlu tasarım — çerez yok, kişisel veri yok). Kullanıcı "Kabul Et"e
+            basınca CookieConsent `consent update: granted` çeker → tam ölçüm.
+            Reddederse denied kalır → Google onaysız trafiği MODELLER.
+            · url_passthrough: çerez reddedilse bile gclid URL'de taşınır (reklam ölçümü)
+            · ads_data_redaction: denied durumda reklam tıklama kimliği maskelenir
+            · ga-disabled: cihaz hariç tutma (?notrack) korunur — o cihazda hiç ping yok
+            Not: bu "Advanced" mod (onay öncesi çerezsiz ping). Ultra-temkinli "Basic"
+            istenirse gtag'i yalnız onaydan sonra yükle (CookieConsent koşulu). */}
+        {GA_ID && (
+          <script
+            // eslint-disable-next-line react/no-danger
+            dangerouslySetInnerHTML={{
+              __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}window.gtag=gtag;try{if(localStorage.getItem('ga-disabled')==='true')window['ga-disable-${GA_ID}']=true}catch(e){}gtag('consent','default',{ad_storage:'denied',analytics_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',wait_for_update:500});gtag('set','url_passthrough',true);gtag('set','ads_data_redaction',true);try{if(localStorage.getItem('cookie-consent')==='accepted')gtag('consent','update',{ad_storage:'granted',analytics_storage:'granted',ad_user_data:'granted',ad_personalization:'granted'})}catch(e){}`,
+            }}
+          />
+        )}
       </head>
       <body>
         <Suspense fallback={null}>

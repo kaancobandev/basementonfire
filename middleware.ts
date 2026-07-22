@@ -87,7 +87,8 @@ const CSP = [
   // 'unsafe-eval' YALNIZCA geliştirmede: webpack/HMR eval kullanıyor ve zorunlu
   // CSP onu engelleyince yerel geliştirme kırılır. Üretim derlemesinde eval yok,
   // o yüzden orada eklenmiyor.
-  `script-src 'self' 'unsafe-inline' ${process.env.NODE_ENV === 'development' ? "'unsafe-eval' " : ''}https://www.googletagmanager.com https://cdnjs.cloudflare.com`,
+  // googleadservices: Google Ads dönüşüm etiketi (gtag.js zaten googletagmanager'dan).
+  `script-src 'self' 'unsafe-inline' ${process.env.NODE_ENV === 'development' ? "'unsafe-eval' " : ''}https://www.googletagmanager.com https://www.googleadservices.com https://cdnjs.cloudflare.com`,
   // 39 dosyada <style>, 1878 yerde style={{}} → nonce stil ÖZNİTELİĞİNE
   // uygulanamaz, 'unsafe-inline' burada da zorunlu. Riski script'in çok altında.
   // fonts.googleapis: KULLANICI MAKALELERİ (bkz. font-src notu).
@@ -110,7 +111,10 @@ const CSP = [
   // yalnız www.google-analytics.com yazmak analitiği SESSİZCE öldürürdü.
   // giphy: istemci doğrudan çağırmıyor (hepsi /api/giphy üzerinden) ama
   // ileride değişirse diye duruyor — zararsız.
-  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.giphy.com",
+  // Consent Mode v2 + Google Ads/Signals tam kapasite: doubleclick (Google Signals,
+  // remarketing) + google.com/googleadservices (dönüşüm sinyalleri). img-src zaten
+  // https: geniş → piksel ping'leri kapsıyor.
+  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.google.com https://*.doubleclick.net https://www.googleadservices.com https://*.giphy.com",
   "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://open.spotify.com",
   "worker-src 'self' blob:",
   'report-uri /api/csp-report',
