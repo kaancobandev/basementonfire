@@ -55,6 +55,7 @@ export default function NewtonClient() {
         eyebrow="ISAAC NEWTON · BİLİMİ YENİDEN KURAN ADAM"
         subtitle={<>Hareketi, kütleçekimi, ışığı ve matematiğin kendisini öyle yeniden tanımladı ki ondan sonra iki yüzyıl boyunca fizik, esasen <strong className="font-semibold text-amber-300">“Newton'ın dünyasında”</strong> yapıldı. Aşağı kaydır.</>}
         colors={HERO_COLORS}
+        object3d="prism"
       />
 
       <ArticleLede points={[

@@ -16,7 +16,7 @@ import type { Rgb } from './ShaderHero';
 // `kind`: 'dna' | 'coin'. 'coin' + `src` (görsel) → dokulu altın sikke.
 // ─────────────────────────────────────────────────────────────────────────
 
-export type Object3DKind = 'dna' | 'coin' | 'wreath' | 'cannon' | 'helmet';
+export type Object3DKind = 'dna' | 'coin' | 'wreath' | 'cannon' | 'helmet' | 'prism';
 
 const DEFAULT_COLORS: [Rgb, Rgb, Rgb, Rgb] = [
   [0.016, 0.086, 0.063], [0.063, 0.45, 0.30], [0.40, 0.83, 0.31], [0.98, 0.74, 0.18],
@@ -242,6 +242,52 @@ void main(){
 }
 `;
 
+/* Cam prizma: fresnel kenarları parlak, iç saydam (alpha blend). */
+const glassFragment = `
+precision highp float;
+uniform vec3 uColor; uniform vec3 uFog;
+varying vec3 vNormal; varying vec3 vViewPos; varying vec3 vPos;
+void main(){
+  vec3 N = normalize(vNormal);
+  vec3 V = normalize(-vViewPos);
+  float fres = pow(1.0 - max(dot(N, V), 0.0), 2.2);
+  vec3 col = uColor * 0.16 + vec3(0.82, 0.87, 1.0) * fres;
+  float a = 0.14 + 0.72 * fres;
+  gl_FragColor = vec4(col, a);
+}
+`;
+/* Işın/spektrum düzlemleri (uv taşır); additive çizilir. */
+const planeVertex = `
+precision highp float;
+attribute vec3 position; attribute vec2 uv;
+uniform mat4 modelViewMatrix; uniform mat4 projectionMatrix;
+varying vec2 vUv;
+void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
+`;
+const spectrumFragment = `
+precision highp float;
+varying vec2 vUv;
+vec3 spectrum(float t){
+  return clamp(vec3(1.5 - abs(4.0*t - 3.0), 1.5 - abs(4.0*t - 2.0), 1.5 - abs(4.0*t - 1.0)), 0.0, 1.0);
+}
+void main(){
+  vec3 c = spectrum(clamp(vUv.y, 0.0, 1.0));
+  float along = smoothstep(1.08, -0.05, vUv.x);                                   // prizmada parlak, uzakta söner
+  float across = smoothstep(0.0, 0.12, vUv.y) * smoothstep(1.0, 0.88, vUv.y);      // kenarları yumuşat
+  float a = along * across * 0.9;
+  gl_FragColor = vec4(c * a, a);
+}
+`;
+const beamFragment = `
+precision highp float;
+varying vec2 vUv;
+void main(){
+  float across = smoothstep(0.0, 0.4, vUv.y) * smoothstep(1.0, 0.6, vUv.y);
+  float a = across * 0.85;
+  gl_FragColor = vec4(vec3(1.0) * a, a);
+}
+`;
+
 const TAU = Math.PI * 2;
 type GL = ConstructorParameters<typeof Geometry>[0];
 
@@ -407,6 +453,33 @@ function buildDomeFluted(gl: GL, profile: number[][], seg: number, flutes: numbe
     position: { size: 3, data: new Float32Array(pos) },
     normal: { size: 3, data: computeNormals(pos, idx) },
     index: { data: new Uint16Array(idx) },
+  });
+}
+
+/* Üçgen prizma (XY'de üçgen A=tepe,B=sol-alt,C=sağ-alt; Z'de ±depth/2 extrude).
+   Her yüz KENDİ köşeleriyle → computeNormals düz facet verir (keskin cam kenarları). */
+function buildPrism(gl: GL, A: number[], B: number[], C: number[], depth: number) {
+  const hz = depth / 2;
+  const Af = [A[0], A[1], hz], Bf = [B[0], B[1], hz], Cf = [C[0], C[1], hz];
+  const Ab = [A[0], A[1], -hz], Bb = [B[0], B[1], -hz], Cb = [C[0], C[1], -hz];
+  const pos: number[] = [], idx: number[] = [];
+  const push = (...pts: number[][]) => { const b = pos.length / 3; pts.forEach(p => pos.push(p[0], p[1], p[2])); return b; };
+  const tri = (a: number[], b: number[], c: number[]) => { const o = push(a, b, c); idx.push(o, o + 1, o + 2); };
+  const quad = (a: number[], b: number[], c: number[], d: number[]) => { const o = push(a, b, c, d); idx.push(o, o + 1, o + 2, o, o + 2, o + 3); };
+  tri(Af, Bf, Cf); tri(Ab, Cb, Bb);                 // ön/arka kapak
+  quad(Bf, Cf, Cb, Bb); quad(Cf, Af, Ab, Cb); quad(Af, Bf, Bb, Ab); // taban + sağ + sol yüz
+  return new Geometry(gl, {
+    position: { size: 3, data: new Float32Array(pos) },
+    normal: { size: 3, data: computeNormals(pos, idx) },
+    index: { data: new Uint16Array(idx) },
+  });
+}
+
+/* Dörtgen (a=yakın-alt, b=uzak-alt, c=uzak-üst, d=yakın-üst); uv: x yakın→uzak, y alt→üst. */
+function buildQuad(gl: GL, a: number[], b: number[], c: number[], d: number[]) {
+  return new Geometry(gl, {
+    position: { size: 3, data: new Float32Array([...a, ...b, ...c, ...a, ...c, ...d]) },
+    uv: { size: 2, data: new Float32Array([0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1]) },
   });
 }
 
@@ -610,6 +683,28 @@ export default function Object3DHero({ kind = 'dna', colors, src }: { kind?: Obj
         leaf.position.set(0, -0.64, 0.86); leaf.scale.set(0.13, 0.22, 0.045); leaf.setParent(helmet); // aşağı bakan yaprak/mahmuz
         const knob = new Mesh(gl, { geometry: new Sphere(gl, { radius: 1, widthSegments: 12, heightSegments: 10 }), program: goldProg });
         knob.position.set(0, 1.69, 0); knob.scale.set(0.05, 0.065, 0.05); knob.setParent(helmet); // tepe altın topuz
+      } else if (kind === 'prism') {
+        dust = [0.70, 0.72, 0.95]; spinY = 0; tiltX = 0.03;
+        root.rotation.x = tiltX;
+        const newton = new Transform(); newton.setParent(root);
+        newton.scale.set(0.72, 0.72, 0.72); newton.position.set(-0.1, -0.05, 0); newton.rotation.y = -0.12;
+        // cam prizma (fresnel kenarlı, saydam)
+        const glassProg = new Program(gl, {
+          vertex: metalVertex, fragment: glassFragment, cullFace: false, transparent: true, depthWrite: false,
+          uniforms: { uColor: { value: [0.55, 0.60, 0.85] as Rgb }, uFog: { value: c[0] } },
+        });
+        const prism = new Mesh(gl, { geometry: buildPrism(gl, [0, 0.9], [-0.9, -0.62], [0.9, -0.62], 0.5), program: glassProg });
+        prism.renderOrder = 0; prism.setParent(newton);
+        // gelen beyaz ışın (additive)
+        const beamProg = new Program(gl, { vertex: planeVertex, fragment: beamFragment, cullFace: false, transparent: true, depthTest: false, depthWrite: false, uniforms: {} });
+        beamProg.setBlendFunc(gl.SRC_ALPHA, gl.ONE);
+        const beam = new Mesh(gl, { geometry: buildQuad(gl, [-0.5, 0.05, 0.01], [-3.6, 0.05, 0.01], [-3.6, 0.23, 0.01], [-0.5, 0.23, 0.01]), program: beamProg });
+        beam.renderOrder = 1; beam.setParent(newton);
+        // çıkan gökkuşağı yelpazesi (additive)
+        const specProg = new Program(gl, { vertex: planeVertex, fragment: spectrumFragment, cullFace: false, transparent: true, depthTest: false, depthWrite: false, uniforms: {} });
+        specProg.setBlendFunc(gl.SRC_ALPHA, gl.ONE);
+        const spec = new Mesh(gl, { geometry: buildQuad(gl, [0.5, -0.05, 0.01], [3.7, -0.95, 0.01], [3.7, 1.15, 0.01], [0.5, 0.32, 0.01]), program: specProg });
+        spec.renderOrder = 2; spec.setParent(newton);
       }
 
       // Parçacıklar (toz)
