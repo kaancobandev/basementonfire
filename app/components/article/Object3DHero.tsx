@@ -186,6 +186,62 @@ void main(){
 }
 `;
 
+/* Fotogerçekçi metal: sahte stüdyo-ortam YANSIMASI (reflect vektörü → gökyüzü/
+   zemin gradyanı + parlak key ışık) + fresnel reflektivite + keskin highlight +
+   dövme mikro-yüzey. uMetal (metallik), uRough (pürüz). Miğfer/metal objeler için. */
+const metalVertex = `
+precision highp float;
+attribute vec3 position; attribute vec3 normal;
+uniform mat4 modelViewMatrix; uniform mat4 projectionMatrix; uniform mat3 normalMatrix;
+varying vec3 vNormal; varying vec3 vViewPos; varying vec3 vPos;
+void main(){
+  vNormal = normalize(normalMatrix * normal);
+  vPos = position;
+  vec4 mv = modelViewMatrix * vec4(position, 1.0);
+  vViewPos = mv.xyz;
+  gl_Position = projectionMatrix * mv;
+}
+`;
+const metalFragment = `
+precision highp float;
+uniform vec3 uColor; uniform vec3 uLightDir; uniform vec3 uFog; uniform float uMetal; uniform float uRough;
+varying vec3 vNormal; varying vec3 vViewPos; varying vec3 vPos;
+float hash(vec3 p){ p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
+float noise3(vec3 x){
+  vec3 i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(mix(hash(i+vec3(0.,0.,0.)),hash(i+vec3(1.,0.,0.)),f.x),mix(hash(i+vec3(0.,1.,0.)),hash(i+vec3(1.,1.,0.)),f.x),f.y),
+             mix(mix(hash(i+vec3(0.,0.,1.)),hash(i+vec3(1.,0.,1.)),f.x),mix(hash(i+vec3(0.,1.,1.)),hash(i+vec3(1.,1.,1.)),f.x),f.y),f.z);
+}
+vec3 envColor(vec3 r){
+  float up = r.y * 0.5 + 0.5;
+  vec3 sky = mix(vec3(0.20,0.22,0.28), vec3(0.88,0.92,1.0), smoothstep(0.36,1.0,up));
+  vec3 base = mix(vec3(0.18,0.17,0.17), sky, smoothstep(0.44,0.58,up));
+  float key = pow(max(dot(r, normalize(vec3(0.40,0.72,0.55))), 0.0), 45.0);
+  float rim = pow(max(dot(r, normalize(vec3(-0.55,0.25,-0.5))), 0.0), 16.0);
+  return base + vec3(1.0) * key * 1.7 + vec3(0.55,0.65,0.85) * rim * 0.4;
+}
+void main(){
+  vec3 N = normalize(vNormal);
+  float n = noise3(vPos * 42.0) * 0.5 + noise3(vPos * 120.0) * 0.5;
+  N = normalize(N + (n - 0.5) * 0.04);                 // dövme mikro-yüzey
+  vec3 V = normalize(-vViewPos);
+  vec3 L = normalize(uLightDir);
+  vec3 R = reflect(-V, N);
+  vec3 env = envColor(R);
+  float fres = pow(1.0 - max(dot(N, V), 0.0), 5.0);
+  float refl = mix(mix(0.04, 0.95, uMetal), 1.0, fres);
+  float diff = max(dot(N, L), 0.0);
+  vec3 diffuse = uColor * diff * (1.0 - uMetal) * 0.7;
+  vec3 H = normalize(L + V);
+  float sp = pow(max(dot(N, H), 0.0), mix(24.0, 220.0, 1.0 - uRough)) * 1.3;
+  vec3 tint = mix(vec3(1.0), uColor, uMetal);
+  vec3 col = diffuse + env * tint * refl + sp * mix(vec3(1.0), uColor, 0.5 * uMetal) + uColor * 0.10;
+  float fog = smoothstep(6.5, 13.5, -vViewPos.z);
+  col = mix(col, uFog, fog * 0.85);
+  gl_FragColor = vec4(col, 1.0);
+}
+`;
+
 const TAU = Math.PI * 2;
 type GL = ConstructorParameters<typeof Geometry>[0];
 
@@ -526,15 +582,13 @@ export default function Object3DHero({ kind = 'dna', colors, src }: { kind?: Obj
         root.rotation.x = tiltX;
         const helmet = new Transform(); helmet.setParent(root);
         helmet.position.y = -0.5; helmet.scale.set(1.05, 1.05, 1.05);
-        const steel: Rgb = [0.60, 0.65, 0.73];
-        const gold: Rgb = [1.0, 0.83, 0.46];
         const steelProg = new Program(gl, {
-          vertex: litVertex, fragment: litFragment, cullFace: false,
-          uniforms: { uColor: { value: steel }, uLightDir: { value: lightDir }, uFog: { value: c[0] }, uGlow: { value: 0.85 } },
+          vertex: metalVertex, fragment: metalFragment, cullFace: false,
+          uniforms: { uColor: { value: [0.58, 0.61, 0.66] as Rgb }, uLightDir: { value: lightDir }, uFog: { value: c[0] }, uMetal: { value: 1.0 }, uRough: { value: 0.22 } },
         });
         const goldProg = new Program(gl, {
-          vertex: litVertex, fragment: litFragment, cullFace: false,
-          uniforms: { uColor: { value: gold }, uLightDir: { value: lightDir }, uFog: { value: c[0] }, uGlow: { value: 0.9 } },
+          vertex: metalVertex, fragment: metalFragment, cullFace: false,
+          uniforms: { uColor: { value: [1.0, 0.76, 0.36] as Rgb }, uLightDir: { value: lightDir }, uFog: { value: c[0] }, uMetal: { value: 1.0 }, uRough: { value: 0.30 } },
         });
         // Kubbe profili [y, yarıçap]: brim → soğan-kubbe → finial boyun → topuz → sivri uç
         const P = [
