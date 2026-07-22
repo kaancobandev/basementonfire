@@ -16,7 +16,7 @@ import type { Rgb } from './ShaderHero';
 // `kind`: 'dna' | 'coin'. 'coin' + `src` (görsel) → dokulu altın sikke.
 // ─────────────────────────────────────────────────────────────────────────
 
-export type Object3DKind = 'dna' | 'coin' | 'wreath';
+export type Object3DKind = 'dna' | 'coin' | 'wreath' | 'cannon';
 
 const DEFAULT_COLORS: [Rgb, Rgb, Rgb, Rgb] = [
   [0.016, 0.086, 0.063], [0.063, 0.45, 0.30], [0.40, 0.83, 0.31], [0.98, 0.74, 0.18],
@@ -259,6 +259,30 @@ function buildLeaf(gl: GL, L: number, W: number, dome: number) {
   });
 }
 
+/* Dönme yüzeyi (lathe): [z, yarıçap] profilini Z ekseni etrafında çevirir.
+   Namlu profili → dipçik topuzu, takviye halkaları, ağız şişkinliği, içi boş ağız. */
+function buildLathe(gl: GL, profile: number[][], seg: number) {
+  const pos: number[] = [], idx: number[] = [];
+  const M = profile.length;
+  for (let i = 0; i < M; i++) {
+    const z = profile[i][0], r = profile[i][1];
+    for (let j = 0; j <= seg; j++) {
+      const th = (j / seg) * TAU;
+      pos.push(Math.cos(th) * r, Math.sin(th) * r, z);
+    }
+  }
+  const ring = seg + 1;
+  for (let i = 0; i < M - 1; i++) for (let j = 0; j < seg; j++) {
+    const a = i * ring + j, b = (i + 1) * ring + j;
+    idx.push(a, b, a + 1, a + 1, b, b + 1);
+  }
+  return new Geometry(gl, {
+    position: { size: 3, data: new Float32Array(pos) },
+    normal: { size: 3, data: computeNormals(pos, idx) },
+    index: { data: new Uint16Array(idx) },
+  });
+}
+
 export default function Object3DHero({ kind = 'dna', colors, src }: { kind?: Object3DKind; colors?: [Rgb, Rgb, Rgb, Rgb]; src?: string }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const c = colors ?? DEFAULT_COLORS;
@@ -386,6 +410,30 @@ export default function Object3DHero({ kind = 'dna', colors, src }: { kind?: Obj
             b.scale.set(0.075, 0.075, 0.075); b.setParent(root);
           }
         }
+      } else if (kind === 'cannon') {
+        dust = [0.95, 0.72, 0.38]; spinY = 0.26; tiltX = 0.14;
+        root.rotation.x = tiltX;
+        const bronze: Rgb = [0.78, 0.51, 0.27];
+        const bProg = new Program(gl, {
+          vertex: litVertex, fragment: litFragment, cullFace: false,
+          uniforms: { uColor: { value: bronze }, uLightDir: { value: lightDir }, uFog: { value: c[0] }, uGlow: { value: 0.72 } },
+        });
+        // Namlu profili [z, yarıçap]: dipçik topuzu → hazne → 3 takviye halkası →
+        // ağız şişkinliği → düz ağız halkası → içi boş namlu ağzı (geri döner).
+        const P = [
+          [-1.75, 0.02], [-1.68, 0.15], [-1.60, 0.25], [-1.53, 0.29],
+          [-1.49, 0.42], [-1.45, 0.60], [-1.38, 0.63], [-1.15, 0.61],
+          [-0.82, 0.58], [-0.76, 0.58], [-0.71, 0.69], [-0.66, 0.69], [-0.61, 0.575],
+          [-0.18, 0.56], [-0.13, 0.56], [-0.08, 0.66], [-0.03, 0.66], [0.02, 0.55],
+          [0.46, 0.54], [0.51, 0.54], [0.56, 0.645], [0.61, 0.645], [0.66, 0.535],
+          [1.08, 0.53], [1.20, 0.55], [1.35, 0.68], [1.48, 0.665],
+          [1.50, 0.675], [1.50, 0.44], [1.42, 0.42], [1.15, 0.40], [1.10, 0.42],
+        ];
+        const cannon = new Transform(); cannon.setParent(root);
+        cannon.rotation.y = 1.12; cannon.rotation.x = -0.08;  // yatay + 3/4 açı (ağız kameraya dönük)
+        cannon.position.set(0.1, 0, 0.2);
+        const barrel = new Mesh(gl, { geometry: buildLathe(gl, P, 56), program: bProg });
+        barrel.scale.set(1.04, 1.04, 1.04); barrel.setParent(cannon);
       }
 
       // Parçacıklar (toz)
