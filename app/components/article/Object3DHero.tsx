@@ -413,27 +413,32 @@ export default function Object3DHero({ kind = 'dna', colors, src }: { kind?: Obj
       } else if (kind === 'cannon') {
         dust = [0.95, 0.72, 0.38]; spinY = 0.26; tiltX = 0.14;
         root.rotation.x = tiltX;
-        const bronze: Rgb = [0.78, 0.51, 0.27];
+        const stone: Rgb = [0.57, 0.55, 0.52];   // gri taş rengi (bronz değil)
         const bProg = new Program(gl, {
           vertex: litVertex, fragment: litFragment, cullFace: false,
-          uniforms: { uColor: { value: bronze }, uLightDir: { value: lightDir }, uFog: { value: c[0] }, uGlow: { value: 0.72 } },
+          uniforms: { uColor: { value: stone }, uLightDir: { value: lightDir }, uFog: { value: c[0] }, uGlow: { value: 0.42 } },
         });
-        // Namlu profili [z, yarıçap]: dipçik topuzu → hazne → 3 takviye halkası →
-        // ağız şişkinliği → düz ağız halkası → içi boş namlu ağzı (geri döner).
+        // Namlu profili [z, yarıçap] — daha kıvrımlı/detaylı: dipçik topuzu →
+        // ogee dipçik → hazne → 3 yuvarlak ÇİFT takviye halkası → ogee ağız
+        // şişkinliği + astragal → düz ağız halkası → içi boş namlu ağzı (geri döner).
         const P = [
-          [-1.75, 0.02], [-1.68, 0.15], [-1.60, 0.25], [-1.53, 0.29],
-          [-1.49, 0.42], [-1.45, 0.60], [-1.38, 0.63], [-1.15, 0.61],
-          [-0.82, 0.58], [-0.76, 0.58], [-0.71, 0.69], [-0.66, 0.69], [-0.61, 0.575],
-          [-0.18, 0.56], [-0.13, 0.56], [-0.08, 0.66], [-0.03, 0.66], [0.02, 0.55],
-          [0.46, 0.54], [0.51, 0.54], [0.56, 0.645], [0.61, 0.645], [0.66, 0.535],
-          [1.08, 0.53], [1.20, 0.55], [1.35, 0.68], [1.48, 0.665],
-          [1.50, 0.675], [1.50, 0.44], [1.42, 0.42], [1.15, 0.40], [1.10, 0.42],
+          [-1.92, 0.02], [-1.87, 0.10], [-1.82, 0.16], [-1.77, 0.18], [-1.72, 0.16], [-1.68, 0.11],
+          [-1.65, 0.11], [-1.62, 0.16], [-1.58, 0.30], [-1.53, 0.48], [-1.48, 0.60], [-1.44, 0.65], [-1.40, 0.665],
+          [-1.28, 0.66], [-1.05, 0.64], [-0.90, 0.63],
+          [-0.86, 0.625], [-0.83, 0.69], [-0.80, 0.715], [-0.77, 0.69], [-0.74, 0.63], [-0.71, 0.625], [-0.68, 0.675], [-0.65, 0.62],
+          [-0.45, 0.605], [-0.22, 0.59],
+          [-0.18, 0.585], [-0.15, 0.665], [-0.12, 0.695], [-0.09, 0.665], [-0.06, 0.585],
+          [0.12, 0.575], [0.35, 0.565],
+          [0.39, 0.56], [0.42, 0.64], [0.45, 0.67], [0.48, 0.64], [0.51, 0.56],
+          [0.72, 0.555], [0.95, 0.555],
+          [1.00, 0.565], [1.06, 0.60], [1.11, 0.575], [1.17, 0.615], [1.25, 0.71], [1.33, 0.735], [1.40, 0.72], [1.45, 0.725],
+          [1.47, 0.735], [1.47, 0.47], [1.40, 0.45], [1.08, 0.43], [1.03, 0.45],
         ];
         const cannon = new Transform(); cannon.setParent(root);
         cannon.rotation.y = 1.12; cannon.rotation.x = -0.08;  // yatay + 3/4 açı (ağız kameraya dönük)
         cannon.position.set(0.1, 0, 0.2);
-        const barrel = new Mesh(gl, { geometry: buildLathe(gl, P, 56), program: bProg });
-        barrel.scale.set(1.04, 1.04, 1.04); barrel.setParent(cannon);
+        const barrel = new Mesh(gl, { geometry: buildLathe(gl, P, 64), program: bProg });
+        barrel.scale.set(1.02, 1.02, 1.02); barrel.setParent(cannon);
       }
 
       // Parçacıklar (toz)
