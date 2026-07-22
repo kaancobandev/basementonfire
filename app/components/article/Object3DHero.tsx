@@ -344,26 +344,47 @@ export default function Object3DHero({ kind = 'dna', colors, src }: { kind?: Obj
         new Mesh(gl, { geometry: buildRim(gl, RAD, HALF, SEG), program: rimProg }).setParent(coin);
         coinSpin = coin; // coin kendi ekseninde döner; root sadece süzülür/eğilir
       } else if (kind === 'wreath') {
-        dust = [0.95, 0.80, 0.45]; spinY = 0.4; tiltX = 0.5;
+        dust = [0.95, 0.80, 0.45]; spinY = 0.34; tiltX = 0.52;
         root.rotation.x = tiltX;
         const gold: Rgb = [1.0, 0.88, 0.55];
         const gProg = new Program(gl, {
           vertex: litVertex, fragment: litFragment, cullFace: false,
-          uniforms: { uColor: { value: gold }, uLightDir: { value: lightDir }, uFog: { value: c[0] }, uGlow: { value: 1.0 } },
+          uniforms: { uColor: { value: gold }, uLightDir: { value: lightDir }, uFog: { value: c[0] }, uGlow: { value: 0.9 } },
         });
-        const Rw = 1.32;
-        // Altın halka (bant)
-        new Mesh(gl, { geometry: new Torus(gl, { radius: Rw, tube: 0.05, radialSegments: 14, tubularSegments: 90 }), program: gProg }).setParent(root);
-        // Yapraklar: iki sıra, teğetsel yatık → defne çelengi akışı
-        const leafBig = buildLeaf(gl, 0.9, 0.16, 0.07);
-        const leafSml = buildLeaf(gl, 0.64, 0.13, 0.06);
-        const N = 40;
+        const berryProg = new Program(gl, {
+          vertex: litVertex, fragment: litFragment, cullFace: false,
+          uniforms: { uColor: { value: [1.0, 0.72, 0.32] as Rgb }, uLightDir: { value: lightDir }, uFog: { value: c[0] }, uGlow: { value: 1.3 } },
+        });
+        const Rw = 1.3;
+        // ince altın halka (çoğu yaprakla örtülü)
+        new Mesh(gl, { geometry: new Torus(gl, { radius: Rw, tube: 0.04, radialSegments: 12, tubularSegments: 80 }), program: gProg }).setParent(root);
+        // deterministik hafif rastgelelik (organik, remount'ta kararlı)
+        const jit = (n: number) => { const x = Math.sin(n * 127.1) * 43758.5453; return x - Math.floor(x); };
+        // ÜÇ katman: hepsi AYNI teğetsel yöne akar (kiremitli/imbrike) → lush defne
+        const layers = [
+          { geo: buildLeaf(gl, 0.98, 0.17, 0.08), lean: 1.12, tx: 0.30, dr: 0.03, dz: 0.07 },
+          { geo: buildLeaf(gl, 0.80, 0.15, 0.07), lean: 1.30, tx: 0.05, dr: -0.02, dz: -0.01 },
+          { geo: buildLeaf(gl, 0.60, 0.13, 0.06), lean: 1.48, tx: -0.22, dr: -0.06, dz: -0.09 },
+        ];
+        const berryGeo = new Sphere(gl, { radius: 1, widthSegments: 12, heightSegments: 10 });
+        const N = 30;
         for (let i = 0; i < N; i++) {
-          const phi = (i / N) * TAU, cx = Math.cos(phi) * Rw, cy = Math.sin(phi) * Rw;
-          const m1 = new Mesh(gl, { geometry: leafBig, program: gProg });   // dış: güçlü teğetsel akış (defne)
-          m1.position.set(cx, cy, 0); m1.rotation.z = phi - Math.PI / 2 + 1.05; m1.rotation.x = 0.32; m1.setParent(root);
-          const m2 = new Mesh(gl, { geometry: leafSml, program: gProg });   // iç sıra, katman
-          m2.position.set(cx, cy, 0); m2.rotation.z = phi - Math.PI / 2 + 0.68; m2.rotation.x = -0.16; m2.setParent(root);
+          const phi = (i / N) * TAU;
+          for (let L = 0; L < layers.length; L++) {
+            const ly = layers[L], j = jit(i * 3 + L), rr = Rw + ly.dr;
+            const m = new Mesh(gl, { geometry: ly.geo, program: gProg });
+            m.position.set(Math.cos(phi) * rr, Math.sin(phi) * rr, ly.dz + (j - 0.5) * 0.04);
+            m.rotation.z = phi - Math.PI / 2 + ly.lean + (j - 0.5) * 0.28;
+            m.rotation.x = ly.tx + (j - 0.5) * 0.22;
+            const s = 0.88 + j * 0.28; m.scale.set(s, s, s);
+            m.setParent(root);
+          }
+          if (i % 2 === 0) { // defne meyveleri (içe nestled)
+            const b = new Mesh(gl, { geometry: berryGeo, program: berryProg });
+            const br = Rw - 0.03;
+            b.position.set(Math.cos(phi) * br, Math.sin(phi) * br, 0.03);
+            b.scale.set(0.075, 0.075, 0.075); b.setParent(root);
+          }
         }
       }
 
