@@ -56,7 +56,9 @@ export async function POST(req: NextRequest) {
 
   // Kayıt sonrası oturum cookie'leri (e-posta onayı kapalıysa) doğrudan bu yanıta yazılır.
   // Hedef aşağıda DÜZELTİLİR: oturum oluşmadıysa onay ekranına gideceğiz.
-  const response = NextResponse.redirect(new URL('/?welcome=1', req.url), { status: 303 });
+  // signup=1 → istemci `sign_up` GA4/Ads dönüşümünü tetikler (SignupEvent bileşeni);
+  // yalnız GERÇEK kayıt başarısında eklenir, o yüzden dönüşüm birebir doğru sayılır.
+  const response = NextResponse.redirect(new URL('/?welcome=1&signup=1', req.url), { status: 303 });
   const client = createAuthClientForResponse(req, response);
 
   // birthdate'i auth metadata'ya DA yaz: public.users satırı trigger ile oluşuyor;
@@ -111,7 +113,7 @@ export async function POST(req: NextRequest) {
   // gerektiğini HİÇBİR YERDE görmüyordu. Sonra "Giriş yap"a gidip deniyor,
   // başarısız oluyor ve durumu ancak oradaki (İngilizce) hatadan anlıyordu.
   if (!data.session) {
-    const onay = NextResponse.redirect(new URL('/eposta-onayi', req.url), { status: 303 });
+    const onay = NextResponse.redirect(new URL('/eposta-onayi?signup=1', req.url), { status: 303 });
     // Adresi onay ekranında göstermek ve "yeniden gönder" için sakla.
     // URL'e KOYMUYORUZ: kişisel veri; geçmişe, sunucu loglarına ve Referer
     // başlığına sızardı. httpOnly → istemci JS'i de okuyamaz.

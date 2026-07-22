@@ -21,6 +21,7 @@ import AppShell from './components/AppShell';
 import { MediaDockProvider } from './components/MediaDock';
 import CelebrateOnParam from './components/CelebrateOnParam';
 import CookieConsent from './components/CookieConsent';
+import SignupEvent from './components/SignupEvent';
 import PageviewBeacon from './components/PageviewBeacon';
 
 // Google Analytics (GA4) ID — CookieConsent'e geçilir. GA YALNIZCA hem
@@ -193,6 +194,8 @@ export default function RootLayout({ children, modal }: { children: React.ReactN
         {/* Çerezsiz sayfa görüntüleme beacon'ı — onaydan bağımsız, herkesi sayar */}
         <PageviewBeacon />
         <CookieConsent gaId={GA_ID} />
+        {/* Kayıt başarısında (?signup=1) `sign_up` GA4/Ads dönüşümünü gönderir. */}
+        <SignupEvent />
       </body>
     </html>
   );
