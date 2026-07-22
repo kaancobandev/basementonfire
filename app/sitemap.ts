@@ -14,7 +14,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/`, lastModified: now, changeFrequency: 'daily', priority: 1 },
     { url: `${SITE_URL}/akis`, lastModified: now, changeFrequency: 'hourly', priority: 0.8 },
     { url: `${SITE_URL}/discover`, lastModified: now, changeFrequency: 'daily', priority: 0.6 },
+    { url: `${SITE_URL}/bilgi-karti`, lastModified: now, changeFrequency: 'weekly', priority: 0.6 },
+    { url: `${SITE_URL}/reels`, lastModified: now, changeFrequency: 'daily', priority: 0.5 },
     { url: `${SITE_URL}/muzik`, lastModified: now, changeFrequency: 'weekly', priority: 0.5 },
+    { url: `${SITE_URL}/lig`, lastModified: now, changeFrequency: 'daily', priority: 0.4 },
+    { url: `${SITE_URL}/paylasim`, lastModified: now, changeFrequency: 'monthly', priority: 0.3 },
+    // Hukuki metinler — herkese açık, güven/E-E-A-T sinyali için indekslensin.
+    { url: `${SITE_URL}/gizlilik`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${SITE_URL}/kosullar`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${SITE_URL}/aydinlatma`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${SITE_URL}/acik-riza`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
+    // BİLEREK EKLENMEDİ: /rastgele (rastgele makaleye YÖNLENDİRİR → sitemap'te
+    // yönlendirme URL'i "Page with redirect" uyarısı verir) ve /eslesme (giriş +
+    // 18 yaş gerektirir, herkese açık değil).
   ];
 
   // Makale listesi TEK kaynaktan (lib/articles.ts) — yeni makale eklenince
