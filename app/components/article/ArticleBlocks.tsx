@@ -94,8 +94,8 @@ export function ArticleShell({ accent = '#34d399', bg = DEFAULT_BG, title, backH
 }
 
 /* ─── Hero: WebGL + pinlenip parçalanan başlık ─── */
-export function ArticleHero({ title, fullTitle, eyebrow, subtitle, colors, gradientText, object3d }: {
-  title: string; fullTitle?: string; eyebrow?: string; subtitle?: ReactNode; colors?: [Rgb, Rgb, Rgb, Rgb]; gradientText?: string; object3d?: Object3DKind;
+export function ArticleHero({ title, fullTitle, eyebrow, subtitle, colors, gradientText, object3d, object3dSrc }: {
+  title: string; fullTitle?: string; eyebrow?: string; subtitle?: ReactNode; colors?: [Rgb, Rgb, Rgb, Rgb]; gradientText?: string; object3d?: Object3DKind; object3dSrc?: string;
 }) {
   const accent = useAccent();
   const bg = useBg();
@@ -138,7 +138,7 @@ export function ArticleHero({ title, fullTitle, eyebrow, subtitle, colors, gradi
   return (
     <header ref={heroRef} className="relative flex h-[100svh] items-center justify-center overflow-hidden">
       <div className="absolute inset-0" style={{ background: `radial-gradient(120% 120% at 50% 30%, color-mix(in srgb, ${accent} 22%, ${bg}), ${bg})` }} aria-hidden />
-      <div className="hero-shader absolute inset-0">{object3d ? <Object3DHero kind={object3d} colors={colors} /> : <ShaderHero colors={colors} />}</div>
+      <div className="hero-shader absolute inset-0">{object3d ? <Object3DHero kind={object3d} colors={colors} src={object3dSrc} /> : <ShaderHero colors={colors} />}</div>
       <div className="pointer-events-none absolute inset-0" style={{ background: `linear-gradient(to bottom, transparent, transparent, ${bg})` }} aria-hidden />
 
       <div className="relative z-10 px-6 text-center">

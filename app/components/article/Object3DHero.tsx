@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { Renderer, Camera, Transform, Program, Mesh, Geometry, Triangle, Sphere, Box } from 'ogl';
+import { Renderer, Camera, Transform, Program, Mesh, Geometry, Texture, Triangle, Sphere, Box } from 'ogl';
 import type { Rgb } from './ShaderHero';
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -13,17 +13,17 @@ import type { Rgb } from './ShaderHero';
 // ard arda çizilir (2. bağlam açılmaz). WebGL başlatılamazsa canvas gizlenir →
 // arkadaki ArticleHero radyal-gradyan zemini görünür (zarif fallback).
 //
-// `kind` ile obje seçilir. Şimdilik: 'dna'. Bilinmeyen kind → yalnız zemin.
+// `kind`: 'dna' | 'coin'. 'coin' + `src` (görsel) → dokulu altın sikke.
 // ─────────────────────────────────────────────────────────────────────────
 
-export type Object3DKind = 'dna';
+export type Object3DKind = 'dna' | 'coin';
 
 const DEFAULT_COLORS: [Rgb, Rgb, Rgb, Rgb] = [
   [0.016, 0.086, 0.063], [0.063, 0.45, 0.30], [0.40, 0.83, 0.31], [0.98, 0.74, 0.18],
 ];
 
 /* Zemin: ShaderHero'nun akan gradyanı (fare yok). depthWrite kapalı → önce
-   çizilir, 3D objenin derinlik testini bozmaz. Kenarlar daha koyu (obje parlasın). */
+   çizilir, 3D objenin derinlik testini bozmaz. Kenarlar koyu (obje parlasın). */
 const bgVertex = `
 attribute vec2 uv; attribute vec2 position; varying vec2 vUv;
 void main(){ vUv = uv; gl_Position = vec4(position, 0.0, 1.0); }
@@ -48,8 +48,7 @@ void main(){
 }
 `;
 
-/* Obje: Blinn-Phong + fresnel kenar parıltısı + derinlik sisi (uzaklaşan kısım
-   zemine erir → hacim/derinlik hissi). */
+/* Düz obje: Blinn-Phong + fresnel + derinlik sisi. (DNA tüpleri/küreleri + sikke kenarı) */
 const litVertex = `
 precision highp float;
 attribute vec3 position; attribute vec3 normal;
@@ -75,13 +74,50 @@ void main(){
   float spec = pow(max(dot(N, H), 0.0), 42.0) * 0.7;
   float fres = pow(1.0 - max(dot(N, V), 0.0), 3.0);
   vec3 col = uColor * (0.26 + 0.86 * diff) + spec + uColor * fres * uGlow;
-  float fog = smoothstep(6.5, 13.5, -vViewPos.z);   // kamera z≈9 → uzak kısım sise girer
+  float fog = smoothstep(6.5, 13.5, -vViewPos.z);
   col = mix(col, uFog, fog * 0.92);
   gl_FragColor = vec4(col, 1.0);
 }
 `;
 
-/* Süzülen parçacıklar (genetik toz) — additive, yumuşak nokta. */
+/* Sikke yüzü: dokunun PARLAKLIĞI altın kabartma gibi kullanılır (açık=çıkık,
+   koyu=girinti); ham foto rengi değil. → gerçekten dövülmüş altın sikke hissi. */
+const capVertex = `
+precision highp float;
+attribute vec3 position; attribute vec3 normal; attribute vec2 uv;
+uniform mat4 modelViewMatrix; uniform mat4 projectionMatrix; uniform mat3 normalMatrix;
+varying vec3 vNormal; varying vec3 vViewPos; varying vec2 vUv;
+void main(){
+  vNormal = normalize(normalMatrix * normal);
+  vUv = uv;
+  vec4 mv = modelViewMatrix * vec4(position, 1.0);
+  vViewPos = mv.xyz;
+  gl_Position = projectionMatrix * mv;
+}
+`;
+const capFragment = `
+precision highp float;
+uniform sampler2D uTex; uniform vec3 uGold; uniform vec3 uLightDir; uniform vec3 uFog;
+varying vec3 vNormal; varying vec3 vViewPos; varying vec2 vUv;
+void main(){
+  float lum = dot(texture2D(uTex, vUv).rgb, vec3(0.299, 0.587, 0.114));
+  lum = pow(clamp(lum, 0.0, 1.0), 0.82);          // gölgeleri aç, kabartmayı belirginleştir
+  vec3 albedo = uGold * (0.52 + 0.78 * lum);       // taban net altın, çıkıntı parlak
+  vec3 N = normalize(vNormal);
+  vec3 L = normalize(uLightDir);
+  vec3 V = normalize(-vViewPos);
+  vec3 H = normalize(L + V);
+  float diff = max(dot(N, L), 0.0);
+  float spec = pow(max(dot(N, H), 0.0), 26.0) * (0.4 + lum) * 0.95;
+  float fres = pow(1.0 - max(dot(N, V), 0.0), 3.0);
+  vec3 col = albedo * (0.46 + 0.72 * diff) + spec + uGold * fres * 0.55;
+  float fog = smoothstep(6.5, 13.5, -vViewPos.z);
+  col = mix(col, uFog, fog * 0.9);
+  gl_FragColor = vec4(col, 1.0);
+}
+`;
+
+/* Süzülen parçacıklar (toz) — additive, yumuşak nokta. */
 const dotVertex = `
 precision highp float;
 attribute vec3 position; attribute float aSize;
@@ -108,10 +144,10 @@ void main(){
 `;
 
 const TAU = Math.PI * 2;
+type GL = ConstructorParameters<typeof Geometry>[0];
 
-/* Helix boyunca pürüzsüz tüp (omurga şeridi) geometrisi. Frenet yerine radyal
-   çerçeve: her noktada teğet + eksenden-dışa radyal → kararlı, bükülmesiz halka. */
-function buildHelixTube(gl: ConstructorParameters<typeof Geometry>[0], phase: number, R: number, HGT: number, TURNS: number, M: number, tubeR: number, seg: number) {
+/* Helix boyunca pürüzsüz tüp (omurga şeridi). Radyal çerçeve → bükülmesiz halka. */
+function buildHelixTube(gl: GL, phase: number, R: number, HGT: number, TURNS: number, M: number, tubeR: number, seg: number) {
   const pts: number[][] = [], tan: number[][] = [], rad: number[][] = [];
   for (let i = 0; i <= M; i++) {
     const f = i / M, y = (f - 0.5) * HGT, ang = f * TURNS * TAU + phase;
@@ -127,7 +163,6 @@ function buildHelixTube(gl: ConstructorParameters<typeof Geometry>[0], phase: nu
   const pos: number[] = [], nor: number[] = [], idx: number[] = [];
   for (let i = 0; i <= M; i++) {
     const P = pts[i], T = tan[i], rd = rad[i];
-    // binormal = norm(T × rad), normal = norm(binormal × T)
     let bx = T[1] * rd[2] - T[2] * rd[1], by = T[2] * rd[0] - T[0] * rd[2], bz = T[0] * rd[1] - T[1] * rd[0];
     let bl = Math.hypot(bx, by, bz) || 1; bx /= bl; by /= bl; bz /= bl;
     let nx = by * T[2] - bz * T[1], ny = bz * T[0] - bx * T[2], nz = bx * T[1] - by * T[0];
@@ -151,10 +186,45 @@ function buildHelixTube(gl: ConstructorParameters<typeof Geometry>[0], phase: nu
   });
 }
 
-export default function Object3DHero({ kind = 'dna', colors }: { kind?: Object3DKind; colors?: [Rgb, Rgb, Rgb, Rgb] }) {
+/* Sikke yüzü diski (XY düzleminde, z sabit). Dairesel UV → kare doku diske biner
+   (köşe/siyah kenar hiç örneklenmez). flipU: arka yüzde ayna görüntüsünü düzelt. */
+function buildDisc(gl: GL, radius: number, z: number, nz: number, seg: number, flipU: number) {
+  const pos = [0, 0, z], nor = [0, 0, nz], uv = [0.5, 0.5], idx: number[] = [];
+  for (let i = 0; i <= seg; i++) {
+    const th = (i / seg) * TAU, c = Math.cos(th), s = Math.sin(th);
+    pos.push(c * radius, s * radius, z);
+    nor.push(0, 0, nz);
+    uv.push(c * 0.5 * flipU + 0.5, s * 0.5 + 0.5);
+    if (i < seg) idx.push(0, i + 1, i + 2);
+  }
+  return new Geometry(gl, {
+    position: { size: 3, data: new Float32Array(pos) },
+    normal: { size: 3, data: new Float32Array(nor) },
+    uv: { size: 2, data: new Float32Array(uv) },
+    index: { data: new Uint16Array(idx) },
+  });
+}
+
+/* Sikke kenarı (Z ekseni etrafında silindir yüzeyi, kapaksız). */
+function buildRim(gl: GL, radius: number, halfH: number, seg: number) {
+  const pos: number[] = [], nor: number[] = [], idx: number[] = [];
+  for (let i = 0; i <= seg; i++) {
+    const th = (i / seg) * TAU, c = Math.cos(th), s = Math.sin(th);
+    pos.push(c * radius, s * radius, halfH, c * radius, s * radius, -halfH);
+    nor.push(c, s, 0, c, s, 0);
+    if (i < seg) { const a = i * 2; idx.push(a, a + 1, a + 2, a + 2, a + 1, a + 3); }
+  }
+  return new Geometry(gl, {
+    position: { size: 3, data: new Float32Array(pos) },
+    normal: { size: 3, data: new Float32Array(nor) },
+    index: { data: new Uint16Array(idx) },
+  });
+}
+
+export default function Object3DHero({ kind = 'dna', colors, src }: { kind?: Object3DKind; colors?: [Rgb, Rgb, Rgb, Rgb]; src?: string }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const c = colors ?? DEFAULT_COLORS;
-  const key = JSON.stringify(c) + '|' + kind;
+  const key = JSON.stringify(c) + '|' + kind + '|' + (src ?? '');
 
   useEffect(() => {
     const canvas = ref.current;
@@ -181,9 +251,7 @@ export default function Object3DHero({ kind = 'dna', colors }: { kind?: Object3D
       const scene = new Transform();
       const root = new Transform();
       root.setParent(scene);
-      root.rotation.x = 0.16;
-
-      const fx = new Transform(); // parçacıklar (helix'le dönmez)
+      const fx = new Transform();
 
       const lightDir: [number, number, number] = [0.45, 0.75, 0.65];
       const litProg = (col: Rgb, glow: number) => new Program(gl, {
@@ -192,17 +260,17 @@ export default function Object3DHero({ kind = 'dna', colors }: { kind?: Object3D
       });
 
       let dotProgram: Program | null = null;
+      let dust: Rgb = [0.75, 0.95, 0.7];
+      let spinY = 0.3, tiltX = 0.16;
+      let coinSpin: Transform | null = null;
+      let renderOnce: ((n: number) => void) | null = null;
 
       if (kind === 'dna') {
         const R = 1.02, HGT = 5.2, TURNS = 2.5, N = 20;
-        const cA = c[2], cB = c[3];
-
-        // Omurga tüpleri (iki iplik)
-        const progA = litProg(cA, 0.7), progB = litProg(cB, 0.7);
+        root.rotation.x = tiltX;
+        const progA = litProg(c[2], 0.7), progB = litProg(c[3], 0.7);
         new Mesh(gl, { geometry: buildHelixTube(gl, 0, R, HGT, TURNS, 150, 0.1, 8), program: progA }).setParent(root);
         new Mesh(gl, { geometry: buildHelixTube(gl, Math.PI, R, HGT, TURNS, 150, 0.1, 8), program: progB }).setParent(root);
-
-        // Baz-çiftleri: her iplikte küçük küre + ortada bağlayan çubuk
         const sphere = new Sphere(gl, { radius: 1, widthSegments: 20, heightSegments: 14 });
         const bar = new Box(gl, { width: 1, height: 1, depth: 1 });
         const rungProg = litProg([0.86, 0.9, 0.88], 0.5);
@@ -216,27 +284,47 @@ export default function Object3DHero({ kind = 'dna', colors }: { kind?: Object3D
           const rung = new Mesh(gl, { geometry: bar, program: rungProg });
           rung.position.set(0, y, 0); rung.scale.set(R * 2, 0.05, 0.05); rung.rotation.y = -ang; rung.setParent(root);
         }
-
-        // Parçacıklar (genetik toz)
-        const COUNT = 130;
-        const pp = new Float32Array(COUNT * 3), ps = new Float32Array(COUNT);
-        for (let i = 0; i < COUNT; i++) {
-          pp[i * 3] = (Math.random() - 0.5) * 8;
-          pp[i * 3 + 1] = (Math.random() - 0.5) * 7;
-          pp[i * 3 + 2] = (Math.random() - 0.5) * 5 - 0.5;
-          ps[i] = 0.6 + Math.random() * 1.8;
-        }
-        dotProgram = new Program(gl, {
-          vertex: dotVertex, fragment: dotFragment, transparent: true, depthTest: true, depthWrite: false,
-          uniforms: { uTime: { value: 0 }, uColor: { value: [0.75, 0.95, 0.7] as Rgb } },
+      } else if (kind === 'coin') {
+        dust = [0.95, 0.78, 0.42]; spinY = 0.62; tiltX = 0.42;
+        root.rotation.x = tiltX;
+        const coin = new Transform(); coin.setParent(root);
+        const RAD = 1.4, HALF = 0.11, SEG = 72;
+        const gold: Rgb = [1.0, 0.85, 0.47];
+        // Doku
+        const tex = new Texture(gl, { generateMipmaps: false });
+        if (src) { const img = new Image(); img.onload = () => { tex.image = img; renderOnce?.(performance.now()); }; img.src = src; }
+        const capProg = () => new Program(gl, {
+          vertex: capVertex, fragment: capFragment, cullFace: false,
+          uniforms: { uTex: { value: tex }, uGold: { value: gold }, uLightDir: { value: lightDir }, uFog: { value: c[0] } },
         });
-        dotProgram.setBlendFunc(gl.SRC_ALPHA, gl.ONE); // additive
-        const dots = new Mesh(gl, {
-          geometry: new Geometry(gl, { position: { size: 3, data: pp }, aSize: { size: 1, data: ps } }),
-          program: dotProgram, mode: gl.POINTS,
+        new Mesh(gl, { geometry: buildDisc(gl, RAD, HALF, 1, SEG, 1), program: capProg() }).setParent(coin);   // ön
+        new Mesh(gl, { geometry: buildDisc(gl, RAD, -HALF, -1, SEG, -1), program: capProg() }).setParent(coin); // arka (ayna düzeltildi)
+        const rimProg = new Program(gl, {
+          vertex: litVertex, fragment: litFragment, cullFace: false,
+          uniforms: { uColor: { value: gold }, uLightDir: { value: lightDir }, uFog: { value: c[0] }, uGlow: { value: 0.5 } },
         });
-        dots.setParent(fx);
+        new Mesh(gl, { geometry: buildRim(gl, RAD, HALF, SEG), program: rimProg }).setParent(coin);
+        coinSpin = coin; // coin kendi ekseninde döner; root sadece süzülür/eğilir
       }
+
+      // Parçacıklar (toz)
+      const COUNT = 130;
+      const pp = new Float32Array(COUNT * 3), ps = new Float32Array(COUNT);
+      for (let i = 0; i < COUNT; i++) {
+        pp[i * 3] = (Math.random() - 0.5) * 8;
+        pp[i * 3 + 1] = (Math.random() - 0.5) * 7;
+        pp[i * 3 + 2] = (Math.random() - 0.5) * 5 - 0.5;
+        ps[i] = 0.6 + Math.random() * 1.8;
+      }
+      dotProgram = new Program(gl, {
+        vertex: dotVertex, fragment: dotFragment, transparent: true, depthTest: true, depthWrite: false,
+        uniforms: { uTime: { value: 0 }, uColor: { value: dust } },
+      });
+      dotProgram.setBlendFunc(gl.SRC_ALPHA, gl.ONE);
+      new Mesh(gl, {
+        geometry: new Geometry(gl, { position: { size: 3, data: pp }, aSize: { size: 1, data: ps } }),
+        program: dotProgram, mode: gl.POINTS,
+      }).setParent(fx);
 
       const resize = () => {
         const p = canvas.parentElement;
@@ -253,19 +341,19 @@ export default function Object3DHero({ kind = 'dna', colors }: { kind?: Object3D
         const t = (now - start) / 1000;
         bgProgram.uniforms.uTime.value = t;
         if (dotProgram) dotProgram.uniforms.uTime.value = t;
-        root.rotation.y = t * 0.3;
-        root.position.y = Math.sin(t * 0.5) * 0.12;      // nazik süzülme
+        if (coinSpin) coinSpin.rotation.y = t * spinY; else root.rotation.y = t * spinY;
+        root.position.y = Math.sin(t * 0.5) * 0.12;
         renderer.render({ scene: bgMesh });
         renderer.render({ scene, camera, clear: false, frustumCull: false });
         renderer.render({ scene: fx, camera, clear: false, frustumCull: false });
       };
 
-      // İlk kareyi SENKRON çiz (boş ilk boyama + donuk-önizleme sekmesi için).
-      draw(reduce ? start + 6000 : start);
+      renderOnce = draw;
+      draw(reduce ? start + 6000 : start); // ilk kareyi SENKRON çiz
 
       let visible = true;
       const loop = (now: number) => {
-        if (!visible) { raf = 0; return; }             // ekran dışı → dur
+        if (!visible) { raf = 0; return; }
         draw(now);
         raf = requestAnimationFrame(loop);
       };
@@ -281,12 +369,9 @@ export default function Object3DHero({ kind = 'dna', colors }: { kind?: Object3D
         cancelAnimationFrame(raf);
         io?.disconnect();
         window.removeEventListener('resize', resize);
-        // NOT: WEBGL_lose_context.loseContext() BİLEREK çağrılmıyor. React Strict
-        // Mode (dev) effect'i mount→unmount→mount çalıştırır; loseContext ilk
-        // unmount'ta bağlamı kalıcı öldürüp remount'ta aynı ölü bağlamı verirdi →
-        // obje dev'de hiç görünmezdi (ShaderHero'da bu dev artefaktı var). Bağlam,
-        // sayfa gezilince canvas DOM'dan kalkınca GC ile serbest kalır; hero tek
-        // tek göründüğünden WebGL bağlam sınırı sorun olmaz.
+        // NOT: WEBGL_lose_context.loseContext() BİLEREK çağrılmıyor — bkz. yorum
+        // (React Strict Mode remount'ta bağlamı öldürürdü → obje dev'de görünmezdi).
+        // Bağlam, canvas DOM'dan kalkınca GC ile serbest kalır.
       };
     } catch {
       canvas.style.display = 'none';

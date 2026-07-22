@@ -50,6 +50,8 @@ export default function SezarClient() {
         eyebrow="KENDİSİNİ ÖLDÜRENLERİ AFFEDEN ADAM · İNTERAKTİF DOSYA"
         gradientText="Caesar"
         colors={HERO_COLORS}
+        object3d="coin"
+        object3dSrc="/articles/sezar/sikke-caesar.webp"
         subtitle={<>Onu en çok seven adamlardan biri öldürdü. Ve onu öldürenler, kurtarmaya çalıştıkları şeyi kendi elleriyle gömdüler.</>}
       />
 
