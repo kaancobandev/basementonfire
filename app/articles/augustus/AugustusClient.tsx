@@ -47,6 +47,7 @@ export default function AugustusClient() {
         eyebrow="TACI REDDEDEREK KRAL OLAN ADAM · CAESAR SERİSİ · PARÇA 2"
         gradientText="Augustus"
         colors={HERO_COLORS}
+        object3d="wreath"
         subtitle={<>Caesar tacı istediği için öldürüldü. Augustus, istemediğini söyleyerek her şeyi aldı — ve elli yıl bir rol oynadı.</>}
       />
 

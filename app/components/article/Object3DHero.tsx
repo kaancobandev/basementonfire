@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { Renderer, Camera, Transform, Program, Mesh, Geometry, Texture, Triangle, Sphere, Box } from 'ogl';
+import { Renderer, Camera, Transform, Program, Mesh, Geometry, Texture, Triangle, Sphere, Box, Torus } from 'ogl';
 import type { Rgb } from './ShaderHero';
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -16,7 +16,7 @@ import type { Rgb } from './ShaderHero';
 // `kind`: 'dna' | 'coin'. 'coin' + `src` (görsel) → dokulu altın sikke.
 // ─────────────────────────────────────────────────────────────────────────
 
-export type Object3DKind = 'dna' | 'coin';
+export type Object3DKind = 'dna' | 'coin' | 'wreath';
 
 const DEFAULT_COLORS: [Rgb, Rgb, Rgb, Rgb] = [
   [0.016, 0.086, 0.063], [0.063, 0.45, 0.30], [0.40, 0.83, 0.31], [0.98, 0.74, 0.18],
@@ -44,6 +44,7 @@ void main(){
   col = mix(col, uC4, smoothstep(0.7, 1.2, w) * 0.28);
   float vig = smoothstep(1.25, 0.15, length(uv - 0.5));
   col *= mix(0.32, 1.02, vig);
+  col *= 1.0 - 0.42 * smoothstep(0.66, 0.04, length(uv - 0.5)); // merkezi karart → obje öne çıksın
   gl_FragColor = vec4(col, 1.0);
 }
 `;
@@ -221,6 +222,43 @@ function buildRim(gl: GL, radius: number, halfH: number, seg: number) {
   });
 }
 
+/* Üçgen normallerini toplayıp düğümlere yay (pürüzsüz gölgelendirme). */
+function computeNormals(pos: number[], idx: number[]) {
+  const nor = new Float32Array(pos.length);
+  for (let i = 0; i < idx.length; i += 3) {
+    const a = idx[i] * 3, b = idx[i + 1] * 3, cc = idx[i + 2] * 3;
+    const ux = pos[b] - pos[a], uy = pos[b + 1] - pos[a + 1], uz = pos[b + 2] - pos[a + 2];
+    const vx = pos[cc] - pos[a], vy = pos[cc + 1] - pos[a + 1], vz = pos[cc + 2] - pos[a + 2];
+    const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+    for (const k of [a, b, cc]) { nor[k] += nx; nor[k + 1] += ny; nor[k + 2] += nz; }
+  }
+  for (let i = 0; i < nor.length; i += 3) {
+    const l = Math.hypot(nor[i], nor[i + 1], nor[i + 2]) || 1;
+    nor[i] /= l; nor[i + 1] /= l; nor[i + 2] /= l;
+  }
+  return nor;
+}
+
+/* Defne yaprağı: +Y boyunca uzayan, uçlara sivrilen, ortadan hafif kabarık şerit. */
+function buildLeaf(gl: GL, L: number, W: number, dome: number) {
+  const M = 8;
+  const pos: number[] = [], idx: number[] = [];
+  for (let i = 0; i <= M; i++) {
+    const t = i / M, y = t * L, s = Math.sin(Math.PI * t);
+    const w = W * Math.pow(s, 0.5), z0 = dome * s;
+    pos.push(-w, y, z0, 0, y, z0 + dome * 0.5 * s, w, y, z0);
+  }
+  for (let i = 0; i < M; i++) for (let cc = 0; cc < 2; cc++) {
+    const a = i * 3 + cc, b = (i + 1) * 3 + cc;
+    idx.push(a, b, a + 1, a + 1, b, b + 1);
+  }
+  return new Geometry(gl, {
+    position: { size: 3, data: new Float32Array(pos) },
+    normal: { size: 3, data: computeNormals(pos, idx) },
+    index: { data: new Uint16Array(idx) },
+  });
+}
+
 export default function Object3DHero({ kind = 'dna', colors, src }: { kind?: Object3DKind; colors?: [Rgb, Rgb, Rgb, Rgb]; src?: string }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const c = colors ?? DEFAULT_COLORS;
@@ -305,6 +343,28 @@ export default function Object3DHero({ kind = 'dna', colors, src }: { kind?: Obj
         });
         new Mesh(gl, { geometry: buildRim(gl, RAD, HALF, SEG), program: rimProg }).setParent(coin);
         coinSpin = coin; // coin kendi ekseninde döner; root sadece süzülür/eğilir
+      } else if (kind === 'wreath') {
+        dust = [0.95, 0.80, 0.45]; spinY = 0.4; tiltX = 0.5;
+        root.rotation.x = tiltX;
+        const gold: Rgb = [1.0, 0.88, 0.55];
+        const gProg = new Program(gl, {
+          vertex: litVertex, fragment: litFragment, cullFace: false,
+          uniforms: { uColor: { value: gold }, uLightDir: { value: lightDir }, uFog: { value: c[0] }, uGlow: { value: 1.0 } },
+        });
+        const Rw = 1.32;
+        // Altın halka (bant)
+        new Mesh(gl, { geometry: new Torus(gl, { radius: Rw, tube: 0.05, radialSegments: 14, tubularSegments: 90 }), program: gProg }).setParent(root);
+        // Yapraklar: iki sıra, teğetsel yatık → defne çelengi akışı
+        const leafBig = buildLeaf(gl, 0.9, 0.16, 0.07);
+        const leafSml = buildLeaf(gl, 0.64, 0.13, 0.06);
+        const N = 40;
+        for (let i = 0; i < N; i++) {
+          const phi = (i / N) * TAU, cx = Math.cos(phi) * Rw, cy = Math.sin(phi) * Rw;
+          const m1 = new Mesh(gl, { geometry: leafBig, program: gProg });   // dış: güçlü teğetsel akış (defne)
+          m1.position.set(cx, cy, 0); m1.rotation.z = phi - Math.PI / 2 + 1.05; m1.rotation.x = 0.32; m1.setParent(root);
+          const m2 = new Mesh(gl, { geometry: leafSml, program: gProg });   // iç sıra, katman
+          m2.position.set(cx, cy, 0); m2.rotation.z = phi - Math.PI / 2 + 0.68; m2.rotation.x = -0.16; m2.setParent(root);
+        }
       }
 
       // Parçacıklar (toz)
