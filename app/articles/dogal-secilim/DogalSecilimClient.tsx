@@ -19,7 +19,8 @@ export default function DogalSecilimClient() {
         title="Doğal Seçilim"
         fullTitle="Doğal Seçilim — Evrimin Motoru"
         eyebrow="EVRİMİN MOTORU · İNTERAKTİF DOSYA"
-        subtitle={<>Ne tasarımcı ne amaç var — yalnızca bir <strong className="font-semibold text-emerald-300">filtre.</strong> Aşağı kaydır; başlık dağılsın, seçilim <em className="not-italic text-lime-300">iş başında</em> başlasın.</>}
+        object3d="dna"
+        subtitle={<>Ne tasarımcı ne amaç var — yalnızca bir <strong className="font-semibold text-emerald-300">filtre.</strong> Aşağı kaydır; sarmal dönerken seçilim <em className="not-italic text-lime-300">iş başında</em>.</>}
       />
 
       <ArticleLede points={[

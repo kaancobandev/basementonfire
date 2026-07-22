@@ -1,0 +1,297 @@
+'use client';
+
+import { useEffect, useRef } from 'react';
+import { Renderer, Camera, Transform, Program, Mesh, Geometry, Triangle, Sphere, Box } from 'ogl';
+import type { Rgb } from './ShaderHero';
+
+// ─────────────────────────────────────────────────────────────────────────
+// Genel, TEMA-PARAMETRELİ 3D hero objesi (ogl — three.js DEĞİL, ~10KB).
+// ShaderHero'nun performans disiplinini birebir taşır:
+//   • dpr min(dpr,1.75)  • IntersectionObserver ile ekran dışında rAF DURUR
+//   • prefers-reduced-motion → tek statik kare  • 0-boyuta karşı resize fallback
+// TEK WebGL bağlamı: canlı gradyan zemin + 3D obje + parçacıklar aynı canvas'ta
+// ard arda çizilir (2. bağlam açılmaz). WebGL başlatılamazsa canvas gizlenir →
+// arkadaki ArticleHero radyal-gradyan zemini görünür (zarif fallback).
+//
+// `kind` ile obje seçilir. Şimdilik: 'dna'. Bilinmeyen kind → yalnız zemin.
+// ─────────────────────────────────────────────────────────────────────────
+
+export type Object3DKind = 'dna';
+
+const DEFAULT_COLORS: [Rgb, Rgb, Rgb, Rgb] = [
+  [0.016, 0.086, 0.063], [0.063, 0.45, 0.30], [0.40, 0.83, 0.31], [0.98, 0.74, 0.18],
+];
+
+/* Zemin: ShaderHero'nun akan gradyanı (fare yok). depthWrite kapalı → önce
+   çizilir, 3D objenin derinlik testini bozmaz. Kenarlar daha koyu (obje parlasın). */
+const bgVertex = `
+attribute vec2 uv; attribute vec2 position; varying vec2 vUv;
+void main(){ vUv = uv; gl_Position = vec4(position, 0.0, 1.0); }
+`;
+const bgFragment = `
+precision highp float;
+uniform float uTime;
+uniform vec3 uC1; uniform vec3 uC2; uniform vec3 uC3; uniform vec3 uC4;
+varying vec2 vUv;
+void main(){
+  vec2 uv = vUv;
+  float t = uTime * 0.09;
+  float w = sin(uv.x * 3.0 + t) + sin(uv.y * 2.4 - t * 1.2) + sin((uv.x + uv.y) * 2.0 + t * 0.6);
+  w += 0.6 * sin((uv.x - uv.y) * 5.0 + t * 1.5);
+  w = w / 3.2;
+  vec3 col = mix(uC1, uC2, smoothstep(-1.0, 0.1, w));
+  col = mix(col, uC3, smoothstep(0.1, 0.7, w) * 0.5);
+  col = mix(col, uC4, smoothstep(0.7, 1.2, w) * 0.28);
+  float vig = smoothstep(1.25, 0.15, length(uv - 0.5));
+  col *= mix(0.32, 1.02, vig);
+  gl_FragColor = vec4(col, 1.0);
+}
+`;
+
+/* Obje: Blinn-Phong + fresnel kenar parıltısı + derinlik sisi (uzaklaşan kısım
+   zemine erir → hacim/derinlik hissi). */
+const litVertex = `
+precision highp float;
+attribute vec3 position; attribute vec3 normal;
+uniform mat4 modelViewMatrix; uniform mat4 projectionMatrix; uniform mat3 normalMatrix;
+varying vec3 vNormal; varying vec3 vViewPos;
+void main(){
+  vNormal = normalize(normalMatrix * normal);
+  vec4 mv = modelViewMatrix * vec4(position, 1.0);
+  vViewPos = mv.xyz;
+  gl_Position = projectionMatrix * mv;
+}
+`;
+const litFragment = `
+precision highp float;
+uniform vec3 uColor; uniform vec3 uLightDir; uniform vec3 uFog; uniform float uGlow;
+varying vec3 vNormal; varying vec3 vViewPos;
+void main(){
+  vec3 N = normalize(vNormal);
+  vec3 L = normalize(uLightDir);
+  vec3 V = normalize(-vViewPos);
+  vec3 H = normalize(L + V);
+  float diff = max(dot(N, L), 0.0);
+  float spec = pow(max(dot(N, H), 0.0), 42.0) * 0.7;
+  float fres = pow(1.0 - max(dot(N, V), 0.0), 3.0);
+  vec3 col = uColor * (0.26 + 0.86 * diff) + spec + uColor * fres * uGlow;
+  float fog = smoothstep(6.5, 13.5, -vViewPos.z);   // kamera z≈9 → uzak kısım sise girer
+  col = mix(col, uFog, fog * 0.92);
+  gl_FragColor = vec4(col, 1.0);
+}
+`;
+
+/* Süzülen parçacıklar (genetik toz) — additive, yumuşak nokta. */
+const dotVertex = `
+precision highp float;
+attribute vec3 position; attribute float aSize;
+uniform mat4 modelViewMatrix; uniform mat4 projectionMatrix; uniform float uTime;
+varying float vFade;
+void main(){
+  vec3 p = position;
+  p.y += sin(uTime * 0.3 + position.x * 1.7) * 0.18;
+  p.x += cos(uTime * 0.22 + position.z * 1.3) * 0.12;
+  vec4 mv = modelViewMatrix * vec4(p, 1.0);
+  gl_Position = projectionMatrix * mv;
+  gl_PointSize = aSize * (150.0 / -mv.z);
+  vFade = clamp((15.0 + mv.z) / 9.0, 0.0, 1.0);
+}
+`;
+const dotFragment = `
+precision highp float;
+uniform vec3 uColor; varying float vFade;
+void main(){
+  float d = length(gl_PointCoord - 0.5);
+  float a = smoothstep(0.5, 0.0, d) * 0.55 * vFade;
+  gl_FragColor = vec4(uColor, a);
+}
+`;
+
+const TAU = Math.PI * 2;
+
+/* Helix boyunca pürüzsüz tüp (omurga şeridi) geometrisi. Frenet yerine radyal
+   çerçeve: her noktada teğet + eksenden-dışa radyal → kararlı, bükülmesiz halka. */
+function buildHelixTube(gl: ConstructorParameters<typeof Geometry>[0], phase: number, R: number, HGT: number, TURNS: number, M: number, tubeR: number, seg: number) {
+  const pts: number[][] = [], tan: number[][] = [], rad: number[][] = [];
+  for (let i = 0; i <= M; i++) {
+    const f = i / M, y = (f - 0.5) * HGT, ang = f * TURNS * TAU + phase;
+    pts.push([Math.cos(ang) * R, y, Math.sin(ang) * R]);
+    rad.push([Math.cos(ang), 0, Math.sin(ang)]);
+  }
+  for (let i = 0; i <= M; i++) {
+    const a = pts[Math.max(0, i - 1)], b = pts[Math.min(M, i + 1)];
+    let t = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+    const L = Math.hypot(t[0], t[1], t[2]) || 1; t = [t[0] / L, t[1] / L, t[2] / L];
+    tan.push(t);
+  }
+  const pos: number[] = [], nor: number[] = [], idx: number[] = [];
+  for (let i = 0; i <= M; i++) {
+    const P = pts[i], T = tan[i], rd = rad[i];
+    // binormal = norm(T × rad), normal = norm(binormal × T)
+    let bx = T[1] * rd[2] - T[2] * rd[1], by = T[2] * rd[0] - T[0] * rd[2], bz = T[0] * rd[1] - T[1] * rd[0];
+    let bl = Math.hypot(bx, by, bz) || 1; bx /= bl; by /= bl; bz /= bl;
+    let nx = by * T[2] - bz * T[1], ny = bz * T[0] - bx * T[2], nz = bx * T[1] - by * T[0];
+    let nl = Math.hypot(nx, ny, nz) || 1; nx /= nl; ny /= nl; nz /= nl;
+    for (let j = 0; j <= seg; j++) {
+      const th = (j / seg) * TAU, c = Math.cos(th), s = Math.sin(th);
+      const ox = nx * c + bx * s, oy = ny * c + by * s, oz = nz * c + bz * s;
+      pos.push(P[0] + ox * tubeR, P[1] + oy * tubeR, P[2] + oz * tubeR);
+      nor.push(ox, oy, oz);
+    }
+  }
+  const ring = seg + 1;
+  for (let i = 0; i < M; i++) for (let j = 0; j < seg; j++) {
+    const a = i * ring + j, b = a + ring;
+    idx.push(a, b, a + 1, a + 1, b, b + 1);
+  }
+  return new Geometry(gl, {
+    position: { size: 3, data: new Float32Array(pos) },
+    normal: { size: 3, data: new Float32Array(nor) },
+    index: { data: new Uint16Array(idx) },
+  });
+}
+
+export default function Object3DHero({ kind = 'dna', colors }: { kind?: Object3DKind; colors?: [Rgb, Rgb, Rgb, Rgb] }) {
+  const ref = useRef<HTMLCanvasElement>(null);
+  const c = colors ?? DEFAULT_COLORS;
+  const key = JSON.stringify(c) + '|' + kind;
+
+  useEffect(() => {
+    const canvas = ref.current;
+    if (!canvas) return;
+    const reduce = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let raf = 0;
+
+    try {
+      const renderer = new Renderer({ canvas, alpha: false, antialias: true, dpr: Math.min(window.devicePixelRatio || 1, 1.75) });
+      const gl = renderer.gl;
+      gl.clearColor(c[0][0], c[0][1], c[0][2], 1);
+
+      // ── Zemin ──
+      const bgProgram = new Program(gl, {
+        vertex: bgVertex, fragment: bgFragment, depthTest: false, depthWrite: false, cullFace: false,
+        uniforms: { uTime: { value: 0 }, uC1: { value: c[0] }, uC2: { value: c[1] }, uC3: { value: c[2] }, uC4: { value: c[3] } },
+      });
+      const bgMesh = new Mesh(gl, { geometry: new Triangle(gl), program: bgProgram });
+
+      // ── Sahne ──
+      const camera = new Camera(gl, { fov: 32, near: 0.1, far: 100 });
+      camera.position.set(0, 0, 9);
+      camera.lookAt([0, 0, 0]);
+      const scene = new Transform();
+      const root = new Transform();
+      root.setParent(scene);
+      root.rotation.x = 0.16;
+
+      const fx = new Transform(); // parçacıklar (helix'le dönmez)
+
+      const lightDir: [number, number, number] = [0.45, 0.75, 0.65];
+      const litProg = (col: Rgb, glow: number) => new Program(gl, {
+        vertex: litVertex, fragment: litFragment,
+        uniforms: { uColor: { value: col }, uLightDir: { value: lightDir }, uFog: { value: c[0] }, uGlow: { value: glow } },
+      });
+
+      let dotProgram: Program | null = null;
+
+      if (kind === 'dna') {
+        const R = 1.02, HGT = 5.2, TURNS = 2.5, N = 20;
+        const cA = c[2], cB = c[3];
+
+        // Omurga tüpleri (iki iplik)
+        const progA = litProg(cA, 0.7), progB = litProg(cB, 0.7);
+        new Mesh(gl, { geometry: buildHelixTube(gl, 0, R, HGT, TURNS, 150, 0.1, 8), program: progA }).setParent(root);
+        new Mesh(gl, { geometry: buildHelixTube(gl, Math.PI, R, HGT, TURNS, 150, 0.1, 8), program: progB }).setParent(root);
+
+        // Baz-çiftleri: her iplikte küçük küre + ortada bağlayan çubuk
+        const sphere = new Sphere(gl, { radius: 1, widthSegments: 20, heightSegments: 14 });
+        const bar = new Box(gl, { width: 1, height: 1, depth: 1 });
+        const rungProg = litProg([0.86, 0.9, 0.88], 0.5);
+        for (let i = 0; i < N; i++) {
+          const f = i / (N - 1), y = (f - 0.5) * HGT, ang = f * TURNS * TAU;
+          const ax = Math.cos(ang) * R, az = Math.sin(ang) * R;
+          const sA = new Mesh(gl, { geometry: sphere, program: progA });
+          sA.position.set(ax, y, az); sA.scale.set(0.17, 0.17, 0.17); sA.setParent(root);
+          const sB = new Mesh(gl, { geometry: sphere, program: progB });
+          sB.position.set(-ax, y, -az); sB.scale.set(0.17, 0.17, 0.17); sB.setParent(root);
+          const rung = new Mesh(gl, { geometry: bar, program: rungProg });
+          rung.position.set(0, y, 0); rung.scale.set(R * 2, 0.05, 0.05); rung.rotation.y = -ang; rung.setParent(root);
+        }
+
+        // Parçacıklar (genetik toz)
+        const COUNT = 130;
+        const pp = new Float32Array(COUNT * 3), ps = new Float32Array(COUNT);
+        for (let i = 0; i < COUNT; i++) {
+          pp[i * 3] = (Math.random() - 0.5) * 8;
+          pp[i * 3 + 1] = (Math.random() - 0.5) * 7;
+          pp[i * 3 + 2] = (Math.random() - 0.5) * 5 - 0.5;
+          ps[i] = 0.6 + Math.random() * 1.8;
+        }
+        dotProgram = new Program(gl, {
+          vertex: dotVertex, fragment: dotFragment, transparent: true, depthTest: true, depthWrite: false,
+          uniforms: { uTime: { value: 0 }, uColor: { value: [0.75, 0.95, 0.7] as Rgb } },
+        });
+        dotProgram.setBlendFunc(gl.SRC_ALPHA, gl.ONE); // additive
+        const dots = new Mesh(gl, {
+          geometry: new Geometry(gl, { position: { size: 3, data: pp }, aSize: { size: 1, data: ps } }),
+          program: dotProgram, mode: gl.POINTS,
+        });
+        dots.setParent(fx);
+      }
+
+      const resize = () => {
+        const p = canvas.parentElement;
+        const w = (p && p.clientWidth) || window.innerWidth || 1200;
+        const h = (p && p.clientHeight) || window.innerHeight || 800;
+        renderer.setSize(w, h);
+        camera.perspective({ aspect: w / h });
+      };
+      resize();
+      window.addEventListener('resize', resize);
+
+      const start = performance.now();
+      const draw = (now: number) => {
+        const t = (now - start) / 1000;
+        bgProgram.uniforms.uTime.value = t;
+        if (dotProgram) dotProgram.uniforms.uTime.value = t;
+        root.rotation.y = t * 0.3;
+        root.position.y = Math.sin(t * 0.5) * 0.12;      // nazik süzülme
+        renderer.render({ scene: bgMesh });
+        renderer.render({ scene, camera, clear: false, frustumCull: false });
+        renderer.render({ scene: fx, camera, clear: false, frustumCull: false });
+      };
+
+      // İlk kareyi SENKRON çiz (boş ilk boyama + donuk-önizleme sekmesi için).
+      draw(reduce ? start + 6000 : start);
+
+      let visible = true;
+      const loop = (now: number) => {
+        if (!visible) { raf = 0; return; }             // ekran dışı → dur
+        draw(now);
+        raf = requestAnimationFrame(loop);
+      };
+      if (!reduce) raf = requestAnimationFrame(loop);
+
+      const io = reduce ? null : new IntersectionObserver(([e]) => {
+        visible = e.isIntersecting;
+        if (visible && !raf) raf = requestAnimationFrame(loop);
+      }, { rootMargin: '200px' });
+      io?.observe(canvas.parentElement ?? canvas);
+
+      return () => {
+        cancelAnimationFrame(raf);
+        io?.disconnect();
+        window.removeEventListener('resize', resize);
+        // NOT: WEBGL_lose_context.loseContext() BİLEREK çağrılmıyor. React Strict
+        // Mode (dev) effect'i mount→unmount→mount çalıştırır; loseContext ilk
+        // unmount'ta bağlamı kalıcı öldürüp remount'ta aynı ölü bağlamı verirdi →
+        // obje dev'de hiç görünmezdi (ShaderHero'da bu dev artefaktı var). Bağlam,
+        // sayfa gezilince canvas DOM'dan kalkınca GC ile serbest kalır; hero tek
+        // tek göründüğünden WebGL bağlam sınırı sorun olmaz.
+      };
+    } catch {
+      canvas.style.display = 'none';
+    }
+  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return <canvas ref={ref} className="absolute inset-0 h-full w-full" aria-hidden />;
+}

@@ -26,8 +26,10 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
 import type { Rgb } from './ShaderHero';
+import type { Object3DKind } from './Object3DHero';
 
 const ShaderHero = dynamic(() => import('./ShaderHero'), { ssr: false, loading: () => null });
+const Object3DHero = dynamic(() => import('./Object3DHero'), { ssr: false, loading: () => null });
 
 // Zemin de temaya dahil: koyu-yeşil varsayılan korunur (mevcut makaleler değişmesin),
 // ama bir makale kendi zeminini verebilir (ör. Sezar'ın obsidyen-kan siyahı).
@@ -92,8 +94,8 @@ export function ArticleShell({ accent = '#34d399', bg = DEFAULT_BG, title, backH
 }
 
 /* ─── Hero: WebGL + pinlenip parçalanan başlık ─── */
-export function ArticleHero({ title, fullTitle, eyebrow, subtitle, colors, gradientText }: {
-  title: string; fullTitle?: string; eyebrow?: string; subtitle?: ReactNode; colors?: [Rgb, Rgb, Rgb, Rgb]; gradientText?: string;
+export function ArticleHero({ title, fullTitle, eyebrow, subtitle, colors, gradientText, object3d }: {
+  title: string; fullTitle?: string; eyebrow?: string; subtitle?: ReactNode; colors?: [Rgb, Rgb, Rgb, Rgb]; gradientText?: string; object3d?: Object3DKind;
 }) {
   const accent = useAccent();
   const bg = useBg();
@@ -102,8 +104,20 @@ export function ArticleHero({ title, fullTitle, eyebrow, subtitle, colors, gradi
   useGSAP(() => {
     const reduce = prefersReduced();
     tameMobilePin(); // ScrollTrigger'ı kaydeder + mobil adres-çubuğu resize'ını yok sayar
-    const chars = Array.from(heroRef.current!.querySelectorAll<HTMLElement>('.hero-char'));
     if (reduce) return;
+
+    // 3D OBJE MODU: parçalanma da pin de YOK. Başlık sabit; yalnızca nazik bir
+    // giriş (overwrite-güvenli, tek hedef → titreme/flaş yok). Scroll'da hero
+    // normal akıp gider; 3D obje görünürken döner (Object3DHero kendi rAF'ıyla).
+    if (object3d) {
+      gsap.from('.hero-eyebrow', { opacity: 0, y: 18, duration: 0.8, delay: 0.1 });
+      gsap.from('.hero-title-stable', { opacity: 0, y: 26, duration: 1.0, ease: 'power3.out', delay: 0.2 });
+      gsap.from('.hero-sub', { opacity: 0, y: 24, duration: 0.9, delay: 0.55 });
+      return;
+    }
+
+    // KLASİK MOD: pinlenip parçalanan başlık (harf harf savrulma).
+    const chars = Array.from(heroRef.current!.querySelectorAll<HTMLElement>('.hero-char'));
     // Giriş (yükleme) animasyonları
     gsap.from(chars, { yPercent: 120, opacity: 0, filter: 'blur(12px)', stagger: 0.045, duration: 0.9, ease: 'power3.out', delay: 0.15 });
     gsap.from('.hero-eyebrow', { opacity: 0, y: 18, duration: 0.8, delay: 0.1 });
@@ -124,7 +138,7 @@ export function ArticleHero({ title, fullTitle, eyebrow, subtitle, colors, gradi
   return (
     <header ref={heroRef} className="relative flex h-[100svh] items-center justify-center overflow-hidden">
       <div className="absolute inset-0" style={{ background: `radial-gradient(120% 120% at 50% 30%, color-mix(in srgb, ${accent} 22%, ${bg}), ${bg})` }} aria-hidden />
-      <div className="hero-shader absolute inset-0"><ShaderHero colors={colors} /></div>
+      <div className="hero-shader absolute inset-0">{object3d ? <Object3DHero kind={object3d} colors={colors} /> : <ShaderHero colors={colors} />}</div>
       <div className="pointer-events-none absolute inset-0" style={{ background: `linear-gradient(to bottom, transparent, transparent, ${bg})` }} aria-hidden />
 
       <div className="relative z-10 px-6 text-center">
@@ -132,15 +146,24 @@ export function ArticleHero({ title, fullTitle, eyebrow, subtitle, colors, gradi
             dev animasyonlu kelime dekoratif (aria-hidden). Sayfada TEK h1. */}
         <h1 className="sr-only">{fullTitle ?? title}</h1>
         {eyebrow && <div className="hero-eyebrow mb-4 text-xs font-semibold tracking-[0.3em]" style={{ color: `color-mix(in srgb, ${accent} 85%, white)` }}>{eyebrow}</div>}
-        <div className="flex flex-wrap justify-center text-6xl font-black leading-[0.95] tracking-tight text-white drop-shadow-[0_2px_30px_rgba(0,0,0,0.5)] sm:text-8xl" aria-hidden>
-          {title.split(' ').map((word, wi) => (
-            <span key={wi} className="mr-3 inline-flex whitespace-nowrap sm:mr-5">
-              {word.split('').map((ch, ci) => (
-                <span key={ci} className="hero-char inline-block" style={gradientText && word === gradientText ? { color: accent } : undefined}>{ch}</span>
-              ))}
-            </span>
-          ))}
-        </div>
+        {object3d ? (
+          /* 3D obje modu: sabit, tek parça başlık (parçalanma yok → titreme/flaş yok) */
+          <div className="hero-title-stable flex flex-wrap justify-center text-6xl font-black leading-[0.95] tracking-tight text-white drop-shadow-[0_2px_30px_rgba(0,0,0,0.5)] sm:text-8xl" aria-hidden>
+            {title.split(' ').map((word, wi) => (
+              <span key={wi} className="mr-3 whitespace-nowrap sm:mr-5" style={gradientText && word === gradientText ? { color: accent } : undefined}>{word}</span>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-wrap justify-center text-6xl font-black leading-[0.95] tracking-tight text-white drop-shadow-[0_2px_30px_rgba(0,0,0,0.5)] sm:text-8xl" aria-hidden>
+            {title.split(' ').map((word, wi) => (
+              <span key={wi} className="mr-3 inline-flex whitespace-nowrap sm:mr-5">
+                {word.split('').map((ch, ci) => (
+                  <span key={ci} className="hero-char inline-block" style={gradientText && word === gradientText ? { color: accent } : undefined}>{ch}</span>
+                ))}
+              </span>
+            ))}
+          </div>
+        )}
         {subtitle && <p className="hero-sub mx-auto mt-6 max-w-xl text-lg text-white/85 drop-shadow">{subtitle}</p>}
       </div>
 
