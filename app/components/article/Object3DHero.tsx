@@ -16,7 +16,7 @@ import type { Rgb } from './ShaderHero';
 // `kind`: 'dna' | 'coin'. 'coin' + `src` (görsel) → dokulu altın sikke.
 // ─────────────────────────────────────────────────────────────────────────
 
-export type Object3DKind = 'dna' | 'coin' | 'wreath' | 'cannon' | 'helmet' | 'prism' | 'atom';
+export type Object3DKind = 'dna' | 'coin' | 'wreath' | 'cannon' | 'helmet' | 'prism' | 'atom' | 'nucleus';
 
 const DEFAULT_COLORS: [Rgb, Rgb, Rgb, Rgb] = [
   [0.016, 0.086, 0.063], [0.063, 0.45, 0.30], [0.40, 0.83, 0.31], [0.98, 0.74, 0.18],
@@ -527,6 +527,8 @@ export default function Object3DHero({ kind = 'dna', colors, src }: { kind?: Obj
       let coinSpin: Transform | null = null;
       let renderOnce: ((n: number) => void) | null = null;
       const orbiters: { t: Transform; sp: number; ph: number }[] = []; // dönen elektronlar (atom)
+      let pulseGroup: Transform | null = null;                          // titreşen çekirdek (nucleus)
+      const emitters: { m: Mesh; dir: number[]; sp: number; ph: number }[] = []; // ışıma parçacıkları
 
       if (kind === 'dna') {
         const R = 1.02, HGT = 5.2, TURNS = 2.5, N = 20;
@@ -738,6 +740,32 @@ export default function Object3DHero({ kind = 'dna', colors, src }: { kind?: Obj
           e.position.set(orbitR, 0, 0); e.scale.set(0.11, 0.11, 0.11); e.setParent(spinner);
           orbiters.push({ t: spinner, sp: 1.1 + k * 0.55, ph: k * 2.1 });
         }
+      } else if (kind === 'nucleus') {
+        dust = [0.6, 1.0, 0.55]; spinY = 0.1; tiltX = 0.1;
+        root.rotation.x = tiltX;
+        const litP = (col: Rgb, glow: number) => new Program(gl, {
+          vertex: litVertex, fragment: litFragment, cullFace: false,
+          uniforms: { uColor: { value: col }, uLightDir: { value: lightDir }, uFog: { value: c[0] }, uGlow: { value: glow } },
+        });
+        const protonProg = litP([0.93, 0.28, 0.22], 0.5), neutronProg = litP([0.44, 0.52, 0.74], 0.5);
+        const sph = new Sphere(gl, { radius: 1, widthSegments: 18, heightSegments: 14 });
+        const jit = (n: number) => { const x = Math.sin(n * 127.1) * 43758.5453; return x - Math.floor(x); };
+        // kararsız çekirdek (titreşir → pulseGroup)
+        const nuc = new Transform(); nuc.setParent(root); pulseGroup = nuc;
+        for (let i = 0; i < 28; i++) {
+          const theta = jit(i * 3) * TAU, phi = Math.acos(2 * jit(i * 3 + 1) - 1), rad = 0.44 * Math.cbrt(jit(i * 3 + 2));
+          const m = new Mesh(gl, { geometry: sph, program: i % 2 ? protonProg : neutronProg });
+          m.position.set(rad * Math.sin(phi) * Math.cos(theta), rad * Math.sin(phi) * Math.sin(theta), rad * Math.cos(phi));
+          m.scale.set(0.18, 0.18, 0.18); m.setParent(nuc);
+        }
+        // dışa fırlayan ışıma parçacıkları (α amber, β camgöbeği, γ mor)
+        const rayProgs = [litP([1.0, 0.62, 0.15], 2.2), litP([0.35, 0.9, 1.0], 2.2), litP([0.85, 0.55, 1.0], 2.2)];
+        for (let i = 0; i < 16; i++) {
+          const th = jit(i * 5) * TAU, ph = Math.acos(2 * jit(i * 5 + 1) - 1);
+          const m = new Mesh(gl, { geometry: sph, program: rayProgs[i % 3] });
+          m.setParent(root);
+          emitters.push({ m, dir: [Math.sin(ph) * Math.cos(th), Math.sin(ph) * Math.sin(th), Math.cos(ph)], sp: 0.35 + jit(i * 5 + 2) * 0.3, ph: jit(i * 5 + 3) });
+        }
       }
 
       // Parçacıklar (toz)
@@ -777,6 +805,11 @@ export default function Object3DHero({ kind = 'dna', colors, src }: { kind?: Obj
         if (coinSpin) coinSpin.rotation.y = t * spinY; else root.rotation.y = t * spinY;
         root.position.y = Math.sin(t * 0.5) * 0.12;
         for (const o of orbiters) o.t.rotation.z = t * o.sp + o.ph; // elektronlar yörüngede döner
+        if (pulseGroup) { const s = 1 + 0.05 * Math.sin(t * 5); pulseGroup.scale.set(s, s, s); } // çekirdek titreşir
+        for (const e of emitters) { // ışıma parçacıkları dışa fırlar (yakında doğar, uzakta söner)
+          const d = ((t * e.sp + e.ph) % 1 + 1) % 1, dist = 0.42 + d * 2.9, s = 0.13 * Math.sin(d * Math.PI);
+          e.m.position.set(e.dir[0] * dist, e.dir[1] * dist, e.dir[2] * dist); e.m.scale.set(s, s, s);
+        }
         renderer.render({ scene: bgMesh });
         renderer.render({ scene, camera, clear: false, frustumCull: false });
         renderer.render({ scene: fx, camera, clear: false, frustumCull: false });

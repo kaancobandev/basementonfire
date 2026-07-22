@@ -35,7 +35,8 @@ export default function RadyoaktiviteClient() {
         title="Radyoaktivite"
         fullTitle="Radyoaktivite — Bulutlu Bir Paris Günü ve İçinizdeki Saniyede 8.000 Bozunma"
         eyebrow="ATOMLAR SABIRSIZ · İNTERAKTİF DOSYA"
-        subtitle={<>Bir kadının el yazısı, öldüğünden bir asır sonra hâlâ <strong className="font-semibold text-lime-300">ışıma yapıyor.</strong> Aşağı kaydır: başlık dağılsın, çekirdekler <em className="not-italic text-amber-300">bozunmaya</em> başlasın.</>}
+        object3d="nucleus"
+        subtitle={<>Bir kadının el yazısı, öldüğünden bir asır sonra hâlâ <strong className="font-semibold text-lime-300">ışıma yapıyor.</strong> Aşağı kaydır: çekirdek <em className="not-italic text-amber-300">bozunmaya</em> başlasın.</>}
       />
 
       <ArticleLede points={[
