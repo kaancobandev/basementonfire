@@ -16,7 +16,7 @@ import type { Rgb } from './ShaderHero';
 // `kind`: 'dna' | 'coin'. 'coin' + `src` (görsel) → dokulu altın sikke.
 // ─────────────────────────────────────────────────────────────────────────
 
-export type Object3DKind = 'dna' | 'coin' | 'wreath' | 'cannon';
+export type Object3DKind = 'dna' | 'coin' | 'wreath' | 'cannon' | 'helmet';
 
 const DEFAULT_COLORS: [Rgb, Rgb, Rgb, Rgb] = [
   [0.016, 0.086, 0.063], [0.063, 0.45, 0.30], [0.40, 0.83, 0.31], [0.98, 0.74, 0.18],
@@ -325,6 +325,35 @@ function buildLathe(gl: GL, profile: number[][], seg: number) {
   });
 }
 
+/* Oluklu kubbe (Y ekseni etrafında dönme + açısal oluk modülasyonu). Miğfer
+   kubbesi için: [y, yarıçap] profili + `flutes` dikey oluk; oluk brim ve finial'de
+   0'a, kubbe ortasında en yükseğe taperlanır. */
+function buildDomeFluted(gl: GL, profile: number[][], seg: number, flutes: number, amp: number) {
+  const pos: number[] = [], idx: number[] = [];
+  const M = profile.length;
+  const y0 = profile[0][0], y1 = profile[M - 1][0];
+  for (let i = 0; i < M; i++) {
+    const y = profile[i][0], r = profile[i][1];
+    const t = (y - y0) / (y1 - y0);
+    const fl = amp * Math.sin(Math.PI * Math.min(1, Math.max(0, (t - 0.05) / 0.75)));
+    for (let j = 0; j <= seg; j++) {
+      const th = (j / seg) * TAU;
+      const rr = r * (1 + fl * Math.cos(flutes * th));
+      pos.push(Math.cos(th) * rr, y, Math.sin(th) * rr);
+    }
+  }
+  const ring = seg + 1;
+  for (let i = 0; i < M - 1; i++) for (let j = 0; j < seg; j++) {
+    const a = i * ring + j, b = (i + 1) * ring + j;
+    idx.push(a, b, a + 1, a + 1, b, b + 1);
+  }
+  return new Geometry(gl, {
+    position: { size: 3, data: new Float32Array(pos) },
+    normal: { size: 3, data: computeNormals(pos, idx) },
+    index: { data: new Uint16Array(idx) },
+  });
+}
+
 export default function Object3DHero({ kind = 'dna', colors, src }: { kind?: Object3DKind; colors?: [Rgb, Rgb, Rgb, Rgb]; src?: string }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const c = colors ?? DEFAULT_COLORS;
@@ -492,6 +521,41 @@ export default function Object3DHero({ kind = 'dna', colors, src }: { kind?: Obj
             b.scale.set(0.052, 0.052, 0.052); b.setParent(barrelGroup);
           }
         }
+      } else if (kind === 'helmet') {
+        dust = [0.92, 0.86, 0.6]; spinY = 0.3; tiltX = 0.08;
+        root.rotation.x = tiltX;
+        const helmet = new Transform(); helmet.setParent(root);
+        helmet.position.y = -0.5; helmet.scale.set(1.05, 1.05, 1.05);
+        const steel: Rgb = [0.60, 0.65, 0.73];
+        const gold: Rgb = [1.0, 0.83, 0.46];
+        const steelProg = new Program(gl, {
+          vertex: litVertex, fragment: litFragment, cullFace: false,
+          uniforms: { uColor: { value: steel }, uLightDir: { value: lightDir }, uFog: { value: c[0] }, uGlow: { value: 0.85 } },
+        });
+        const goldProg = new Program(gl, {
+          vertex: litVertex, fragment: litFragment, cullFace: false,
+          uniforms: { uColor: { value: gold }, uLightDir: { value: lightDir }, uFog: { value: c[0] }, uGlow: { value: 0.9 } },
+        });
+        // Kubbe profili [y, yarıçap]: brim → soğan-kubbe → finial boyun → topuz → sivri uç
+        const P = [
+          [-0.06, 0.80], [0.00, 0.92], [0.05, 0.90],
+          [0.10, 0.86], [0.30, 0.83], [0.50, 0.78],
+          [0.70, 0.70], [0.90, 0.58], [1.08, 0.44],
+          [1.24, 0.28], [1.36, 0.16], [1.44, 0.09],
+          [1.48, 0.06], [1.52, 0.10], [1.56, 0.11], [1.60, 0.075],
+          [1.64, 0.03], [1.70, 0.008],
+        ];
+        new Mesh(gl, { geometry: buildDomeFluted(gl, P, 96, 18, 0.05), program: steelProg }).setParent(helmet);
+        // brim altın bandı (yatay torus)
+        const rim = new Mesh(gl, { geometry: new Torus(gl, { radius: 0.9, tube: 0.055, radialSegments: 14, tubularSegments: 100 }), program: goldProg });
+        rim.rotation.x = Math.PI / 2; rim.setParent(helmet);
+        // burunluk (nasal bar): önde aşağı inen ince altın şerit + yaprak uç
+        const bar = new Mesh(gl, { geometry: new Box(gl, { width: 1, height: 1, depth: 1 }), program: goldProg });
+        bar.position.set(0, -0.26, 0.85); bar.scale.set(0.11, 0.64, 0.055); bar.setParent(helmet);
+        const leaf = new Mesh(gl, { geometry: new Sphere(gl, { radius: 1, widthSegments: 12, heightSegments: 10 }), program: goldProg });
+        leaf.position.set(0, -0.64, 0.86); leaf.scale.set(0.13, 0.22, 0.045); leaf.setParent(helmet); // aşağı bakan yaprak/mahmuz
+        const knob = new Mesh(gl, { geometry: new Sphere(gl, { radius: 1, widthSegments: 12, heightSegments: 10 }), program: goldProg });
+        knob.position.set(0, 1.69, 0); knob.scale.set(0.05, 0.065, 0.05); knob.setParent(helmet); // tepe altın topuz
       }
 
       // Parçacıklar (toz)

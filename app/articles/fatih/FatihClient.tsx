@@ -59,7 +59,7 @@ export default function FatihClient() {
         eyebrow="1462 · TRUVA · BİR MEZARIN BAŞINDA"
         gradientText="Fatih"
         colors={HERO_COLORS}
-        object3d="cannon"
+        object3d="helmet"
         subtitle={<>Otuz yaşında bir padişah, ölmüş bir Yunan kahramanının mezarı başında duruyor ve İlyada'nın devam filmini çektiğini söylüyor. Kahraman da değil, canavar da — takıntılı.</>}
       />
 
