@@ -27,10 +27,17 @@ import Img from './Img';
 // taşıyor, logo refakatçi. Glow/halo ÖNERİLMEZ: %25 mürekkep kaplamasında 36px'te
 // bulanık leke yapar. Gerekirse çözüm ayrı bir koyu-tema varyantıdır.
 export default function Logo({ size = 36, className }: { size?: number; className?: string }) {
+  // TEK CDN KOVASI (2026-07-23 denetimi): eskiden fixedWidth düz size*2 idi →
+  // landing'de hero üst çubuk (30→w=60) ile sidebar (36→w=72) AYNI logoyu iki
+  // farklı URL'den indiriyor ve İKİSİ de preload'lanıyordu (mobilde sidebar
+  // CSS'le gizliyken bile). Küçük boylar (≤36) 72'lik tek kovada birleşti:
+  // ikinci istek tarayıcı önbelleğinden gelir, preload teke iner. Daha büyük
+  // çağrılar (ör. HomeFeed size=54 → w=108) kendi 2x keskinliğini korur.
+  const bucket = size * 2 <= 72 ? 72 : size * 2;
   return (
     <Img
       src="/brand/logo-512.png"
-      fixedWidth={size * 2}
+      fixedWidth={bucket}
       width={size}
       height={size}
       className={className}

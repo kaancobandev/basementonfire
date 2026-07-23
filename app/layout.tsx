@@ -117,17 +117,15 @@ export default function RootLayout({ children, modal }: { children: React.ReactN
   return (
     <html lang="tr" className={`${fontDisplay.variable} ${fontBody.variable}`} suppressHydrationWarning>
       <head>
-        {/* Supabase'e erken bağlantı: video/avatar/hikâye medyası + realtime
-            ilk istekte DNS+TLS beklemez (crossorigin'li olan fetch/XHR için) */}
+        {/* Supabase'e erken bağlantı: realtime + istemci fetch'leri (nav-state
+            sonrası) ilk istekte DNS+TLS beklemez. TEK preconnect ve crossorigin'li:
+            bu origin'e giden her şey CORS'lu fetch/XHR/WebSocket — crossorigin'siz
+            ikizi (2026-07-23 denetimi) hiçbir isteğin kullanmadığı İKİNCİ bir TLS
+            el sıkışması açıyordu, kaldırıldı. Giphy preconnect'i de buradan feed'e
+            taşındı: landing + 32 makale Giphy'ye tek istek atmıyor. */}
         {process.env.NEXT_PUBLIC_SUPABASE_URL && (
-          <>
-            <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL} />
-            <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL} crossOrigin="anonymous" />
-          </>
+          <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL} crossOrigin="anonymous" />
         )}
-        {/* Feed'deki GIF'ler Giphy CDN'inden gelir — DNS+TLS'i önden aç */}
-        <link rel="dns-prefetch" href="https://media3.giphy.com" />
-        <link rel="preconnect" href="https://media3.giphy.com" crossOrigin="anonymous" />
         <script
           dangerouslySetInnerHTML={{
             // 'js'/'reduced' sınıfları ilk boyamadan ÖNCE eklenir → makale .reveal

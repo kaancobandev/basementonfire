@@ -181,6 +181,8 @@ export const metadata: Metadata = {
 export default async function FeedPage() {
   // getMe (2 ağ turu: auth + users) içerik sorgularına bağımlı değil → paralel.
   // Paylaşılan feed içeriği önbellekten (30sn); kişiye özel değil.
+  // (Giphy preconnect'i aşağıdaki JSX'te: GIF'ler yalnız feed'de render edilir,
+  // kök layout'tan 2026-07-24'te buraya taşındı — landing/makale boşuna açmasın.)
   const [{ me }, [{ rawFacts, rawPosts, storiesRaw }, dyks]] = await Promise.all([
     getMe(),
     Promise.all([getHomeContent(), getDidYouKnow()]),
@@ -299,7 +301,12 @@ export default async function FeedPage() {
     (a.stories.some(st => !st.seen) ? 0 : 1) - (b.stories.some(st => !st.seen) ? 0 : 1));
 
   return (
-    <HomeFeed
+    <>
+      {/* Feed'deki GIF'ler Giphy CDN'inden gelir — DNS+TLS'i önden aç.
+          React bu link'i head'e taşır; yalnız bu sayfada emit edilir. */}
+      <link rel="dns-prefetch" href="https://media3.giphy.com" />
+      <link rel="preconnect" href="https://media3.giphy.com" crossOrigin="anonymous" />
+      <HomeFeed
       feedItems={feedItems as any}
       likedFactIds={likedFactIds}
       likedPostIds={likedPostIds}
@@ -310,6 +317,7 @@ export default async function FeedPage() {
       canMatch={MATCHING_ENABLED && isAtLeast(me?.birthdate, MATCH_MIN_AGE)}
       ownStoryUser={ownStoryUser}
       otherStoryUsers={otherStoryUsers}
-    />
+      />
+    </>
   );
 }

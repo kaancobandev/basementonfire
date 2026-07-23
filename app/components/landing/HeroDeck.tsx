@@ -35,6 +35,13 @@ export default function HeroDeck({ subline }: { subline: string }) {
 
   return (
     <header className={s.hero}>
+      {/* LCP PRELOAD (2026-07-23 denetimi): hero <picture> HTML'in ~17. KB'ında
+          keşfediliyordu ve head'de 4 font + logo preload'ları ondan ÖNCE bant
+          genişliği alıyordu. React bu <link>'leri head'e taşır (hoist) → LCP
+          isteği kuyruğun başına geçer. type=image/avif: AVIF bilmeyen nadir
+          tarayıcı preload'u atlar, <picture> yine webp'ye düşer (zarar yok). */}
+      <link rel="preload" as="image" type="image/avif" media="(min-width: 700px)" href="/landing/hero-desktop.avif" fetchPriority="high" />
+      <link rel="preload" as="image" type="image/avif" media="(max-width: 699px)" href="/landing/hero-mobile.avif" fetchPriority="high" />
       {/* TAM GENİŞLİK ARKA PLAN GÖRSELİ — masaüstü yatay / mobil dikey (art
           direction: ayrı 700px kırılımı). AVIF→WebP; hero LCP olduğundan eager +
           yüksek öncelik yüklenir. Görsel dekoratif (alt=""), okunurluğu scrim sağlar. */}
