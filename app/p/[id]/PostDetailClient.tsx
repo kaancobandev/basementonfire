@@ -9,6 +9,7 @@ import { factMediaList } from '@/lib/types';
 import ReportButton from '@/app/components/ReportButton';
 import CommentLikeButton from '@/app/components/CommentLikeButton';
 import { avatarSrc } from '@/lib/avatar';
+import TimeAgo from '@/app/components/TimeAgo';
 
 interface PostProp {
   id: number; user_id: number; caption: string; media_url: string; media_type: string; media: unknown;
@@ -21,10 +22,10 @@ interface CommentT {
 }
 interface CurrentUser { id: number; username: string; display_name: string; }
 
-function timeAgo(iso: string) {
-  const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-  if (s < 60) return `${s}sn`; if (s < 3600) return `${Math.floor(s / 60)}dk`; if (s < 86400) return `${Math.floor(s / 3600)}sa`; return `${Math.floor(s / 86400)}g`;
-}
+// Göreli zaman: paylaşılan <TimeAgo> (hidrasyon-güvenli). Buradaki eski yerel
+// timeAgo() SANİYE hassasiyetindeydi ve doğrudan JSX'e basılıyordu → bu sayfa
+// force-dynamic SSR olduğundan sunucu/istemci metni neredeyse her taze gönderide
+// uyuşmaz, React #418 ile ağaç istemcide baştan çizilirdi (2026-07-23 denetimi).
 
 const Avatar = ({ username, avatar, size }: { username: string; display_name: string; avatar: string | null; size: number }) => (
   <span style={{ width: size, height: size, borderRadius: '50%', flexShrink: 0, overflow: 'hidden' }}>
@@ -119,7 +120,7 @@ export default function PostDetailClient({ post, initialComments, commentLikesEn
           <Link href={`/u/${post.username}`} style={{ textDecoration: 'none' }}><Avatar username={post.username} display_name={post.display_name} avatar={post.avatar} size={40} /></Link>
           <div style={{ flex: 1, minWidth: 0 }}>
             <Link href={`/u/${post.username}`} style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--color-text)', textDecoration: 'none', display: 'block' }}>{post.display_name}</Link>
-            <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>@{post.username} · {timeAgo(post.created_at)}</span>
+            <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>@{post.username} · <TimeAgo iso={post.created_at} /></span>
           </div>
           <button onClick={share} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: '1px solid var(--color-border)', borderRadius: 9999, padding: '6px 12px', cursor: 'pointer', color: 'var(--color-text)', fontFamily: 'inherit', fontSize: '0.82rem', fontWeight: 600 }}>
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" x2="12" y1="2" y2="15" /></svg>
@@ -161,7 +162,7 @@ export default function PostDetailClient({ post, initialComments, commentLikesEn
                   <Link href={`/u/${c.username}`} style={{ fontWeight: 700, fontSize: '0.82rem', marginRight: 5, color: 'var(--color-text)', textDecoration: 'none' }}>{c.display_name}</Link>
                   <span style={{ fontSize: '0.85rem', color: 'var(--color-text)', lineHeight: 1.45, wordBreak: 'break-word' }}>{c.content}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 3 }}>
-                    <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>{timeAgo(c.created_at)}</span>
+                    <TimeAgo iso={c.created_at} style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }} />
                     {commentLikesEnabled && <CommentLikeButton commentId={c.id} initialLikes={c.likes} initialLiked={c.liked} />}
                     {currentUser && <button onClick={() => { setReplyToId(c.id); setCommentText(`@${c.username} `); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-muted)', padding: 0, fontFamily: 'inherit' }}>Yanıtla</button>}
                     <ReportButton targetType="comment" targetId={c.id} subtitle={`@${c.username} yorumu`} variant="inline" canReport={!!currentUser && currentUser.id !== c.user_id} />
@@ -176,7 +177,7 @@ export default function PostDetailClient({ post, initialComments, commentLikesEn
                     <Link href={`/u/${r.username}`} style={{ fontWeight: 700, fontSize: '0.8rem', marginRight: 5, color: 'var(--color-text)', textDecoration: 'none' }}>{r.display_name}</Link>
                     <span style={{ fontSize: '0.83rem', color: 'var(--color-text)', lineHeight: 1.45, wordBreak: 'break-word' }}>{r.content}</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 2 }}>
-                      <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>{timeAgo(r.created_at)}</span>
+                      <TimeAgo iso={r.created_at} style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }} />
                       {commentLikesEnabled && <CommentLikeButton commentId={r.id} initialLikes={r.likes} initialLiked={r.liked} />}
                       <ReportButton targetType="comment" targetId={r.id} subtitle={`@${r.username} yorumu`} variant="inline" canReport={!!currentUser && currentUser.id !== r.user_id} />
                     </div>

@@ -11,6 +11,7 @@ import { avatarSrc } from '@/lib/avatar';
 import { factMediaList } from '@/lib/types';
 import ReportButton from '@/app/components/ReportButton';
 import CommentLikeButton from '@/app/components/CommentLikeButton';
+import TimeAgo from '@/app/components/TimeAgo';
 import type { PostProp, DetailComment } from '@/app/p/[id]/postData';
 
 interface CurrentUser { id: number; username: string; display_name: string; avatar: string | null; }
@@ -24,10 +25,8 @@ interface Props {
   currentUser: CurrentUser | null;
 }
 
-function timeAgo(iso: string) {
-  const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-  if (s < 60) return `${s}sn`; if (s < 3600) return `${Math.floor(s / 60)}dk`; if (s < 86400) return `${Math.floor(s / 3600)}sa`; return `${Math.floor(s / 86400)}g`;
-}
+// Göreli zaman: paylaşılan <TimeAgo> (hidrasyon-güvenli, PostDetailClient ile
+// aynı gerekçe — modal yalnız istemci gezinmesinde açılsa da tek desen kalsın).
 
 /**
  * Akış/profil/hashtag'ten bir gönderiye tıklayınca açılan iki-panelli modal.
@@ -149,7 +148,7 @@ export default function PostModal({ post, initialComments, commentLikesEnabled, 
               <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{post.display_name}</div>
               <div style={{ color: 'var(--color-text-muted)', fontSize: '0.78rem' }}>@{post.username}</div>
             </div>
-            <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{timeAgo(post.created_at)}</span>
+            <TimeAgo iso={post.created_at} style={{ marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--color-text-muted)' }} />
             <ReportButton targetType="post" targetId={post.id} subtitle={`@${post.username} gönderisi`} size={30} canReport={!!currentUser && currentUser.id !== post.user_id} />
           </div>
           {post.caption && (
@@ -172,7 +171,7 @@ export default function PostModal({ post, initialComments, commentLikesEnabled, 
                       <span style={{ fontWeight: 700, fontSize: '0.8rem', marginRight: 4 }}>{c.display_name}</span>
                       <span style={{ fontSize: '0.82rem', color: 'var(--color-text)', lineHeight: 1.4, wordBreak: 'break-word' }}>{c.content}</span>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
-                        <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>{timeAgo(c.created_at)}</span>
+                        <TimeAgo iso={c.created_at} style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }} />
                         {commentLikesEnabled && <CommentLikeButton commentId={c.id} initialLikes={c.likes} initialLiked={c.liked} />}
                         <button onClick={() => { setReplyToId(c.id); setCommentText(`@${c.username} `); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-muted)', padding: '1px 0', fontFamily: 'inherit' }}>Yanıtla</button>
                         <ReportButton targetType="comment" targetId={c.id} subtitle={`@${c.username} yorumu`} variant="inline" canReport={!!currentUser && currentUser.id !== c.user_id} />
@@ -189,7 +188,7 @@ export default function PostModal({ post, initialComments, commentLikesEnabled, 
                         <span style={{ fontWeight: 700, fontSize: '0.8rem', marginRight: 4 }}>{r.display_name}</span>
                         <span style={{ fontSize: '0.82rem', color: 'var(--color-text)', lineHeight: 1.4, wordBreak: 'break-word' }}>{r.content}</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
-                          <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>{timeAgo(r.created_at)}</span>
+                          <TimeAgo iso={r.created_at} style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }} />
                           {commentLikesEnabled && <CommentLikeButton commentId={r.id} initialLikes={r.likes} initialLiked={r.liked} />}
                           <ReportButton targetType="comment" targetId={r.id} subtitle={`@${r.username} yorumu`} variant="inline" canReport={!!currentUser && currentUser.id !== r.user_id} />
                         </div>
