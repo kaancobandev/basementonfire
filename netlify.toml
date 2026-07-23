@@ -52,10 +52,29 @@
     # Kullanılmayan güçlü API'leri kapat.
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), browsing-topics=()"
 
-# NOT — CSP bilinçli olarak EKLENMEDİ. 32 makale inline <style> ve ld+json
-# kullanıyor; katı bir script-src/style-src hepsini kırar. Doğru sıra: önce
-# Content-Security-Policy-Report-Only + bir rapor ucu, gerçek ihlalleri topla,
-# sonra zorunlu kıl. Ayrı iş olarak ele alınmalı.
+# ── Content-Security-Policy (2026-07-24'te middleware.ts'ten BURAYA taşındı).
+# Değer üretimde tamamen statikti; middleware'in her istekte başlık basması
+# gereksiz edge işiydi. Burada Netlify'ın sunduğu HER yanıtı kapsar.
+# `next dev` bu dosyayı OKUMAZ → yerelde CSP yok (HMR'ın eval'i de dert olmaktan
+# çıktı; eski middleware dev'e 'unsafe-eval' ekliyordu). `netlify dev` kullanma:
+# o bu başlığı uygular ve eval'siz CSP HMR'ı kırar.
+#
+# Taşınan gerekçe notları (middleware'deki 2026-07-18 kararları):
+# · NONCE YOK: landing + 32 makale build'de önceden üretiliyor (○ Static);
+#   HTML donuk, nonce istek başına değişir — uyuşmazlar. 'unsafe-inline' kaçınılmaz.
+# · Değer yine de kıymetli: base-uri/form-action/object-src enjeksiyon kaçışlarını,
+#   connect-src ise XSS başarılı olsa bile veriyi DIŞARI taşımayı (exfiltration) keser.
+# · img-src bilinçli geniş (https:): dış görsel çeken makaleler + kullanıcı
+#   makaleleri sessizce kırılmasın (carthage Unsplash örneği).
+# · cdnjs script-src'de KALMALI: kullanıcı makalesi sandbox iframe'leri kullanıyor
+#   (kürate makaleler 2026-07-24'te /vendor'a geçti, onlar için artık gerekmiyor).
+# · fonts.gstatic/googleapis: kullanıcı makalelerinin 19 font seçeneği.
+# · GA bölgesel adres kullanır (region1.google-analytics.com) → *.google-analytics.com.
+# · Sorun çıkarsa geri almak: başlık adını Content-Security-Policy-Report-Only yap.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.googleadservices.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.google.com https://*.doubleclick.net https://www.googleadservices.com https://*.giphy.com; frame-src https://www.youtube.com https://www.youtube-nocookie.com https://open.spotify.com; worker-src 'self' blob:; report-uri /api/csp-report"
 
 # ── Statik varlık önbelleği (2026-07-18). ÖNCESİNDE HİÇ YOKTU: public/* ve
 # /.netlify/images türevleri max-age=0 dönüyordu (canlı ölçüldü) → 589KB'lık
@@ -91,5 +110,16 @@
 
 [[headers]]
   for = "/icons/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+# Landing hero fotoğrafları (2026-07-23 denetimi): public/landing/ klasörü
+# 2026-07-21'de — yani buradaki statik varlık geçişinden SONRA — eklendi ve
+# kapsam dışı kaldı → max-age=0 dönüyordu; tekrar ziyarette LCP görseli her
+# seferinde 304 doğrulama turu bekliyordu. /brand mantığı: dosya aynı adla
+# değişebilir → immutable değil, 7 gün.
+# DERS: public/ altına yeni klasör eklerken buraya header bloğu da ekle.
+[[headers]]
+  for = "/landing/*"
   [headers.values]
     Cache-Control = "public, max-age=604800"

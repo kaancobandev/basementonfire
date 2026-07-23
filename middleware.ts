@@ -45,80 +45,12 @@ function hasSessionCookie(request: NextRequest): boolean {
   return request.cookies.getAll().some((c) => /^sb-.+-auth-token(\.\d+)?$/.test(c.name));
 }
 
-/**
- * Content-Security-Policy — ZORUNLU (2026-07-18'de rapor modundan çıkarıldı).
- *
- * NEDEN NONCE YOK: Next.js'in standart CSP deseni her istekte yeni bir nonce
- * üretip script etiketlerine basmaya dayanır. Bu sitede işe YARAMAZ — landing
- * ve 32 makale `○ (Static)` olarak önceden üretiliyor (bkz. `next build`);
- * HTML build'de donuyor, nonce ise istek başına değişiyor, ikisi uyuşmuyor.
- * Dolayısıyla `script-src`'de 'unsafe-inline' kaçınılmaz.
- *
- * O HÂLDE NEYE YARIYOR: CSP'nin değeri script-src'den ibaret değil.
- *  · base-uri 'self'      → enjekte edilen <base> ile tüm göreli URL'leri
- *                            saldırgan sunucusuna çevirme saldırısını keser
- *  · form-action 'self'   → enjekte edilen formun veriyi dışarı POST etmesini keser
- *  · object-src 'none'    → <object>/<embed> tabanlı eski kaçış yollarını kapatır
- *  · connect-src / img-src → XSS başarılı olsa bile veriyi DIŞARI taşıma
- *                            kanallarını daraltır (exfiltration)
- *  · frame-src            → sayfaya rastgele iframe gömülmesini engeller
- *
- * GÖRSELLER NEDEN SERBEST (`img-src ... https:`): katı bir img-src bu sitede
- * kazancından çok kırılma üretiyor. Kod tabanı tarandı ve dış görsel yükleyen
- * yerler bulundu — ör. /articles/carthage hero'su images.unsplash.com'dan bir
- * CSS arka planı çekiyor. Bunlar engellenince görsel SESSİZCE kaybolur, hata
- * da vermez. Üstelik kullanıcı makaleleri serbest gömme HTML'i içerebiliyor ve
- * srcdoc iframe'ler ana sayfanın CSP'sini MİRAS ALIYOR (ölçüldü) → yarın
- * eklenecek her dış görsel sessizce ölürdü. Buna karşılık kazanç düşük:
- * script-src zaten 'unsafe-inline' taşımak zorunda, yani asıl kaçırma kanalı
- * olan connect-src'yi sıkı tutmak img-src'yi sıkı tutmaktan daha değerli.
- *
- * report-uri ZORUNLU modda da duruyor: engellenen bir şey olursa haberimiz olsun.
- */
-const CSP = [
-  "default-src 'self'",
-  "base-uri 'self'",
-  "object-src 'none'",
-  "frame-ancestors 'none'",
-  "form-action 'self'",
-  // 'unsafe-inline': statik render + nonce uyumsuzluğu (yukarıdaki not).
-  // googletagmanager: onay verilmişse yüklenen GA. cdnjs: kullanıcı makalesi
-  // sandbox iframe'lerinin kullandığı confetti kütüphanesi.
-  // 'unsafe-eval' YALNIZCA geliştirmede: webpack/HMR eval kullanıyor ve zorunlu
-  // CSP onu engelleyince yerel geliştirme kırılır. Üretim derlemesinde eval yok,
-  // o yüzden orada eklenmiyor.
-  // googleadservices: Google Ads dönüşüm etiketi (gtag.js zaten googletagmanager'dan).
-  `script-src 'self' 'unsafe-inline' ${process.env.NODE_ENV === 'development' ? "'unsafe-eval' " : ''}https://www.googletagmanager.com https://www.googleadservices.com https://cdnjs.cloudflare.com`,
-  // 39 dosyada <style>, 1878 yerde style={{}} → nonce stil ÖZNİTELİĞİNE
-  // uygulanamaz, 'unsafe-inline' burada da zorunlu. Riski script'in çok altında.
-  // fonts.googleapis: KULLANICI MAKALELERİ (bkz. font-src notu).
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  // https: bilinçli olarak geniş — yukarıdaki "GÖRSELLER NEDEN SERBEST" notu.
-  "img-src 'self' data: blob: https:",
-  "media-src 'self' data: blob: https:",
-  // fonts.gstatic: kullanıcı makaleleri yazara 19 Google Font seçeneği sunuyor
-  // (lib/userArticles.ts → ARTICLE_GOOGLE_FONTS_HREF) ve stylesheet hem editörde
-  // hem /makale/[slug] görüntüleyicisinde yükleniyor. Rapor modu bunu yakaladı:
-  // izin verilmeseydi zorunlu kılındığı an tüm kullanıcı makaleleri fontsuz kalırdı.
-  //
-  // NOT: konsolda yüzlerce font ihlali görünür ama bu İNDİRME DEĞİLDİR — ölçüldü,
-  // görüntüleme sayfasında indirilen font dosyası sayısı SIFIR. Tarayıcı
-  // @font-face kurallarını işlerken bildirilen her URL'i politikayla karşılaştırıp
-  // raporluyor; woff2'ler unicode-range sayesinde yalnızca gerçekten kullanılınca
-  // iniyor. Yani performans sorunu yok, yalnızca izin listesi eksikti.
-  "font-src 'self' data: https://fonts.gstatic.com",
-  // GA4 veriyi BÖLGESEL adreslere gönderir (region1.google-analytics.com gibi),
-  // yalnız www.google-analytics.com yazmak analitiği SESSİZCE öldürürdü.
-  // giphy: istemci doğrudan çağırmıyor (hepsi /api/giphy üzerinden) ama
-  // ileride değişirse diye duruyor — zararsız.
-  // Consent Mode v2 + Google Ads/Signals tam kapasite: doubleclick (Google Signals,
-  // remarketing) + google.com/googleadservices (dönüşüm sinyalleri). img-src zaten
-  // https: geniş → piksel ping'leri kapsıyor.
-  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.google.com https://*.doubleclick.net https://www.googleadservices.com https://*.giphy.com",
-  "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://open.spotify.com",
-  "worker-src 'self' blob:",
-  'report-uri /api/csp-report',
-].join('; ');
+// CSP 2026-07-24'te netlify.toml'a TAŞINDI (tüm gerekçe notlarıyla birlikte —
+// nonce neden yok, img-src neden geniş, cdnjs neden duruyor: hepsi orada).
+// Değer üretimde tamamen statikti; middleware'in her istekte başlık basması
+// gereksiz edge işiydi. Yerelde `next dev` netlify.toml okumadığından CSP yok
+// → HMR'ın eval'i için buradaki development istisnası da gereksizleşti.
+// CSP'yi DEĞİŞTİRECEKSEN netlify.toml'daki [[headers]] "/*" bloğuna git.
 
 export async function middleware(request: NextRequest) {
   // Kanonik alan adına zorla: tüm *.netlify.app host'ları (varsayılan subdomain +
@@ -136,10 +68,6 @@ export async function middleware(request: NextRequest) {
   }
 
   const response = NextResponse.next({ request });
-
-  // ZORUNLU. Sorun çıkarsa geri almak tek kelime: başlığı
-  // 'Content-Security-Policy-Report-Only' yap → engelleme durur, rapor sürer.
-  response.headers.set('Content-Security-Policy', CSP);
 
   const path = request.nextUrl.pathname;
 
@@ -170,12 +98,26 @@ export async function middleware(request: NextRequest) {
   const needsAuthDecision =
     PROTECTED.some((p) => path.startsWith(p)) || path === '/login' || path === '/register';
 
+  // SSR'ı auth OKUMAYAN yollar: prerender/ISR sayfalar (build çıktısında ○/●).
+  // Bayat token'la dönen ziyaretçiyi buralarda refresh için BEKLETME — eskiden
+  // tamamen statik bir makale sayfası bile CDN yanıtından önce 2 Supabase turu
+  // (refresh + getUser, +150-600ms) bekliyordu (2026-07-23 denetimi). Refresh
+  // görevi kaybolmaz: her sayfada istemcinin çağırdığı /api/nav-state route
+  // handler'ı getMe() ile yeniler ve createAuthClient'ın setAll'u cookieStore.set
+  // ile KALICILAŞTIRIR (route handler Set-Cookie yazabilir; RSC yazamaz).
+  //
+  // Liste BİLİNÇLİ olarak "statik yolları atla" yönünde, "dinamikleri say" değil:
+  // listeye girmemiş YENİ bir rota eski davranışı (middleware refresh) alır —
+  // güvenli taraf. Tersi tutulsaydı unutulan dinamik rota refresh'i RSC içinde
+  // yapar, rotation kalıcılaşmaz ve oturum riske girerdi.
+  const STATIC_NO_AUTH_SSR = /^\/(articles(\/|$)|discover$|akis$|muzik$|lig$|gizlilik$|kosullar$|aydinlatma$|acik-riza$)/;
+
   // Halka açık yol + oturum çerezi taze (veya hiç yok) → Supabase Auth'a ağ
   // çağrısı gereksiz: gerçek doğrulamayı zaten her sayfada getMe() yapıyor.
   // Böylece girişli kullanıcı, sayfa başına 1 fazladan auth turu ödemez;
-  // token bitmek üzereyse getUser yine çalışır ve yenilenen oturumu Set-Cookie
-  // ile kalıcılaştırır (aşağıdaki akış).
-  if (!needsAuthDecision && !tokenNeedsRefresh(request)) {
+  // token bitmek üzereyse getUser dinamik yollarda yine çalışır ve yenilenen
+  // oturumu Set-Cookie ile kalıcılaştırır (aşağıdaki akış).
+  if (!needsAuthDecision && (!tokenNeedsRefresh(request) || STATIC_NO_AUTH_SSR.test(path))) {
     return response;
   }
 
