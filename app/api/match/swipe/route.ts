@@ -1,5 +1,6 @@
 import { db, getMe } from '@/lib/supabase/server';
 import { MATCH_MIN_AGE, isAtLeast } from '@/lib/age';
+import { MATCHING_ENABLED } from '@/lib/features';
 import { ARTICLE_MAP } from '@/lib/articles';
 import { NextResponse } from 'next/server';
 
@@ -11,6 +12,9 @@ const json = (data: object, status = 200) => NextResponse.json(data, { status })
 // Karsi taraf beni daha once begenmisse -> eslesme: DM konusmasi bulunur/acilir
 // ve matches satiri yazilir. Donus: { match, conversationId, user }.
 export async function POST(req: Request) {
+  // ÖZELLİK BAYRAĞI — kapalıyken rota yokmuş gibi 404 (sayfayı gizlemek yetmez).
+  if (!MATCHING_ENABLED) return json({ error: 'Bulunamadı' }, 404);
+
   const { me } = await getMe();
   if (!me) return json({ error: 'Giriş gerekli' }, 401);
 

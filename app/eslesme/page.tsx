@@ -1,18 +1,24 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { getMe } from '@/lib/supabase/server';
 import { MATCH_MIN_AGE, isAtLeast } from '@/lib/age';
+import { MATCHING_ENABLED } from '@/lib/features';
 import EslesmeClient from './EslesmeClient';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata: Metadata = {
-  title: 'Eşleştir',
-  description: 'İlgi alanlarına göre yeni insanlarla eşleş. Aynı konulara meraklı kişileri keşfet, beğen ve sohbete başla.',
-  alternates: { canonical: '/eslesme' },
-  robots: { index: false, follow: false }, // kişiye özel keşif akışı — indekslenmesin
-};
+// Bayrak kapalıyken başlık da sızmamalı: 404 gövdesinin üstünde sekmede
+// "Eşleştir" yazması özelliği ele verir. Bu yüzden metadata koşullu.
+export async function generateMetadata(): Promise<Metadata> {
+  if (!MATCHING_ENABLED) return { title: 'Sayfa bulunamadı', robots: { index: false, follow: false } };
+  return {
+    title: 'Eşleştir',
+    description: 'İlgi alanlarına göre yeni insanlarla eşleş. Aynı konulara meraklı kişileri keşfet, beğen ve sohbete başla.',
+    alternates: { canonical: '/eslesme' },
+    robots: { index: false, follow: false }, // kişiye özel keşif akışı — indekslenmesin
+  };
+}
 
 /** 18 altı / doğum tarihi olmayan kullanıcıya gösterilen açıklama ekranı. */
 function KapiEkrani({ dogumTarihiYok }: { dogumTarihiYok: boolean }) {
@@ -65,6 +71,10 @@ function KapiEkrani({ dogumTarihiYok }: { dogumTarihiYok: boolean }) {
 }
 
 export default async function EslesmePage() {
+  // ÖZELLİK BAYRAĞI — her şeyden önce. Kapalıyken rota yokmuş gibi davranır;
+  // /login'e yönlendirmek bile özelliğin varlığını ele verirdi.
+  if (!MATCHING_ENABLED) notFound();
+
   const { me } = await getMe();
   if (!me) redirect('/login');
 

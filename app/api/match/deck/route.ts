@@ -1,5 +1,6 @@
 import { db, getMe } from '@/lib/supabase/server';
 import { MATCH_MIN_AGE, isAtLeast, birthdateCutoff } from '@/lib/age';
+import { MATCHING_ENABLED } from '@/lib/features';
 import { ARTICLE_MAP } from '@/lib/articles';
 import { NextResponse } from 'next/server';
 
@@ -25,6 +26,9 @@ function ageFrom(birthdate: string | null): number | null {
 // Ilgi alani ortusen havuz + son kullanicilar birlestirilir, daha once
 // kaydirdiklarim ve kendim cikarilir, ortak ilgi sayisina gore siralanir.
 export async function GET() {
+  // ÖZELLİK BAYRAĞI — kapalıyken rota yokmuş gibi 404 (sayfayı gizlemek yetmez).
+  if (!MATCHING_ENABLED) return json({ error: 'Bulunamadı' }, 404);
+
   const { me } = await getMe();
   if (!me) return json({ error: 'Giriş gerekli' }, 401);
 

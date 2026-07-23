@@ -1,5 +1,6 @@
 import { db, getMe } from '@/lib/supabase/server';
 import { MATCH_MIN_AGE, isAtLeast } from '@/lib/age';
+import { MATCHING_ENABLED } from '@/lib/features';
 import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -16,6 +17,9 @@ type MatchRow = {
 
 // GET /api/match/matches — benim eslesmelerim (kutlama seridi + DM kisayolu icin).
 export async function GET() {
+  // ÖZELLİK BAYRAĞI — kapalıyken rota yokmuş gibi 404 (sayfayı gizlemek yetmez).
+  if (!MATCHING_ENABLED) return json({ error: 'Bulunamadı' }, 404);
+
   const { me } = await getMe();
   if (!me) return json({ error: 'Giriş gerekli' }, 401);
 
