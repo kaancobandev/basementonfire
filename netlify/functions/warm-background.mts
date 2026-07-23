@@ -11,9 +11,11 @@
 // cache'lenebilir URL'leri bir kez gezer → CDN dolar → gerçek ziyaretçi Edge
 // hit alır ve fonksiyon HİÇ çalışmaz.
 //
-// PING DEĞİL: 5 dakikada bir Lambda'yı sıcak tutmaya çalışmıyoruz (o, yanlış
-// katmanı ısıtır ve tavanı 0,6-1,0 sn'dir). Burada CACHE dolduruluyor; dolduktan
-// sonra fonksiyon hiç çalışmıyor → 0,3 sn.
+// KATMAN AYRIMI: burada CACHE dolduruluyor; dolan sayfada fonksiyon hiç
+// çalışmıyor → 0,3 sn. Cache'lenebilir sayfalar için doğru katman budur.
+// Cache'e GİREMEYEN tek kritik rota /feed (no-store): onun FONKSİYON katmanını
+// 5 dakikada bir keep-warm.mts ısıtır; deploy'un hemen ertesi için de bu
+// fonksiyonun sonunda tek bir uyandırma isteği atılır (2026-07-23).
 //
 // Tetik:  Netlify → Site configuration → Notifications → Deploy notifications
 //         → "Deploy succeeded" → HTTP POST →
@@ -141,6 +143,23 @@ export default async (req: Request) => {
   }
 
   await Promise.all(Array.from({ length: Math.min(CONCURRENCY, urls.length) }, worker));
+
+  // ── /feed UYANDIRMA (cache değil): deploy tüm sıcak Lambda instance'larını
+  // öldürür; girişli kullanıcının ilk uğrağı /feed no-store olduğundan süpürme
+  // ona çare değil. Bu TEK anonim istek server-handler'ı ayağa kaldırır ki
+  // keep-warm.mts'in ilk turundan (≤5 dk) önce gelen girişli ziyaretçi soğuk
+  // başlatma (ölçüm: 3,9-8,2 sn) ödemesin. İzin listesine BİLEREK konmadı:
+  // liste "cache'lenebilir" anlamı taşıyor, /feed değil.
+  try {
+    const t = Date.now();
+    const res = await fetch(`${SITE}/feed`, {
+      headers: { 'user-agent': UA, accept: 'text/html', 'accept-encoding': ACCEPT_ENCODING },
+    });
+    await res.arrayBuffer();
+    lines.push(`${res.status} ${String(Date.now() - t).padStart(5)}ms (lambda-uyandirma) /feed`);
+  } catch (e) {
+    lines.push(`ERR   /feed uyandirma — ${String(e)}`);
+  }
 
   console.log(`[warm] bitti: ${ok} ok / ${fail} hata / ${Date.now() - t0}ms`);
   for (const l of lines) console.log('[warm]  ' + l);

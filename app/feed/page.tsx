@@ -20,18 +20,16 @@ export const dynamic = 'force-dynamic';
 // canlı kalır. Kendi yeni gönderin akış istemcisinde optimistik görünür.
 const getHomeContent = unstable_cache(
   async () => {
-    // Üç sorgu da birbirinden bağımsız → tek Promise.all (stories eskiden
-    // arkadan seri geliyordu; cache-miss başına 1 tur eksildi).
+    // Üç sorgu da birbirinden bağımsız → tek Promise.all.
     // Anket seçenekleri (post_polls) gönderiyle birlikte gelir — herkese aynı
     // veri, paylaşılan önbellekte kalabilir; SAYIMLAR ve kendi oyun istemciden
-    // çekilir (kişiye özel). Tablo yoksa embed'siz sorguya düşülür.
-    let postsRes = await db.from('posts').select('*, users!posts_user_id_fkey(display_name, username, avatar, is_private), post_polls(options)').order('created_at', { ascending: false }).limit(60);
-    if (postsRes.error) {
-      postsRes = await db.from('posts').select('*, users!posts_user_id_fkey(display_name, username, avatar, is_private)').order('created_at', { ascending: false }).limit(60) as any;
-    }
-    const [{ data: rawFacts, error: factsErr }, { data: rawPosts, error: postsErr }, { data: storiesRaw, error: storiesErr }] = await Promise.all([
+    // çekilir (kişiye özel). post_polls tablosu yoksa embed'li sorgu hata verir;
+    // ESKİDEN bu ihtimal için posts ÖNCE tek başına await ediliyordu — her
+    // cache-miss fazladan 1 SERİ Supabase turu ödüyordu (2026-07-23 denetimi).
+    // Embed'siz yedek artık YALNIZ hata dönerse (nadir yol) arkadan koşar.
+    const [{ data: rawFacts, error: factsErr }, postsPrimary, { data: storiesRaw, error: storiesErr }] = await Promise.all([
       db.from('quick_facts').select('*, users!quick_facts_user_id_fkey(display_name, username, avatar, is_private), comments(count)').order('created_at', { ascending: false }).limit(60),
-      Promise.resolve(postsRes),
+      db.from('posts').select('*, users!posts_user_id_fkey(display_name, username, avatar, is_private), post_polls(options)').order('created_at', { ascending: false }).limit(60),
       // `users!stories_user_id_fkey` ŞART — çıplak `users(...)` DEĞİL. story_views
       // tablosu stories↔users arasında ikinci bir ilişki yolu açtığından PostgREST
       // gömmeyi belirsiz sayıp hata veriyor; sonuç sessizce BOŞ hikâye şeridi olur.
@@ -45,6 +43,13 @@ const getHomeContent = unstable_cache(
         // aktif hikâye olursa en eskiler düşer (limitsiz hali tüm tabloyu çekiyordu).
         .limit(100),
     ]);
+    // Nadir yol: post_polls kolonu/tablosu yoksa embed'siz sorguya düş (yalnız
+    // bu durumda fazladan tur ödenir; normal yol yukarıda tamamen paralel).
+    let postsRes = postsPrimary;
+    if (postsRes.error) {
+      postsRes = await db.from('posts').select('*, users!posts_user_id_fkey(display_name, username, avatar, is_private)').order('created_at', { ascending: false }).limit(60) as any;
+    }
+    const { data: rawPosts, error: postsErr } = postsRes;
     logIfError('feed quick_facts', factsErr);
     logIfError('feed posts', postsErr);
     // Müzik alanları sql/features-story-music.sql çalıştırılana kadar YOK. O hâlde
@@ -206,26 +211,46 @@ export default async function FeedPage() {
   let repostedFactIds: number[] = [];
   let likedDykIds: number[] = [];
   let suggestedUsers: SuggestedUser[] = [];
-  if (me) {
-    // Beğeni/repost durumu (içerik listesine bağlı) ile önerilen kullanıcılar
-    // (yalnız me.id'ye bağlı) birbirinden BAĞIMSIZ — eskiden ardışıktı, artık
-    // paralel; öneriler ayrıca 5 dk önbellekli (cache-hit'te 0 sorgu).
-    const dykIds = dyks.map(d => d.id);
-    const [[fr, pr, rr, dl], suggested] = await Promise.all([
-      Promise.all([
-        facts.length ? db.from('fact_likes').select('fact_id').eq('user_id', me.id).in('fact_id', facts.map(f => f.id)) : { data: [] },
-        posts.length ? db.from('post_likes').select('post_id').eq('user_id', me.id).in('post_id', posts.map(p => p.id)) : { data: [] },
-        facts.length ? db.from('fact_reposts').select('fact_id').eq('user_id', me.id).in('fact_id', facts.map(f => f.id)) : { data: [] },
-        // dyk_likes tablosu yoksa error döner, data null kalır → boş liste (defansif).
-        dykIds.length ? db.from('dyk_likes').select('dyk_id').eq('user_id', me.id).in('dyk_id', dykIds) : { data: [] },
-      ]),
+  let seenStoryIds = new Set<number>();
+  // KİŞİYE ÖZEL dalga — girdilerinin HEPSİ (me.id + içerik/hikâye id'leri)
+  // 1. dalga biter bitmez hazır ve birbirlerine bağımlılıkları YOK → TEK
+  // Promise.all. ESKİDEN beğeniler → kitle filtresi → görülme 3 ARDIŞIK
+  // await'ti; her biri Lambda→Supabase tam bir tur beklettiğinden girişli ilk
+  // açılışın içerik boyamasına ~100-300 ms ekliyordu (2026-07-23 denetimi).
+  // Sorgular ve gizlilik filtreleri birebir aynı; yalnız beklemeler çakıştı.
+  //
+  // KİTLE KONTROLÜ (canSeeStory) KİŞİYE ÖZELDİR: paylaşılan önbelleğe
+  // koyulamaz (bir kullanıcının takip/yakın-arkadaş durumu 30 sn boyunca
+  // herkese servis edilirdi — "seen" halkasıyla aynı gerekçe). audience
+  // kolonu yoksa hepsi public sayılır. Öneriler 5 dk önbellekli (hit'te 0 sorgu).
+  //
+  // GORULMEMIS (story_views) id'lerini kitle filtresinden ÖNCEKİ ham listeden
+  // alır (filtre sonucu bu turda henüz yok). Fazlası ZARARSIZ: viewer_id=me.id
+  // koşulu yalnız kullanıcının KENDİ "gördüm" kayıtlarını döndürür; görünmeyen
+  // hikâye aşağıda filtrelenmiş storyMap'e zaten hiç girmez. Tablo yoksa sorgu
+  // sessizce boş döner, halkalar renkli kalır; hiçbir şey kırılmaz.
+  const dykIds = dyks.map(d => d.id);
+  const allStoryIds: number[] = ((storiesRaw ?? []) as any[]).map((s) => s.id);
+  const [canSeeStory, personal] = await Promise.all([
+    audiencePredicate(me?.id ?? null),
+    me ? Promise.all([
+      facts.length ? db.from('fact_likes').select('fact_id').eq('user_id', me.id).in('fact_id', facts.map(f => f.id)) : { data: [] },
+      posts.length ? db.from('post_likes').select('post_id').eq('user_id', me.id).in('post_id', posts.map(p => p.id)) : { data: [] },
+      facts.length ? db.from('fact_reposts').select('fact_id').eq('user_id', me.id).in('fact_id', facts.map(f => f.id)) : { data: [] },
+      // dyk_likes tablosu yoksa error döner, data null kalır → boş liste (defansif).
+      dykIds.length ? db.from('dyk_likes').select('dyk_id').eq('user_id', me.id).in('dyk_id', dykIds) : { data: [] },
       getSuggestedUsers(me.id),
-    ]);
+      allStoryIds.length ? db.from('story_views').select('story_id').eq('viewer_id', me.id).in('story_id', allStoryIds) : { data: [] },
+    ]) : null,
+  ]);
+  if (personal) {
+    const [fr, pr, rr, dl, suggested, seenRes] = personal;
     likedFactIds = (fr.data ?? []).map((r: any) => r.fact_id);
     likedPostIds = (pr.data ?? []).map((r: any) => r.post_id);
     repostedFactIds = (rr.data ?? []).map((r: any) => r.fact_id);
     likedDykIds = ((dl as any).data ?? []).map((r: any) => r.dyk_id);
     suggestedUsers = suggested;
+    seenStoryIds = new Set<number>((((seenRes as any).data ?? []) as any[]).map((r: any) => r.story_id));
   }
 
   // Stories
@@ -233,11 +258,8 @@ export default async function FeedPage() {
   interface StoryItem { id: number; mediaUrl: string; mediaType: string; createdAt: string; music?: { title: string; artist: string | null; src: string; startSec: number } | null; linkUrl?: string | null; linkLabel?: string | null; poll?: { question: string; options: string[]; correct?: number | null } | null; caption?: string | null; seen?: boolean; }
   interface StoryUser { userId: number; username: string; displayName: string; avatar: string | null; stories: StoryItem[]; }
 
-  // storiesRaw yukarıda getHomeContent()'ten (önbellekli — HERKESE aynı) geldi.
-  // KİTLE KONTROLÜ burada, KİŞİYE ÖZEL uygulanır: paylaşılan önbelleğe koyulamaz
-  // (bir kullanıcının takip/yakın-arkadaş durumu 30 sn boyunca herkese servis
-  // edilirdi — "seen" halkasıyla aynı gerekçe). audience yoksa hepsi public sayılır.
-  const canSeeStory = await audiencePredicate(me?.id ?? null);
+  // storiesRaw yukarıda getHomeContent()'ten (önbellekli — HERKESE aynı) geldi;
+  // kişiye özel kitle filtresi (canSeeStory) yukarıdaki paralel dalgada hazırlandı.
   const storyMap = new Map<number, StoryUser>();
   for (const s of ((storiesRaw ?? []) as any[]).filter((s) => canSeeStory(s.user_id, s.audience, s.users?.is_private))) {
     const u = s.users;
@@ -262,18 +284,13 @@ export default async function FeedPage() {
   const ownStoryUser = me ? (storyMap.get(me.id) ?? null) : null;
   if (me) storyMap.delete(me.id);
 
-  // GORULMEMIS HALKASI. KISIYE OZELDIR -> getHomeContent() onbellliginin DISINDA:
-  // oraya girseydi bir kullanicinin "gordum" bilgisi 30 saniye boyunca herkese
-  // servis edilirdi. story_views yoksa sorgu sessizce bos doner ve halkalar
-  // eskisi gibi hepsi renkli kalir; hicbir sey kirilmaz.
+  // GORULMEMIS HALKASI. Sorgu yukaridaki paralel dalgada kostu (KISIYE OZELDIR
+  // -> getHomeContent() onbelliginin DISINDA: oraya girseydi bir kullanicinin
+  // "gordum" bilgisi 30 saniye boyunca herkese servis edilirdi). Burada yalniz
+  // gorunur hikayelere islenir; kendi hikayen (yukarida map'ten cikti) eskisi
+  // gibi isaretlenmez.
   if (me) {
-    const ids = [...storyMap.values()].flatMap(u => u.stories.map(st => st.id));
-    if (ids.length) {
-      const { data: seen } = await db
-        .from('story_views').select('story_id').eq('viewer_id', me.id).in('story_id', ids);
-      const seenSet = new Set((seen ?? []).map((r: any) => r.story_id));
-      for (const u of storyMap.values()) for (const st of u.stories) st.seen = seenSet.has(st.id);
-    }
+    for (const u of storyMap.values()) for (const st of u.stories) st.seen = seenStoryIds.has(st.id);
   }
 
   // Izlenmemis hikayesi olan kullanicilar ONE. Serit buyudukce kullanici hangisini
