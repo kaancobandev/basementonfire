@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { breadcrumbJsonLd, jsonLdScript } from '@/lib/seo';
 import ArticleRuntime from '@/app/components/ArticleRuntime';
+import AsyncFonts from '@/app/components/AsyncFonts';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
 import ArticleImage from '@/app/components/article/ArticleImage';
 import { CSS, HTML, JS } from './content';
@@ -22,10 +23,15 @@ const title = 'Gerçek Olamayacak Kadar Tuhaf — 25 Tıbbi Olgu';
 const description = 'Doğrulanmış ama akıl almaz 25 tıbbi olgu: insan vücudunun ve tıbbın en tuhaf gerçekleri, animasyonlu ve interaktif bir anlatımla.';
 const path = '/articles/tibbi';
 const FONT_URL = 'https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,900&family=Manrope:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap';
+// Self-host (2026-07-24): cdnjs'e yeni origin bağlantısı (DNS+TLS ~100-250ms)
+// + ~122KB dış indirme yerine kendi CDN'imizden 1 yıl immutable kopyalar.
+// gsap/ScrollTrigger node_modules/gsap/dist'ten (3.15.0 — makale 3.12.5 için
+// yazıldı, minor uyumlu), lottie devDependency lottie-web@5.12.2'den kopyalandı.
+// Sürüm yükseltirken: dosyayı public/vendor'a YENİ sürümlü adla kopyala + burayı güncelle.
 const CDNS = [
-  'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js',
+  '/vendor/gsap-3.15.0.min.js',
+  '/vendor/ScrollTrigger-3.15.0.min.js',
+  '/vendor/lottie-5.12.2.min.js',
 ];
 
 export const metadata: Metadata = {
@@ -63,7 +69,7 @@ export default function Page() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbLd) }} />
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      <link rel="stylesheet" href={FONT_URL} />
+      <AsyncFonts href={FONT_URL} />
       <main className="main-content tib-root">
         <style dangerouslySetInnerHTML={{ __html: CSS }} />
         {/* MAKALENİN GÖVDESİ. Bu tek satır content.ts'teki ~3300 kelimenin

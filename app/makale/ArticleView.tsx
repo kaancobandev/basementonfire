@@ -4,6 +4,7 @@ import { sanitizeArticleHtml } from '@/lib/articleSanitize';
 import { type ArticleBlock, articleGoogleFontsHref } from '@/lib/userArticles';
 import Img from '@/app/components/Img';
 import ArticleEmbed from '@/app/components/ArticleEmbed';
+import AsyncFonts from '@/app/components/AsyncFonts';
 
 // Kullanıcı makalesinin PAYLAŞILAN görünümü — iki rota kullanır:
 //   /makale/[slug]        → ISR, yalnız onaylı makaleler (herkese açık)
@@ -55,8 +56,10 @@ export default function ArticleView({ a, isOwner = false }: { a: ArticleRow; isO
     <main className="main-content ua-view">
       {/* Yalnızca BU makalenin kullandığı font aileleri. Eskiden 18 ailenin
           tamamını isteyen stylesheet yükleniyordu; hiç web fontu kullanmayan
-          makalelerde artık hiç istek atılmıyor (fontsHref null döner). */}
-      {fontsHref && <link rel="stylesheet" href={fontsHref} />}
+          makalelerde artık hiç istek atılmıyor (fontsHref null döner).
+          AsyncFonts: stylesheet ilk boyamadan SONRA yüklenir — gövdedeki
+          <link rel=stylesheet> altındaki her şeyin boyanmasını bloklardı. */}
+      {fontsHref && <AsyncFonts href={fontsHref} />}
       {jsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />}
       {breadcrumbLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbLd) }} />}
 

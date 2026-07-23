@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { breadcrumbJsonLd, jsonLdScript } from '@/lib/seo';
 import ArticleRuntime from '@/app/components/ArticleRuntime';
+import AsyncFonts from '@/app/components/AsyncFonts';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
 import ArticleImage from '@/app/components/article/ArticleImage';
 import { CSS, HTML, JS } from './content';
@@ -16,7 +17,9 @@ const title = 'Einstein–Rosen Köprüsü';
 const description = 'Solucan deliği nedir? Genel görelilik, uzay-zaman eğriliği ve Einstein–Rosen köprüsü; interaktif 3B model, uzay-zaman ızgarası ve quiz ile anlatıldı.';
 const path = '/articles/einstein-rosen';
 const FONT_URL = 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap';
-const CDNS = ['https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'];
+// Self-host (ayna-noronlari ile aynı dosya): cdnjs'e yeni origin bağlantısı +
+// 150KB dış indirme yerine kendi CDN'imizden, 1 yıl immutable cache'li kopya.
+const CDNS = ['/vendor/three-r128.min.js'];
 
 export const metadata: Metadata = {
   title,
@@ -53,7 +56,7 @@ export default function Page() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbLd) }} />
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      <link rel="stylesheet" href={FONT_URL} />
+      <AsyncFonts href={FONT_URL} />
       <div className="main-content erk-root">
         <style dangerouslySetInnerHTML={{ __html: CSS }} />
         <style>{`

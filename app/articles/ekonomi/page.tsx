@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { breadcrumbJsonLd, jsonLdScript } from '@/lib/seo';
 import ArticleRuntime from '@/app/components/ArticleRuntime';
+import AsyncFonts from '@/app/components/AsyncFonts';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
 import ArticleImage from '@/app/components/article/ArticleImage';
 import { CSS, HTML, JS } from './content';
@@ -52,7 +53,7 @@ export default function Page() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbLd) }} />
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      <link rel="stylesheet" href={FONT_URL} />
+      <AsyncFonts href={FONT_URL} />
       <div className="main-content eko-root">
         <style dangerouslySetInnerHTML={{ __html: CSS }} />
         {/* MAKALENİN GÖVDESİ. Bu tek satır content.ts'teki ~2900 kelimenin
