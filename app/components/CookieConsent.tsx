@@ -22,6 +22,38 @@ export default function CookieConsent({ gaId }: { gaId?: string }) {
   // hariç tutmak için: o cihazda BİR KEZ siteyi ?notrack=1 ile aç → kalıcı kapanır.
   // Geri açmak için ?notrack=0 ile aç. Seçim localStorage'da o cihaza özel saklanır.
   const [trackDisabled, setTrackDisabled] = useState(false);
+  // gtag.js İLK BOYAMADAN SONRAYA ertelenir (2026-07-23 denetimi): dosya 183 KB
+  // gzip — sitenin TÜM kendi JS'inden büyük — ve SSR'da render edilince
+  // @next/third-parties head'e <link rel=preload> basıyordu (HTML'in 2.318.
+  // baytında; LCP hero'nun referansı 17.147'de) → indirme kritik pencerede hero
+  // ve fontlarla bant genişliği yarışıyordu. Bu kapı sayesinde bileşen SSR'a
+  // hiç girmez (preload yok), yükleme load+idle'a kayar. Consent Mode akışı
+  // BOZULMAZ: window.gtag stub'ı layout head'inde senkron tanımlı; aradaki
+  // consent update / sign_up çağrıları dataLayer'da kuyruklanır ve gtag.js
+  // gelince sırayla işlenir. Ölçüm kaybı yalnız ilk ~2-4 sn'de sekmeyi
+  // kapatan ziyaretçi. Advanced mod (onay öncesi çerezsiz ping) aynen korunur.
+  const [gaReady, setGaReady] = useState(false);
+
+  useEffect(() => {
+    let idleId: number | undefined;
+    let timeoutId: number | undefined;
+    const w = window as unknown as {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+    const arm = () => {
+      // timeout: gizli/kısılmış sekmede bile en geç 4 sn'de tetiklenir.
+      if (typeof w.requestIdleCallback === 'function') idleId = w.requestIdleCallback(() => setGaReady(true), { timeout: 4000 });
+      else timeoutId = window.setTimeout(() => setGaReady(true), 2000);
+    };
+    if (document.readyState === 'complete') arm();
+    else window.addEventListener('load', arm, { once: true });
+    return () => {
+      window.removeEventListener('load', arm);
+      if (idleId !== undefined && typeof w.cancelIdleCallback === 'function') w.cancelIdleCallback(idleId);
+      if (timeoutId !== undefined) clearTimeout(timeoutId);
+    };
+  }, []);
 
   useEffect(() => {
     try {
@@ -54,8 +86,9 @@ export default function CookieConsent({ gaId }: { gaId?: string }) {
   return (
     <>
       {/* Consent Mode v2: GA HER ZAMAN yüklenir (izinler head'de 'denied' başlar,
-          onaya kadar çerezsiz ping). Cihaz ?notrack ile hariç tutulduysa hiç yüklenmez. */}
-      {gaId && !trackDisabled && <GoogleAnalytics gaId={gaId} />}
+          onaya kadar çerezsiz ping) ama gaReady kapısıyla İLK BOYAMADAN SONRA —
+          gerekçe yukarıda. Cihaz ?notrack ile hariç tutulduysa hiç yüklenmez. */}
+      {gaId && !trackDisabled && gaReady && <GoogleAnalytics gaId={gaId} />}
 
       {ready && choice === null && (
         <div

@@ -163,6 +163,9 @@ export default function RootLayout({ children, modal }: { children: React.ReactN
             · url_passthrough: çerez reddedilse bile gclid URL'de taşınır (reklam ölçümü)
             · ads_data_redaction: denied durumda reklam tıklama kimliği maskelenir
             · ga-disabled: cihaz hariç tutma (?notrack) korunur — o cihazda hiç ping yok
+            · gtag.js İLK BOYAMADAN SONRA yüklenir (2026-07-24, CookieConsent'te
+              gaReady idle-kapısı): 183 KB'lık script head'e preload girmez, LCP ile
+              yarışmaz; bu stub sayesinde aradaki çağrılar dataLayer'da kuyruklanır.
             Not: bu "Advanced" mod (onay öncesi çerezsiz ping). Ultra-temkinli "Basic"
             istenirse gtag'i yalnız onaydan sonra yükle (CookieConsent koşulu). */}
         {GA_ID && (
