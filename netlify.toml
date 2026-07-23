@@ -25,9 +25,13 @@
 [images]
   remote_images = ['https://.*\.supabase\.co/.*']
 
-# Güvenlik başlıkları. ÖNCESİNDE HİÇBİRİ YOKTU: ne burada, ne next.config.ts
-# headers()'ta, ne public/_headers'ta. netlify.toml'a konuldu çünkü burası
-# Netlify'ın sunduğu HER yanıtı kapsar (SSR fonksiyonu + ISR + statik varlık).
+# Güvenlik başlıkları — YALNIZ STATİK VARLIKLAR İÇİN (public/*, /_next/static).
+# ⚠ 2026-07-24 CANLI ÖLÇÜM: buradaki [[headers]] blokları Next runtime'ının
+# döndürdüğü SAYFA yanıtlarına UYGULANMIYOR (/feed'de ölçüldü: X-Frame-Options
+# yok; /vendor dosyasında var). "Her yanıtı kapsar" şeklindeki eski varsayım
+# sayfalar için yanlıştı. Sayfaların güvenlik başlıkları middleware.ts'te
+# basılır — orası runtime sayfaların TEK gerçek kaynağı. Bu bloklar yüklenen
+# dosyalar (uploads nosniff!) ve diğer statik varlıklar için anlamlı ve kalıyor.
 [[headers]]
   for = "/*"
 
@@ -52,14 +56,14 @@
     # Kullanılmayan güçlü API'leri kapat.
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), browsing-topics=()"
 
-# ── Content-Security-Policy (2026-07-24'te middleware.ts'ten BURAYA taşındı).
-# Değer üretimde tamamen statikti; middleware'in her istekte başlık basması
-# gereksiz edge işiydi. Burada Netlify'ın sunduğu HER yanıtı kapsar.
-# `next dev` bu dosyayı OKUMAZ → yerelde CSP yok (HMR'ın eval'i de dert olmaktan
-# çıktı; eski middleware dev'e 'unsafe-eval' ekliyordu). `netlify dev` kullanma:
-# o bu başlığı uygular ve eval'siz CSP HMR'ı kırar.
+# ── Content-Security-Policy — YALNIZ STATİK VARLIKLAR (yukarıdaki ölçüm notu:
+# bu bloklar runtime SAYFA yanıtlarına uygulanmıyor). Sayfaların CSP'si
+# middleware.ts'te basılır. ⚠ İKİ KOPYA VAR: politikayı değiştirirsen
+# middleware.ts'teki CSP dizisini de değiştir. `netlify dev` kullanma: bu
+# başlığı statik varlıklara uygular; sayfalar dev'de middleware'den alır
+# (orada development'a 'unsafe-eval' eklenir, HMR kırılmaz).
 #
-# Taşınan gerekçe notları (middleware'deki 2026-07-18 kararları):
+# Gerekçe notları (2026-07-18 kararları — middleware'deki kopya için de geçerli):
 # · NONCE YOK: landing + 32 makale build'de önceden üretiliyor (○ Static);
 #   HTML donuk, nonce istek başına değişir — uyuşmazlar. 'unsafe-inline' kaçınılmaz.
 # · Değer yine de kıymetli: base-uri/form-action/object-src enjeksiyon kaçışlarını,

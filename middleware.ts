@@ -45,12 +45,42 @@ function hasSessionCookie(request: NextRequest): boolean {
   return request.cookies.getAll().some((c) => /^sb-.+-auth-token(\.\d+)?$/.test(c.name));
 }
 
-// CSP 2026-07-24'te netlify.toml'a TAŞINDI (tüm gerekçe notlarıyla birlikte —
-// nonce neden yok, img-src neden geniş, cdnjs neden duruyor: hepsi orada).
-// Değer üretimde tamamen statikti; middleware'in her istekte başlık basması
-// gereksiz edge işiydi. Yerelde `next dev` netlify.toml okumadığından CSP yok
-// → HMR'ın eval'i için buradaki development istisnası da gereksizleşti.
-// CSP'yi DEĞİŞTİRECEKSEN netlify.toml'daki [[headers]] "/*" bloğuna git.
+// ── GÜVENLİK BAŞLIKLARI — RUNTIME SAYFALAR İÇİN TEK GERÇEK KAYNAK BURASI.
+//
+// 2026-07-24 CANLI ÖLÇÜM: netlify.toml [[headers]] blokları Next runtime'ının
+// (server handler / edge) döndürdüğü SAYFA yanıtlarına UYGULANMIYOR — yalnız
+// statik varlıklara (public/*, /_next/static) uygulanıyor. Kanıt: /feed
+// yanıtında toml'daki X-Frame-Options/CSP yoktu; görünen nosniff'i Next'in
+// kendisi, kısa HSTS'i Netlify platformu basıyordu. /vendor/three dosyasında
+// ise toml başlıklarının tamamı vardı.
+//
+// Sonuç: 2026-07-18'den beri "toml her yanıtı kapsar" varsayımı SAYFALAR için
+// yanlıştı; sayfaları fiilen koruyan tek şey middleware'in bastığı CSP'ydi
+// (clickjacking'i de X-Frame-Options değil buradaki frame-ancestors kesiyordu).
+// Bu blok, sayfa yanıtlarına güvenlik başlıklarının TAMAMINI basar. Statik
+// varlıklar için netlify.toml blokları geçerli olmayı sürdürür.
+//
+// ⚠ CSP'NİN İKİ KOPYASI VAR: burası (sayfalar) + netlify.toml (statik
+// varlıklar). Birini değiştirirsen öbürünü de değiştir. Gerekçe notları
+// (nonce neden yok, img-src neden geniş, cdnjs neden duruyor) toml'da.
+const CSP = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'none'",
+  "form-action 'self'",
+  // 'unsafe-eval' YALNIZCA geliştirmede: webpack/HMR eval kullanıyor ve zorunlu
+  // CSP onu engelleyince yerel geliştirme kırılır. Üretim derlemesinde eval yok.
+  `script-src 'self' 'unsafe-inline' ${process.env.NODE_ENV === 'development' ? "'unsafe-eval' " : ''}https://www.googletagmanager.com https://www.googleadservices.com https://cdnjs.cloudflare.com`,
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "img-src 'self' data: blob: https:",
+  "media-src 'self' data: blob: https:",
+  "font-src 'self' data: https://fonts.gstatic.com",
+  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.google.com https://*.doubleclick.net https://www.googleadservices.com https://*.giphy.com",
+  "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://open.spotify.com",
+  "worker-src 'self' blob:",
+  'report-uri /api/csp-report',
+].join('; ');
 
 export async function middleware(request: NextRequest) {
   // Kanonik alan adına zorla: tüm *.netlify.app host'ları (varsayılan subdomain +
@@ -68,6 +98,15 @@ export async function middleware(request: NextRequest) {
   }
 
   const response = NextResponse.next({ request });
+
+  // Sayfa yanıtlarının güvenlik başlıkları (gerekçe: yukarıdaki ölçüm notu).
+  // Sorun çıkarsa CSP'yi geri almak tek kelime: başlığı
+  // 'Content-Security-Policy-Report-Only' yap → engelleme durur, rapor sürer.
+  response.headers.set('Content-Security-Policy', CSP);
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), browsing-topics=()');
 
   const path = request.nextUrl.pathname;
 
