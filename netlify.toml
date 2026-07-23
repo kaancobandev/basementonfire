@@ -13,6 +13,13 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
+# /feed Lambda ısıtıcısının zamanlaması (fonksiyon: netlify/functions/keep-warm.mts).
+# Bildirim BURADA çünkü .mts içindeki `export const config = { schedule }` bu
+# kurulumda TETİKLENMİYOR (2026-07-24 canlı ölçüm: fonksiyon deploy olmuş ama
+# cron hiç koşmamıştı). Toml bildirimi ayrıca fonksiyonu URL'den çağrılamaz yapar.
+[functions."keep-warm"]
+  schedule = "*/5 * * * *"
+
 # Netlify Image CDN — uzak (Supabase Storage) görsellerin /.netlify/images
 # üzerinden yeniden boyutlandırılıp WebP olarak sunulabilmesi için allowlist.
 [images]

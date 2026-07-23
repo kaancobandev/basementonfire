@@ -49,7 +49,10 @@ export default async () => {
   }
 };
 
-// Netlify zamanlanmış fonksiyonu: yalnız yayınlanmış production deploy'da koşar
-// (branch/preview deploy'da koşmaz), cron UTC'dir. Elle test:
-// Netlify UI → Logs → Functions → keep-warm, ya da `netlify functions:invoke keep-warm`.
-export const config = { schedule: '*/5 * * * *' };
+// ZAMANLAMA netlify.toml'da: [functions."keep-warm"] schedule = "*/5 * * * *".
+// BURADA `export const config = { schedule }` KULLANMA — denendi ve canlıda
+// TETİKLENMEDİ (2026-07-24: fonksiyon deploy oldu ama cron hiç koşmadı, 7 dk
+// sessizlik sonrası /feed yine soğuktu; üstelik URL'den çağrılabilir kalmıştı).
+// Bu Next.js-plugin'li kurulumda in-source config statik olarak okunmuyor;
+// toml bildirimi garantili yol. Cron UTC'dir; yalnız production deploy'da koşar.
+// Log: Netlify UI → Logs → Functions → keep-warm.
