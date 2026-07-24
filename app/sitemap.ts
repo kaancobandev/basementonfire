@@ -44,16 +44,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.9,
   }));
 
+  // ── PROFİLLER (/u/*) ve GÖNDERİLER (/p/*) BİLEREK DIŞARIDA (2026-07-24) ──
+  // Bozuk değiller (200 + index,follow) ve Google onları iç linklerden bulmaya
+  // devam eder — yalnızca "şunu indeksle" diye GÖNDERMİYORUZ. Gerekçe: içerik
+  // olarak zayıf sayfalar sitemap'in sinyalini seyreltiyor ve klasik
+  // "Tarandı - şu anda dizine eklenmedi" adayları; harita 32 kürate makaleye
+  // yoğunlaşsın diye çıkarıldılar.
+  // GERİ EKLEMEK İSTERSEN: `users` (username, created_at → /u/, priority 0.5) ve
+  // `quick_facts` (id, created_at → /p/, priority 0.6) sorgularını aşağıdaki
+  // Promise.all'a geri koy; tam hâli git geçmişinde (4a8e904'ten önceki sürüm).
+  // NOT: IndexNow tarafı DEĞİŞMEDİ — yeni gönderi hâlâ /p/ ve /u/ URL'lerini
+  // ping'liyor (app/api/upload, app/api/quick-facts/[id]). Orası ayrı bir kanal;
+  // tutarlılık istersen onu da ayrıca kararlaştır.
   let dynamicRoutes: MetadataRoute.Sitemap = [];
   try {
-    const [{ data: users }, { data: tags }, { data: posts }, { data: userArticles }] = await Promise.all([
-      db.from('users').select('username, created_at').eq('is_private', false).limit(5000),
+    const [{ data: tags }, { data: userArticles }] = await Promise.all([
       db.from('hashtags').select('tag').limit(2000),
-      db.from('quick_facts')
-        .select('id, created_at, users!quick_facts_user_id_fkey!inner(is_private)')
-        .eq('users.is_private', false)
-        .order('created_at', { ascending: false })
-        .limit(5000),
       // Onaylı (yayındaki) kullanıcı makaleleri — /makale/[slug] herkese açık yayınlanmış içerik.
       db.from('user_articles')
         .select('slug, published_at, updated_at')
@@ -61,29 +67,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         .order('published_at', { ascending: false })
         .limit(5000),
     ]);
-    const userRoutes: MetadataRoute.Sitemap = (users ?? [])
-      .filter((u: any) => u.username)
-      .map((u: any) => ({
-        url: `${SITE_URL}/u/${encodeURIComponent(u.username)}`,
-        lastModified: u.created_at ? new Date(u.created_at) : now,
-        changeFrequency: 'weekly',
-        priority: 0.5,
-      }));
     const tagRoutes: MetadataRoute.Sitemap = (tags ?? [])
       .filter((t: any) => t.tag)
       .map((t: any) => ({
+        // encodeURIComponent ŞART (Türkçe etiketler) — rota tarafı bunu
+        // lib/caption.ts → tagFromParam() ile çözer, ikisi birlikte çalışır.
         url: `${SITE_URL}/hashtag/${encodeURIComponent(t.tag)}`,
         lastModified: now,
         changeFrequency: 'weekly',
         priority: 0.4,
-      }));
-    const postRoutes: MetadataRoute.Sitemap = (posts ?? [])
-      .filter((p: any) => p.id)
-      .map((p: any) => ({
-        url: `${SITE_URL}/p/${p.id}`,
-        lastModified: p.created_at ? new Date(p.created_at) : now,
-        changeFrequency: 'weekly',
-        priority: 0.6,
       }));
     const uaRoutes: MetadataRoute.Sitemap = (userArticles ?? [])
       .filter((a: any) => a.slug)
@@ -93,7 +85,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         changeFrequency: 'monthly',
         priority: 0.7,
       }));
-    dynamicRoutes = [...userRoutes, ...tagRoutes, ...postRoutes, ...uaRoutes];
+    dynamicRoutes = [...tagRoutes, ...uaRoutes];
   } catch {
     // DB erişilemezse statik + makale haritası yine de döner
   }
