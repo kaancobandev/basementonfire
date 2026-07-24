@@ -38,7 +38,19 @@ export default async function NotificationsPage() {
 
   return (
     <main className="main-content">
-      <div className="feed-header">Bildirimler</div>
+      {/* Geri: bildirimlere zil ile ana sayfadan gelinir ve bu sayfa girişsizde
+          /login'e yönlenir → girişli kullanıcının ana sayfası /feed. Sunucu
+          bileşeni olduğu için router.back() yerine Link: fazladan istemci JS'i
+          yok ve doğrudan (geçmişsiz) açılışta da doğru yere gider.
+          Desen gonderi-olustur/GonderiForm ile aynı (.back-btn). */}
+      <div className="feed-header" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <Link href="/feed" className="back-btn" aria-label="Geri">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m15 18-6-6 6-6" />
+          </svg>
+        </Link>
+        <span>Bildirimler</span>
+      </div>
 
       {/* Gelen takip istekleri (yalnız gizli hesap sahibinde dolu). Kabul/reddet
           burada; bu yüzden 'follow_request' bildirimleri aşağıdaki listeden elenir. */}

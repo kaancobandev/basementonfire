@@ -738,11 +738,26 @@ body {
   text-decoration: none;
   transition: background 0.15s, color 0.15s, box-shadow 0.15s;
 }
-.notif-float:hover {
-  background: #f0f2f5;
-  color: var(--color-text);
-  box-shadow: 0 4px 14px rgba(0,0,0,0.13);
+/* Hover/odak/basma: AMBER + MOR.
+   Eski hâlde `background: #f0f2f5` SABİT açık griydi ve `color: var(--color-text)`
+   koyu temada neredeyse beyaz → koyu temada zil beyaz bir lekeye dönüyordu
+   (kullanıcı bildirdi). Artık iki uç da tema değişkenine bağlı: ışınlar amber,
+   yıldız mor, zemin de moru hafifçe emen bir karışım. */
+.notif-float:hover,
+.notif-float:focus-visible,
+.notif-float:active {
+  background: color-mix(in srgb, var(--color-surface) 86%, var(--color-primary));
+  border-color: color-mix(in srgb, var(--color-border) 45%, var(--color-primary));
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--color-primary) 24%, transparent);
 }
+.notif-float:hover .nf-rays,
+.notif-float:focus-visible .nf-rays,
+.notif-float:active .nf-rays { stroke: var(--color-accent); }
+.notif-float:hover .nf-star,
+.notif-float:focus-visible .nf-star,
+.notif-float:active .nf-star { stroke: var(--color-primary); }
+.notif-float .nf-rays,
+.notif-float .nf-star { transition: stroke 0.15s; }
 .notif-float-badge {
   position: absolute;
   top: -4px;

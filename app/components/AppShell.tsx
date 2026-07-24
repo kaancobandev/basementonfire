@@ -263,8 +263,11 @@ export default function AppShell({ children }: AppShellProps) {
                 (5) 1.5 → 1.9 çizgi: 22px'te 1.5 eriyip gri lekeye dönüşüyordu;
                     eski zil de 2.0 kullanıyordu. */}
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M2 12H3.11M20.89 12H22M12 22V20.89M12 3.11V2M19.11 4.89L16.44 7.56M7.56 7.56L4.89 4.89M7.56 16.44L4.89 19.11M19.11 19.11L16.44 16.44" />
-              <path d="M11.99 6.44C11.99 9.56 14.44 12 17.55 12C14.44 12 11.99 14.44 11.99 17.56C11.99 14.45 9.55 12 6.43 12C9.54 12 11.99 9.56 11.99 6.44Z" />
+              {/* İki ayrı path: hover/basma anında ışınlar amber, yıldız mor olur
+                  (globals.css .nf-rays / .nf-star). Tek path olsaydı iki renk
+                  ancak gradyanla verilebilirdi ve tema değişkenlerine bağlanamazdı. */}
+              <path className="nf-rays" d="M2 12H3.11M20.89 12H22M12 22V20.89M12 3.11V2M19.11 4.89L16.44 7.56M7.56 7.56L4.89 4.89M7.56 16.44L4.89 19.11M19.11 19.11L16.44 16.44" />
+              <path className="nf-star" d="M11.99 6.44C11.99 9.56 14.44 12 17.55 12C14.44 12 11.99 14.44 11.99 17.56C11.99 14.45 9.55 12 6.43 12C9.54 12 11.99 9.56 11.99 6.44Z" />
             </svg>
             {notifCount > 0 && (
               <span className="notif-float-badge">{notifCount > 99 ? '99+' : notifCount}</span>
