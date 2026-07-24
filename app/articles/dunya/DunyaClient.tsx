@@ -43,6 +43,7 @@ export default function DunyaClient() {
         eyebrow="GEZEGENİMİZİN HİKÂYESİ · İNTERAKTİF DOSYA"
         subtitle={<>Sıvı demir çekirdeği, görünmez manyetik kalkanı, hareket eden kabuğu ve tek yoldaşı Ay — hepsi bir dizi <strong className="font-semibold text-sky-300">olağanüstü tesadüfün</strong> ve <em className="not-italic text-amber-300">şiddetli kozmik olayın</em> ürünü. Aşağı kaydır.</>}
         colors={HERO_COLORS}
+        object3d="earth"
       />
 
       <ArticleLede points={[
