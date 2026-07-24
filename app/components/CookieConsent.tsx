@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { GoogleAnalytics } from '@next/third-parties/google';
+import Script from 'next/script';
 
 const STORAGE_KEY = 'cookie-consent'; // 'accepted' | 'rejected'
 
@@ -87,8 +87,18 @@ export default function CookieConsent({ gaId }: { gaId?: string }) {
     <>
       {/* Consent Mode v2: GA HER ZAMAN yüklenir (izinler head'de 'denied' başlar,
           onaya kadar çerezsiz ping) ama gaReady kapısıyla İLK BOYAMADAN SONRA —
-          gerekçe yukarıda. Cihaz ?notrack ile hariç tutulduysa hiç yüklenmez. */}
-      {gaId && !trackDisabled && gaReady && <GoogleAnalytics gaId={gaId} />}
+          gerekçe yukarıda. Cihaz ?notrack ile hariç tutulduysa hiç yüklenmez.
+
+          ⚠ YALNIZ KÜTÜPHANE yüklenir; `js`/`config` çağrıları layout.tsx'teki
+          SENKRON head script'inde. @next/third-parties'in <GoogleAnalytics>
+          bileşenini buraya geri KOYMA: o kendi `config`'ini de basar ve gtag
+          ertelendiği için config, hidrasyonda çalışan SignupEvent'in `sign_up`
+          etkinliğinden SONRA kuyruğa girerdi — GA4 mülke bağlanmamış etkinliği
+          düşürür ve dönüşüm sessizce kaybolur (2026-07-24'te tam bu yaşandı).
+          Ayrıca iki config = çift page_view. */}
+      {gaId && !trackDisabled && gaReady && (
+        <Script id="gtag-lib" strategy="afterInteractive" src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} />
+      )}
 
       {ready && choice === null && (
         <div

@@ -164,13 +164,23 @@ export default function RootLayout({ children, modal }: { children: React.ReactN
             · gtag.js İLK BOYAMADAN SONRA yüklenir (2026-07-24, CookieConsent'te
               gaReady idle-kapısı): 183 KB'lık script head'e preload girmez, LCP ile
               yarışmaz; bu stub sayesinde aradaki çağrılar dataLayer'da kuyruklanır.
+            · ⚠ `js` + `config` BURADA, SENKRON OLMAK ZORUNDA. Eskiden bunları
+              @next/third-parties'in GoogleAnalytics bileşeni basıyordu; gtag.js
+              ertelenince config de ertelendi ve HİDRASYONDA çalışan SignupEvent'in
+              `sign_up` etkinliği config'DEN ÖNCE kuyruğa girdi. Bir mülke bağlı
+              olmayan etkinliği GA4 düşürür → dönüşüm sessizce kayboldu (2026-07-24,
+              dataLayer sırası canlıda ölçülerek bulundu). Google'ın resmî deseni de
+              tam budur: config senkron head'de, kütüphane async. Config burada
+              olduğu için CookieConsent artık YALNIZ kütüphaneyi yükler — oraya
+              GoogleAnalytics bileşenini geri koyma, config'i İKİ KEZ basar
+              (çift page_view).
             Not: bu "Advanced" mod (onay öncesi çerezsiz ping). Ultra-temkinli "Basic"
             istenirse gtag'i yalnız onaydan sonra yükle (CookieConsent koşulu). */}
         {GA_ID && (
           <script
             // eslint-disable-next-line react/no-danger
             dangerouslySetInnerHTML={{
-              __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}window.gtag=gtag;try{if(localStorage.getItem('ga-disabled')==='true')window['ga-disable-${GA_ID}']=true}catch(e){}gtag('consent','default',{ad_storage:'denied',analytics_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',wait_for_update:500});gtag('set','url_passthrough',true);gtag('set','ads_data_redaction',true);try{if(localStorage.getItem('cookie-consent')==='accepted')gtag('consent','update',{ad_storage:'granted',analytics_storage:'granted',ad_user_data:'granted',ad_personalization:'granted'})}catch(e){}`,
+              __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}window.gtag=gtag;try{if(localStorage.getItem('ga-disabled')==='true')window['ga-disable-${GA_ID}']=true}catch(e){}gtag('consent','default',{ad_storage:'denied',analytics_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',wait_for_update:500});gtag('set','url_passthrough',true);gtag('set','ads_data_redaction',true);try{if(localStorage.getItem('cookie-consent')==='accepted')gtag('consent','update',{ad_storage:'granted',analytics_storage:'granted',ad_user_data:'granted',ad_personalization:'granted'})}catch(e){}gtag('js',new Date());gtag('config','${GA_ID}');`,
             }}
           />
         )}
