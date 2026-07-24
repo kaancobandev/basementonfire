@@ -3,6 +3,7 @@ import { unstable_cache } from 'next/cache';
 import { notFound, redirect } from 'next/navigation';
 import { db, logIfError } from '@/lib/supabase/server';
 import { breadcrumbJsonLd, jsonLdScript } from '@/lib/seo';
+import { tagFromParam } from '@/lib/caption';
 import HashtagClient from './HashtagClient';
 
 // ESKİDEN force-dynamic'ti — tek sebebi getMe()'nin ürettiği meId'ydi ve o da
@@ -119,7 +120,9 @@ const getHashtagContent = unstable_cache(
 
 export async function generateMetadata({ params }: { params: Promise<{ tag: string }> }): Promise<Metadata> {
   const { tag } = await params;
-  const t = tag.toLowerCase();
+  // Aynı tuzak burada da vardı: çözülmemiş parametre başlığa ve canonical'a
+  // "#k%c3%bclt%c3%bcr" olarak basılıyordu.
+  const t = tagFromParam(tag);
   const title = `#${t}`;
   const description = `#${t} etiketli gönderiler — Basementonfire'te ${t} hakkındaki paylaşımları keşfet.`;
   const path = `/hashtag/${t}`;
@@ -134,7 +137,10 @@ export async function generateMetadata({ params }: { params: Promise<{ tag: stri
 
 export default async function HashtagPage({ params }: { params: Promise<{ tag: string }> }) {
   const { tag } = await params;
-  const normalizedTag = tag.toLowerCase();
+  // tagFromParam: decode + kanonikleştir. Düz tag.toLowerCase() YAZMA — parametre
+  // çözülmeden geliyor ve o hâlde küçültmek Türkçe etiketlerin hepsini 404 yapar
+  // (bkz. lib/caption.ts'teki açıklama, 2026-07-24 ölçümü).
+  const normalizedTag = tagFromParam(tag);
 
   if (!normalizedTag) redirect('/');
 

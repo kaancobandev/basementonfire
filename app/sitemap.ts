@@ -14,19 +14,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/`, lastModified: now, changeFrequency: 'daily', priority: 1 },
     { url: `${SITE_URL}/akis`, lastModified: now, changeFrequency: 'hourly', priority: 0.8 },
     { url: `${SITE_URL}/discover`, lastModified: now, changeFrequency: 'daily', priority: 0.6 },
-    { url: `${SITE_URL}/bilgi-karti`, lastModified: now, changeFrequency: 'weekly', priority: 0.6 },
     { url: `${SITE_URL}/reels`, lastModified: now, changeFrequency: 'daily', priority: 0.5 },
     { url: `${SITE_URL}/muzik`, lastModified: now, changeFrequency: 'weekly', priority: 0.5 },
     { url: `${SITE_URL}/lig`, lastModified: now, changeFrequency: 'daily', priority: 0.4 },
-    { url: `${SITE_URL}/paylasim`, lastModified: now, changeFrequency: 'monthly', priority: 0.3 },
     // Hukuki metinler — herkese açık, güven/E-E-A-T sinyali için indekslensin.
     { url: `${SITE_URL}/gizlilik`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
     { url: `${SITE_URL}/kosullar`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
     { url: `${SITE_URL}/aydinlatma`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
     { url: `${SITE_URL}/acik-riza`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
-    // BİLEREK EKLENMEDİ: /rastgele (rastgele makaleye YÖNLENDİRİR → sitemap'te
-    // yönlendirme URL'i "Page with redirect" uyarısı verir) ve /eslesme (giriş +
-    // 18 yaş gerektirir, herkese açık değil).
+    // ⚠ BİLEREK EKLENMEYENLER — buraya bir URL eklemeden önce iki soruyu sor:
+    // "anonim istekte 200 dönüyor mu?" ve "sayfanın kendi metadata'sı index diyor mu?"
+    // Search Console sitemap'teki her çelişkiyi HATA olarak raporlar ve haritanın
+    // tümüne olan güveni düşürür (2026-07-24 denetiminde 6 URL bu yüzden hatalıydı).
+    //  · /bilgi-karti  → middleware PROTECTED listesinde; anonim istek 307 ile
+    //                    /login'e gider ("Page with redirect").
+    //  · /paylasim     → sayfanın kendi metadata'sı robots:{index:false} (yönetim
+    //                    aracı) → "Submitted URL marked noindex".
+    //  · /rastgele     → rastgele makaleye YÖNLENDİRİR ("Page with redirect").
+    //  · /eslesme      → giriş + 18 yaş gerektirir, herkese açık değil.
+    //  · /login,/register ve korumalı yollar → robots.txt'te zaten Disallow.
   ];
 
   // Makale listesi TEK kaynaktan (lib/articles.ts) — yeni makale eklenince
