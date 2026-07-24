@@ -40,6 +40,7 @@ export default function SanatClient() {
         eyebrow="SANAT TARİHİ · İNTERAKTİF HARİTA"
         subtitle={<>Rönesans'tan yapay zekâya: hangi akım, nerede, kim tarafından, <em className="not-italic text-rose-300">neden</em>. Bir liste değil — <strong className="font-semibold text-white">aranabilir, filtrelenebilir bir harita</strong>.</>}
         colors={HERO_COLORS}
+        object3d="rose"
       />
 
       <ArticleLede points={[
