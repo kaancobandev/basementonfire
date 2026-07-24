@@ -16,6 +16,11 @@ const HalfLifeSim = dynamic(() => import('./sim-halflife'), { ssr: false, loadin
 const PenetrationBox = dynamic(() => import('./sim-penetration'), { ssr: false, loading: () => <WidgetSkeleton height={440} /> });
 const GeigerCounter = dynamic(() => import('./sim-geiger'), { ssr: false, loading: () => <WidgetSkeleton height={380} /> });
 
+// Hero zemini KOYU yeşil: uçan radyoaktif partiküller karanlıkta parlasın (glow-in-the-dark).
+const HERO_COLORS: [[number, number, number], [number, number, number], [number, number, number], [number, number, number]] = [
+  [0.012, 0.035, 0.020], [0.030, 0.120, 0.050], [0.060, 0.260, 0.090], [0.120, 0.400, 0.140],
+];
+
 export default function RadyoaktiviteClient() {
   return (
     <ArticleShell accent={ACCENT} title="Radyoaktivite">
@@ -35,7 +40,8 @@ export default function RadyoaktiviteClient() {
         title="Radyoaktivite"
         fullTitle="Radyoaktivite — Bulutlu Bir Paris Günü ve İçinizdeki Saniyede 8.000 Bozunma"
         eyebrow="ATOMLAR SABIRSIZ · İNTERAKTİF DOSYA"
-        object3d="nucleus"
+        object3d="particles"
+        colors={HERO_COLORS}
         subtitle={<>Bir kadının el yazısı, öldüğünden bir asır sonra hâlâ <strong className="font-semibold text-lime-300">ışıma yapıyor.</strong> Aşağı kaydır: çekirdek <em className="not-italic text-amber-300">bozunmaya</em> başlasın.</>}
       />
 

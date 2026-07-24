@@ -16,7 +16,7 @@ import type { Rgb } from './ShaderHero';
 // `kind`: 'dna' | 'coin'. 'coin' + `src` (görsel) → dokulu altın sikke.
 // ─────────────────────────────────────────────────────────────────────────
 
-export type Object3DKind = 'dna' | 'coin' | 'wreath' | 'cannon' | 'helmet' | 'prism' | 'atom' | 'nucleus';
+export type Object3DKind = 'dna' | 'coin' | 'wreath' | 'cannon' | 'helmet' | 'prism' | 'atom' | 'nucleus' | 'orbital' | 'particles';
 
 const DEFAULT_COLORS: [Rgb, Rgb, Rgb, Rgb] = [
   [0.016, 0.086, 0.063], [0.063, 0.45, 0.30], [0.40, 0.83, 0.31], [0.98, 0.74, 0.18],
@@ -301,6 +301,61 @@ void main(){
 }
 `;
 
+/* Kuantum orbital lobu: saydam ışıyan bulut — fresnel kenarları parlak, additive. */
+const orbitalFragment = `
+precision highp float;
+uniform vec3 uColor;
+varying vec3 vNormal; varying vec3 vViewPos;
+void main(){
+  vec3 N = normalize(vNormal); vec3 V = normalize(-vViewPos);
+  float fres = pow(1.0 - max(dot(N, V), 0.0), 1.8);
+  float core = max(dot(N, V), 0.0);
+  vec3 col = uColor * (0.5 + 0.95 * fres) + uColor * core * 0.25;
+  float a = 0.38 + 0.55 * fres;
+  gl_FragColor = vec4(col * a, a);
+}
+`;
+
+/* Radyoaktif partikül alanı: hareket TAMAMEN vertex shader'da (GPU) — girdap +
+   dikey sürüklenme (wrap) + türbülans + parıldama. CPU başına iş düşmez. */
+const fieldVertex = `
+precision highp float;
+attribute vec3 position; attribute float aSeed; attribute float aSize;
+uniform mat4 modelViewMatrix; uniform mat4 projectionMatrix; uniform float uTime;
+varying float vB; varying float vSeed;
+void main(){
+  vec3 p = position;
+  float t = uTime;
+  float r = length(p.xz);
+  float a = atan(p.z, p.x) + t * (0.32 + 0.55 / (r + 0.6));   // girdap: içerisi daha hızlı
+  p.x = cos(a) * r; p.z = sin(a) * r;
+  p.y = mod(p.y + t * 0.30 + aSeed * 7.0 + 2.3, 4.6) - 2.3;    // yüksel + sar (dikeyde toplu)
+  p += 0.22 * vec3(sin(t * 0.9 + aSeed * 6.2), cos(t * 0.75 + aSeed * 4.1), sin(t * 1.1 + aSeed * 8.3));
+  vec4 mv = modelViewMatrix * vec4(p, 1.0);
+  gl_Position = projectionMatrix * mv;
+  float tw = 0.55 + 0.45 * sin(t * 2.2 + aSeed * 20.0);        // parıldama
+  vB = tw * clamp((14.0 + mv.z) / 10.0, 0.0, 1.0);
+  vSeed = aSeed;
+  gl_PointSize = aSize * (165.0 / -mv.z) * (0.7 + 0.5 * tw);
+}
+`;
+const fieldFragment = `
+precision highp float;
+varying float vB; varying float vSeed;
+void main(){
+  float d = length(gl_PointCoord - 0.5);
+  float a = smoothstep(0.5, 0.0, d);
+  vec3 c1 = vec3(0.45, 1.0, 0.22);    // radyoaktif lime
+  vec3 c2 = vec3(0.78, 1.0, 0.45);    // açık yeşil
+  vec3 c3 = vec3(0.95, 1.0, 0.85);    // beyaza yakın sıcak çekirdek
+  float m = fract(vSeed * 7.3);
+  vec3 col = mix(c1, c2, smoothstep(0.0, 0.55, m));
+  col = mix(col, c3, smoothstep(0.72, 1.0, m));
+  float al = a * vB;
+  gl_FragColor = vec4(col * al, al);
+}
+`;
+
 const TAU = Math.PI * 2;
 type GL = ConstructorParameters<typeof Geometry>[0];
 
@@ -542,6 +597,7 @@ export default function Object3DHero({ kind = 'dna', colors, src }: { kind?: Obj
       const orbiters: { t: Transform; sp: number; ph: number }[] = []; // dönen elektronlar (atom)
       let pulseGroup: Transform | null = null;                          // titreşen çekirdek (nucleus)
       const emitters: { m: Mesh; dir: number[]; sp: number; ph: number }[] = []; // ışıma parçacıkları
+      let fieldProgram: Program | null = null;                          // GPU partikül alanı (particles)
 
       if (kind === 'dna') {
         const R = 1.02, HGT = 5.2, TURNS = 2.5, N = 20;
@@ -788,6 +844,55 @@ export default function Object3DHero({ kind = 'dna', colors, src }: { kind?: Obj
           m.setParent(root);
           emitters.push({ m, dir, sp: 0.4 + jit(i * 5 + 2) * 0.35, ph: jit(i * 5 + 3) });
         }
+      } else if (kind === 'orbital') {
+        dust = [0.6, 0.8, 1.0]; spinY = 0.22; tiltX = 0.18;
+        root.rotation.x = tiltX;
+        const orb = new Transform(); orb.setParent(root); orb.scale.set(1.28, 1.28, 1.28);
+        orb.rotation.x = 0.5; orb.rotation.y = 0.62;   // izometrik: 3 dambıl da görünsün
+        // teardrop lob profili [z, yarıçap] — nodda (çekirdek) sivri, uçta yuvarlak
+        const LOBE = [
+          [0.0, 0.001], [0.06, 0.09], [0.16, 0.18], [0.32, 0.27], [0.52, 0.32],
+          [0.72, 0.33], [0.90, 0.29], [1.06, 0.20], [1.18, 0.10], [1.26, 0.001],
+        ];
+        const lobe = buildLathe(gl, LOBE, 40);
+        const orbProg = (col: Rgb) => {
+          const p = new Program(gl, { vertex: litVertex, fragment: orbitalFragment, cullFace: false, transparent: true, depthTest: false, depthWrite: false, uniforms: { uColor: { value: col } } });
+          p.setBlendFunc(gl.SRC_ALPHA, gl.ONE); return p;
+        };
+        const red = orbProg([1.0, 0.35, 0.45]), green = orbProg([0.4, 1.0, 0.55]), blue = orbProg([0.45, 0.65, 1.0]);
+        const mk = (prog: Program, rx: number, ry: number) => {
+          const m = new Mesh(gl, { geometry: lobe, program: prog }); m.rotation.x = rx; m.rotation.y = ry; m.setParent(orb);
+        };
+        mk(blue, 0, 0); mk(blue, Math.PI, 0);              // pz (±Z)
+        mk(red, 0, Math.PI / 2); mk(red, 0, -Math.PI / 2);  // px (±X)
+        mk(green, -Math.PI / 2, 0); mk(green, Math.PI / 2, 0); // py (±Y)
+        // merkez çekirdek (küçük parlak)
+        const nucProg = new Program(gl, { vertex: litVertex, fragment: litFragment, cullFace: false, uniforms: { uColor: { value: [1.0, 0.92, 0.72] as Rgb }, uLightDir: { value: lightDir }, uFog: { value: c[0] }, uGlow: { value: 1.6 } } });
+        const n = new Mesh(gl, { geometry: new Sphere(gl, { radius: 1, widthSegments: 20, heightSegments: 16 }), program: nucProg });
+        n.scale.set(0.16, 0.16, 0.16); n.setParent(orb);
+      } else if (kind === 'particles') {
+        // ATOM YOK: sadece uçan radyoaktif partiküller (girdap + yükselme + türbülans)
+        dust = [0.45, 1.0, 0.35]; spinY = 0; tiltX = 0.05;
+        root.rotation.x = tiltX;
+        const COUNT = 2400;
+        const pp = new Float32Array(COUNT * 3), sd = new Float32Array(COUNT), sz = new Float32Array(COUNT);
+        for (let i = 0; i < COUNT; i++) {
+          const a = Math.random() * TAU, r = 0.1 + Math.pow(Math.random(), 1.3) * 2.5; // merkeze doğru yoğun
+          pp[i * 3] = Math.cos(a) * r;
+          pp[i * 3 + 1] = (Math.random() - 0.5) * 4.6;
+          pp[i * 3 + 2] = Math.sin(a) * r;
+          sd[i] = Math.random();
+          sz[i] = 0.5 + Math.random() * 1.7;
+        }
+        fieldProgram = new Program(gl, {
+          vertex: fieldVertex, fragment: fieldFragment, transparent: true, depthTest: false, depthWrite: false,
+          uniforms: { uTime: { value: 0 } },
+        });
+        fieldProgram.setBlendFunc(gl.SRC_ALPHA, gl.ONE);
+        new Mesh(gl, {
+          geometry: new Geometry(gl, { position: { size: 3, data: pp }, aSeed: { size: 1, data: sd }, aSize: { size: 1, data: sz } }),
+          program: fieldProgram, mode: gl.POINTS,
+        }).setParent(fx);
       }
 
       // Parçacıklar (toz)
@@ -824,6 +929,7 @@ export default function Object3DHero({ kind = 'dna', colors, src }: { kind?: Obj
         const t = (now - start) / 1000;
         bgProgram.uniforms.uTime.value = t;
         if (dotProgram) dotProgram.uniforms.uTime.value = t;
+        if (fieldProgram) fieldProgram.uniforms.uTime.value = t;
         if (coinSpin) coinSpin.rotation.y = t * spinY; else root.rotation.y = t * spinY;
         root.position.y = Math.sin(t * 0.5) * 0.12;
         for (const o of orbiters) o.t.rotation.z = t * o.sp + o.ph; // elektronlar yörüngede döner
