@@ -30,8 +30,9 @@ import type { Object3DKind } from './Object3DHero';
 
 const ShaderHero = dynamic(() => import('./ShaderHero'), { ssr: false, loading: () => null });
 const Object3DHero = dynamic(() => import('./Object3DHero'), { ssr: false, loading: () => null });
-// three.js DENEYİ (yalnız Möbius): ayrı chunk — sadece o makalede indirilir.
+// three.js hero'ları: ayrı chunk — yalnız ilgili makalede indirilir.
 const ThreeMobiusHero = dynamic(() => import('./ThreeMobiusHero'), { ssr: false, loading: () => null });
+const ThreeSlitHero = dynamic(() => import('./ThreeSlitHero'), { ssr: false, loading: () => null });
 
 // Zemin de temaya dahil: koyu-yeşil varsayılan korunur (mevcut makaleler değişmesin),
 // ama bir makale kendi zeminini verebilir (ör. Sezar'ın obsidyen-kan siyahı).
@@ -142,7 +143,8 @@ export function ArticleHero({ title, fullTitle, eyebrow, subtitle, colors, gradi
       <div className="absolute inset-0" style={{ background: `radial-gradient(120% 120% at 50% 30%, color-mix(in srgb, ${accent} 22%, ${bg}), ${bg})` }} aria-hidden />
       <div className="hero-shader absolute inset-0">
         {object3d === 'mobius' ? <ThreeMobiusHero />
-          : object3d ? <Object3DHero kind={object3d} colors={colors} src={object3dSrc} />
+          : object3d === 'slit' ? <ThreeSlitHero />
+            : object3d ? <Object3DHero kind={object3d} colors={colors} src={object3dSrc} />
             : <ShaderHero colors={colors} />}
       </div>
       <div className="pointer-events-none absolute inset-0" style={{ background: `linear-gradient(to bottom, transparent, transparent, ${bg})` }} aria-hidden />

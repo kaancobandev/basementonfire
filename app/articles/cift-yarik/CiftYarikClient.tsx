@@ -51,6 +51,7 @@ export default function CiftYarikClient() {
         eyebrow="KUANTUMUN TEK GERÇEK GİZEMİ · İNTERAKTİF DOSYA"
         subtitle={<>Duvara iki ince yarık, arkasına bir ekran. Hepsi bu. Ama bu sade düzenek, evrenin en temelde <em className="not-italic text-fuchsia-300">sezgilerimize hiç benzemeyen</em> kurallarla işlediğini gösterdi.</>}
         colors={HERO_COLORS}
+        object3d="slit"
       />
 
       <ArticleLede points={[
