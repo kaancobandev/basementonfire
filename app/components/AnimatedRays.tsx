@@ -4,8 +4,9 @@ import { useEffect, useState, type ReactNode } from 'react';
 
 // ─────────────────────────────────────────────────────────────────────────
 // Animasyonlu ışın/aurora arka planı (Ibelick / kullanıcının verdiği bileşen).
-// RENKLER KULLANICI İSTEĞİYLE DEĞİŞTİRİLMEDİ — orijinal mavi/fuşya/teal + beyaz
-// stripe. Yalnız bu projeye çalışması için gereken 4 işlevsel uyum yapıldı:
+// RENK PALETİ kullanıcı isteğiyle: lacivert → mavi → pembe → mor → kırmızı →
+// turkuvaz (rainbow gradient). Dikiş olmasın diye ilk renk (lacivert) sonda
+// tekrar edilir. Yalnız bu projeye çalışması için gereken 4 işlevsel uyum yapıldı:
 //   1) `cn` (@/lib/utils) yok, clsx/tailwind-merge de yok → düz string.
 //   2) Tema: proje `.dark` CLASS'ı değil `data-theme` ATTRIBUTE'u kullanır;
 //      orijinal kod karanlık modu HİÇ göremezdi → attribute + sistem tercihi.
@@ -20,7 +21,7 @@ const stripes = `repeating-linear-gradient(100deg,
   var(--stripe-color) 0%, var(--stripe-color) 7%,
   transparent 10%, transparent 12%, var(--stripe-color) 16%)`;
 const rainbow = `repeating-linear-gradient(100deg,
-  #60a5fa 10%, #e879f9 15%, #60a5fa 20%, #5eead4 25%, #60a5fa 30%)`;
+  #1e3a8a 8%, #3b82f6 12%, #ec4899 16%, #a855f7 20%, #ef4444 24%, #2dd4bf 28%, #1e3a8a 32%)`;
 
 export default function AnimatedRays({ className = '', children }: { className?: string; children?: ReactNode }) {
   const [isDark, setIsDark] = useState(false);
