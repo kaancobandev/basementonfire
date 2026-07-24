@@ -25,20 +25,25 @@ function FunFact({ icon = '🤯', title = 'Şaşırtıcı bilgi', children }: { 
   return (
     <div className="mt-5 rounded-xl border border-violet-400/30 bg-violet-400/[0.06] px-5 py-4">
       <div className="mb-1 flex items-center gap-2 text-sm font-bold text-violet-200"><span>{icon}</span><span>{title}</span></div>
-      <p className="m-0 text-sm leading-relaxed text-slate-300">{children}</p>
+      {/* <p> DEĞİL: içine ArticleImage (figure/figcaption) konuluyor, <p> içinde
+          blok eleman geçersiz HTML → hidrasyon hatası. MolClient'ta da böyle. */}
+      <div className="text-sm leading-relaxed text-slate-300">{children}</div>
     </div>
   );
 }
 
 export default function BilgisayarClient() {
+  // bg: varsayılan #04120c koyu YEŞİL-siyah; camgöbeği-mor bu makalede kalıbın uzak
+  // kenarıyla sayfa zemini arasında hue dikişi yapıyordu. #050a17 = HERO_COLORS[0].
   return (
-    <ArticleShell accent={ACCENT} title="Bilgisayar Nasıl Çalışır?">
+    <ArticleShell accent={ACCENT} bg="#050a17" title="Bilgisayar Nasıl Çalışır?">
       <ArticleHero
         title="Bilgisayar"
         fullTitle="Bilgisayar Nasıl Çalışır? Parçaların Tam Rehberi"
         eyebrow="PARÇALARIN TAM REHBERİ · İNTERAKTİF DOSYA"
         subtitle={<>Ekranda gördüğün her şey, milyarlarca minik elektrik anahtarının <strong className="font-semibold text-cyan-300">(1 ve 0)</strong> inanılmaz bir hızda <em className="not-italic text-violet-300">işbirliği yapmasından</em> ibarettir. Aşağı kaydır, parça parça çözelim.</>}
         colors={HERO_COLORS}
+        object3d="chip"
       />
 
       <ArticleLede points={[
