@@ -76,11 +76,22 @@ function noise3(x: number, y: number, z: number) {
     L(L(c(0, 0, 1), c(1, 0, 1), ux), L(c(0, 1, 1), c(1, 1, 1), ux), uy),
     uz);
 }
-/** Kara/deniz alanı: >0.5 kara. GLSL'deki fbm3 ile aynı ağırlıklar. */
 function fbm3(x: number, y: number, z: number) {
   let v = 0, a = 0.5, f = 1.6;
-  for (let i = 0; i < 4; i++) { v += a * noise3(x * f, y * f, z * f); a *= 0.5; f *= 2.03; }
+  for (let i = 0; i < 5; i++) { v += a * noise3(x * f, y * f, z * f); a *= 0.5; f *= 2.03; }
   return v;
+}
+/**
+ * ARAZİ YÜKSEKLİĞİ — >0.5 kara. GLSL'deki terrain() ile BİREBİR aynı olmalı,
+ * yoksa binalar denize dikilir.
+ * Düz fbm ızgaraya hizalı çıkıyordu: kıtalar dikdörtgen lekeler gibi görünüyor,
+ * kıyılar merdiven yapıyordu ("piksel piksel"). ALAN BÜKME (domain warp) örnekleme
+ * noktasını başka bir gürültüyle kaydırır → ızgara kırılır, kıyılar organikleşir.
+ */
+function terrain(x: number, y: number, z: number) {
+  const wa = fbm3(x * 1.7 + 5.2, y * 1.7 + 1.3, z * 1.7 + 7.7);
+  const wb = fbm3(x * 1.7 + 9.1, y * 1.7 + 4.4, z * 1.7 + 2.8);
+  return fbm3((x + (wa - 0.5) * 0.85) * 2.35, (y + (wb - 0.5) * 0.85) * 2.35, (z + (wa - wb) * 0.85) * 2.35);
 }
 
 const GLSL_NOISE = `
@@ -95,8 +106,15 @@ float noise3(vec3 p){
 }
 float fbm3(vec3 p){
   float v = 0.0, a = 0.5, f = 1.6;
-  for (int i = 0; i < 4; i++) { v += a * noise3(p * f); a *= 0.5; f *= 2.03; }
+  for (int i = 0; i < 5; i++) { v += a * noise3(p * f); a *= 0.5; f *= 2.03; }
   return v;
+}
+// ARAZİ: JS'teki terrain() ile BİREBİR aynı (yoksa binalar denize dikilir).
+// Alan bükme ızgara hizalanmasını kırar → kıyılar merdiven değil, organik.
+float terrain(vec3 p){
+  float wa = fbm3(p * 1.7 + vec3(5.2, 1.3, 7.7));
+  float wb = fbm3(p * 1.7 + vec3(9.1, 4.4, 2.8));
+  return fbm3((p + vec3(wa - 0.5, wb - 0.5, wa - wb) * 0.85) * 2.35);
 }
 `;
 
@@ -117,10 +135,14 @@ uniform vec2 uRes, uTitleC, uTitleR;
 varying vec3 vLocal; varying vec3 vN; varying vec3 vV;
 void main(){
   vec3 n = normalize(vLocal);
-  float h = fbm3(n * 2.35);                       // JS fbm3 ile AYNI ölçek
-  float land = smoothstep(0.495, 0.545, h);        // >0.5 kara
+  float h = terrain(n);                            // JS terrain() ile AYNI
+  // KIYI KENARI fwidth ile: sabit genişlikli smoothstep uzakta bulanık, yakında
+  // merdivenli çıkıyordu. Piksel ayak izine göre ölçekleyince kıyı her yerde
+  // TAM BİR PİKSEL yumuşaklığında — keskin ama tırtıklı değil.
+  float aa = max(fwidth(h), 0.0015) * 1.1;
+  float land = smoothstep(0.500 - aa, 0.500 + aa, h);
   // kıyı sığlığı: denizin karaya yakın kısmı açılır
-  float shallow = smoothstep(0.40, 0.50, h);
+  float shallow = smoothstep(0.42, 0.50, h);
   vec3 sea = mix(uSeaDeep, uSea, shallow);
   // kara dokusu: yükseklikle kuruyan yeşil
   vec3 landC = mix(uLand, uLandDry, smoothstep(0.55, 0.72, h));
@@ -136,10 +158,11 @@ void main(){
   float fres = pow(1.0 - max(dot(N, V), 0.0), 3.0);
   col = col * (0.16 + 1.05 * diff) + vec3(spec) + vec3(0.35, 0.62, 1.0) * fres * 0.22;
 
-  // Yüzey sahnenin EN PARLAK yeri (okyanus + bulut) ve metin bloğu onun üstüne
-  // düşüyor → maske tabanı diğer yüzeylerden daha aşağıda tutuldu.
+  // Yüzey sahnenin EN PARLAK yeri (okyanus + bulut). Gezegen büyütülüp yukarı
+  // alınınca metin bloğu TAM ÜSTÜNE düşüyor → maske hem derin (0.055) hem geniş
+  // (yarıçap büyütüldü) ki başlık+alt başlık kutusunu tümüyle karartsın.
   vec2 scr = gl_FragCoord.xy / uRes;
-  col *= mix(0.20, 1.0, smoothstep(0.85, 1.60, length((scr - uTitleC) / uTitleR)));
+  col *= mix(0.055, 1.0, smoothstep(0.72, 1.85, length((scr - uTitleC) / uTitleR)));
   gl_FragColor = vec4(col, 1.0);
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
@@ -168,8 +191,8 @@ void main(){
   float emis = 0.0;
 
   if (r < ${R_INNER}) {
-    // İÇ ÇEKİRDEK: katı, akkor. Hafif kristal dokusu.
-    float g = 0.85 + 0.15 * noise3(vLocal * 26.0);
+    // İÇ ÇEKİRDEK: katı, akkor. fbm (tek noise3 değil) → ızgara bloğu yok.
+    float g = 0.82 + 0.20 * fbm3(vLocal * 9.0);
     col = uInner * g;
     emis = 1.35 * (1.0 - r / ${R_INNER} * 0.35);
   } else if (r < ${R_OUTER}) {
@@ -195,8 +218,8 @@ void main(){
     col = mix(col, uOuter, plume * 0.42);            // sıcak sütun çekirdek rengine çalar
     emis = 0.26 * (1.0 - t) * (0.45 + 0.9 * conv) + plume * 0.30;
   } else {
-    // KABUK: ince, koyu, kaya dokulu
-    col = uCrust * (0.8 + 0.45 * noise3(vLocal * 40.0));
+    // KABUK: ince, koyu, kaya dokulu. fbm → ızgara bloğu yok.
+    col = uCrust * (0.72 + 0.6 * fbm3(vLocal * 13.0));
   }
 
   // katman sınırlarında ince koyu çizgi → kesit "çizilmiş" gibi okunur
@@ -209,8 +232,11 @@ void main(){
   vec3 N = normalize(vN), V = normalize(vV), L = normalize(uLightDir);
   col = col * (0.34 + 0.62 * max(dot(N, L), 0.0)) + col * emis;
 
+  // Maske DERİNLİĞİ ve YARIÇAPI üç yüzeyde de aynı olmalı; ayrışırsa başlığın
+  // altında yüzeyler arası görünür bir bant izi oluşuyor. (Kesit çekirdeği emissive
+  // olduğu için tabanı yüzeyden biraz yüksek: akkor çekirdek tam sönmesin.)
   vec2 scr = gl_FragCoord.xy / uRes;
-  col *= mix(0.34, 1.0, smoothstep(0.85, 1.60, length((scr - uTitleC) / uTitleR)));
+  col *= mix(0.075, 1.0, smoothstep(0.72, 1.85, length((scr - uTitleC) / uTitleR)));
   gl_FragColor = vec4(col, 1.0);
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
@@ -232,8 +258,8 @@ void main(){
   vec3 N = normalize(vN), L = normalize(uLightDir);
   float lit = 0.42 + 0.75 * max(dot(N, L), 0.0);
   vec2 scr = gl_FragCoord.xy / uRes;
-  float m = mix(0.30, 1.0, smoothstep(0.85, 1.60, length((scr - uTitleC) / uTitleR)));
-  gl_FragColor = vec4(vec3(1.0) * lit * m, a * 0.80);
+  float m = mix(0.055, 1.0, smoothstep(0.72, 1.85, length((scr - uTitleC) / uTitleR)));
+  gl_FragColor = vec4(vec3(1.0) * lit * m, a * 0.80 * m);
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
 }
@@ -320,7 +346,7 @@ export default function ThreeEarthHero() {
       const up = V(0, 1, 0);
       /** Nokta karada, kutup dışında ve dilimin dışında mı? */
       const yerUygun = (n: THREE.Vector3) => {
-        if (fbm3(n.x * 2.35, n.y * 2.35, n.z * 2.35) < 0.545) return false;  // deniz
+        if (terrain(n.x, n.y, n.z) < 0.515) return false;                     // deniz
         if (Math.abs(n.y) > 0.80) return false;                               // kutup buzu
         let phi = Math.atan2(n.z, -n.x); if (phi < 0) phi += TAU;
         let d = Math.abs(phi - PHI0); d = Math.min(d, TAU - d);
@@ -393,18 +419,25 @@ export default function ThreeEarthHero() {
             v.set(p[0], p[1], p[2]).project(camera);
             mx = Math.max(mx, Math.abs(v.x)); yMax = Math.max(yMax, v.y); yMin = Math.min(yMin, v.y);
           }
-          // 0.86/1.05 çok küçüktü, 0.94/1.30 ise gezegeni alt başlık bandına
-          // sokup luminansı 0.147'ye çıkardı (sınır 0.10). 1.16 ara değer.
-          dCam *= Math.max(mx / 0.94, (yMax - yMin) / 1.16);
+          // %70 yakınlaştırma (kullanıcı isteği): 1.16 → 1.97, yatay 0.94 → 1.60.
+          // Gezegen artık kadrajdan taşıyor; başlık onun ÜSTÜNDE duracağı için
+          // yüzey maskesi de derinleştirildi (bkz. surfaceFragment).
+          dCam *= Math.max(mx / 1.60, (yMax - yMin) / 1.97);
         }
-        const TARGET = portrait ? -0.74 : -0.70;
+        // Obje sayfanın DAHA ÜSTÜNE alındı (kullanıcı isteği). -0.30 denendi ama
+        // gezegen o kadar büyük+yukarı ki başlık tam gövdesine biniyordu ve maske
+        // ne kadar zorlansa metin kayboluyordu. -0.44 = hâlâ belirgin yukarıda,
+        // ama başlığa nefes alanı bırakıyor (ölçümle bulundu).
+        const TARGET = portrait ? -0.48 : -0.44;
         camera.projectionMatrix.elements[9] += -(TARGET - (yMax + yMin) * 0.5);
         let lo = 9, hi = -9;
         for (const p of PTS) { v.set(p[0], p[1], p[2]).project(camera); lo = Math.min(lo, v.y); hi = Math.max(hi, v.y); }
         const resid = TARGET - (lo + hi) * 0.5;
         if (Math.abs(resid) > 0.02) camera.projectionMatrix.elements[9] += resid;
 
-        shared.uTitleR.value.set(portrait ? 0.46 : 0.30, portrait ? 0.28 : 0.24);
+        // Obje yukarı+büyük olduğu için maske elipsi de büyütüldü: başlık kutusunu
+        // tümüyle örtmezse harflerin arkasında parlak yüzey kalır.
+        shared.uTitleR.value.set(portrait ? 0.54 : 0.40, portrait ? 0.34 : 0.30);
         shared.uRes.value.set(w * renderer.getPixelRatio(), h * renderer.getPixelRatio());
         shared.uLightDir.value.copy(KEY_DIR).transformDirection(camera.matrixWorldInverse);
 
