@@ -716,7 +716,10 @@ body {
 
 /* Floating notification bell */
 .notif-float {
-  position: fixed;
+  /* ABSOLUTE, fixed DEĞİL: fixed'ken zil viewport'a yapışıyor ve sayfa aşağı
+     kaydırılırken içeriğin üstünde yüzmeye devam ediyordu. Artık sayfanın EN
+     ÜSTÜNE park eder ve kaydırınca içerikle birlikte yukarı çıkar. */
+  position: absolute;
   /* viewport-fit=cover eklendiği için (bkz. app/layout.tsx) yatay modda çentik
      kenarı düzenin içine girer → sağ güvenli alan kadar içeri alınır. */
   right: calc(350px + 16px + env(safe-area-inset-right, 0px));

@@ -237,14 +237,23 @@ export default function AppShell({ children }: AppShellProps) {
         {children}
       </div>
 
-      {/* Floating notification bell (only on home) */}
+      {/* Bildirim zili — ana sayfanın SAĞ ÜSTÜNE park eder (fixed değil: kaydırınca
+          içerikle yukarı çıkar, bkz. globals.css .notif-float).
+
+          ⚠ YALNIZ GİRİŞLİDE: çıkışlı ziyaretçi landing'i görür ve orada zilin sağ
+          üst köşesi "Üye ol" düğmesinin ÜSTÜNE biniyordu (z-index 50 ile onu
+          örtüyordu) — hem anlamsız bir bağlantı hem de kaydın önünde engel.
+          Sarmalayıcı ŞART: `.auth-in` display:contents'tir, doğrudan zile
+          verilirse kutusu kalkar ve absolute konumlandırma çalışmaz. */}
       {activeId === 'home' && (
-        <Link href="/notifications" className="notif-float" aria-label="Bildirimler">
-          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-          {notifCount > 0 && (
-            <span className="notif-float-badge">{notifCount > 99 ? '99+' : notifCount}</span>
-          )}
-        </Link>
+        <span className="auth-in">
+          <Link href="/notifications" className="notif-float" aria-label="Bildirimler">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            {notifCount > 0 && (
+              <span className="notif-float-badge">{notifCount > 99 ? '99+' : notifCount}</span>
+            )}
+          </Link>
+        </span>
       )}
 
       {/* Mobile Bottom Nav */}
