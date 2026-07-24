@@ -16,7 +16,9 @@ import type { Rgb } from './ShaderHero';
 // `kind`: 'dna' | 'coin'. 'coin' + `src` (görsel) → dokulu altın sikke.
 // ─────────────────────────────────────────────────────────────────────────
 
-export type Object3DKind = 'dna' | 'coin' | 'wreath' | 'cannon' | 'helmet' | 'prism' | 'atom' | 'nucleus' | 'orbital' | 'particles';
+// 'mobius' ogl'de DEĞİL, ayrı three.js bileşeninde çizilir (ThreeMobiusHero) —
+// ArticleHero bu değeri görünce Object3DHero yerine onu render eder.
+export type Object3DKind = 'dna' | 'coin' | 'wreath' | 'cannon' | 'helmet' | 'prism' | 'atom' | 'nucleus' | 'orbital' | 'particles' | 'mobius';
 
 const DEFAULT_COLORS: [Rgb, Rgb, Rgb, Rgb] = [
   [0.016, 0.086, 0.063], [0.063, 0.45, 0.30], [0.40, 0.83, 0.31], [0.98, 0.74, 0.18],

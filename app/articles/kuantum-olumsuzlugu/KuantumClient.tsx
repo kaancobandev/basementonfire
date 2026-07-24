@@ -57,6 +57,7 @@ export default function KuantumClient() {
         eyebrow="FİZİK & KİTAP · İNTERAKTİF DOSYA"
         subtitle={<>Kendi ölümünü neden hiç deneyimlemeyebilirsin — ve aynı fikrin bir <em className="not-italic text-violet-300">romana</em> kaçmış hâli. Bir kutu, bir kedi, sonsuza dallanan bir evren.</>}
         colors={HERO_COLORS}
+        object3d="mobius"
         gradientText="Ölümsüzlüğü"
       />
 
