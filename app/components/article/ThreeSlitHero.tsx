@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { deviceTier, dprCap, makeFpsGuard } from './heroPerf';
 
 // ─────────────────────────────────────────────────────────────────────────
 // ÇİFT YARIK DENEYİ (cift-yarik hero'su) — three.js.
@@ -20,7 +21,9 @@ const YB = -0.6;      // bariyerin düzlem-yerel y'si
 const SLIT_X = 0.42;  // yarık merkezleri (±)
 const SLIT_HW = 0.13; // yarık yarı-genişliği
 
-const vertexShader = `
+// cheapNormal: zayıf cihazda normal için 4 yerine 2 ek örnek (vertex başına
+// 5 → 3 waveH çağrısı = ~%40 daha az ALU). Görsel fark ihmal edilebilir.
+const makeVertexShader = (cheapNormal: boolean) => `
 uniform float uTime;
 varying float vH;
 varying vec3 vNormalV;
@@ -48,9 +51,15 @@ void main(){
   float h = waveH(p, uTime);
   // normal: analitik fonksiyondan sonlu farklarla
   float e = 0.02;
+${cheapNormal ? `
+  float hR = waveH(p + vec2(e, 0.0), uTime);
+  float hU = waveH(p + vec2(0.0, e), uTime);
+  vec3 nrm = normalize(vec3((h - hR) / e, (h - hU) / e, 1.0));
+` : `
   float hL = waveH(p + vec2(-e, 0.0), uTime), hR = waveH(p + vec2(e, 0.0), uTime);
   float hD = waveH(p + vec2(0.0, -e), uTime), hU = waveH(p + vec2(0.0, e), uTime);
   vec3 nrm = normalize(vec3((hL - hR) / (2.0 * e), (hD - hU) / (2.0 * e), 1.0));
+`}
 
   vH = h;
   vNormalV = normalize(normalMatrix * nrm);
@@ -93,6 +102,7 @@ export default function ThreeSlitHero() {
     const host = hostRef.current;
     if (!host) return;
     const reduce = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const tier = deviceTier();
     let raf = 0;
 
     try {
@@ -101,7 +111,7 @@ export default function ThreeSlitHero() {
       host.appendChild(canvas);
 
       const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'high-performance' });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, dprCap(tier)));
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.25;
 
@@ -118,8 +128,15 @@ export default function ThreeSlitHero() {
       scene.add(rig);
 
       // dalga yüzeyi (yerel XY düzlemi; +Z yer değiştirme → yatay yatır)
-      const geo = new THREE.PlaneGeometry(7, 6, 240, 200);
-      const mat = new THREE.ShaderMaterial({ vertexShader, fragmentShader, uniforms: { uTime: { value: 0 } } });
+      // Bölüntü sayısı cihaz sınıfına göre: dalga zaten pürüzsüz, zayıf
+      // cihazda 110×90 (≈10k vertex) ile 240×200 (≈48k) gözle ayırt edilmiyor.
+      const seg2 = tier === 'low' ? [110, 90] : tier === 'mid' ? [170, 140] : [240, 200];
+      const geo = new THREE.PlaneGeometry(7, 6, seg2[0], seg2[1]);
+      const mat = new THREE.ShaderMaterial({
+        vertexShader: makeVertexShader(tier === 'low'),
+        fragmentShader,
+        uniforms: { uTime: { value: 0 } },
+      });
       const water = new THREE.Mesh(geo, mat);
       water.rotation.x = -Math.PI / 2;
       water.position.z = 0.2;
@@ -160,9 +177,19 @@ export default function ThreeSlitHero() {
       };
       draw(reduce ? start + 3000 : start);            // ilk kareyi SENKRON çiz
 
+      // FPS bekçisi: cihazın GERÇEK kare süresini ölçer. Yavaşsa önce
+      // çözünürlüğü düşürür; hâlâ yavaşsa animasyonu DONDURUR (son kare kalır,
+      // hero durağan bir görsel olur) → hiçbir telefonda kilitlenme olmaz.
+      let frozen = false;
+      const guard = makeFpsGuard(
+        () => { renderer.setPixelRatio(1); resize(); },
+        () => { frozen = true; },
+      );
+
       let visible = true;
       const loop = (now: number) => {
-        if (!visible) { raf = 0; return; }
+        if (!visible || frozen) { raf = 0; return; }
+        guard(now);
         draw(now);
         raf = requestAnimationFrame(loop);
       };
@@ -170,7 +197,7 @@ export default function ThreeSlitHero() {
 
       const io = reduce ? null : new IntersectionObserver(([e]) => {
         visible = e.isIntersecting;
-        if (visible && !raf) raf = requestAnimationFrame(loop);
+        if (visible && !raf && !frozen) raf = requestAnimationFrame(loop);
       }, { rootMargin: '200px' });
       io?.observe(host);
 

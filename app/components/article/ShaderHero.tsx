@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { Renderer, Triangle, Program, Mesh } from 'ogl';
+import { deviceTier, dprCap, makeFpsGuard } from './heroPerf';
 
 // Genel, TEMA-PARAMETRELİ canlı WebGL gradyan/akış zemini (ogl). Her makale 4 renk
 // vererek farklı bir hero atmosferi alır. dynamic(ssr:false) ile yüklenir; WebGL
@@ -52,10 +53,11 @@ export default function ShaderHero({ colors }: { colors?: [Rgb, Rgb, Rgb, Rgb] }
     if (!canvas) return;
     const reduce = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
     const mouse: [number, number] = [0.5, 0.6];
+    const tier = deviceTier();
     let raf = 0;
 
     try {
-      const renderer = new Renderer({ canvas, alpha: false, antialias: false, dpr: Math.min(window.devicePixelRatio || 1, 1.75) });
+      const renderer = new Renderer({ canvas, alpha: false, antialias: false, dpr: Math.min(window.devicePixelRatio || 1, dprCap(tier)) });
       const gl = renderer.gl;
       const geometry = new Triangle(gl);
       const program = new Program(gl, {
@@ -92,10 +94,19 @@ export default function ShaderHero({ colors }: { colors?: [Rgb, Rgb, Rgb, Rgb] }
       };
       window.addEventListener('pointermove', onMove, { passive: true });
 
+      // FPS bekçisi: tam ekran shader zayıf GPU'da en pahalı iştir. Yavaşsa önce
+      // çözünürlük düşer, hâlâ yavaşsa animasyon DONAR (zemin sabit gradyan kalır).
+      let frozen = false;
+      const guard = makeFpsGuard(
+        () => { renderer.dpr = 1; resize(); },
+        () => { frozen = true; },
+      );
+
       let visible = true;
       const start = performance.now();
       const loop = (now: number) => {
-        if (!visible) { raf = 0; return; } // ekran dışı → dur (tam ekran WebGL shader boşuna kasmasın)
+        if (!visible || frozen) { raf = 0; return; } // ekran dışı/donmuş → dur (tam ekran WebGL shader boşuna kasmasın)
+        guard(now);
         program.uniforms.uTime.value = (now - start) / 1000;
         renderer.render({ scene: mesh });
         raf = requestAnimationFrame(loop);
@@ -106,7 +117,7 @@ export default function ShaderHero({ colors }: { colors?: [Rgb, Rgb, Rgb, Rgb] }
       // Hero uzun makalede unmount olmaz → ekran dışına kayınca shader'ı durdur.
       const io = reduce ? null : new IntersectionObserver(([e]) => {
         visible = e.isIntersecting;
-        if (visible && !raf) raf = requestAnimationFrame(loop);
+        if (visible && !raf && !frozen) raf = requestAnimationFrame(loop);
       }, { rootMargin: '200px' });
       io?.observe(canvas.parentElement ?? canvas);
 
@@ -116,7 +127,11 @@ export default function ShaderHero({ colors }: { colors?: [Rgb, Rgb, Rgb, Rgb] }
         window.removeEventListener('resize', resize);
         window.removeEventListener('scroll', refreshRect);
         window.removeEventListener('pointermove', onMove);
-        try { gl.getExtension('WEBGL_lose_context')?.loseContext(); } catch {}
+        // NOT: WEBGL_lose_context.loseContext() BİLEREK çağrılmıyor (Object3DHero
+        // ile aynı gerekçe). React Strict Mode (dev) mount→unmount→mount yapar;
+        // loseContext ilk unmount'ta bağlamı kalıcı öldürür, remount aynı ölü
+        // bağlamı alır → hero dev'de görünmez olurdu. Bağlam, canvas DOM'dan
+        // kalkınca GC ile serbest kalır.
       };
     } catch {
       canvas.style.display = 'none';

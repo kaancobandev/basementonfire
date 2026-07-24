@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { Renderer, Camera, Transform, Program, Mesh, Geometry, Texture, Triangle, Sphere, Box, Torus } from 'ogl';
 import type { Rgb } from './ShaderHero';
+import { deviceTier, dprCap, makeFpsGuard } from './heroPerf';
 
 // ─────────────────────────────────────────────────────────────────────────
 // Genel, TEMA-PARAMETRELİ 3D hero objesi (ogl — three.js DEĞİL, ~10KB).
@@ -380,9 +381,9 @@ function buildHelixTube(gl: GL, phase: number, R: number, HGT: number, TURNS: nu
   for (let i = 0; i <= M; i++) {
     const P = pts[i], T = tan[i], rd = rad[i];
     let bx = T[1] * rd[2] - T[2] * rd[1], by = T[2] * rd[0] - T[0] * rd[2], bz = T[0] * rd[1] - T[1] * rd[0];
-    let bl = Math.hypot(bx, by, bz) || 1; bx /= bl; by /= bl; bz /= bl;
+    const bl = Math.hypot(bx, by, bz) || 1; bx /= bl; by /= bl; bz /= bl;
     let nx = by * T[2] - bz * T[1], ny = bz * T[0] - bx * T[2], nz = bx * T[1] - by * T[0];
-    let nl = Math.hypot(nx, ny, nz) || 1; nx /= nl; ny /= nl; nz /= nl;
+    const nl = Math.hypot(nx, ny, nz) || 1; nx /= nl; ny /= nl; nz /= nl;
     for (let j = 0; j <= seg; j++) {
       const th = (j / seg) * TAU, c = Math.cos(th), s = Math.sin(th);
       const ox = nx * c + bx * s, oy = ny * c + by * s, oz = nz * c + bz * s;
@@ -563,10 +564,12 @@ export default function Object3DHero({ kind = 'dna', colors, src }: { kind?: Obj
     const canvas = ref.current;
     if (!canvas) return;
     const reduce = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const tier = deviceTier();
     let raf = 0;
 
     try {
-      const renderer = new Renderer({ canvas, alpha: false, antialias: true, dpr: Math.min(window.devicePixelRatio || 1, 1.75) });
+      // zayıf cihazda MSAA kapalı + dpr 1 (bkz. heroPerf.ts)
+      const renderer = new Renderer({ canvas, alpha: false, antialias: tier !== 'low', dpr: Math.min(window.devicePixelRatio || 1, dprCap(tier)) });
       const gl = renderer.gl;
       gl.clearColor(c[0][0], c[0][1], c[0][2], 1);
 
@@ -877,7 +880,7 @@ export default function Object3DHero({ kind = 'dna', colors, src }: { kind?: Obj
         // ATOM YOK: sadece uçan radyoaktif partiküller (girdap + yükselme + türbülans)
         dust = [0.45, 1.0, 0.35]; spinY = 0; tiltX = 0.05;
         root.rotation.x = tiltX;
-        const COUNT = 2400;
+        const COUNT = tier === 'low' ? 900 : tier === 'mid' ? 1600 : 2400;
         const pp = new Float32Array(COUNT * 3), sd = new Float32Array(COUNT), sz = new Float32Array(COUNT);
         for (let i = 0; i < COUNT; i++) {
           const a = Math.random() * TAU, r = 0.1 + Math.pow(Math.random(), 1.3) * 2.5; // merkeze doğru yoğun
@@ -949,9 +952,18 @@ export default function Object3DHero({ kind = 'dna', colors, src }: { kind?: Obj
       renderOnce = draw;
       draw(reduce ? start + 6000 : start); // ilk kareyi SENKRON çiz
 
+      // FPS bekçisi: yavaş cihazda önce çözünürlük düşer, hâlâ yavaşsa animasyon
+      // DONAR (son kare kalır) → kilitlenme yerine durağan bir görsel.
+      let frozen = false;
+      const guard = makeFpsGuard(
+        () => { renderer.dpr = 1; resize(); },
+        () => { frozen = true; },
+      );
+
       let visible = true;
       const loop = (now: number) => {
-        if (!visible) { raf = 0; return; }
+        if (!visible || frozen) { raf = 0; return; }
+        guard(now);
         draw(now);
         raf = requestAnimationFrame(loop);
       };
@@ -959,7 +971,7 @@ export default function Object3DHero({ kind = 'dna', colors, src }: { kind?: Obj
 
       const io = reduce ? null : new IntersectionObserver(([e]) => {
         visible = e.isIntersecting;
-        if (visible && !raf) raf = requestAnimationFrame(loop);
+        if (visible && !raf && !frozen) raf = requestAnimationFrame(loop);
       }, { rootMargin: '200px' });
       io?.observe(canvas.parentElement ?? canvas);
 
