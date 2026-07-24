@@ -115,6 +115,15 @@
 @keyframes dotpulse { 0%, 100% { opacity: .3; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-3px); } }
 @media (prefers-reduced-motion: reduce) { .dots span { animation: none; opacity: .55; } }
 
+/* Animasyonlu ışın/aurora arka planı (AnimatedRays, giriş/kayıt). Tailwind v4'te
+   config yok → keyframe burada. background-position yatayda kayar. */
+@keyframes aurora-bg {
+  from { background-position: 50% 50%, 50% 50%; }
+  to   { background-position: 350% 50%, 350% 50%; }
+}
+.animate-aurora-bg { animation: aurora-bg 60s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .animate-aurora-bg { animation: none; } }
+
 /* ── Marka tipografisi: başlıklar Bricolage Grotesque, gövde DM Sans (next/font, bkz. layout.tsx) ── */
 h1, h2, h3, .font-display { font-family: var(--font-display), system-ui, sans-serif; }
 /* Kürate makaleler (kendi -page/-root tipografisi olanlar: rome=Georgia, takyon/greece=system-ui,
