@@ -137,7 +137,7 @@ void main(){
 
 const glassFragment = `
 uniform float uTime, uDetail;
-uniform vec3 uLightDir, uC1, uC2, uC3, uC4, uCool;
+uniform vec3 uLightDir, uC1, uC2, uC4, uRed, uPurple;
 uniform vec2 uRes, uTitleC, uTitleR;
 varying vec2 vUv; varying vec3 vPane; varying vec3 vN; varying vec3 vV; varying vec2 vLocal;
 
@@ -146,18 +146,21 @@ float h11(float p){ p = fract(p * 0.1031); p *= p + 33.33; p *= p + p; return fr
 void main(){
   // ── panel rengi: paletten seçilir, ton aPane.z ile kararlaştırılır ──
   // Ağırlıklar KASITLI dengesiz: eşit dağıtınca pencere panayır gibi oluyordu.
-  // Kızıl baskın (makalenin ACCENT'i), kobalt yalnız karşı ağırlık, altın az ve
-  // değerli. Gerçek gül pencerelerde de bir renk yönetir, ötekiler eşlik eder.
+  // Kırmızı baskın, mor yalnız karşı ağırlık, altın az ve değerli. Gerçek gül
+  // pencerelerde de bir renk yönetir, ötekiler ona eşlik eder.
   float t = vPane.z;
   vec3 col;
-  // KARIŞIM RENGİ YOK: mix(uC3,uC4) ve mix(uC2,uCool) denendi, ikisi de kahve ve
-  // çamurlu eflatun verdi. Vitray mücevher gibidir — aynı hue'nun koyu/açık
-  // tonları kullanılır, ara tonlar karıştırılmaz.
-  if      (t < 0.34) col = uC3;                    // kızıl (baskın)
-  else if (t < 0.52) col = uC3 * 0.42;             // derin kızıl
-  else if (t < 0.66) col = uC2;                    // koyu şarap
-  else if (t < 0.80) col = uCool;                  // kobalt (karşı ağırlık)
-  else if (t < 0.90) col = uCool * 0.45;           // gece mavisi
+  // KARIŞIM RENGİ YOK: ara tonlar (kızıl×altın, şarap×mavi) denendi, ikisi de
+  // kahve ve çamurlu eflatun verdi. Vitray mücevher gibidir — aynı hue'nun
+  // koyu/açık tonları kullanılır, ara tonlar karıştırılmaz.
+  // MOR + KIRMIZI: önce makalenin ACCENT'i (#e11d48) doğrudan cama veriliyordu,
+  // ama mavi kanalı yüksek (0.28) olduğu için parlayınca PEMBEYE dönüyordu.
+  // Cam artık gerçek kırmızı (mavi kanal ~0.05) ve kobalt yerine mor taşıyor.
+  if      (t < 0.34) col = uRed;                   // kırmızı (baskın)
+  else if (t < 0.52) col = uRed * 0.40;            // derin kırmızı
+  else if (t < 0.66) col = uC2;                    // koyu şarap (geçiş tonu)
+  else if (t < 0.80) col = uPurple;                // mor (karşı ağırlık)
+  else if (t < 0.90) col = uPurple * 0.42;         // derin mor
   else               col = uC4;                    // sıcak altın (az ve değerli)
   // merkez rozet her zaman altın: gözün gideceği yer orası
   if (vPane.x < 0.5) col = uC4;
@@ -238,9 +241,12 @@ void main(){
 // HERO_COLORS (SanatClient) — LİNEER uzayda
 const C1 = new THREE.Vector3(0.05, 0.02, 0.06);   // neredeyse siyah erik: kurşun çıta + zemin
 const C2 = new THREE.Vector3(0.22, 0.05, 0.14);   // koyu şarap
-const C3 = new THREE.Vector3(0.75, 0.11, 0.28);   // kızıl (ACCENT #e11d48)
 const C4 = new THREE.Vector3(0.85, 0.55, 0.18);   // sıcak altın
-const COOL = new THREE.Vector3(0.10, 0.20, 0.62); // kobalt: kızılın karşı ağırlığı
+// CAM PALETİ = MOR + KIRMIZI. Makalenin ACCENT'i #e11d48 (0.75, 0.11, 0.28)
+// doğrudan cama verilince mavi kanalı yüzünden parlarken PEMBEYE dönüyordu;
+// burada mavi kanal 0.05'e indirildi → gerçek kırmızı. Kobaltın yerini mor aldı.
+const RED = new THREE.Vector3(0.72, 0.055, 0.050);
+const PURPLE = new THREE.Vector3(0.34, 0.085, 0.62);
 
 export default function ThreeRoseWindowHero() {
   const hostRef = useRef<HTMLDivElement>(null);
@@ -277,7 +283,8 @@ export default function ThreeRoseWindowHero() {
         uRes: { value: new THREE.Vector2(1, 1) },
         uTitleC: { value: new THREE.Vector2(0.5, 0.5) },
         uTitleR: { value: new THREE.Vector2(0.30, 0.24) },
-        uC1: { value: C1 }, uC2: { value: C2 }, uC3: { value: C3 }, uC4: { value: C4 }, uCool: { value: COOL },
+        uC1: { value: C1 }, uC2: { value: C2 }, uC4: { value: C4 },
+        uRed: { value: RED }, uPurple: { value: PURPLE },
       };
 
       // arka disk: panel aralarından görünen KURŞUN ÇITA (came)
