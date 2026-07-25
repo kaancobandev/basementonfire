@@ -12,6 +12,9 @@ import { NavUserProvider } from './NavUserContext';
 const RealtimeProvider = dynamic(() => import('./RealtimeProvider'), { ssr: false });
 // Mobil paylaş-sheet'i (framer-motion) ayrı parça olarak yüklenir → framer-motion ANA bundle'dan çıkar.
 const MobileCreateSheet = dynamic(() => import('./MobileCreateSheet'), { ssr: false });
+// Tıklama efekti: GSAP taşır → yalnız GİRİŞ YAPMIŞ kullanıcıda lazy yüklenir.
+// Çıkışlı ziyaretçi (landing) bu chunk'ı ve GSAP'ı hiç indirmez.
+const MouseEffects = dynamic(() => import('./MouseEffects'), { ssr: false });
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -178,6 +181,9 @@ export default function AppShell({ children }: AppShellProps) {
 
   return (
     <NavUserProvider value={user}>
+      {/* Tıklama efekti yalnız giriş yapmış kullanıcıda (user truthy). user
+          undefined (bilinmiyor) / null (çıkış) → mount olmaz, GSAP inmez. */}
+      {user && <MouseEffects />}
       <div className="app-shell">
         {/* Desktop Sidebar */}
         <aside className="sidebar">
