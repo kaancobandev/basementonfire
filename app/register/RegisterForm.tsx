@@ -3,8 +3,11 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { MIN_AGE } from '@/lib/age';
+import FloatingInput from '@/app/components/FloatingInput';
 
 export default function RegisterForm() {
+  // Doğum tarihi (type=date) floating-label deseniyle uyumsuz — hep "dolu"
+  // görünür — bu yüzden kendi düz label'ıyla kalıyor.
   const inputStyle = { width: '100%', padding: '10px 14px', border: '1.5px solid var(--color-border)', borderRadius: '10px', fontSize: '0.95rem', outline: 'none', transition: 'border-color 0.15s', boxSizing: 'border-box' as const, color: 'var(--color-text)', backgroundColor: 'var(--color-bg)' };
   const labelStyle = { display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text)', marginBottom: '4px' } as const;
   const linkStyle = { color: 'var(--color-primary)', fontWeight: 700, textDecoration: 'none' } as const;
@@ -15,33 +18,10 @@ export default function RegisterForm() {
   useEffect(() => { setMaxDate(new Date().toISOString().slice(0, 10)); }, []);
 
   return (
-    <form method="POST" action="/api/auth/register" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-      <div>
-        <label style={labelStyle} htmlFor="reg-username">Kullanıcı adı</label>
-        <input id="reg-username" type="text" name="username" required autoComplete="username" placeholder="kullanici_adi"
-          style={inputStyle}
-          onFocus={e => (e.target.style.borderColor = 'var(--color-primary)')}
-          onBlur={e => (e.target.style.borderColor = 'var(--color-border)')}
-        />
-      </div>
-
-      <div>
-        <label style={labelStyle} htmlFor="reg-email">E-posta</label>
-        <input id="reg-email" type="email" name="email" required autoComplete="email" placeholder="ornek@mail.com"
-          style={inputStyle}
-          onFocus={e => (e.target.style.borderColor = 'var(--color-primary)')}
-          onBlur={e => (e.target.style.borderColor = 'var(--color-border)')}
-        />
-      </div>
-
-      <div>
-        <label style={labelStyle} htmlFor="reg-password">Şifre</label>
-        <input id="reg-password" type="password" name="password" required autoComplete="new-password" placeholder="En az 6 karakter"
-          style={inputStyle}
-          onFocus={e => (e.target.style.borderColor = 'var(--color-primary)')}
-          onBlur={e => (e.target.style.borderColor = 'var(--color-border)')}
-        />
-      </div>
+    <form method="POST" action="/api/auth/register" style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+      <FloatingInput id="reg-username" type="text" name="username" label="Kullanıcı adı" required autoComplete="username" />
+      <FloatingInput id="reg-email" type="email" name="email" label="E-posta" required autoComplete="email" />
+      <FloatingInput id="reg-password" type="password" name="password" label="Şifre (en az 6 karakter)" required autoComplete="new-password" minLength={6} />
 
       {/* Yaş kapısı — Basementonfire 16+ */}
       <div>

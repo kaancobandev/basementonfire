@@ -115,6 +115,32 @@
 @keyframes dotpulse { 0%, 100% { opacity: .3; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-3px); } }
 @media (prefers-reduced-motion: reduce) { .dots span { animation: none; opacity: .55; } }
 
+/* ── Floating-label input (giriş/kayıt formları) ──────────────────────────
+   Uiverse.io/liyaxu123 stili; styled-components yerine düz CSS. Renkler SABİT
+   beyaz/lightblue DEĞİL, TEMA DEĞİŞKENİNE bağlı — sabit beyaz metin açık temada
+   beyaz kartta görünmezdi. Boş/dolu ayrımı :valid yerine :not(:placeholder-shown)
+   ile (email formatı yarımken de label düzgün davransın diye) → input'a
+   placeholder=" " ŞART. */
+.ls-field { position: relative; margin-top: 6px; }
+.ls-input {
+  background: transparent; border: 0; border-bottom: 2px solid var(--color-border);
+  display: block; width: 100%; padding: 12px 0; font-size: 1rem;
+  color: var(--color-text); outline: 0; transition: border-color .2s;
+}
+.ls-input:focus { border-bottom-color: var(--color-primary); }
+.ls-input::placeholder { color: transparent; }   /* placeholder=" " görünmesin */
+.ls-label { position: absolute; top: 12px; left: 0; pointer-events: none; }
+.ls-label span {
+  display: inline-block; font-size: 1rem; min-width: 4px; color: var(--color-text-muted);
+  transition: .3s cubic-bezier(.68, -.55, .265, 1.55);
+}
+.ls-input:focus + .ls-label span,
+.ls-input:not(:placeholder-shown) + .ls-label span {
+  color: var(--color-primary); transform: translateY(-26px); font-size: .8rem;
+}
+/* Hareket azaltma: harfler kaymadan doğrudan konumlanır (sıçrama yok). */
+@media (prefers-reduced-motion: reduce) { .ls-label span { transition: none; } }
+
 /* Animasyonlu ışın/aurora arka planı (AnimatedRays, giriş/kayıt). Tailwind v4'te
    config yok → keyframe burada. background-position yatayda kayar. */
 @keyframes aurora-bg {
