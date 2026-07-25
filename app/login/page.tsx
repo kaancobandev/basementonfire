@@ -9,7 +9,9 @@ import AnimatedRays from '@/app/components/AnimatedRays';
 export default function LoginPage() {
   return (
     <main className="main-content" style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--color-bg)', overflow: 'hidden' }}>
-      <AnimatedRays className="!absolute inset-0" />
+      {/* themeAware={false}: arka plan ışınları tema seçiminden BAĞIMSIZ (invert
+          yok → renkler doğru, açık/koyu temada aynı). Kart yine tema duyarlı. */}
+      <AnimatedRays themeAware={false} className="!absolute inset-0" />
       <div style={{ position: 'relative', zIndex: 1, background: 'var(--color-surface)', borderRadius: '20px', padding: '40px', width: '100%', maxWidth: '420px', boxShadow: 'var(--shadow-md)' }}>
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
           <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--color-primary)', marginBottom: '4px' }}>Basementonfire</div>
