@@ -49,7 +49,11 @@ export default function AnimatedRays({ className = '', children, themeAware = tr
     return () => observer.disconnect();
   }, [themeAware]);
 
-  if (!mounted) return null;
+  // themeAware=true iken isDark SSR'da bilinemez (hydration mismatch riski) → mount
+  // bekle. themeAware=false (login) iken isDark KULLANILMIYOR → SSR'da da render et:
+  // aurora ilk HTML'e girer, JS/hydration beklemez, cache'lenmiş sayfada bile görünür.
+  // (SSR HTML'de aurora'nın HİÇ olmaması "değişiklik yok" şikâyetinin köküydü.)
+  if (themeAware && !mounted) return null;
 
   // themeAware=false: invert YOK → yazılan renkler doğru; iki temada da aynı.
   const filter = !themeAware
