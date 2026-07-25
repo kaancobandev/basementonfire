@@ -4,6 +4,7 @@ import ArticleRuntime from '@/app/components/ArticleRuntime';
 import AsyncFonts from '@/app/components/AsyncFonts';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
 import ArticleImage from '@/app/components/article/ArticleImage';
+import NeuralLinkBg from './NeuralLinkBg';
 import { CSS, HTML, JS } from './content';
 
 const refs: BibItem[] = [
@@ -62,6 +63,17 @@ export default function Page() {
       <AsyncFonts href={FONT_URL} />
       <div className="main-content ayn-root">
         <style dangerouslySetInnerHTML={{ __html: CSS }} />
+        {/* Sinir ağı arka planı: fixed viewport, içeriğin ALTINDA (z:0), sayfanın
+            --ink zemini korunur (bileşen yalnız şeffaf clearRect yapar). İçerik
+            aşağıdaki style ile z:1'e alınır ki ağın üstünde kalsın. */}
+        <style>{`
+          .ayn-root { position: relative; }
+          .ayn-root > .neural-bg { z-index: 0; }
+          .ayn-root > *:not(.neural-bg) { position: relative; z-index: 1; }
+        `}</style>
+        <div className="neural-bg" style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }} aria-hidden>
+          <NeuralLinkBg />
+        </div>
         {/* MAKALENİN GÖVDESİ. Bu tek satır content.ts'teki metnin tamamını
             basar — silinirse sayfada yalnızca galeri + kaynakça kalır ve bunu
             build de tsc de FARK ETMEZ (HTML yine içe aktarılmış görünür).
