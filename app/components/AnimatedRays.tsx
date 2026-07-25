@@ -4,9 +4,10 @@ import { useEffect, useState, type ReactNode } from 'react';
 
 // ─────────────────────────────────────────────────────────────────────────
 // Animasyonlu ışın/aurora arka planı (Ibelick / kullanıcının verdiği bileşen).
-// RENKLER kullanıcının verdiği bileşendeki gibi TAM KORUNDU: #60a5fa (mavi),
-// #e879f9 (fuşya), #5eead4 (teal). Yalnız bu projeye çalışması için gereken 4
-// işlevsel uyum yapıldı:
+// RENK PALETİ kullanıcı isteğiyle GERÇEK KUZEY IŞIKLARI (aurora borealis):
+// imza rengi YEŞİL baskın (#4ade80, oksijen 557nm) + camgöbeği (#22d3ee) + mor
+// (#a855f7, azot alt kenar). Orijinal mavi/fuşya/teal kuzey ışığı değildi.
+// Yalnız bu projeye çalışması için gereken 4 işlevsel uyum yapıldı:
 //   1) `cn` (@/lib/utils) yok, clsx/tailwind-merge de yok → düz string.
 //   2) Tema: proje `.dark` CLASS'ı değil `data-theme` ATTRIBUTE'u kullanır;
 //      orijinal kod karanlık modu HİÇ göremezdi → attribute + sistem tercihi.
@@ -28,7 +29,7 @@ const stripes = `repeating-linear-gradient(100deg,
   var(--stripe-color) 0%, var(--stripe-color) 7%,
   transparent 10%, transparent 12%, var(--stripe-color) 16%)`;
 const rainbow = `repeating-linear-gradient(100deg,
-  #60a5fa 10%, #e879f9 15%, #60a5fa 20%, #5eead4 25%, #60a5fa 30%)`;
+  #4ade80 10%, #a855f7 15%, #4ade80 20%, #22d3ee 25%, #4ade80 30%)`;
 
 export default function AnimatedRays({ className = '', children, themeAware = true }: { className?: string; children?: ReactNode; themeAware?: boolean }) {
   const [isDark, setIsDark] = useState(false);
