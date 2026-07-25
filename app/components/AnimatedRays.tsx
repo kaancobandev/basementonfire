@@ -4,10 +4,16 @@ import { useEffect, useState, type ReactNode } from 'react';
 
 // ─────────────────────────────────────────────────────────────────────────
 // Animasyonlu ışın/aurora arka planı (Ibelick / kullanıcının verdiği bileşen).
-// RENK PALETİ kullanıcı isteğiyle GERÇEK KUZEY IŞIKLARI (aurora borealis):
-// imza rengi YEŞİL baskın (#4ade80, oksijen 557nm) + camgöbeği (#22d3ee) + mor
-// (#a855f7, azot alt kenar). Orijinal mavi/fuşya/teal kuzey ışığı değildi.
-// Yalnız bu projeye çalışması için gereken 4 işlevsel uyum yapıldı:
+// RENKLER kullanıcının verdiği bileşendeki gibi: #60a5fa (mavi), #e879f9 (fuşya),
+// #5eead4 (teal) — kuzey ışığı tonları.
+//
+// KRİTİK: orijinal bileşen İKİ katmanı `mix-blend-mode: difference` ile
+// birleştiriyordu. difference iki gradyanı BİRBİRİNDEN ÇIKARIR (|a-b|) → hangi
+// renk konursa konsun sonuç bambaşka renklere (kırmızı/sarı/turuncu) döner;
+// kullanıcı bu yüzden koyduğumuz hiçbir rengi göremiyordu. difference KALDIRILDI,
+// tek animasyonlu katmana inildi → renkler EKRANDA olduğu gibi görünür.
+//
+// Ayrıca bu projeye çalışması için gereken işlevsel uyumlar:
 //   1) `cn` (@/lib/utils) yok, clsx/tailwind-merge de yok → düz string.
 //   2) Tema: proje `.dark` CLASS'ı değil `data-theme` ATTRIBUTE'u kullanır;
 //      orijinal kod karanlık modu HİÇ göremezdi → attribute + sistem tercihi.
@@ -29,7 +35,7 @@ const stripes = `repeating-linear-gradient(100deg,
   var(--stripe-color) 0%, var(--stripe-color) 7%,
   transparent 10%, transparent 12%, var(--stripe-color) 16%)`;
 const rainbow = `repeating-linear-gradient(100deg,
-  #4ade80 10%, #a855f7 15%, #4ade80 20%, #22d3ee 25%, #4ade80 30%)`;
+  #60a5fa 10%, #e879f9 15%, #60a5fa 20%, #5eead4 25%, #60a5fa 30%)`;
 
 export default function AnimatedRays({ className = '', children, themeAware = true }: { className?: string; children?: ReactNode; themeAware?: boolean }) {
   const [isDark, setIsDark] = useState(false);
@@ -69,8 +75,10 @@ export default function AnimatedRays({ className = '', children, themeAware = tr
     // opak ve tema duyarlı olduğu için okunabilirliği değişmez.
     <section className={`relative h-full w-full overflow-hidden ${className}`} aria-hidden
       style={themeAware ? undefined : { background: '#06060d' }}>
+      {/* TEK KATMAN: difference blend'li ikinci katman kaldırıldı. Animasyon bu
+          katmanda; renkler gradyanda ne yazıyorsa ekranda o görünür (bozulmaz). */}
       <div
-        className="absolute inset-0"
+        className="animate-aurora-bg absolute inset-0"
         style={{
           ['--stripe-color' as string]: '#fff',
           backgroundImage: `${stripes}, ${rainbow}`,
@@ -80,17 +88,7 @@ export default function AnimatedRays({ className = '', children, themeAware = tr
           maskImage: 'radial-gradient(ellipse at 100% 0%, black 40%, transparent 70%)',
           WebkitMaskImage: 'radial-gradient(ellipse at 100% 0%, black 40%, transparent 70%)',
         }}
-      >
-        <div
-          className="animate-aurora-bg absolute inset-0"
-          style={{
-            ['--stripe-color' as string]: '#fff',
-            backgroundImage: `${stripes}, ${rainbow}`,
-            backgroundSize: '200%, 100%',
-            mixBlendMode: 'difference',
-          }}
-        />
-      </div>
+      />
 
       {children && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center">
