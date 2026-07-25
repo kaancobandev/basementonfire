@@ -59,7 +59,11 @@ export default function AnimatedRays({ className = '', children, themeAware = tr
       : 'blur(10px) invert(100%)';
 
   return (
-    <section className={`relative h-full w-full overflow-hidden ${className}`} aria-hidden>
+    // themeAware=false: KOYU ZEMİN. Işınlar açık zeminde soluk kalıyordu; koyu
+    // zeminde (tema seçiminden bağımsız) fotoğraftaki gibi parlar. Kart üstte,
+    // opak ve tema duyarlı olduğu için okunabilirliği değişmez.
+    <section className={`relative h-full w-full overflow-hidden ${className}`} aria-hidden
+      style={themeAware ? undefined : { background: '#06060d' }}>
       <div
         className="absolute inset-0"
         style={{
