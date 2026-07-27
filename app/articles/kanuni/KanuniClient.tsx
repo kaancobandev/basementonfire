@@ -6,6 +6,7 @@ import {
   ArticleShell, ArticleHero, ArticleLede, ArticleSection, HorizontalTimeline, ArticleQuiz, ArticleBibliography, ArticleFooter,
 } from '@/app/components/article/ArticleBlocks';
 import SourceCompare, { type CompareSource } from '@/app/components/article/SourceCompare';
+import ArticleImage from '@/app/components/article/ArticleImage';
 import { ACCENT, BG, GOLD, CORAL, COBALT, MARBLE, tokenHex, InView, WidgetSkeleton, SourceNote, MythNote, Stat, tr } from './ui';
 import { ReadingProgress, PerdeNav } from './chrome';
 import { VenetianCrown, DivandaBirDava, SeferTakvimi, MuhruBas, Cadir, KardesKatliJuri, TugrayiCoz, TugrayiBas } from './widgets';
@@ -93,6 +94,15 @@ export default function KanuniClient() {
             ))}
           </ul>
 
+          <ArticleImage
+            src="/articles/kanuni/divan.jpg"
+            ratio="1200 / 1921"
+            priority
+            alt="Osmanlı minyatürü: üstte kuşatılmış Zigetvar kalesi, ortada sıra hâlinde dizilmiş toplar, altta otağlar ve sarıklı devlet adamlarının toplandığı divan meclisi."
+            caption="Hünernâme'den: Zigetvar'ın fethinden sonra toplanan divan. Kale eylülde düştü — padişah birkaç gün önce ölmüştü ve bu ölüm ordudan saklanıyordu."
+            credit="16. yy Osmanlı minyatürü · kamu malı"
+          />
+
           <div className="my-7 grid grid-cols-3 gap-2.5">
             <Stat value={tr(NUMBERS.hiddenDays)} label="gün ölüm gizlendi" color={CORAL} />
             <Stat value={tr(NUMBERS.reignYears)} label="yıl saltanat" color={GOLD} />
@@ -130,6 +140,14 @@ export default function KanuniClient() {
             Ve o iki isimden biri — Batı’nınki — kısmen <strong>satın alındı</strong>. Sayfanın başında dönen objeye bir daha bak.
           </p>
 
+          <ArticleImage
+            src="/articles/kanuni/venedik-migferi.jpg"
+            ratio="1200 / 2079"
+            alt="Ahşap baskı: Süleyman profilden, başında dört katlı, mücevherli ve sorguçlu miğfer-taç; üstte SVLYMAN OTOMAN REX TVRCX yazılı kurdele."
+            caption="Dört taçlı miğferi gösteren dönem baskısı. Üstteki Almanca not, tacın kaç dukaya mal olduğunu yazıyor — çünkü asıl mesaj fiyattı."
+            credit="16. yy Alman ahşap baskısı · kamu malı"
+          />
+
           <div className="mt-8">
             <VenetianCrown />
           </div>
@@ -156,6 +174,14 @@ export default function KanuniClient() {
         <ArticleSection kicker="PERDE 2 · KANUN NEDİR" title="Kanun makinesi">
           <p className="leading-relaxed text-slate-300">{KANUN.intro}</p>
           <p className="mt-4 leading-relaxed text-slate-300">{KANUN.ebussuud}</p>
+          <ArticleImage
+            src="/articles/kanuni/tugra.jpg"
+            ratio="1200 / 968"
+            alt="Süleyman'ın tuğrası: mavi konturlu, altın ve çiçek tezhipli; üç dikey elif ve sola uzanan iki büyük kavis."
+            caption="Süleyman'ın tuğrası (yaklaşık 1555–60). Bir kâğıdı hükme çeviren şey metnin kendisi değil, altındaki bu imzaydı."
+            credit="The Metropolitan Museum of Art · CC0"
+          />
+
           <div className="my-6 rounded-2xl border p-5" style={{ borderColor: `color-mix(in srgb, ${COBALT} 35%, transparent)`, background: `color-mix(in srgb, ${COBALT} 8%, transparent)` }}>
             <p className="text-lg font-semibold leading-relaxed text-slate-100">{KANUN.principle}</p>
           </div>
@@ -186,6 +212,14 @@ export default function KanuniClient() {
             <Stat value={`~${MOHAC.battleHours} saat`} label="muharebe" color={CORAL} />
             <Stat value="1" label="krallık" color={MARBLE} />
           </div>
+
+          <ArticleImage
+            src="/articles/kanuni/mohac.jpg"
+            ratio="1200 / 1855"
+            alt="Osmanlı minyatürü: solda zırhlı Avrupa süvarisi ve haçlı sancak, sağda Osmanlı atlıları; arada düşmüş atlar ve savaşçılar."
+            caption="Mohaç: solda plaka zırhlı Macar ağır süvarisi, sağda Osmanlı atlıları. Avrupa'nın en iyi vuruş gücü, iki saatte tükendi."
+            credit="16. yy Osmanlı minyatürü · kamu malı"
+          />
 
           <p className="leading-relaxed text-slate-300">Osmanlı düzeni şu dört adım üzerine kuruluydu:</p>
           <ul className="mt-3 space-y-2">
@@ -241,6 +275,14 @@ export default function KanuniClient() {
           <p className="mt-4 leading-relaxed text-slate-300">{IBRAHIM.night}</p>
           <p className="mt-4 text-lg font-semibold leading-relaxed text-slate-100">{IBRAHIM.name}</p>
 
+          <ArticleImage
+            src="/articles/kanuni/ibrahim-pasa.jpg"
+            ratio="1200 / 1800"
+            alt="Elle boyanmış ahşap baskı: sarıklı İbrahim Paşa beyaz at üstünde asa taşıyor; üstte Almanca basılı mektup metni, sağda mührünün çizimi."
+            caption="İbrahim Paşa, Ekim 1529: Viyana önünden şehirdeki komiserlere yolladığı mektubun Almanya'da basılmış hâli — sağda kendi mührünün çizimi var. Altı buçuk yıl sonra sarayda boğduruldu."
+            credit="Alman ahşap baskısı, ~1529–30 · kamu malı"
+          />
+
           <div className="mt-8">
             <MuhruBas />
           </div>
@@ -295,6 +337,14 @@ export default function KanuniClient() {
       <div id="perde-8" className="scroll-mt-16">
         <ArticleSection kicker={`PERDE 8 · ${SULEYMANIYE.years} · SÜLEYMANİYE`} title="Kanun taşa yazılıyor">
           <p className="leading-relaxed text-slate-300">{SULEYMANIYE.text}</p>
+
+          <ArticleImage
+            src="/articles/kanuni/suleymaniye.jpg"
+            ratio="1200 / 800"
+            alt="Alacakaranlıkta Haliç'ten Süleymaniye: aydınlatılmış kubbe ve dört minare, altta sahil, ışıklı vapurlar ve su."
+            caption="Süleymaniye, Haliç'ten. Mimar Sinan bir cami değil külliye kurdu: medreseler, darüşşifa, imaret, hamam ve çarşı."
+            credit={<>Fotoğraf: Diego Delso · <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer" className="underline">CC BY-SA 4.0</a></>}
+          />
           <p className="mt-4 leading-relaxed text-slate-300">
             Aynı yıllar aynı zamanda hattın, çininin ve tuğranın altın çağıdır — padişahın imzası da bir sanat nesnesidir.
             (Yazının kendisi ayrı bir konu:{' '}

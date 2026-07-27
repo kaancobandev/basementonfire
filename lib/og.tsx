@@ -56,7 +56,7 @@ export async function articleOgImage({ title, subtitle, accent, gradient }: { ti
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
           <div style={{ width: 14, height: 58, borderRadius: 6, background: accent }} />
-          <div style={{ display: 'flex', fontSize: 30, letterSpacing: 5, color: accent, fontWeight: 700 }}>BASEMENTS</div>
+          <div style={{ display: 'flex', fontSize: 30, letterSpacing: 4, color: accent, fontWeight: 700 }}>BASEMENTONFIRE</div>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', fontSize: titleSize, fontWeight: 700, lineHeight: 1.04, letterSpacing: -2 }}>{title}</div>
@@ -149,7 +149,7 @@ export async function rootOgImage() {
         {/* Üst şerit — 32 makale kartıyla BİREBİR aynı (aile benzerliği kasıtlı) */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
           <div style={{ width: 14, height: 58, borderRadius: 6, background: ROOT_ACCENT }} />
-          <div style={{ display: 'flex', fontSize: 30, letterSpacing: 5, color: ROOT_ACCENT, fontWeight: 700 }}>BASEMENTS</div>
+          <div style={{ display: 'flex', fontSize: 30, letterSpacing: 4, color: ROOT_ACCENT, fontWeight: 700 }}>BASEMENTONFIRE</div>
           {/* ── LOGO BİLEREK YOK. Hüküm geçerli ama SEBEP DEĞİŞTİ (2026-07-16) ──
               Eski gerekçe ("alfa kanalı yok") ARTIK GEÇERSİZ: logo RGBA ve gerçek
               şeffaflığı var. Gerçek engel KONTRAST:
