@@ -3,16 +3,17 @@
 import Img from '@/app/components/Img';
 import { AudioThumb } from '@/app/components/MediaCarousel';
 import { avatarSrc } from '@/lib/avatar';
-// Makale imza gradyanları ORTAK registry'den — ana sayfa landing'i (sunucu
-// bileşeni) de aynı haritayı kullanıyor, o yüzden lib'e çıkarıldı.
-import { ARTICLE_GRADIENTS, FALLBACK_GRADIENT } from '@/lib/article-gradients';
+import ArticleIndex from '@/app/components/ArticleIndex';
+import type { ArticleMeta } from '@/lib/articles';
 
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 
 interface User { id: number; username: string; display_name: string; bio: string | null; avatar: string | null; }
 interface MediaPost { id: number; media_url: string; media_type: string; caption: string; likes: number; username: string; display_name: string; }
-interface Article { slug: string; title: string; emoji: string; desc: string; href?: string; }
+// Makale tipi lib/articles.ts'ten (TEK KAYNAK) — ArticleIndex `category` alanına
+// ihtiyaç duyuyor, yerel kopya onu taşımıyordu.
+type Article = ArticleMeta;
 interface CommunityArticle { slug: string; title: string; summary: string; cover_url: string | null; category: string | null; author: string; username: string; }
 
 interface Props {
@@ -42,15 +43,30 @@ export default function DiscoverClient({ users, media, articles, communityArticl
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Arama isteklerinde SIRA MUHAFIZI. Olmadığında (ölçüldü): kullanıcı arayıp
+  // kutuyu hemen temizleyince temizleme searchResults'ı null yapıyor, ama
+  // uçuştaki fetch sonradan dönüp üzerine yazıyordu → kutu BOŞken ekranda
+  // "Sonuç bulunamadı" kalıyor ve varsayılan içerik bir daha gelmiyordu.
+  // Her istek bir sıra numarası alır; yanıt döndüğünde sıra değişmişse atılır.
+  const aramaSirasi = useRef(0);
+
+  function aramayiIptalEt() {
+    aramaSirasi.current++;   // uçuştaki yanıtları geçersiz kıl
+    setSearchResults(null);
+    setSearching(false);
+  }
+
   async function doSearch(q: string) {
-    if (!q.trim()) { setSearchResults(null); return; }
+    if (!q.trim()) { aramayiIptalEt(); return; }
+    const sira = ++aramaSirasi.current;
     setSearching(true);
     try {
       const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
       const data = await res.json();
+      if (sira !== aramaSirasi.current) return;          // eskimiş yanıt
       setSearchResults({ users: data.users ?? [], posts: data.posts ?? [] });
     } finally {
-      setSearching(false);
+      if (sira === aramaSirasi.current) setSearching(false);
     }
   }
 
@@ -106,7 +122,7 @@ export default function DiscoverClient({ users, media, articles, communityArticl
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="dc-search-icon"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           <input
             value={query}
-            onChange={e => { setQuery(e.target.value); if (!e.target.value.trim()) setSearchResults(null); }}
+            onChange={e => { setQuery(e.target.value); if (!e.target.value.trim()) aramayiIptalEt(); }}
             onKeyDown={e => { if (e.key === 'Enter') doSearch(query); }}
             placeholder="Kullanıcı veya gönderi ara…"
             className="dc-search-input"
@@ -162,28 +178,16 @@ export default function DiscoverClient({ users, media, articles, communityArticl
       {/* Varsayılan içerik */}
       {showDefault && (
         <>
-          {/* Makaleler */}
+          {/* Makaleler — 2 kolonlu emoji kart ızgarası yerine soru öncelikli
+              dizin. Paylaşılan ArticleIndex bileşeni /kitap ile ORTAK, ikisi
+              ayrışamaz. İlk 12 satır açık, kalanı "Tümünü gör" ile açılıyor:
+              32 kart bu hub sayfasında Gündem/Son Paylaşımlar/Kullanıcılar
+              bölümlerini ekranın çok altına itiyordu. Kırpılan satırlar DOM'dan
+              SİLİNMİYOR (yalnız `hidden`) → 32 makale linki prerender HTML'inde
+              kalıyor, bu sayfanın SEO yüzeyi korunuyor. */}
           <div className="dc-section">
             <h2 className="dc-section-title">Makaleler</h2>
-            <div className="dc-articles">
-              {articles.map(a => {
-                const gradStyle = { ['--art-grad']: ARTICLE_GRADIENTS[a.slug] ?? FALLBACK_GRADIENT } as CSSProperties;
-                const inner = (
-                  <>
-                    <div className="dc-article-top">
-                      <span className="dc-article-emoji">{a.emoji}</span>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="dc-article-arrow"><path d="m9 18 6-6-6-6"/></svg>
-                    </div>
-                    <div className="dc-article-title">{a.title}</div>
-                    <div className="dc-article-desc">{a.desc}</div>
-                  </>
-                );
-                // href verilenler statik /icerik/*.html sayfalarıdır → normal <a> ile tam sayfa açılır
-                return a.href
-                  ? <a key={a.slug} href={a.href} className="dc-article-link" style={gradStyle}>{inner}</a>
-                  : <Link key={a.slug} href={`/articles/${a.slug}`} className="dc-article-link" style={gradStyle}>{inner}</Link>;
-              })}
-            </div>
+            <ArticleIndex articles={articles} baslangicAdet={12} />
           </div>
 
           {/* Topluluk makaleleri — kullanıcıların yazıp yayınladığı makaleler */}
@@ -348,81 +352,8 @@ export default function DiscoverClient({ users, media, articles, communityArticl
           color: var(--color-text);
         }
 
-        /* Makaleler — 2 kolonlu eğlenceli kartlar */
-        .dc-articles {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 12px;
-          padding-bottom: 16px;
-        }
-        .dc-article-link {
-          position: relative;
-          display: flex;
-          flex-direction: column;
-          gap: 7px;
-          padding: 15px 16px;
-          background: var(--color-bg);
-          border: 1px solid var(--color-border);
-          border-radius: 18px;
-          text-decoration: none;
-          color: inherit;
-          overflow: hidden;
-          transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-        }
-        /* İçeriğe özel hover gradyanı (--art-grad ile her karta ayrı) */
-        .dc-article-link::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          background: var(--art-grad);
-          opacity: 0;
-          transition: opacity 0.3s ease;
-          z-index: 0;
-        }
-        .dc-article-top, .dc-article-title, .dc-article-desc { position: relative; z-index: 1; }
-        .dc-article-link:hover {
-          transform: translateY(-4px);
-          border-color: transparent;
-          box-shadow: 0 14px 30px rgba(0,0,0,0.22);
-        }
-        .dc-article-link:hover::before { opacity: 1; }
-        .dc-article-top {
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-        }
-        .dc-article-emoji {
-          font-size: 2.1rem;
-          line-height: 1;
-          transition: transform 0.25s ease;
-        }
-        .dc-article-link:hover .dc-article-emoji { transform: scale(1.18) rotate(-7deg); }
-        .dc-article-title {
-          font-weight: 800;
-          font-size: 0.95rem;
-          color: var(--color-text);
-          line-height: 1.25;
-          transition: color 0.25s ease;
-        }
-        .dc-article-desc {
-          font-size: 0.77rem;
-          color: var(--color-text-muted);
-          line-height: 1.45;
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-          transition: color 0.25s ease;
-        }
-        .dc-article-arrow {
-          color: var(--color-text-muted);
-          flex-shrink: 0;
-          transition: transform 0.25s ease, color 0.25s ease;
-        }
-        .dc-article-link:hover .dc-article-title,
-        .dc-article-link:hover .dc-article-desc,
-        .dc-article-link:hover .dc-article-arrow { color: #fff; }
-        .dc-article-link:hover .dc-article-arrow { transform: translateX(3px); }
+        /* NOT: .dc-articles / .dc-article-* kuralları KALDIRILDI — makale ızgarası
+           paylaşılan ArticleIndex bileşenine taşındı, o kendi stillerini taşıyor. */
 
         /* Topluluk makaleleri */
         .dc-comm { display: flex; flex-direction: column; gap: 10px; padding-bottom: 16px; }
@@ -551,9 +482,6 @@ export default function DiscoverClient({ users, media, articles, communityArticl
           .dc-search-wrap { padding: 10px 12px; }
           .dc-section { padding: 14px 12px 0; }
           .dc-grid { grid-template-columns: repeat(2, 1fr); }
-          .dc-articles { gap: 10px; }
-          .dc-article-link { padding: 13px 14px; border-radius: 16px; }
-          .dc-article-emoji { font-size: 1.85rem; }
           .dc-follow-btn { padding: 5px 10px; font-size: 0.75rem; }
           .dc-avatar { width: 38px; height: 38px; }
         }
