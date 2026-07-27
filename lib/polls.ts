@@ -7,6 +7,8 @@ export const POLLS: Record<string, readonly string[]> = {
   'augustus-restore': ['kabul', 'yalvar'], // Cumhuriyet dönsün (kabul et) / Geri vermesi için yalvar
   'fatih-son-karar': ['bekle', 'harac', 'savun'], // XI. Konstantin: Batı'dan yardım bekle / Haraç öner / Sur başında savun
   'fatih-zehir': ['zehir', 'hastalik'], // Hünkâr Çayırı: zehirlendi / hastalıktan öldü
+  'kanuni-cadir': ['gir', 'donme', 'adam'], // Şehzade Mustafa: otağa gir / girme, dön / adamlarınla gir
+  'kanuni-kardes-katli': ['fatih', 'sonradan'], // Kardeş katli maddesi: Fatih yazdı / sonradan eklendi
 };
 
 export const isPollKey = (key: string): boolean =>

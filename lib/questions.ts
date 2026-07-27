@@ -22,6 +22,9 @@
 export const QUESTIONS: Record<string, string> = {
   /* ══════════ Ana sayfa destesinde olanlar (lib/landing.ts HERO_DECK) ══════════ */
   fatih: `Bir fikir bir insanı ne kadar ele geçirebilir?`,
+  // Kanıt: Perde 2 makineyi kurar (kanunnâme/dava modülü), Perde 5–7 aynı makinenin
+  // onu kuran adama İŞLEMEDİĞİNİ gösterir (İbrahim Paşa, otağ, kardeş katli maddesi).
+  kanuni: `Kanunu yazan adam kendi kanununa yenilir mi?`,
   radyoaktivite: `Sen ne kadar radyoaktifsin?`,
   bagirsak: `Kararlarını gerçekten beynin mi veriyor?`,
   internet: `Bu sayfa sana nasıl ulaştı?`,

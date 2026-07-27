@@ -303,6 +303,14 @@ export default function FatihClient() {
           </p>
           <p className="mt-4 text-lg font-semibold leading-relaxed text-slate-100">{NUMBERS.line}</p>
 
+          {/* Seri ileri-linki: kanunnâmedeki madde bir asır sonra Kanuni'nin
+              iki oğlunu alacak. Aidiyeti tartışmalı — orada karşılaştırılıyor. */}
+          <p className="mt-6 leading-relaxed text-slate-400">
+            Bu kanunnâmedeki bir madde — nizam-ı âlem için kardeş katli — yaklaşık bir asır sonra torununun torununun sofrasına oturacak:{' '}
+            <Link href="/articles/kanuni" className="article-ilink" style={{ color: GOLD }}>Kanuni Sultan Süleyman</Link>{' '}
+            iki oğlunu bu maddeyle kaybetti. Maddenin gerçekten Fatih’in kaleminden çıkıp çıkmadığı ise hâlâ tartışılıyor.
+          </p>
+
           {/* İmza öğe — Kaynak Karşılaştırıcı */}
           <div className="mt-8">
             <p className="mb-4 leading-relaxed text-slate-300">
