@@ -6,8 +6,9 @@ import type { ArticleCategory, ArticleMeta } from '@/lib/articles';
 import { questionFor } from '@/lib/questions';
 
 /* ══════════════════════════════════════════════════════════════════════════
-   Makale dizini — /discover'daki "Makaleler" bölümü ve /kitap sayfası AYNI
-   bileşeni kullanır, böylece iki yüzey ayrışamaz.
+   Makale dizini — /discover'daki "Makaleler" bölümünün listesi.
+   Ayrı bir bileşen olmasının sebebi: liste ileride başka bir yüzeyde de
+   (ör. tam arşiv sayfası) gerekirse kopyalanmasın, tek yerden gelsin.
 
    TASARIM KISITI — YAPIŞKAN KULLANILMADI (bilerek):
    .main-content'te `overflow-x: hidden` var; CSS bunu `overflow-y: auto`ya

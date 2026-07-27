@@ -179,8 +179,8 @@ export default function DiscoverClient({ users, media, articles, communityArticl
       {showDefault && (
         <>
           {/* Makaleler — 2 kolonlu emoji kart ızgarası yerine soru öncelikli
-              dizin. Paylaşılan ArticleIndex bileşeni /kitap ile ORTAK, ikisi
-              ayrışamaz. İlk 12 satır açık, kalanı "Tümünü gör" ile açılıyor:
+              dizin (ArticleIndex bileşeni).
+              İlk 12 satır açık, kalanı "Tümünü gör" ile açılıyor:
               32 kart bu hub sayfasında Gündem/Son Paylaşımlar/Kullanıcılar
               bölümlerini ekranın çok altına itiyordu. Kırpılan satırlar DOM'dan
               SİLİNMİYOR (yalnız `hidden`) → 32 makale linki prerender HTML'inde
