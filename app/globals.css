@@ -150,6 +150,85 @@
 .animate-aurora-bg { animation: aurora-bg 60s linear infinite; }
 @media (prefers-reduced-motion: reduce) { .animate-aurora-bg { animation: none; } }
 
+/* ── Giriş/kayıt kartı: buzlu cam (frosted glass) ─────────────────────────
+   Kart AnimatedRays'in üstünde duruyor ve o arka plan TEMA-BAĞIMSIZ koyu
+   (#06060d, themeAware={false}) → cam da iki temada AYNI: koyu taban + üstte
+   beyaz parıltı. Açık temada var(--color-surface)/var(--color-text) kalsaydı
+   koyu metin koyu camın üzerinde okunmazdı.
+
+   ⚠ RENKLER TOKEN EZEREK değişiyor, .ls-* kurallarına DOKUNULMUYOR: harf harf
+   floating-label animasyonu (transition + transitionDelay) aynen korunur.
+   Buradaki her --color-* yalnız kartın İÇİNDE geçerli, site geneli etkilenmez. */
+.auth-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 420px;
+  /* Dar ekranda kenara YAPIŞMASIN: opak kartta fark etmezdi, camda yuvarlak köşe
+     ve kenar çizgisi görünmez olurdu (flex öğesi olduğu için margin'e göre küçülür). */
+  margin: 20px 16px;
+  padding: 34px 32px 30px;
+  border-radius: var(--radius-2xl);
+  /* Koyu taban ŞART: saydam beyaz cam olsaydı aurora'nın parlak bölgelerinde
+     beyaz metin kaybolurdu. Üstteki beyaz gradyan sadece kenar parıltısı. */
+  background:
+    linear-gradient(155deg, rgba(255,255,255,.16), rgba(255,255,255,.045) 46%, rgba(255,255,255,.08)),
+    rgba(9,9,22,.5);
+  backdrop-filter: blur(26px) saturate(160%);
+  -webkit-backdrop-filter: blur(26px) saturate(160%);
+  border: 1px solid rgba(255,255,255,.18);
+  box-shadow: 0 24px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.28);
+  color: #fff;
+  color-scheme: dark;   /* tarih seçici + autofill + kaydırma çubuğu koyu render */
+
+  --color-text: #ffffff;
+  --color-text-muted: rgba(233,236,255,.86);
+  --color-border: rgba(255,255,255,.32);
+  --color-primary: #d7cfff;        /* etiket/alt çizgi/link — koyu camda AA */
+  --color-primary-hover: #ffffff;
+  --color-danger: #ffc2c2;         /* hata kutusu camda: açık kırmızı metin */
+  --color-danger-soft: rgba(239,68,68,.18);
+}
+/* Chrome autofill kartı beyaza boyar (metin okunmaz olurdu) → devasa transition
+   ile boyama ertelenir, metin beyaz kalır. Standart çözüm. */
+.auth-card .ls-input:-webkit-autofill,
+.auth-card .ls-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #fff;
+  caret-color: #fff;
+  transition: background-color 9999s ease-out, border-color .2s;
+}
+.auth-brand { display: flex; align-items: center; justify-content: center; gap: 12px; }
+.auth-brand-name {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: 1.85rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.1;
+  color: #fff;
+}
+/* İşaretin GÖVDESİ koyu kırmızı (bkz. Logo.tsx notu) → koyu camda sönük kalıyordu;
+   ölçülü parlaklık artışı gövdeyi geri getirir, uçları yakmaz. */
+.auth-logo { filter: brightness(1.18) saturate(1.1); flex-shrink: 0; }
+
+.auth-submit {
+  margin-top: 6px; padding: 13px; border: 0; border-radius: var(--radius-md);
+  font-size: 1rem; font-weight: 700; color: #fff; cursor: pointer;
+  /* Buton rengi KART TOKENINDAN bağımsız: --color-primary burada açık lavantaya
+     ezildi, buton onu kullansaydı beyaz metin okunmazdı. */
+  background: linear-gradient(135deg, #7a4bff, #4a1fd6);
+  box-shadow: 0 8px 22px rgba(74,31,214,.45);
+  transition: filter .15s, box-shadow .15s, transform .1s;
+}
+.auth-submit:hover { filter: brightness(1.12); box-shadow: 0 10px 26px rgba(74,31,214,.6); }
+.auth-submit:active { transform: translateY(1px); }
+
+/* Dar telefon: "Basementonfire" tek parça bir kelime — logo+kelime satırı kartın
+   min-content genişliğini belirliyor ve 360px'te kenar boşluğunu yiyordu.
+   Ölçüldü: 360px'te kart 354px/boşluk 2px idi → satır küçülünce boşluk geri geldi. */
+@media (max-width: 420px) {
+  .auth-card { margin: 16px 12px; padding: 28px 22px 24px; }
+  .auth-brand { gap: 10px; }
+  .auth-brand-name { font-size: 1.55rem; }
+  .auth-logo { width: 40px; height: 40px; }
+}
+
 /* ── Marka tipografisi: başlıklar Bricolage Grotesque, gövde DM Sans (next/font, bkz. layout.tsx) ── */
 h1, h2, h3, .font-display { font-family: var(--font-display), system-ui, sans-serif; }
 /* Kürate makaleler (kendi -page/-root tipografisi olanlar: rome=Georgia, takyon/greece=system-ui,

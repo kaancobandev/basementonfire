@@ -8,14 +8,9 @@ export default function LoginForm() {
       <FloatingInput id="login-email" type="email" name="email" label="E-posta" required autoComplete="email" />
       <FloatingInput id="login-password" type="password" name="password" label="Şifre" required autoComplete="current-password" />
 
-      <button
-        type="submit"
-        style={{ background: 'var(--color-primary)', color: 'white', fontWeight: 700, fontSize: '1rem', padding: '12px', border: 'none', borderRadius: '10px', cursor: 'pointer', transition: 'background 0.15s', marginTop: '4px' }}
-        onMouseOver={e => ((e.target as HTMLButtonElement).style.background = 'var(--color-primary-hover)')}
-        onMouseOut={e => ((e.target as HTMLButtonElement).style.background = 'var(--color-primary)')}
-      >
-        Giriş Yap
-      </button>
+      {/* .auth-submit: kart içinde --color-primary açık lavantaya ezildiği için
+          buton kendi (koyu, beyaz metinle AA geçen) gradyanını taşır. */}
+      <button type="submit" className="auth-submit">Giriş Yap</button>
     </form>
   );
 }

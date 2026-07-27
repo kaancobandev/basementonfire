@@ -1,6 +1,7 @@
 import LoginForm from './LoginForm';
 import AuthErrorNotice from '@/app/components/AuthErrorNotice';
 import AnimatedRays from '@/app/components/AnimatedRays';
+import Logo from '@/app/components/Logo';
 
 // ESKİDEN dinamikti: getMe()+redirect ÖLÜ koddu (middleware.ts girişli
 // kullanıcıyı /login'e ulaşmadan /feed'e yönlendiriyor) ve ?error= sunucuda
@@ -12,10 +13,15 @@ export default function LoginPage() {
       {/* themeAware={false}: arka plan ışınları tema seçiminden BAĞIMSIZ (invert
           yok → renkler doğru, açık/koyu temada aynı). Kart yine tema duyarlı. */}
       <AnimatedRays themeAware={false} className="!absolute inset-0" />
-      <div style={{ position: 'relative', zIndex: 1, background: 'var(--color-surface)', borderRadius: '20px', padding: '40px', width: '100%', maxWidth: '420px', boxShadow: 'var(--shadow-md)' }}>
+      {/* Buzlu cam kart (.auth-card) — renkler orada token ezilerek çevriliyor,
+          floating-label animasyonuna dokunulmuyor. */}
+      <div className="auth-card">
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-          <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--color-primary)', marginBottom: '4px' }}>Basementonfire</div>
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Hesabına giriş yap</div>
+          <div className="auth-brand">
+            <Logo size={48} className="auth-logo" />
+            <span className="auth-brand-name">Basementonfire</span>
+          </div>
+          <div style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', marginTop: '6px' }}>Hesabına giriş yap</div>
         </div>
 
         <AuthErrorNotice />

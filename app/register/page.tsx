@@ -1,6 +1,7 @@
 import RegisterForm from './RegisterForm';
 import AuthErrorNotice from '@/app/components/AuthErrorNotice';
 import AnimatedRays from '@/app/components/AnimatedRays';
+import Logo from '@/app/components/Logo';
 
 // ESKİDEN dinamikti — /login ile aynı dönüşüm: getMe()+redirect middleware'de
 // zaten var (ölü kod), ?error= istemcide okunur → sayfa statik.
@@ -10,10 +11,14 @@ export default function RegisterPage() {
       {/* themeAware={false}: login ile AYNI — koyu zemin, invert yok (renkler
           bozulmaz), difference yok, SSR'da render. Kart yine tema duyarlı. */}
       <AnimatedRays themeAware={false} className="!absolute inset-0" />
-      <div style={{ position: 'relative', zIndex: 1, background: 'var(--color-surface)', borderRadius: '20px', padding: '40px', width: '100%', maxWidth: '420px', boxShadow: 'var(--shadow-md)' }}>
+      {/* Buzlu cam kart — /login ile AYNI (.auth-card). */}
+      <div className="auth-card">
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-          <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--color-primary)', marginBottom: '4px' }}>Basementonfire</div>
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Hesap oluştur</div>
+          <div className="auth-brand">
+            <Logo size={48} className="auth-logo" />
+            <span className="auth-brand-name">Basementonfire</span>
+          </div>
+          <div style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', marginTop: '6px' }}>Hesap oluştur</div>
         </div>
 
         <AuthErrorNotice />

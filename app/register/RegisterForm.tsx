@@ -8,7 +8,9 @@ import FloatingInput from '@/app/components/FloatingInput';
 export default function RegisterForm() {
   // Doğum tarihi (type=date) floating-label deseniyle uyumsuz — hep "dolu"
   // görünür — bu yüzden kendi düz label'ıyla kalıyor.
-  const inputStyle = { width: '100%', padding: '10px 14px', border: '1.5px solid var(--color-border)', borderRadius: '10px', fontSize: '0.95rem', outline: 'none', transition: 'border-color 0.15s', boxSizing: 'border-box' as const, color: 'var(--color-text)', backgroundColor: 'var(--color-bg)' };
+  // Zemin var(--color-bg) DEĞİL: buzlu cam kartın üstünde açık gri blok gibi
+  // duruyordu. Camla uyumlu saydam beyaz; metin/kenar tokenları kartta ezili.
+  const inputStyle = { width: '100%', padding: '10px 14px', border: '1.5px solid var(--color-border)', borderRadius: '10px', fontSize: '0.95rem', outline: 'none', transition: 'border-color 0.15s', boxSizing: 'border-box' as const, color: 'var(--color-text)', backgroundColor: 'rgba(255,255,255,0.07)' };
   const labelStyle = { display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text)', marginBottom: '4px' } as const;
   const linkStyle = { color: 'var(--color-primary)', fontWeight: 700, textDecoration: 'none' } as const;
 
@@ -50,14 +52,8 @@ export default function RegisterForm() {
         </span>
       </label>
 
-      <button
-        type="submit"
-        style={{ background: 'var(--color-primary)', color: 'white', fontWeight: 700, fontSize: '1rem', padding: '12px', border: 'none', borderRadius: '10px', cursor: 'pointer', marginTop: '4px' }}
-        onMouseOver={e => ((e.target as HTMLButtonElement).style.background = 'var(--color-primary-hover)')}
-        onMouseOut={e => ((e.target as HTMLButtonElement).style.background = 'var(--color-primary)')}
-      >
-        Kayıt Ol
-      </button>
+      {/* .auth-submit: bkz. LoginForm — kart tokenından bağımsız koyu gradyan. */}
+      <button type="submit" className="auth-submit">Kayıt Ol</button>
     </form>
   );
 }
