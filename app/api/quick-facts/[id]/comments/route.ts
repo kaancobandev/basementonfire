@@ -1,4 +1,4 @@
-import { db, getMe } from '@/lib/supabase/server';
+import { db, getMe, logIfError } from '@/lib/supabase/server';
 import { getBlockedUserIds } from '@/lib/blocks';
 import { canViewFact } from '@/lib/visibility';
 import { NextResponse } from 'next/server';
@@ -19,7 +19,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   // Yorum beğeni SAYISI comment_likes(count) embed'inden. Tablo
   // sql/features-comment-likes.sql çalıştırılana kadar YOKtur → embed patlar,
   // embed'siz sorguya düşülür ve likesEnabled=false döner (özellik uykuda).
-  const COLS = 'id, content, created_at, parent_id, user_id, users(username, display_name, avatar)';
+  //
+  // ⚠ `users!comments_user_id_fkey` ŞART (bkz. app/p/[id]/postData.ts'teki uzun
+  // not): comment_likes junction'ı comments↔users ilişkisini ikiye çıkarıyor,
+  // hint'siz `users(...)` PGRST201 ile TÜM sorguyu reddettiriyor.
+  const COLS = 'id, content, created_at, parent_id, user_id, users!comments_user_id_fkey(username, display_name, avatar)';
   let res = await db
     .from('comments')
     .select(`${COLS}, comment_likes(count)`)
@@ -31,6 +35,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     // Embed'siz sorgu comment_likes taşımaz → tip farklı; holding değişkenine cast.
     res = await db.from('comments').select(COLS).eq('post_id', postId).order('created_at', { ascending: true }).limit(300) as typeof res;
   }
+  // 500'ün SEBEBİ günlüğe düşsün: bu uç sessizce patladığında yorumlar kaybolur
+  // ama gönderi kartındaki sayı doğru kalır → çelişki teşhisi zorlaştırıyor.
+  logIfError('quick-fact comments', res.error);
   if (res.error) return NextResponse.json({ error: 'Yorumlar alınamadı' }, { status: 500 });
 
   // Engellediğim + beni engelleyen kullanıcıların yorumları görünmez (feed/arama deseni).

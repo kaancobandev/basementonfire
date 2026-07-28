@@ -45,7 +45,10 @@ export default async function SikayetYonetimPage() {
       ? db.from('quick_facts').select('id, caption, media_url, media_type, users!quick_facts_user_id_fkey(username, display_name)').in('id', ids('post'))
       : Promise.resolve({ data: [] as any[] }),
     ids('comment').length
-      ? db.from('comments').select('id, content, post_id, users(username, display_name)').in('id', ids('comment'))
+      // users!comments_user_id_fkey ŞART: comment_likes junction'ı comments↔users
+      // ilişkisini ikiye çıkarıyor, hint'siz embed PGRST201 ile patlar (şikayet
+      // kuyruğu yorumu yazarsız/boş gösterirdi). Bkz. app/p/[id]/postData.ts.
+      ? db.from('comments').select('id, content, post_id, users!comments_user_id_fkey(username, display_name)').in('id', ids('comment'))
       : Promise.resolve({ data: [] as any[] }),
     ids('user').length
       ? db.from('users').select('id, username, display_name').in('id', ids('user'))

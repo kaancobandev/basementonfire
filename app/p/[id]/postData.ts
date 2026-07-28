@@ -1,5 +1,5 @@
 import { cache } from 'react';
-import { db } from '@/lib/supabase/server';
+import { db, logIfError } from '@/lib/supabase/server';
 
 // Tam gönderi sayfası (/p/[id]) ve intercepting-route modalı (@modal/(.)p/[id])
 // aynı veriyi kullanır — tek kaynak.
@@ -59,7 +59,16 @@ export async function getPostDetail(postId: number, meId: number | null): Promis
   // Yorum beğeni SAYISI comment_likes(count) embed'inden gelir; tablo
   // sql/features-comment-likes.sql çalıştırılana kadar YOKtur → embed patlar,
   // embed'siz sorguya düşer ve özellik uykuda kalır (enabled=false).
-  const COMMENT_COLS = 'id, content, created_at, parent_id, user_id, users(username, display_name, avatar)';
+  //
+  // ⚠ `users!comments_user_id_fkey` ŞART, düz `users(...)` DEĞİL.
+  // comment_likes tablosu (comment_id + user_id) comments ile users arasında
+  // İKİNCİ bir ilişki (many-to-many junction) yaratıyor → PostgREST hangisini
+  // kastettiğimizi bilemiyor ve PGRST201 ile sorguyu tümden reddediyor
+  // ("Could not embed because more than one relationship was found"). Sonuç:
+  // yorum listesi boş döner, oysa quick_facts'teki comments(count) çalışmaya
+  // devam eder → "sayı doğru ama yorumlar kayboldu" tablosu. SQL çalıştırıldığı
+  // an değil, PostgREST şema önbelleği tazelenince (dakikalar sonra) patlar.
+  const COMMENT_COLS = 'id, content, created_at, parent_id, user_id, users!comments_user_id_fkey(username, display_name, avatar)';
   const [commentsRes0, likesRes] = await Promise.all([
     db.from('comments')
       .select(`${COMMENT_COLS}, comment_likes(count)`)
@@ -83,6 +92,10 @@ export async function getPostDetail(postId: number, meId: number | null): Promis
     commentsRes = await db.from('comments')
       .select(COMMENT_COLS).eq('post_id', postId).order('created_at', { ascending: true }).limit(500) as typeof commentsRes0;
   }
+  // Yedek sorgu da patlarsa liste SESSİZCE boş kalır ve sayfa "yorum yok" der —
+  // oysa kartlardaki comments(count) doğru sayıyı göstermeye devam eder. Tam da
+  // bu çelişki teşhisi zorlaştırdığı için hatayı sunucu günlüğüne yazıyoruz.
+  logIfError('post detail comments', commentsRes.error);
   const comments: DetailComment[] = (commentsRes.data ?? []).map((c: any) => ({
     id: c.id, content: c.content, created_at: c.created_at, parent_id: c.parent_id, user_id: c.user_id,
     username: c.users?.username ?? '', display_name: c.users?.display_name ?? '', avatar: c.users?.avatar ?? null,
