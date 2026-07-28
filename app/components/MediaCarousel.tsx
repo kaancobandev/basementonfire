@@ -208,6 +208,28 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // KOMŞU SLAYT ISITMA KAPISI.
+  // React 19, SSR'da `loading="lazy"` OLMAYAN her <img> için head'e kendiliğinden
+  // <link rel="preload" as="image"> basar (ilk 10 tanesi). Aşağıdaki komşu-ısıtma
+  // kuralı her karuselin ilk İKİ slaytını eager bıraktığı için /feed head'inde 8
+  // görsel preload'u ölçüldü: ekranın çok altındaki gönderilerin slaytları LCP
+  // görseliyle aynı anda, yüksek öncelikle iniyordu (tarayıcı da "preloaded but
+  // not used" uyarısı veriyordu — hiçbiri kullanılmadan bekliyorlar).
+  // Isıtmayı karusel görüş alanına GİRENE kadar erteliyoruz: SSR çıktısında
+  // priority slaydı dışında her şey lazy kalır (yani preload üretmez), kaydırma
+  // pürüzsüzlüğü ise görünen karusellerde aynen korunur.
+  const [warm, setWarm] = useState(false);
+  useEffect(() => {
+    if (variant !== 'feed') return;
+    const el = containerRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') { setWarm(true); return; }
+    const io = new IntersectionObserver(entries => {
+      if (entries.some(e => e.isIntersecting)) { setWarm(true); io.disconnect(); }
+    }, { rootMargin: '200px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [variant]);
+
   // Görsel yok → ses-only kart, yoksa null
   if (visuals.length === 0) {
     return audio ? <AudioCard url={audio} variant={variant} caption={captionRaw} /> : null;
@@ -250,13 +272,19 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
   }
 
   // ÇOKLU görsel → karusel
+  // Not: aşağıdaki üç etkileşim girişi de `warm`i açıyor. Karusele dokunan biri
+  // onu zaten GÖRÜYOR demektir; IntersectionObserver herhangi bir sebeple
+  // çalışmasa (arka plan sekmesi, eski tarayıcı) bile komşu slayt ısıtması
+  // ilk harekette devreye girer. Zaten true ise setWarm yeniden render etmez.
   function go(i: number) {
     const t = trackRef.current; if (!t) return;
+    setWarm(true);
     const c = Math.max(0, Math.min(visuals.length - 1, i));
     t.scrollTo({ left: t.clientWidth * c, behavior: 'smooth' });
     setIdx(c);
   }
   function onScroll() {
+    setWarm(true);
     const t = trackRef.current; if (!t || !t.clientWidth) return;
     // PARMAK EKRANDAYKEN durum GÜNCELLENMEZ.
     // Neden: onTouchMove her karede scrollLeft yazıyor, bu da onScroll'u
@@ -281,6 +309,7 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
   // kaydırma ise normal çalışmaya devam ediyor. Masaüstü trackpad/fare
   // kaydırması etkilenmiyor — o hâlâ native scroll + snap ile yürüyor.
   function onTouchStart(e: React.TouchEvent) {
+    setWarm(true);
     // clientWidth 0 iken (henuz yerlesmemis kapsayici) bolme NaN uretirdi.
     const t = trackRef.current; if (!t || !t.clientWidth) return;
     // CSS yapışmasını GEÇİCİ kapat. Neden: onTouchMove'da scrollLeft'i doğrudan
@@ -428,7 +457,9 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
               // BAŞLATIR, yani sonraki slayt sen ona varmadan hazır olur.
               // Hepsini birden eager yapmıyoruz: 8 görselli gönderide akışta
               // gereksiz indirme olurdu (ilk slaytın priority mantığı korundu).
-              : <Img src={m.url} alt={caption || ''} sizes={sizes} onLoad={variant === 'feed' && i === 0 ? onFeedImgLoad : undefined} loading={variant === 'feed' && !(priority && i === 0) && Math.abs(i - idx) > 1 ? 'lazy' : undefined} fetchPriority={priority && i === 0 ? 'high' : undefined} style={mediaStyle} />}
+              // `warm` kapısı için yukarıdaki nota bak: ısıtma ancak karusel
+              // görüş alanına girince açılır, SSR'da her şey lazy çıkar.
+              : <Img src={m.url} alt={caption || ''} sizes={sizes} onLoad={variant === 'feed' && i === 0 ? onFeedImgLoad : undefined} loading={variant !== 'feed' || (priority && i === 0) || (warm && Math.abs(i - idx) <= 1) ? undefined : 'lazy'} fetchPriority={priority && i === 0 ? 'high' : undefined} style={mediaStyle} />}
           </div>
         ))}
         </div>
