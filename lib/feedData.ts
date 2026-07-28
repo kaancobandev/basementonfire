@@ -92,7 +92,14 @@ export const getHomeContent = unstable_cache(
     };
   },
   ['home-content-v1'],
-  { revalidate: 30, tags: ['feed'] },
+  // ⚠ BU SAYI SAYFANIN revalidate'İNİ DE BAĞLAR. Next, bir sayfanın efektif
+  // revalidate'ini "sayfanınki ile render sırasında okunan TÜM cache'lerin"
+  // EN KÜÇÜĞÜ olarak alır → burası 30 kaldığı sürece app/feed/page.tsx'te
+  // `export const revalidate = 3600` yazmak HİÇBİR ŞEY değiştirmez (2026-07-28'de
+  // tam bu oldu: build çıktısı 3600 yazmasına rağmen /feed'i 30s gösteriyordu).
+  // İkisi birlikte değiştirilmeli. Tazelik `tags:['feed']`den gelir: içerik
+  // üreten her rota revalidateTag('feed') çağırıp girdiyi anında düşürür.
+  { revalidate: 3600, tags: ['feed'] },
 );
 
 // "Bunu biliyor muydun?" bilgi kartlari — paylasilan, kisiye ozel degil.
@@ -133,7 +140,8 @@ export const getDidYouKnow = unstable_cache(
     }
   },
   ['did-you-know-v2'],
-  { revalidate: 60, tags: ['feed'] },
+  // getHomeContent ile aynı gerekçe: bu da sayfanın revalidate tavanını çeker.
+  { revalidate: 3600, tags: ['feed'] },
 );
 
 // Önerilen kullanıcılar dakikalar içinde değişmez ama her istekte 2-4 SERİ sorgu
