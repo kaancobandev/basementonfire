@@ -35,7 +35,10 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
   const [cropQueue, setCropQueue] = useState<File[]>([]);
   const [caption, setCaption] = useState('');
   const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<{ done: number; total: number } | null>(null);
+  // pct: dosya sayısı değil, TÜM dosyaların baytları üzerinden tek yüzde
+  // (GonderiForm ile aynı mantık; büyük video yanında küçük fotoğraflar sayacı
+  // anında doldurup kullanıcıyı yanıltıyordu).
+  const [uploadProgress, setUploadProgress] = useState<{ done: number; total: number; pct: number } | null>(null);
   const [uploadError, setUploadError] = useState('');
   const nextMediaId = useRef(1);
 
@@ -119,15 +122,20 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
     if ((!items.length && !audioItems.length) || !caption.trim()) { setUploadError('Lütfen en az bir dosya ve açıklama ekle.'); return; }
     const all = [...items, ...audioItems];
     setUploading(true);
-    setUploadProgress({ done: 0, total: all.length });
+    setUploadProgress({ done: 0, total: all.length, pct: 0 });
     try {
       const media: { path: string; mediaType: 'image' | 'video' | 'audio'; w?: number; h?: number }[] = [];
+      const totalBytes = all.reduce((s, x) => s + x.file.size, 0) || 1;
+      let sentBytes = 0;
       for (let i = 0; i < all.length; i++) {
         // Boyutu yüklemeden önce ölç (CLS: w/h kayda yazılır, feed oranı SSR'da basılır)
         const dims = await measureMediaDims(all[i].file);
-        const up = await uploadToStorage(all[i].file, 'media');
+        const up = await uploadToStorage(all[i].file, 'media', (loaded) => {
+          setUploadProgress({ done: i, total: all.length, pct: Math.min(100, Math.round(((sentBytes + loaded) / totalBytes) * 100)) });
+        });
+        sentBytes += all[i].file.size;
         media.push({ path: up.path, mediaType: up.mediaType, ...(dims ?? {}) });
-        setUploadProgress({ done: i + 1, total: all.length });
+        setUploadProgress({ done: i + 1, total: all.length, pct: Math.min(100, Math.round((sentBytes / totalBytes) * 100)) });
       }
       const res = await fetch('/api/upload', {
         method: 'POST',
@@ -368,8 +376,26 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
               </div>
 
               <button type="submit" disabled={uploading || (items.length === 0 && audioItems.length === 0)} className="post-btn" style={{ marginTop: 16, width: '100%', opacity: (items.length || audioItems.length) ? 1 : 0.6 }}>
-                {uploading ? (uploadProgress ? `Yükleniyor ${uploadProgress.done}/${uploadProgress.total}` : 'Yükleniyor...') : 'Paylaş'}
+                {uploading
+                  ? (uploadProgress
+                      ? (uploadProgress.total > 1
+                          ? `Yükleniyor ${uploadProgress.done}/${uploadProgress.total} · %${uploadProgress.pct}`
+                          : `Yükleniyor · %${uploadProgress.pct}`)
+                      : 'Yükleniyor...')
+                  : 'Paylaş'}
               </button>
+
+              {/* İlerleme çubuğu — 250 MB'lık video dakikalarca sürebiliyor,
+                  yalnız buton yazısı "takıldı mı?" hissi veriyordu. */}
+              {uploading && uploadProgress && (
+                <div
+                  role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={uploadProgress.pct}
+                  aria-label="Yükleme ilerlemesi"
+                  style={{ marginTop: 10, height: 6, borderRadius: 9999, background: 'var(--color-border)', overflow: 'hidden' }}
+                >
+                  <div style={{ width: `${uploadProgress.pct}%`, height: '100%', background: 'var(--gradient-brand)', transition: 'width 0.2s linear' }} />
+                </div>
+              )}
             </form>
           </motion.div>
         </motion.div>

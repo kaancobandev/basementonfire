@@ -24,7 +24,10 @@ export default function GonderiForm() {
   const [cropQueue, setCropQueue] = useState<File[]>([]);
   const [caption, setCaption] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  // pct: TÜM dosyaların baytları üzerinden tek yüzde (dosya sayısı değil). 19 küçük
+  // fotoğraf + 1 büyük video seçilirse "19/20" saniyeler içinde dolup orada
+  // çakılırdı; bayt bazlı yüzde gerçekte nerede olunduğunu gösterir.
+  const [progress, setProgress] = useState<{ done: number; total: number; pct: number } | null>(null);
   const [error, setError] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const [shake, setShake] = useState(false);
@@ -90,15 +93,20 @@ export default function GonderiForm() {
     // Önce fotoğraf/video (kapak), sonra ses dosyaları
     const all = [...items, ...audioItems];
     setSubmitting(true);
-    setProgress({ done: 0, total: all.length });
+    setProgress({ done: 0, total: all.length, pct: 0 });
     try {
       const media: { path: string; mediaType: 'image' | 'video' | 'audio'; w?: number; h?: number }[] = [];
+      const totalBytes = all.reduce((s, x) => s + x.file.size, 0) || 1;
+      let sentBytes = 0;
       for (let i = 0; i < all.length; i++) {
         // Boyutu yüklemeden önce ölç (CLS: w/h kayda yazılır, feed oranı SSR'da basılır)
         const dims = await measureMediaDims(all[i].file);
-        const { path, mediaType } = await uploadToStorage(all[i].file, 'media');
+        const { path, mediaType } = await uploadToStorage(all[i].file, 'media', (loaded) => {
+          setProgress({ done: i, total: all.length, pct: Math.min(100, Math.round(((sentBytes + loaded) / totalBytes) * 100)) });
+        });
+        sentBytes += all[i].file.size;
         media.push({ path, mediaType, ...(dims ?? {}) });
-        setProgress({ done: i + 1, total: all.length });
+        setProgress({ done: i + 1, total: all.length, pct: Math.min(100, Math.round((sentBytes / totalBytes) * 100)) });
       }
       const res = await fetch('/api/upload', {
         method: 'POST',
@@ -324,7 +332,11 @@ export default function GonderiForm() {
             {submitting ? (
               <>
                 <div style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
-                {progress ? `Yükleniyor ${progress.done}/${progress.total}` : 'Yükleniyor...'}
+                {progress
+                  ? (progress.total > 1
+                      ? `Yükleniyor ${progress.done}/${progress.total} · %${progress.pct}`
+                      : `Yükleniyor · %${progress.pct}`)
+                  : 'Yükleniyor...'}
               </>
             ) : (
               <>
@@ -335,6 +347,19 @@ export default function GonderiForm() {
               </>
             )}
           </button>
+
+          {/* İlerleme çubuğu — yalnız yükleme sürerken. 250 MB'lık bir video
+              dakikalarca sürebiliyor; spinner tek başına "takıldı mı?" hissi
+              veriyordu. Genişlik bayt bazlı yüzdeyi izler. */}
+          {submitting && progress && (
+            <div
+              role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress.pct}
+              aria-label="Yükleme ilerlemesi"
+              style={{ marginTop: 10, height: 6, borderRadius: 9999, background: 'var(--color-border)', overflow: 'hidden' }}
+            >
+              <div style={{ width: `${progress.pct}%`, height: '100%', background: 'var(--gradient-brand)', transition: 'width 0.2s linear' }} />
+            </div>
+          )}
 
         </form>
       </div>

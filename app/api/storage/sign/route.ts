@@ -68,5 +68,8 @@ export async function POST(req: Request) {
   const { data, error } = await db.storage.from('media').createSignedUploadUrl(storagePath);
   if (error || !data) return json({ error: 'İmzalı URL alınamadı.' }, 500);
 
-  return json({ path: data.path, token: data.token, mediaType: isImg ? 'image' : isVid ? 'video' : 'audio' });
+  // signedUrl = token'ı da taşıyan TAM URL. İstemci buna düz XHR PUT atıp yükleme
+  // ilerlemesini okuyabiliyor (bkz. lib/upload.ts); token ayrıca dönüyor çünkü
+  // supabase-js ile yükleyen eski bir çağıran kalırsa kırılmasın.
+  return json({ path: data.path, token: data.token, signedUrl: data.signedUrl, mediaType: isImg ? 'image' : isVid ? 'video' : 'audio' });
 }

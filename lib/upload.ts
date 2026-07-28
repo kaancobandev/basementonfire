@@ -10,6 +10,9 @@
 export async function uploadToStorage(
   file: File,
   kind: 'media' | 'story' | 'avatar',
+  /** Yükleme ilerlemesi (bayt). 250 MB'lık bir video dakikalar sürebiliyor —
+   *  çağıran taraf bunu yüzdeye çevirip ekranda gösterir. */
+  onProgress?: (loaded: number, total: number) => void,
 ): Promise<{ path: string; mediaType: 'image' | 'video' | 'audio' }> {
   const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
 
@@ -21,20 +24,46 @@ export async function uploadToStorage(
   const sign = await signRes.json();
   if (!signRes.ok) throw new Error(sign.error ?? 'Yükleme hazırlanamadı.');
 
-  // supabase-js'i ancak gerçekten yükleme anında indir: statik import bu
-  // kütüphaneyi ana sayfa/akış/profil first-load bundle'ına taşıyordu; yükleme
-  // yapmayan (anonim dahil) hiçbir ziyaretçi artık bu maliyeti ödemez.
-  const { getSupa } = await import('@/lib/supabase/client');
-  const { error } = await getSupa()
-    .storage.from('media')
-    // Dosya adları benzersiz (üzerine yazılmaz) → 1 yıl önbellek güvenli;
-    // tekrar ziyaretlerde medya tarayıcı/CDN önbelleğinden anında gelir.
-    .uploadToSignedUrl(sign.path, sign.token, file, { contentType: file.type, cacheControl: '31536000' });
-  // GERÇEK hatayı taşı: eskiden bucket bulunamadı, mime kısıtı, 413, süresi geçmiş
-  // imza — hepsi aynı tek cümleye iniyordu ve hangi katmanın patladığı anlaşılmıyordu.
-  if (error) throw new Error(error.message ? `Dosya yüklenemedi: ${error.message}` : 'Dosya yüklenemedi.');
+  // Eskiden supabase-js'in uploadToSignedUrl'i kullanılıyordu; o `fetch` üstünde
+  // çalışır ve fetch YÜKLEME ilerlemesi yayınlamaz (upload stream'i standartta
+  // hâlâ yok). İlerleme yüzdesi için tek yol XHR — imzalı URL'e düz PUT atıyoruz,
+  // supabase-js'in yaptığının aynısı (bkz. storage-js: PUT /object/upload/sign/...
+  // ?token=..., yetki tamamen token'da; ek başlık gerekmiyor).
+  // Yan fayda: supabase-js artık yükleme yolunda hiç indirilmiyor.
+  await putWithProgress(sign.signedUrl as string, file, onProgress);
 
   return { path: sign.path as string, mediaType: sign.mediaType as 'image' | 'video' | 'audio' };
+}
+
+/** İmzalı URL'e PUT — ilerleme olayları yayınlar, hatayı okunur mesaja çevirir. */
+function putWithProgress(url: string, file: File, onProgress?: (loaded: number, total: number) => void) {
+  return new Promise<void>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('PUT', url, true);
+    xhr.setRequestHeader('content-type', file.type || 'application/octet-stream');
+    // Dosya adları benzersiz (üzerine yazılmaz) → 1 yıl önbellek güvenli;
+    // tekrar ziyaretlerde medya tarayıcı/CDN önbelleğinden anında gelir.
+    xhr.setRequestHeader('cache-control', 'max-age=31536000');
+    if (onProgress) {
+      xhr.upload.onprogress = (e) => { if (e.lengthComputable) onProgress(e.loaded, e.total); };
+    }
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        // Son olay %100'ün biraz altında kalabiliyor → çubuğu kapat.
+        onProgress?.(file.size, file.size);
+        resolve();
+        return;
+      }
+      // GERÇEK hatayı taşı: bucket yok, mime kısıtı, 413 (Storage'ın kendi boyut
+      // tavanı), süresi geçmiş imza — hepsi aynı tek cümleye inmesin.
+      let msg = '';
+      try { msg = JSON.parse(xhr.responseText)?.message ?? ''; } catch { /* JSON değilse boş kalsın */ }
+      reject(new Error(msg ? `Dosya yüklenemedi: ${msg}` : `Dosya yüklenemedi (HTTP ${xhr.status}).`));
+    };
+    xhr.onerror = () => reject(new Error('Dosya yüklenemedi: bağlantı koptu.'));
+    xhr.onabort = () => reject(new Error('Yükleme iptal edildi.'));
+    xhr.send(file);
+  });
 }
 
 /**
