@@ -8,8 +8,10 @@ import Img from '@/app/components/Img';
 import { factMediaList } from '@/lib/types';
 import ReportButton from '@/app/components/ReportButton';
 import CommentLikeButton from '@/app/components/CommentLikeButton';
+import CollectionPicker from '@/app/components/CollectionPicker';
 import { avatarSrc } from '@/lib/avatar';
 import TimeAgo from '@/app/components/TimeAgo';
+import { toast } from 'sonner';
 
 interface PostProp {
   id: number; user_id: number; caption: string; media_url: string; media_type: string; media: unknown;
@@ -44,6 +46,7 @@ export default function PostDetailClient({ post, initialComments, commentLikesEn
   const [commentText, setCommentText] = useState('');
   const [replyToId, setReplyToId] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   async function toggleLike() {
     if (!currentUser) { window.location.href = '/login'; return; }
@@ -62,6 +65,12 @@ export default function PostDetailClient({ post, initialComments, commentLikesEn
       const d = await res.json();
       if (!res.ok || typeof d.bookmarked === 'undefined') { setBookmarked(prev); return; }
       setBookmarked(d.bookmarked);
+      // KAYDEDİLDİĞİ AN koleksiyon teklifi. Sheet'i kendiliğinden AÇMIYORUZ:
+      // koleksiyon kullanmayan biri için her kayıtta modal açmak sürtünme olurdu.
+      // Toast eylemi hem görünür hem isteğe bağlı (Instagram deseni).
+      if (d.bookmarked) {
+        toast.success('Kaydedildi', { action: { label: 'Koleksiyona ekle', onClick: () => setPickerOpen(true) } });
+      }
     } catch { setBookmarked(prev); }
   }
   async function toggleRepost() {
@@ -141,7 +150,18 @@ export default function PostDetailClient({ post, initialComments, commentLikesEn
           <button onClick={toggleBookmark} aria-label="Kaydet" style={{ display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', color: bookmarked ? 'var(--color-accent-ink)' : 'var(--color-text)', marginLeft: 'auto' }}>
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill={bookmarked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg>
           </button>
+          {/* Kayıtlıyken koleksiyonu SONRADAN da değiştirebilmeli — toast kaçarsa
+              tek yol Kaydedilenler sayfası olurdu. Yer imi simgesine basmak
+              kaydı kaldırır (mevcut davranış), o yüzden ayrı düğme. */}
+          {bookmarked && (
+            <button onClick={() => setPickerOpen(true)} aria-label="Koleksiyona ekle" title="Koleksiyona ekle"
+              style={{ display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', marginLeft: -6 }}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z" /></svg>
+            </button>
+          )}
         </div>
+
+        <CollectionPicker postId={post.id} open={pickerOpen} onClose={() => setPickerOpen(false)} />
 
         {/* Açıklama */}
         {post.caption && (

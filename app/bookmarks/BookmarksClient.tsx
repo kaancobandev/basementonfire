@@ -10,6 +10,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Caption from '@/app/components/Caption';
 import ReportButton from '@/app/components/ReportButton';
+import CollectionPicker from '@/app/components/CollectionPicker';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 
 interface Post {
@@ -23,20 +24,36 @@ interface Post {
   display_name: string;
   username: string;
   avatar: string | null;
+  collectionId?: number | null;
   media?: { url: string; type: 'image' | 'video' }[] | null;
 }
 
 interface Props {
   initialPosts: Post[];
   meId?: number | null;
+  collections?: { id: number; name: string }[];
+  /** false = koleksiyon SQL'i henüz çalıştırılmadı → filtre şeridi hiç çizilmez. */
+  collectionsEnabled?: boolean;
 }
 
-export default function BookmarksClient({ initialPosts, meId = null }: Props) {
+export default function BookmarksClient({ initialPosts, meId = null, collections = [], collectionsEnabled = false }: Props) {
   const isMobile = useIsMobile();
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [selected, setSelected] = useState<Post | null>(null);
   const [removing, setRemoving] = useState(false);
   const [gridRef] = useAutoAnimate<HTMLDivElement>();
+  const [cols, setCols] = useState(collections);
+  // 'all' = hepsi · 'none' = koleksiyonsuz · sayı = o koleksiyon
+  const [filter, setFilter] = useState<'all' | 'none' | number>('all');
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  const visible = filter === 'all'
+    ? posts
+    : posts.filter(p => (filter === 'none' ? (p.collectionId ?? null) === null : p.collectionId === filter));
+  const countOf = (f: 'all' | 'none' | number) =>
+    f === 'all' ? posts.length
+      : f === 'none' ? posts.filter(p => (p.collectionId ?? null) === null).length
+        : posts.filter(p => p.collectionId === f).length;
 
   // Escape tuşu ile lightbox'ı kapat
   useEffect(() => {
@@ -85,6 +102,19 @@ export default function BookmarksClient({ initialPosts, meId = null }: Props) {
         <span style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>{posts.length} gönderi</span>
       </div>
 
+      {/* Koleksiyon filtresi. Tüm kayıtlar zaten yüklü → filtreleme İSTEMCİDE,
+          ek istek yok. Koleksiyonu olmayan kullanıcıda şerit hiç çıkmaz. */}
+      {collectionsEnabled && cols.length > 0 && (
+        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', padding: '10px 14px', borderBottom: '1px solid var(--color-border)', scrollbarWidth: 'none' }} className="bk-chips">
+          {([['all', 'Tümü'], ['none', 'Koleksiyonsuz']] as const).map(([val, label]) => (
+            <Chip key={val} active={filter === val} onClick={() => setFilter(val)} label={label} count={countOf(val)} />
+          ))}
+          {cols.map(c => (
+            <Chip key={c.id} active={filter === c.id} onClick={() => setFilter(c.id)} label={c.name} count={countOf(c.id)} />
+          ))}
+        </div>
+      )}
+
       {/* Boş durum */}
       {posts.length === 0 && (
         <div style={{ textAlign: 'center', padding: '80px 24px', color: 'var(--color-text-muted)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
@@ -99,10 +129,17 @@ export default function BookmarksClient({ initialPosts, meId = null }: Props) {
         </div>
       )}
 
+      {/* Filtre boş — kayıt var ama bu koleksiyonda yok */}
+      {posts.length > 0 && visible.length === 0 && (
+        <p style={{ textAlign: 'center', padding: '48px 24px', color: 'var(--color-text-muted)', fontSize: '0.9rem', margin: 0 }}>
+          Bu koleksiyonda henüz kayıt yok.
+        </p>
+      )}
+
       {/* Grid */}
-      {posts.length > 0 && (
+      {visible.length > 0 && (
         <div ref={gridRef} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 3, padding: 3 }}>
-          {posts.map(post => (
+          {visible.map(post => (
             <button
               key={post.id}
               onClick={() => openLightbox(post)}
@@ -258,12 +295,43 @@ export default function BookmarksClient({ initialPosts, meId = null }: Props) {
                 </svg>
                 {removing ? 'Kaldırılıyor…' : 'Kaydı kaldır'}
               </button>
+
+              {/* Koleksiyona taşı — mevcut koleksiyon işaretli açılır. */}
+              {collectionsEnabled && (
+                <button
+                  onClick={() => setPickerOpen(true)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 14px', borderRadius: '9999px', fontSize: '0.84rem', fontWeight: 700, cursor: 'pointer', background: 'transparent', border: '1.5px solid var(--color-border)', color: 'var(--color-text-muted)', alignSelf: 'flex-start', fontFamily: 'inherit' }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z" /></svg>
+                  {cols.find(c => c.id === selected.collectionId)?.name ?? 'Koleksiyona ekle'}
+                </button>
+              )}
             </div>
           </div>
         </div>
       )}
 
+      {/* Kaydın koleksiyonunu değiştir. Lightbox açıkken monte edilir ki
+          `selected` kesin dolu olsun ve mevcut koleksiyon işaretli gelsin. */}
+      {selected && (
+        <CollectionPicker
+          postId={selected.id}
+          open={pickerOpen}
+          currentCollectionId={selected.collectionId ?? null}
+          onClose={() => setPickerOpen(false)}
+          onSaved={(collectionId, name) => {
+            setPosts(prev => prev.map(p => (p.id === selected.id ? { ...p, collectionId } : p)));
+            setSelected(prev => (prev ? { ...prev, collectionId } : prev));
+            // Picker'da yeni açılan koleksiyon şeritte de görünsün.
+            if (collectionId != null && name && !cols.some(c => c.id === collectionId)) {
+              setCols(prev => [...prev, { id: collectionId, name }]);
+            }
+          }}
+        />
+      )}
+
       <style>{`
+        .bk-chips::-webkit-scrollbar { display: none; }
         .bk-cell:hover img,
         .bk-cell:hover video { transform: scale(1.05); }
         .bk-cell:hover .bk-cell-overlay { opacity: 1 !important; }
@@ -278,5 +346,25 @@ export default function BookmarksClient({ initialPosts, meId = null }: Props) {
         }
       `}</style>
     </main>
+  );
+}
+
+/** Koleksiyon filtre çipi — ad + kayıt sayısı. */
+function Chip({ label, count, active, onClick }: { label: string; count: number; active: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button" onClick={onClick} aria-pressed={active}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, cursor: 'pointer', fontFamily: 'inherit',
+        padding: '7px 13px', borderRadius: 9999, fontSize: '0.82rem', fontWeight: 700,
+        border: active ? '1.5px solid var(--color-primary)' : '1.5px solid var(--color-border)',
+        background: active ? 'color-mix(in srgb, var(--color-primary) 12%, transparent)' : 'transparent',
+        color: active ? 'var(--color-primary)' : 'var(--color-text-muted)',
+        transition: 'all 0.15s',
+      }}
+    >
+      <span style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
+      <span className="tnum" style={{ opacity: 0.7 }}>{count}</span>
+    </button>
   );
 }

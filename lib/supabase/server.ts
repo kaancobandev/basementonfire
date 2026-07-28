@@ -67,6 +67,20 @@ export function isAdmin(me: { username?: string; is_admin?: boolean } | null | u
   return !!me.username && env.includes(me.username.toLowerCase());
 }
 
+/**
+ * "Bu özelliğin SQL'i henüz çalıştırılmamış" hatası mı? Uykuda-güvenli
+ * route'lar bunu 500 yerine { available:false } ile karşılar.
+ *
+ * ⚠ Yalnız 42P01 bakmak YETMEZ: eksik TABLO için PostgREST çoğu zaman kendi
+ * kodunu döner (PGRST205, "Could not find the table ... in the schema cache");
+ * 42P01'i ancak sorgu Postgres'e ulaşırsa görürsün. Eksik KOLON ise 42703
+ * (ya da yazma yolunda PGRST204). Dördü de aynı anlama gelir: göç yapılmamış.
+ */
+export function isMissingSchema(error: unknown): boolean {
+  const code = (error as { code?: string } | null)?.code;
+  return code === '42P01' || code === 'PGRST205' || code === '42703' || code === 'PGRST204';
+}
+
 // Surface Supabase query errors in the server console instead of silently
 // rendering empty pages. Call with the `error` from any `await db...` result.
 export function logIfError(label: string, error: unknown) {

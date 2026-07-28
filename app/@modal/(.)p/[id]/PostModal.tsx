@@ -11,7 +11,9 @@ import { avatarSrc } from '@/lib/avatar';
 import { factMediaList } from '@/lib/types';
 import ReportButton from '@/app/components/ReportButton';
 import CommentLikeButton from '@/app/components/CommentLikeButton';
+import CollectionPicker from '@/app/components/CollectionPicker';
 import TimeAgo from '@/app/components/TimeAgo';
+import { toast } from 'sonner';
 import type { PostProp, DetailComment } from '@/app/p/[id]/postData';
 
 interface CurrentUser { id: number; username: string; display_name: string; avatar: string | null; }
@@ -42,6 +44,7 @@ export default function PostModal({ post, initialComments, commentLikesEnabled, 
   const [comments, setComments] = useState<DetailComment[]>(initialComments);
   const [commentText, setCommentText] = useState('');
   const [replyToId, setReplyToId] = useState<number | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const close = () => router.back();
 
@@ -72,6 +75,10 @@ export default function PostModal({ post, initialComments, commentLikesEnabled, 
       const data = await res.json();
       if (!res.ok || typeof data.bookmarked === 'undefined') { setBookmarked(prev); return; }
       setBookmarked(data.bookmarked);
+      // Kaydedildiği an koleksiyon teklifi (PostDetailClient ile aynı desen).
+      if (data.bookmarked) {
+        toast.success('Kaydedildi', { action: { label: 'Koleksiyona ekle', onClick: () => setPickerOpen(true) } });
+      }
     } catch { setBookmarked(prev); }
   }
 
@@ -228,8 +235,17 @@ export default function PostModal({ post, initialComments, commentLikesEnabled, 
               style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: bookmarked ? 'var(--color-accent-ink)' : 'var(--color-text-muted)', transition: 'color 0.15s' }}>
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill={bookmarked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" /></svg>
             </motion.button>
+            {/* Kayıtlıyken koleksiyonu sonradan da değiştirebilmek için ayrı düğme
+                (yer imine basmak kaydı KALDIRIR — mevcut davranış korundu). */}
+            {bookmarked && (
+              <motion.button onClick={() => setPickerOpen(true)} whileTap={{ scale: 0.80 }} aria-label="Koleksiyona ekle" title="Koleksiyona ekle"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: 'var(--color-text-muted)' }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z" /></svg>
+              </motion.button>
+            )}
             <Link href={`/p/${post.id}`} prefetch={false} style={{ marginLeft: 'auto', fontSize: '0.8rem', color: 'var(--color-text-muted)', textDecoration: 'none' }}>{comments.length} yorum</Link>
           </div>
+          <CollectionPicker postId={post.id} open={pickerOpen} onClose={() => setPickerOpen(false)} />
         </div>
       </motion.div>
     </motion.div>
