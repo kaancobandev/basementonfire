@@ -28,7 +28,23 @@ import HomeFeed from '../components/HomeFeed';
 // servis edilir; buraya sızan tek bir kişisel alan tüm ziyaretçilere gider.
 // Kişisel her şeyin yeri /api/feed/personal.
 // ════════════════════════════════════════════════════════════════════════
-export const revalidate = 30;
+// ⚠ REVALIDATE = DURABLE CACHE TTL'i. Bu sayı yalnız "içerik ne sıklıkla
+// tazelensin" değil, "CDN girdisi ne kadar TAZE sayılsın" demek — 2026-07-28'de
+// canlı ölçüldü:
+//   /articles/*  ttl=31535291 (statik, 1 yıl) → Durable hit, 0,5 sn
+//   /feed rev=30 ttl=-395     (bayat)         → Durable hit AMA 2,94 sn
+// Girdi bayatlayınca Netlify yeniden üretimi BEKLETİYOR, yani 30 sn'lik pencere
+// dışına düşen her ziyaretçi soğuk Lambda'yı yine ödüyordu (günde ~3 ziyaretçide
+// pratikte herkes). Pencereyi açmak bunu ortadan kaldırır.
+//
+// İÇERİK BAYATLAMAZ: yeni gönderi/hikâye/bilgi kartı üreten HER rota
+// revalidateTag('feed') çağırıyor (api/posts, api/upload, api/stories,
+// api/did-you-know, user-articles) → cache anında düşer. Bu sayı yalnızca
+// TAG'SİZ değişenler için bir tavan: beğeni/yorum SAYILARI. Kullanıcının kendi
+// beğenisi zaten iyimser güncelleniyor, sonsuz kaydırma taze veri çekiyor.
+// Sayıların daha çabuk tazelenmesini istersen bu sayıyı düşür — bedeli, pencere
+// dışına düşen ziyaretçinin ~2,9 sn'lik yeniden üretimi beklemesi.
+export const revalidate = 3600;
 
 // Kişiye özel akış → arama motoruna kapalı (ana sayfa landing'i indekslenir).
 export const metadata: Metadata = {
