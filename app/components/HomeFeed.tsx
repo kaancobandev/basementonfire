@@ -5,6 +5,7 @@ import MediaCarousel from '@/app/components/MediaCarousel';
 import { factMediaList } from '@/lib/types';
 import { avatarSrc } from '@/lib/avatar';
 import { cdnUrl } from '@/lib/img';
+import { useNavUser } from '@/app/components/NavUserContext';
 
 import { useState, useRef, useEffect, useCallback, Fragment } from 'react';
 import Link from 'next/link';
@@ -79,7 +80,28 @@ const HeartEmpty = () => (
   </svg>
 );
 
-export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedPostIds, repostedFactIds, likedDykIds = [], suggestedUsers, currentUser, canMatch, ownStoryUser, otherStoryUsers }: Props) {
+export default function HomeFeed({
+  feedItems: initialItems, likedFactIds, likedPostIds, repostedFactIds,
+  likedDykIds: initialLikedDykIds = [],
+  suggestedUsers: initialSuggested,
+  currentUser: initialUser,
+  canMatch: initialCanMatch,
+  ownStoryUser: initialOwnStory,
+  otherStoryUsers: initialOtherStories,
+}: Props) {
+  // ══════════════════════════════════════════════════════════════════════
+  // /feed 2026-07-28'de ISR'a çevrildi: sunucudan gelen HTML HERKESE AYNI
+  // (CDN'de durur, soğuk Lambda'yı beklemez). Aşağıdaki alanlar bu yüzden
+  // artık prop DEĞİL STATE — sunucudan boş/anonim gelirler ve mount'ta
+  // /api/feed/personal ile dolarlar. Prop adları korunuyor ki gövdedeki
+  // ~35 kullanım aynen çalışsın.
+  // ══════════════════════════════════════════════════════════════════════
+  const [currentUser, setCurrentUser] = useState(initialUser);
+  const [canMatch, setCanMatch] = useState(initialCanMatch);
+  const [likedDykIds, setLikedDykIds] = useState<number[]>(initialLikedDykIds);
+  const [suggestedUsers, setSuggestedUsers] = useState<SuggestedUser[]>(initialSuggested);
+  const [ownStoryUser, setOwnStoryUser] = useState<StoryUser | null>(initialOwnStory);
+  const [otherStoryUsers, setOtherStoryUsers] = useState<StoryUser[]>(initialOtherStories);
   // Feed items + infinite scroll
   const [feedItems, setFeedItems] = useState<any[]>(initialItems);
   const [nextCursor, setNextCursor] = useState<string | null>(
@@ -95,6 +117,47 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
   const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set(likedPostIds));
   const [postLikes, setPostLikes] = useState<Record<number, number>>({});
   const [followedUsers, setFollowedUsers] = useState<Set<string>>(new Set());
+
+  // ── KİŞİYE ÖZEL KAT (ISR kabuğunun tamamlayıcısı).
+  // Sayfa paylaşılan HTML olduğu için beğeni durumu, öneriler, eşleşme kartı ve
+  // GERÇEK hikâye şeridi (takipçi/yakın-arkadaş + "gördüm" halkaları + kendi
+  // hikâyen) buradan gelir.
+  //
+  // KAPI = NavUserContext (AppShell'in /api/nav-state çağrısı).
+  // `undefined` → kimlik henüz bilinmiyor · `null` → çıkışlı · nesne → girişli.
+  // Yani anonim ziyaretçi bu isteği HİÇ atmaz, boşuna Lambda turu ödenmez.
+  //
+  // ⚠ Kapı olarak `data-auth` NİTELİĞİNİ OKUMA (denendi, ÇALIŞMADI): AppShell
+  // nav-state cevabı gelince onu 'out'a çeviriyor, tek-seferlik DOM okuması bu
+  // yarışa düşüp isteği HİÇ atmıyordu (2026-07-28 tarayıcı ölçümü). Context
+  // reaktiftir — kimlik ne zaman belli olursa efekt o zaman koşar.
+  //
+  // FAIL-SAFE: istek patlarsa kabuk olduğu gibi kalır (public akış + public
+  // hikâyeler). Kullanıcı beğenilerini vurgulanmamış görür ama sayfa çalışır.
+  const navUser = useNavUser();
+  useEffect(() => {
+    if (!navUser) return;
+    let alive = true;
+    fetch('/api/feed/personal')
+      .then(r => r.json())
+      .then(d => {
+        if (!alive || !d?.user) return;
+        setCurrentUser(d.user);
+        setCanMatch(!!d.canMatch);
+        setLikedDykIds(d.likedDykIds ?? []);
+        setSuggestedUsers(d.suggestedUsers ?? []);
+        setOwnStoryUser(d.ownStoryUser ?? null);
+        setOtherStoryUsers(d.otherStoryUsers ?? []);
+        // Beğeni kümelerinde YALNIZ DOKUNULMAMIŞSA sunucu doğrusunu uygula.
+        // Kullanıcı yanıt gelmeden bir şeyi beğendiyse (dar pencere) onun
+        // eylemini geri almak, eksik vurgudan daha kötü bir hata olurdu.
+        setLikedFacts(prev => (prev.size ? prev : new Set<number>(d.likedFactIds ?? [])));
+        setLikedPosts(prev => (prev.size ? prev : new Set<number>(d.likedPostIds ?? [])));
+        setRepostedFacts(prev => (prev.size ? prev : new Set<number>(d.repostedFactIds ?? [])));
+      })
+      .catch(() => { /* fail-safe: kabuk kalır */ });
+    return () => { alive = false; };
+  }, [navUser?.id]);
 
   // Sonsuz kaydırma — birleşik feed
   // ── Akış sekmesi: Herkes | Takip Ettiklerin.

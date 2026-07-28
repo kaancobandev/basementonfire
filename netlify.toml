@@ -13,12 +13,16 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-# /feed Lambda ısıtıcısının zamanlaması (fonksiyon: netlify/functions/keep-warm.mts).
-# Bildirim BURADA çünkü .mts içindeki `export const config = { schedule }` bu
-# kurulumda TETİKLENMİYOR (2026-07-24 canlı ölçüm: fonksiyon deploy olmuş ama
-# cron hiç koşmamıştı). Toml bildirimi ayrıca fonksiyonu URL'den çağrılamaz yapar.
-[functions."keep-warm"]
-  schedule = "*/5 * * * *"
+# NOT (2026-07-28): burada `[functions."keep-warm"] schedule = "*/5 * * * *"` vardı.
+# KALDIRILDI, iki sebeple:
+#   1. HİÇ KOŞMADI. Kanıt: fonksiyon URL'den çağrılabiliyordu (HTTP 204) — oysa
+#      zamanlanmış fonksiyonlar URL'den çağrılamaz; ayrıca */5 tetiğinden 22 sn
+#      sonra /feed hâlâ 3,61 sn (buz gibi) ölçüldü. In-source `export const config`
+#      de aynı şekilde tetiklenmemişti; bu kurulumda İKİ yol da tutmuyor.
+#   2. GEREKSİZLEŞTİ. /feed force-dynamic'ten ISR'a çevrildi → artık CDN'de duruyor
+#      ve deploy süpürgesinin izin listesinden geçiyor. Lambda'yı ping'lemeye gerek
+#      yok. (Ping zaten tavanlıydı: elle tetikledikten hemen sonraki istek 2,94 sn
+#      geldi — ısınan tek instance'tı.)
 
 # Netlify Image CDN — uzak (Supabase Storage) görsellerin /.netlify/images
 # üzerinden yeniden boyutlandırılıp WebP olarak sunulabilmesi için allowlist.

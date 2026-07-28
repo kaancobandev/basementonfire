@@ -51,6 +51,11 @@ const ACCEPT_ENCODING = 'gzip, br';
 // Yeni MAKALE eklenince ise otomatik kapsanır (lib/articles.ts → sitemap → burası).
 const ALLOW = [
   /^\/$/,                          // landing (statik)
+  // /feed 2026-07-28'de ISR'a çevrildi (eskiden force-dynamic + no-store idi).
+  // Artık cache'lenebiliyor → süpürge onu da ısıtıyor ve girişli kullanıcının
+  // açılışı (`/` → 307 → /feed) soğuk Lambda beklemiyor. Aşağıdaki "uyandırma"
+  // isteği bu yüzden KALDIRILDI: sayfa artık normal bir cache girdisi.
+  /^\/feed$/,
   /^\/articles\/[a-z0-9-]+$/,      // 32 makale (statik) — asıl kazanç burada
   /^\/discover$/,                  // ISR 60 sn — kısmi fayda, bkz. not
   /^\/akis$/,                      // ISR 30 sn (2026-07-18 dönüşümü)
@@ -142,22 +147,10 @@ export async function runWarm(trigger: string): Promise<{ status: number; body: 
 
   await Promise.all(Array.from({ length: Math.min(CONCURRENCY, urls.length) }, worker));
 
-  // ── /feed UYANDIRMA (cache değil): deploy tüm sıcak Lambda instance'larını
-  // öldürür; girişli kullanıcının ilk uğrağı /feed no-store olduğundan süpürme
-  // ona çare değil. Bu TEK anonim istek server-handler'ı ayağa kaldırır ki
-  // keep-warm.mts'in ilk turundan (≤5 dk) önce gelen girişli ziyaretçi soğuk
-  // başlatma (ölçüm: 3,9-8,2 sn) ödemesin. İzin listesine BİLEREK konmadı:
-  // liste "cache'lenebilir" anlamı taşıyor, /feed değil.
-  try {
-    const t = Date.now();
-    const res = await fetch(`${SITE}/feed`, {
-      headers: { 'user-agent': UA, accept: 'text/html', 'accept-encoding': ACCEPT_ENCODING },
-    });
-    await res.arrayBuffer();
-    lines.push(`${res.status} ${String(Date.now() - t).padStart(5)}ms (lambda-uyandirma) /feed`);
-  } catch (e) {
-    lines.push(`ERR   /feed uyandirma — ${String(e)}`);
-  }
+  // NOT: burada eskiden AYRI bir "/feed uyandırma" isteği vardı (sayfa no-store
+  // olduğu için cache'e giremiyor, yalnız Lambda'sı ısıtılabiliyordu).
+  // 2026-07-28'de /feed ISR'a çevrildi → artık yukarıdaki izin listesinden
+  // normal bir cache girdisi olarak geçiyor; özel muameleye gerek kalmadı.
 
   console.log(`${tag} bitti: ${ok} ok / ${fail} hata / ${Date.now() - t0}ms`);
   for (const l of lines) console.log(`${tag}  ` + l);

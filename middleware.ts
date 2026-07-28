@@ -149,7 +149,11 @@ export async function middleware(request: NextRequest) {
   // listeye girmemiş YENİ bir rota eski davranışı (middleware refresh) alır —
   // güvenli taraf. Tersi tutulsaydı unutulan dinamik rota refresh'i RSC içinde
   // yapar, rotation kalıcılaşmaz ve oturum riske girerdi.
-  const STATIC_NO_AUTH_SSR = /^\/(articles(\/|$)|discover$|akis$|muzik$|lig$|gizlilik$|kosullar$|aydinlatma$|acik-riza$)/;
+  // `feed$` 2026-07-28'de eklendi: /feed force-dynamic'ten ISR'a çevrildi ve
+  // SSR'da artık auth OKUMUYOR (kimlik istemcide /api/feed/personal'dan gelir).
+  // Bayat token'lı ziyaretçiyi burada refresh için bekletmek, sayfanın CDN'den
+  // gelmesinin tüm kazancını yerdi.
+  const STATIC_NO_AUTH_SSR = /^\/(articles(\/|$)|feed$|discover$|akis$|muzik$|lig$|gizlilik$|kosullar$|aydinlatma$|acik-riza$)/;
 
   // Halka açık yol + oturum çerezi taze (veya hiç yok) → Supabase Auth'a ağ
   // çağrısı gereksiz: gerçek doğrulamayı zaten her sayfada getMe() yapıyor.
