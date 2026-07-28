@@ -12,12 +12,19 @@ export const revalidate = 120;
 // değil, sık değişmez → 120sn önbellek.
 const getMusic = unstable_cache(
   async () => {
+    // users embed'leri FK adıyla SABİTLENDİ (`users!<tablo>_user_id_fkey`).
+    // Bugün bu üç tablonun users'a tek yolu var, yani hint'siz de çalışırdı; ama
+    // bir gün beğeni/junction tablosu (ör. track_likes) eklenirse ikinci bir yol
+    // doğar ve PostgREST hint'siz embed'i PGRST201 ile TÜMDEN reddeder — sorgu
+    // veri değil hata döner, `data ?? []` bunu yutar ve sekme sessizce boşalır.
+    // Yorumlarda tam olarak bu oldu (comment_likes, 2026-07-28). Ad canlıda
+    // doğrulandı; değiştirmeden önce REST ile test et.
     const [spResult, ytResult, trResult] = await Promise.all([
-      db.from('spotify_playlists').select('id, playlist_id, title, created_at, user_id, users(username, display_name, avatar)').order('created_at', { ascending: false }).limit(30),
-      db.from('youtube_items').select('id, item_type, item_id, title, created_at, user_id, users(username, display_name, avatar)').order('created_at', { ascending: false }).limit(30),
+      db.from('spotify_playlists').select('id, playlist_id, title, created_at, user_id, users!spotify_playlists_user_id_fkey(username, display_name, avatar)').order('created_at', { ascending: false }).limit(30),
+      db.from('youtube_items').select('id, item_type, item_id, title, created_at, user_id, users!youtube_items_user_id_fkey(username, display_name, avatar)').order('created_at', { ascending: false }).limit(30),
       // Site çalma listesi. Tablo henüz açılmadıysa (SQL çalıştırılmadı) hata
       // yutulur ve sekme boş görünür — sayfanın kalanı çalışmaya devam eder.
-      db.from('music_tracks').select('id, title, artist, src, duration, created_at, user_id, users(username, display_name, avatar)').order('created_at', { ascending: false }).limit(50),
+      db.from('music_tracks').select('id, title, artist, src, duration, created_at, user_id, users!music_tracks_user_id_fkey(username, display_name, avatar)').order('created_at', { ascending: false }).limit(50),
     ]);
     logIfError('muzik spotify_playlists', spResult.error);
     logIfError('muzik youtube_items', ytResult.error);

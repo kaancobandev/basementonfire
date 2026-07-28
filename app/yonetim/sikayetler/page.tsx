@@ -24,7 +24,9 @@ export default async function SikayetYonetimPage() {
   // Açık şikayetler + şikayetçi bilgisi. reports tablosu yoksa (SQL çalışmadı) uykuda.
   const { data: rows, error } = await db
     .from('reports')
-    .select('id, reporter_id, target_type, target_id, reason, note, status, created_at, reporter:users(username, display_name)')
+    // reporter:users!reports_reporter_id_fkey — takma ad (reporter:) ilişkiyi
+    // SEÇMEZ, yalnız çıktı anahtarını adlandırır; ilişkiyi FK adı sabitler.
+    .select('id, reporter_id, target_type, target_id, reason, note, status, created_at, reporter:users!reports_reporter_id_fkey(username, display_name)')
     .eq('status', 'open')
     .order('created_at', { ascending: false })
     .limit(200);
@@ -57,7 +59,9 @@ export default async function SikayetYonetimPage() {
       ? db.from('user_articles').select('id, slug, title, users!user_articles_user_id_fkey(username, display_name)').in('id', ids('article'))
       : Promise.resolve({ data: [] as any[] }),
     ids('article_comment').length
-      ? db.from('article_comments').select('id, content, article_slug, users(username, display_name)').in('id', ids('article_comment'))
+      // article_comments'a bir gün beğeni tablosu gelirse hint'siz embed kırılırdı
+      // (comments'ta olan bu); ad şimdiden sabitlendi.
+      ? db.from('article_comments').select('id, content, article_slug, users!article_comments_user_id_fkey(username, display_name)').in('id', ids('article_comment'))
       : Promise.resolve({ data: [] as any[] }),
   ]);
 
