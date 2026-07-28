@@ -102,6 +102,9 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
   const [trArtist, setTrArtist] = useState('');
   const [trFile, setTrFile] = useState<File | null>(null);
   const [trLoading, setTrLoading] = useState(false);
+  // Yükleme yüzdesi (0–100). Ses dosyaları 250 MB'a kadar çıkabiliyor; tek başına
+  // "Yükleniyor…" uzun yüklemede takılmışlık hissi veriyordu.
+  const [trPct, setTrPct] = useState(0);
   const [trError, setTrError] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
   const [trDrag, setTrDrag] = useState(false);   // sürükle-bırak vurgusu
@@ -128,9 +131,11 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
     const file = trFile;
     if (!file) { setTrError('Bir ses dosyası seç.'); return; }
     if (!trTitle.trim()) { setTrError('Parça adı gir.'); return; }
-    setTrLoading(true); setTrError('');
+    setTrLoading(true); setTrError(''); setTrPct(0);
     try {
-      const { path, mediaType } = await uploadToStorage(file, 'media');
+      const { path, mediaType } = await uploadToStorage(file, 'media', (loaded, total) => {
+        setTrPct(total ? Math.min(100, Math.round((loaded / total) * 100)) : 0);
+      });
       if (mediaType !== 'audio') { setTrError('Bu bir ses dosyası değil.'); return; }
 
       // Süreyi istemcide ölç: liste ve çalar için ücretsiz bilgi.
@@ -157,6 +162,7 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
       setTrError(e instanceof Error ? e.message : 'Yüklenemedi.');
     } finally {
       setTrLoading(false);
+      setTrPct(0);
     }
   }
 
@@ -405,8 +411,18 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
                         onClick={addTrack} disabled={trLoading || !trTitle.trim()}
                         style={{ border: 'none', borderRadius: 10, padding: '11px 20px', fontSize: '0.86rem', fontWeight: 700, fontFamily: 'inherit', color: '#fff', background: 'var(--color-primary)', cursor: (trLoading || !trTitle.trim()) ? 'not-allowed' : 'pointer', opacity: (trLoading || !trTitle.trim()) ? 0.5 : 1, transition: 'opacity 0.15s' }}
                       >
-                        {trLoading ? 'Yükleniyor…' : 'Yükle'}
+                        {trLoading ? `Yükleniyor… %${trPct}` : 'Yükle'}
                       </button>
+                      {/* İlerleme çubuğu — künye alanlarıyla aynı sütunda, butonun altında. */}
+                      {trLoading && (
+                        <div
+                          role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={trPct}
+                          aria-label="Yükleme ilerlemesi"
+                          style={{ height: 6, borderRadius: 9999, background: 'var(--color-border)', overflow: 'hidden' }}
+                        >
+                          <div style={{ width: `${trPct}%`, height: '100%', background: 'var(--color-primary)', transition: 'width 0.2s linear' }} />
+                        </div>
+                      )}
                     </div>
                   )}
 

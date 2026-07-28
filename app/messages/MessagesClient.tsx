@@ -39,6 +39,10 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
   // çalıştırıldıysa açık (liste yüklenince belirlenir). Kapalıysa ek butonu gizli.
   const [mediaEnabled, setMediaEnabled] = useState(false);
   const [mediaSending, setMediaSending] = useState(false);
+  // Yüklenmekte olan iyimser baloncuğun kimliği + yüzdesi. Yüzde baloncuğun
+  // ÜSTÜNE biniyor (Instagram deseni): hangi medyanın yüklendiği baştan belli
+  // oluyor ve 250 MB'lık bir video dakikalarca sürerken ekran ölü görünmüyor.
+  const [mediaUpload, setMediaUpload] = useState<{ id: number; pct: number } | null>(null);
   const mediaInputRef = useRef<HTMLInputElement>(null);
   const [panelOpen, setPanelOpen] = useState(false);
   // Dar ekran (mobil ≤699px) = tek panel: konuşma açılınca liste gizlenir + geri butonu çıkar.
@@ -229,8 +233,11 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
     const optimistic: Message = { id: tempId, content: '', sender_id: me.id, created_at: new Date().toISOString(), media_url: localUrl, media_type: mt };
     setMessages(prev => [...prev, optimistic]);
     setMediaSending(true);
+    setMediaUpload({ id: tempId, pct: 0 });
     try {
-      const { path, mediaType } = await uploadToStorage(file, 'media');
+      const { path, mediaType } = await uploadToStorage(file, 'media', (loaded, total) => {
+        setMediaUpload({ id: tempId, pct: total ? Math.min(100, Math.round((loaded / total) * 100)) : 0 });
+      });
       const res = await fetch(`/api/dm/${convId}/send`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ path, mediaType }),
@@ -248,6 +255,7 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
       setMessages(prev => prev.filter(m => m.id !== tempId));
     } finally {
       setMediaSending(false);
+      setMediaUpload(null);
       URL.revokeObjectURL(localUrl); // sunucu URL'i yerine geçti ya da baloncuk silindi
     }
   }
@@ -304,6 +312,8 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
     }
     const mine = m.sender_id === me.id;
     const isGif = m.content.startsWith('__GIF__');
+    // Bu baloncuk şu an yükleniyor mu? (iyimser baloncuk, tempId ile eşleşir)
+    const up = mediaUpload && mediaUpload.id === m.id ? mediaUpload : null;
     msgElements.push(
       <div key={m.id} style={{ display: 'flex', alignItems: 'flex-end', gap: 6, maxWidth: '72%', alignSelf: mine ? 'flex-end' : 'flex-start', flexDirection: mine ? 'row-reverse' : 'row' }}>
         {!mine && (
@@ -314,10 +324,25 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
         {m.media_url ? (
           // Foto/video mesajı. Altında metin (caption) varsa onu da göster.
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: mine ? 'flex-end' : 'flex-start' }}>
-            <div style={{ borderRadius: 14, overflow: 'hidden', maxWidth: 240, ...(mine ? { borderBottomRightRadius: 4 } : { borderBottomLeftRadius: 4 }) }}>
+            <div style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', maxWidth: 240, ...(mine ? { borderBottomRightRadius: 4 } : { borderBottomLeftRadius: 4 }) }}>
               {m.media_type === 'video'
                 ? <video src={m.media_url} controls playsInline style={{ width: '100%', maxHeight: 360, display: 'block', background: '#000' }} />
                 : <img src={m.media_url} alt="" loading="lazy" style={{ width: '100%', display: 'block' }} />}
+              {/* Yükleme perdesi — yalnız kendi iyimser baloncuğunda, yükleme
+                  sürerken. Sunucu yanıtı gelince baloncuk gerçek mesajla
+                  değişir ve id eşleşmediği için perde kendiliğinden kalkar. */}
+              {up && (
+                <div
+                  role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={up.pct}
+                  aria-label="Yükleme ilerlemesi"
+                  style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#fff', fontWeight: 700, fontSize: '0.9rem' }}
+                >
+                  <span className="tnum">%{up.pct}</span>
+                  <div style={{ width: '70%', height: 4, borderRadius: 9999, background: 'rgba(255,255,255,0.28)', overflow: 'hidden' }}>
+                    <div style={{ width: `${up.pct}%`, height: '100%', background: '#fff', transition: 'width 0.2s linear' }} />
+                  </div>
+                </div>
+              )}
             </div>
             {m.content && (
               <div style={{ padding: '9px 14px', borderRadius: 18, fontSize: '0.88rem', lineHeight: 1.5, wordBreak: 'break-word', whiteSpace: 'pre-wrap', ...(mine ? { background: 'var(--color-accent)', color: '#0f0e0d', borderBottomRightRadius: 4 } : { background: 'rgba(255,255,255,0.08)', color: '#e8e0d8', borderBottomLeftRadius: 4 }) }}>
