@@ -293,7 +293,7 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
                   onDragLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--color-border)'; }}
                   onDrop={e => { e.preventDefault(); (e.currentTarget as HTMLElement).style.borderColor = 'var(--color-border)'; addFiles(Array.from(e.dataTransfer.files)); }}
                 >
-                  <div><div style={{ fontSize: '2.5rem', marginBottom: 12 }}>🖼️</div><p style={{ fontWeight: 600, marginBottom: 4 }}>Resim veya video seç</p><p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>Tıkla veya sürükle · en fazla 20 · JPG PNG WEBP GIF MP4 · Max 100 MB</p></div>
+                  <div><div style={{ fontSize: '2.5rem', marginBottom: 12 }}>🖼️</div><p style={{ fontWeight: 600, marginBottom: 4 }}>Resim veya video seç</p><p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>Tıkla veya sürükle · en fazla 20 · JPG PNG WEBP GIF MP4 · Max 250 MB</p></div>
                 </div>
               ) : (
                 <div

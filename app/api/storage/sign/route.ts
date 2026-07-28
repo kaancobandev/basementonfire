@@ -8,7 +8,14 @@ const json = (data: object, status = 200) => NextResponse.json(data, { status })
 // "Desteklenmeyen dosya türü" ile düşüyordu — kullanıcı için sebepsiz bir hata.
 const IMG = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'];
 const VID = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'];
-const LIMIT = { media: 100 * 1024 * 1024, story: 50 * 1024 * 1024, avatar: 10 * 1024 * 1024 } as const;
+// Gönderi medyası (media) 250 MB. Dosya bu route'tan GEÇMEZ (aşağıdaki nota bak),
+// imzalı URL ile doğrudan Supabase Storage'a gider — yani buradaki sayı yalnız
+// KAPI. İKİNCİ bir tavan daha var: Supabase'in proje geneli "global file upload
+// limit"i. media bucket'ının kendi file_size_limit'i YOK (null → projeninkini
+// miras alır). 2026-07-28'de ölçüldü: 250 MB'lık gerçek bir yükleme HTTP 200
+// döndü, yani proje ayarı yeterli. Bu sayıyı yükseltirsen ölçümü TEKRARLA —
+// yalnız buradaki rakamı büyütmek Storage'ın 413'ünü kaldırmaz.
+const LIMIT = { media: 250 * 1024 * 1024, story: 50 * 1024 * 1024, avatar: 10 * 1024 * 1024 } as const;
 
 // Uzantı → contentType eşlemesi. İstemcinin gönderdiği `ext` ARTIK KULLANILMIYOR.
 const EXT_BY_TYPE: Record<string, string> = {

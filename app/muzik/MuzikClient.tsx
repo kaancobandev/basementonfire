@@ -367,7 +367,7 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
                         Ses dosyası seç
                       </span>
                       <span style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)' }}>
-                        Sürükleyip bırakabilirsin · MP3, M4A, WAV, OGG · en fazla 100 MB
+                        Sürükleyip bırakabilirsin · MP3, M4A, WAV, OGG · en fazla 250 MB
                       </span>
                     </label>
                   ) : (
