@@ -56,6 +56,27 @@ const websiteJsonLd = {
   },
 };
 
+// BAĞIMSIZ Organization işaretlemesi — MARKA LOGOSUNUN tek yetkili yüzeyi.
+// Google'ın "logo" dokümanı yalnız bunu belgeler (bkz. lib/seo.ts satır 57):
+// Article publisher.logo veya favicon DEĞİL, ana sayfadaki bu düğüm. Aramada
+// eski logo görünüyorsa sebep buranın eksikliği + Google'ın favicon önbelleği.
+// logo mutlak URL + 112x112 minimumu (512 fazlasıyla geçer); dosya /icons/'ta,
+// robots.txt onu engellemiyor → taranabilir. Eski logo dönerse önce bu URL'in
+// 200 döndüğünü ve yeni logoyu gösterdiğini doğrula (icon.svg bir kez sessizce
+// 404 olmuştu). url alanı WebSite ile aynı → Google iki düğümü aynı markada eşler.
+const organizationJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Basementonfire',
+  url: 'https://basementonfire.com',
+  logo: {
+    '@type': 'ImageObject',
+    url: 'https://basementonfire.com/icons/icon-512.png',
+    width: 512,
+    height: 512,
+  },
+};
+
 // Ana sayfa artık 32 makaleye derinlik-1 link veriyor → ItemList ile bunu
 // Google'a açıkça bildir.
 const itemListJsonLd = {
@@ -78,6 +99,7 @@ export default function HomePage() {
   return (
     <div className={s.lp}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(websiteJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(organizationJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(itemListJsonLd) }} />
 
       {/* ══════════ 1 · HERO — Soru Kapısı ══════════ */}
