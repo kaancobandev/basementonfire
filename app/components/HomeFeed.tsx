@@ -244,6 +244,9 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
   const [storyPreviewUrl, setStoryPreviewUrl] = useState('');
   const [storyError, setStoryError] = useState('');
   const [storySubmitting, setStorySubmitting] = useState(false);
+  // Yükleme yüzdesi (0–100). Hikaye TEK dosya olduğu için sayaç yok, düz yüzde.
+  // Sadece-metin hikayede üretilen PNG küçük olduğundan anında %100'e gider.
+  const [storyPct, setStoryPct] = useState(0);
 
   // Paylaş menüsünden "Hikaye" ile gelince (/?story=1) hikaye oluşturucuyu aç.
   useEffect(() => {
@@ -562,6 +565,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
     }
     if (!fileToSend) return;
     setStorySubmitting(true);
+    setStoryPct(0);
     setStoryError('');
     // ANKET/QUIZ gövdesi. Boş seçenekler atılınca indeksler KAYAR: pollCorrect
     // orijinal pollOpts'a göredir, sunucuya giden dizi ise filtrelenmiştir →
@@ -573,7 +577,9 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
       ? pollOpts.slice(0, pollCorrect + 1).filter(o => o.trim()).length - 1
       : null;
     try {
-      const { path, mediaType } = await uploadToStorage(fileToSend, 'story');
+      const { path, mediaType } = await uploadToStorage(fileToSend, 'story', (loaded, total) => {
+        setStoryPct(total ? Math.min(100, Math.round((loaded / total) * 100)) : 0);
+      });
       const res = await fetch('/api/stories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -614,6 +620,7 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
       setStoryError(e?.message || 'Hikâye paylaşılamadı, tekrar dene.');
     } finally {
       setStorySubmitting(false);
+      setStoryPct(0);
     }
   }
 
@@ -1534,9 +1541,24 @@ export default function HomeFeed({ feedItems: initialItems, likedFactIds, likedP
               // Gönderilebilir: gerçek dosya VAR, ya da sadece-metin modunda dolu yazı.
               const canSubmit = !!storyFile || (textMode && storyText.trim().length > 0);
               return (
-                <button disabled={!canSubmit || storySubmitting} onClick={submitStory} style={{ width: '100%', marginTop: 14, padding: 12, border: 'none', borderRadius: '9999px', background: 'var(--color-accent)', color: '#0f0e0d', fontWeight: 700, fontSize: '0.95rem', cursor: canSubmit ? 'pointer' : 'not-allowed', opacity: canSubmit ? 1 : 0.4 }}>
-                  {storySubmitting ? 'Yükleniyor…' : 'Hikayeyi Paylaş'}
-                </button>
+                <>
+                  <button disabled={!canSubmit || storySubmitting} onClick={submitStory} style={{ width: '100%', marginTop: 14, padding: 12, border: 'none', borderRadius: '9999px', background: 'var(--color-accent)', color: '#0f0e0d', fontWeight: 700, fontSize: '0.95rem', cursor: canSubmit ? 'pointer' : 'not-allowed', opacity: canSubmit ? 1 : 0.4 }}>
+                    {storySubmitting ? `Yükleniyor… %${storyPct}` : 'Hikayeyi Paylaş'}
+                  </button>
+                  {/* İlerleme çubuğu — mobil veride 50 MB'lık bir hikaye videosu
+                      dakikaları bulabiliyor; tek başına "Yükleniyor…" takılmışlık
+                      hissi veriyordu. Renkler bu modalın kendi (hep koyu) paleti:
+                      tema token'ları burada yanlış kontrast verirdi. */}
+                  {storySubmitting && (
+                    <div
+                      role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={storyPct}
+                      aria-label="Yükleme ilerlemesi"
+                      style={{ marginTop: 10, height: 6, borderRadius: 9999, background: 'rgba(255,255,255,0.14)', overflow: 'hidden' }}
+                    >
+                      <div style={{ width: `${storyPct}%`, height: '100%', background: 'var(--color-accent)', transition: 'width 0.2s linear' }} />
+                    </div>
+                  )}
+                </>
               );
             })()}
           </div>
