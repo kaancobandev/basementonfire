@@ -46,6 +46,49 @@ export function storyIdFromPollKey(key: string): number | null {
   return Number.isInteger(n) && n > 0 ? n : null;
 }
 
+// ── Makale sonu quiz'i (2026-07-29) ──────────────────────────────────────
+// AYNI oy tablosunu (article_poll_votes) kullanır: poll_key = 'quiz-<slug>-<n>',
+// n = makaledeki sorunun sırası. Oy olarak şıkkın İNDEKSİ ('0'..'5') saklanır.
+//
+// NEDEN BURAYA BAĞLANDI, yeni tablo açılmadı:
+// Sorular makalelerin KENDİ dosyalarında (quizQs) duruyor, veritabanında değil.
+// Bu yüzden sunucu "bu sorunun kaç şıkkı var?" sorusunu cevaplayamaz. Serbest
+// metnin DB'ye girmemesi için doğrulama sayı TAVANIYLA yapılır: soru sırası
+// 0-19, şık 0-5. İstemci gerçek şık sayısını zaten bilir ve yalnız onları
+// gönderir; tavanı aşan her şey rota tarafından reddedilir.
+//
+// Giriş GEREKTİRMEZ (article_poll_votes'un mevcut davranışı). Sebep ölçülmüştür:
+// site trafiğinin ezici çoğunluğu anonim, giriş kapısı koymak veriyi ~0 bırakır.
+export const ARTICLE_QUIZ_PREFIX = 'quiz-';
+export const QUIZ_MAX_OPTIONS = 6;
+export const QUIZ_MAX_QUESTIONS = 20;
+
+/** Sayım için sabit şık kümesi ('0'..'5'). Soruda daha az şık varsa fazlası 0 döner. */
+export const QUIZ_CHOICES: readonly string[] =
+  Array.from({ length: QUIZ_MAX_OPTIONS }, (_, i) => String(i));
+
+/**
+ * 'quiz-cift-yarik-2' → { slug: 'cift-yarik', index: 2 }; değilse null.
+ *
+ * ⚠ lastIndexOf ŞART: slug'ların çoğunda tire var (cift-yarik, black-hole,
+ * einstein-rosen, ayna-noronlari). İlk tireden bölersek slug kırpılır ve
+ * her tireli makalenin quiz'i sessizce kaydedilmez.
+ */
+export function articleQuizFromPollKey(key: string): { slug: string; index: number } | null {
+  if (!key.startsWith(ARTICLE_QUIZ_PREFIX)) return null;
+  const rest = key.slice(ARTICLE_QUIZ_PREFIX.length);
+  const dash = rest.lastIndexOf('-');
+  if (dash <= 0) return null;
+  const slug = rest.slice(0, dash);
+  const index = Number(rest.slice(dash + 1));
+  if (!slug || !Number.isInteger(index) || index < 0 || index >= QUIZ_MAX_QUESTIONS) return null;
+  return { slug, index };
+}
+
+/** İstemcinin kullanacağı anahtar üreteci — iki taraf tek fonksiyondan okusun. */
+export const articleQuizPollKey = (slug: string, index: number): string =>
+  `${ARTICLE_QUIZ_PREFIX}${slug}-${index}`;
+
 /** Seçenek dizisini normalize eder (kırp, boşları at, tavan uygula). */
 export function normalizePollOptions(raw: unknown): string[] {
   if (!Array.isArray(raw)) return [];

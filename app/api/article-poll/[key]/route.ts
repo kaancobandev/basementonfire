@@ -2,7 +2,8 @@ import crypto from 'node:crypto';
 import { NextResponse, type NextRequest } from 'next/server';
 import { db, getMe } from '@/lib/supabase/server';
 import { clientIp } from '@/lib/geo';
-import { POLLS, isPollKey, isPollChoice, postIdFromPollKey, storyIdFromPollKey } from '@/lib/polls';
+import { POLLS, isPollKey, isPollChoice, postIdFromPollKey, storyIdFromPollKey, articleQuizFromPollKey, QUIZ_CHOICES } from '@/lib/polls';
+import { isArticleSlug } from '@/lib/articles';
 import { audiencePredicate } from '@/lib/storyAudience';
 import { isBlockedBetween } from '@/lib/blocks';
 
@@ -74,6 +75,12 @@ function voterHash(req: NextRequest, pollKey: string): string {
  */
 async function pollChoices(pollKey: string): Promise<readonly string[] | null> {
   if (isPollKey(pollKey)) return POLLS[pollKey];
+  // Makale sonu quiz'i ('quiz-<slug>-<n>') → şık İNDEKSİ. Sorular makalelerin
+  // kendi dosyalarında olduğu için sunucu şık sayısını bilemez; doğrulama sabit
+  // tavanla yapılır (bkz. lib/polls.ts gerekçesi). slug registry'den doğrulanır
+  // → uydurma slug ile anahtar üretilemez.
+  const quiz = articleQuizFromPollKey(pollKey);
+  if (quiz) return isArticleSlug(quiz.slug) ? QUIZ_CHOICES : null;
   // Gönderi anketi ('post-<id>') → post_polls.options; oy olarak indeks.
   const postId = postIdFromPollKey(pollKey);
   if (postId !== null) {

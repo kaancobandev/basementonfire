@@ -20,7 +20,9 @@
 
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode, type CSSProperties } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import dynamic from 'next/dynamic';
+import { articleQuizPollKey } from '@/lib/polls';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
@@ -296,17 +298,54 @@ export function HorizontalTimeline({ heading, kicker = 'ZAMAN ÇİZELGESİ', ite
 }
 
 /* ─── Genel mini test ─── */
+//
+// ⚠ AYNI İSİMDE İKİNCİ BİR BİLEŞEN VAR: app/components/ArticleQuiz.tsx
+// O sürüm soruları VERİTABANINDAN çeker (quiz_questions) ve giriş ister.
+// BU sürüm soruları makalenin kendi dosyasından (quizQs) alır. İkisini import
+// satırına bakmadan ayırt edemezsin — karıştırma. Makaleler BUNU kullanır.
+//
+// 2026-07-29: bu quiz uzun süre "ölü etkileşim"di — kullanıcı çözüyor, skorunu
+// görüyor, hiçbir yere yazılmıyordu (article_quiz_answers 0'da kalmıştı).
+// Artık her cevap article_poll_votes'a anonim ve çerezsiz kaydediliyor
+// (poll_key = 'quiz-<slug>-<soru>'). Giriş İSTENMEZ: trafiğin ezici çoğunluğu
+// anonim, giriş kapısı veriyi yine ~0 bırakırdı.
 export type QuizQuestion = { text: string; opts: string[]; a: number; exp?: string };
 export function ArticleQuiz({ questions }: { questions: QuizQuestion[] }) {
   const accent = useAccent();
   const bg = useBg();
+  const pathname = usePathname();
   const [qi, setQi] = useState(0);
   const [score, setScore] = useState(0);
   const [pick, setPick] = useState<number | null>(null);
   const [done, setDone] = useState(false);
   const q = questions[qi];
   const answered = pick !== null;
-  function answer(sel: number) { if (answered) return; setPick(sel); if (sel === q.a) setScore(s => s + 1); }
+
+  // Slug YOLDAN türetilir → 14 makalenin hiçbirinde çağrı değişmedi.
+  // Yalnız /articles/<slug> eşleşir; başka bir yerde render edilirse kayıt yapılmaz.
+  const slug = /^\/articles\/([^/]+)\/?$/.exec(pathname ?? '')?.[1] ?? null;
+
+  /**
+   * Ateşle-unut kayıt. Quiz'i ASLA bloklamaz:
+   *  · await YOK → cevap anında görünür, ağ beklenmez
+   *  · catch boş → çevrimdışı/engelli istekte kullanıcı hiçbir şey fark etmez
+   *  · keepalive → cevaptan hemen sonra sayfadan çıkılsa da istek tamamlanır
+   * Tekrar çözmede (restart) ikinci kayıt DB'deki PK ile reddedilir (23505),
+   * rota bunu hata saymaz → sayım şişmez.
+   */
+  function record(index: number, sel: number) {
+    if (!slug) return;
+    try {
+      fetch(`/api/article-poll/${articleQuizPollKey(slug, index)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ choice: String(sel) }),
+        keepalive: true,
+      }).catch(() => { /* sessiz */ });
+    } catch { /* sessiz */ }
+  }
+
+  function answer(sel: number) { if (answered) return; setPick(sel); if (sel === q.a) setScore(s => s + 1); record(qi, sel); }
   function next() { if (qi + 1 < questions.length) { setQi(n => n + 1); setPick(null); } else setDone(true); }
   function restart() { setQi(0); setScore(0); setPick(null); setDone(false); }
 
