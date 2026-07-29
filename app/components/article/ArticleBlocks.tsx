@@ -348,6 +348,17 @@ export function HorizontalTimeline({ heading, kicker = 'ZAMAN ÇİZELGESİ', ite
 // (poll_key = 'quiz-<slug>-<soru>'). Giriş İSTENMEZ: trafiğin ezici çoğunluğu
 // anonim, giriş kapısı veriyi yine ~0 bırakırdı.
 export type QuizQuestion = { text: string; opts: string[]; a: number; exp?: string };
+
+/**
+ * Dağılım çubuğunun görünmesi için gereken EN AZ cevap sayısı.
+ *
+ * Neden var: tek oyla ekranda "%100 / %0 / %0 / %0" yazıyor — bu okura bilgi
+ * vermez, üstelik gördüğü tek oy KENDİ oyudur; sayfa bozuk görünür. Eşiğin
+ * altında çubuklar hiç çizilmez, cevap ekranı eskisi gibi sade kalır.
+ * Yeni bir makale yayınlandığında ilk günler böyle geçer, sonra kendiliğinden
+ * açılır — ayrıca bir şey yapmak gerekmez.
+ */
+const QUIZ_DAGILIM_ESIGI = 5;
 export function ArticleQuiz({ questions }: { questions: QuizQuestion[] }) {
   const accent = useAccent();
   const bg = useBg();
@@ -363,27 +374,45 @@ export function ArticleQuiz({ questions }: { questions: QuizQuestion[] }) {
   // Yalnız /articles/<slug> eşleşir; başka bir yerde render edilirse kayıt yapılmaz.
   const slug = /^\/articles\/([^/]+)\/?$/.exec(pathname ?? '')?.[1] ?? null;
 
+  /** Soru sırası → okur dağılımı. Yalnız cevaplandıktan SONRA doldurulur. */
+  const [dagilim, setDagilim] = useState<Record<number, number[]>>({});
+
   /**
    * Ateşle-unut kayıt. Quiz'i ASLA bloklamaz:
-   *  · await YOK → cevap anında görünür, ağ beklenmez
+   *  · answer() await ETMEZ → cevap anında görünür, ağ beklenmez
    *  · catch boş → çevrimdışı/engelli istekte kullanıcı hiçbir şey fark etmez
    *  · keepalive → cevaptan hemen sonra sayfadan çıkılsa da istek tamamlanır
    * Tekrar çözmede (restart) ikinci kayıt DB'deki PK ile reddedilir (23505),
-   * rota bunu hata saymaz → sayım şişmez.
+   * rota bunu hata saymaz → sayım şişmez, dağılım da aynı kalır.
+   *
+   * Yanıt aynı zamanda DAĞILIMI taşır (rota oy sonrası sayımı döndürüyor) →
+   * ayrı bir GET gerekmez, tek istekle hem yazılır hem okunur.
    */
-  function record(index: number, sel: number) {
+  async function record(index: number, sel: number, opts: number) {
     if (!slug) return;
     try {
-      fetch(`/api/article-poll/${articleQuizPollKey(slug, index)}`, {
+      const r = await fetch(`/api/article-poll/${articleQuizPollKey(slug, index)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ choice: String(sel) }),
         keepalive: true,
-      }).catch(() => { /* sessiz */ });
+      });
+      const d = await r.json();
+      if (!d?.available || !d.counts) return;
+      // SAYIMI BU SORUNUN ŞIKLARIYLA SINIRLA: rota sabit bir '0'..'5' kümesi
+      // üzerinden sayıyor (sunucu şık sayısını bilemiyor). 4 şıklı bir soruda
+      // 5. ve 6. kutuları toplama katarsak yüzdeler küçülür.
+      const say = Array.from({ length: opts }, (_, i) => Number(d.counts[String(i)] ?? 0));
+      if (say.reduce((a, b) => a + b, 0) >= QUIZ_DAGILIM_ESIGI) setDagilim(s => ({ ...s, [index]: say }));
     } catch { /* sessiz */ }
   }
 
-  function answer(sel: number) { if (answered) return; setPick(sel); if (sel === q.a) setScore(s => s + 1); record(qi, sel); }
+  function answer(sel: number) {
+    if (answered) return;
+    setPick(sel);
+    if (sel === q.a) setScore(s => s + 1);
+    void record(qi, sel, q.opts.length);
+  }
   function next() { if (qi + 1 < questions.length) { setQi(n => n + 1); setPick(null); } else setDone(true); }
   function restart() { setQi(0); setScore(0); setPick(null); setDone(false); }
 
@@ -396,22 +425,49 @@ export function ArticleQuiz({ questions }: { questions: QuizQuestion[] }) {
             <div className="h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full transition-all duration-500" style={{ width: `${((qi + (answered ? 1 : 0)) / questions.length) * 100}%`, background: accent }} /></div>
           </div>
           <p className="mb-5 text-lg font-semibold text-slate-100">{q.text}</p>
+          {/* Dağılım YALNIZ cevap verildikten sonra gösterilir (`answered`) —
+              önce gösterilse okurun seçimini yönlendirir ve ölçüm bozulur. */}
           <div className="space-y-2.5">
             {q.opts.map((opt, i) => {
               const correct = i === q.a;
-              const base = 'flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left text-sm transition';
+              const say = answered ? dagilim[qi] : undefined;
+              const toplam = say ? say.reduce((a, b) => a + b, 0) : 0;
+              const yuzde = say && toplam > 0 ? Math.round((say[i] / toplam) * 100) : null;
+              const base = 'relative overflow-hidden flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left text-sm transition';
               let cls = 'border-white/10 bg-white/5 hover:bg-white/10', st: CSSProperties | undefined;
               if (answered && correct) { cls = 'text-white'; st = { borderColor: accent, background: `color-mix(in srgb, ${accent} 18%, transparent)` }; }
               else if (answered && i === pick) cls = 'border-rose-400 bg-rose-400/15 text-rose-100';
-              else if (answered) cls = 'border-white/10 bg-white/5 opacity-50';
+              // Dağılım varken soluklaştırma HAFİFLETİLİR: amaç şıkları
+              // karşılaştırmak, %50 opaklıkta yüzdeler okunmuyordu.
+              else if (answered) cls = `border-white/10 bg-white/5 ${yuzde !== null ? 'opacity-75' : 'opacity-50'}`;
               return (
                 <button key={i} onClick={() => answer(i)} disabled={answered} className={`${base} ${cls}`} style={st}>
-                  <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full border border-current text-xs font-bold">{String.fromCharCode(65 + i)}</span><span>{opt}</span>
-                  {answered && correct && <span className="ml-auto">✓</span>}{answered && i === pick && !correct && <span className="ml-auto">✗</span>}
+                  <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full border border-current text-xs font-bold">{String.fromCharCode(65 + i)}</span>
+                  <span>{opt}</span>
+                  <span className="ml-auto flex shrink-0 items-center gap-2">
+                    {yuzde !== null && <span className="font-mono text-xs font-bold tabular-nums opacity-90">%{yuzde}</span>}
+                    {answered && correct && <span>✓</span>}
+                    {answered && i === pick && !correct && <span>✗</span>}
+                  </span>
+                  {/* Dağılım çubuğu — metnin ÜSTÜNE binmesin diye kartın en alt
+                      kenarında 3px'lik şerit. Böylece z-index/istifleme derdi yok. */}
+                  {yuzde !== null && (
+                    <span
+                      aria-hidden
+                      className="absolute bottom-0 left-0 h-[3px] transition-[width] duration-700 ease-out"
+                      style={{ width: `${yuzde}%`, background: correct ? accent : 'rgba(255,255,255,0.4)' }}
+                    />
+                  )}
                 </button>
               );
             })}
           </div>
+          {/* Yüzdenin kaç kişiden çıktığı — 3 kişilik %67 ile 300 kişilik %67 aynı şey değil. */}
+          {answered && dagilim[qi] && (
+            <p className="mt-2 text-right text-[0.7rem] text-slate-500">
+              {dagilim[qi].reduce((a, b) => a + b, 0).toLocaleString('tr-TR')} okur cevapladı
+            </p>
+          )}
           {answered && (
             <div className="mt-4">
               {q.exp && <div className="rounded-xl border p-4 text-sm leading-relaxed text-slate-200" style={{ borderColor: pick === q.a ? `color-mix(in srgb, ${accent} 30%, transparent)` : 'rgba(251,191,36,0.3)', background: pick === q.a ? `color-mix(in srgb, ${accent} 6%, transparent)` : 'rgba(251,191,36,0.06)' }}><span className="font-bold">{pick === q.a ? 'Doğru! ' : 'Doğru cevap: ' + q.opts[q.a] + '. '}</span>{q.exp}</div>}
