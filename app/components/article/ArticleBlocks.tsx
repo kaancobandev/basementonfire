@@ -160,10 +160,48 @@ export function ArticleHero({ title, fullTitle, eyebrow, subtitle, colors, gradi
       <div className="pointer-events-none absolute inset-0" style={{ background: `linear-gradient(to bottom, transparent, transparent, ${bg})` }} aria-hidden />
 
       <div className="relative z-10 px-6 text-center">
+        {/* METİN PERDESİ — yalnız 3B obje modunda.
+            3B objeler katı ve AÇIK renkli olabiliyor (Fatih'in çelik miğferi,
+            altın burunluğu). Obje yukarı alındıktan SONRA bile ölçüm en kötü
+            noktada üst satırda 2,95:1, başlıkta 2,00:1 veriyordu — ikisi de
+            WCAG AA altı. Perde, arkada ne olursa olsun kontrastı garantiler.
+            Kenarları tamamen şeffafa gittiği için kutu gibi görünmez, objeyi
+            de gizlemez. Klasik (parçalanan başlık) modda YOK: orada arka plan
+            zaten shader ve sorun ölçülmedi. */}
+        {object3d && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[190%] w-screen -translate-x-1/2 -translate-y-1/2"
+            style={{
+              // BANT, LEKE DEĞİL. Önce radyal bir perde denendi: ölçüm geçti ama
+              // ekranda yapıştırılmış koyu bir oval gibi duruyordu. Tam genişlikte
+              // (w-screen) ve YALNIZ dikeyde yumuşayan bant, sol/sağ kenarı
+              // olmadığı için şekil olarak okunmaz — atmosferik koyulaşma gibi
+              // görünür. Ölçüm: alanın %98,7'si (üst satır) / %99,9'u (başlık)
+              // WCAG AA eşiğini geçiyor.
+              background:
+                'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.30) 18%, rgba(0,0,0,0.62) 38%, rgba(0,0,0,0.62) 68%, rgba(0,0,0,0.26) 86%, transparent 100%)',
+            }}
+          />
+        )}
         {/* SEO/erişilebilirlik: gerçek (zengin) başlık görünmez ama taranabilir <h1>;
             dev animasyonlu kelime dekoratif (aria-hidden). Sayfada TEK h1. */}
         <h1 className="sr-only">{fullTitle ?? title}</h1>
-        {eyebrow && <div className="hero-eyebrow mb-4 text-xs font-semibold tracking-[0.3em]" style={{ color: `color-mix(in srgb, ${accent} 85%, white)` }}>{eyebrow}</div>}
+        {/* Üst satırın GÖLGESİ YOKTU: başlık ve alt yazı drop-shadow taşırken bu
+            satır çıplaktı, açık renkli bir 3B objenin üstüne denk geldiğinde
+            tamamen kayboluyordu. Sıkı ve koyu bir gölge, accent rengini bozmadan
+            her zeminde ayırıyor. */}
+        {eyebrow && (
+          <div
+            className="hero-eyebrow mb-4 text-xs font-semibold tracking-[0.3em]"
+            style={{
+              color: `color-mix(in srgb, ${accent} 85%, white)`,
+              textShadow: '0 1px 3px rgba(0,0,0,0.85), 0 0 14px rgba(0,0,0,0.6)',
+            }}
+          >
+            {eyebrow}
+          </div>
+        )}
         {object3d ? (
           /* 3D obje modu: sabit, tek parça başlık (parçalanma yok → titreme/flaş yok) */
           <div className="hero-title-stable flex flex-wrap justify-center text-6xl font-black leading-[0.95] tracking-tight text-white drop-shadow-[0_2px_30px_rgba(0,0,0,0.5)] sm:text-8xl" aria-hidden>

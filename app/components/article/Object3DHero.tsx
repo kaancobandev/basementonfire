@@ -732,7 +732,12 @@ export default function Object3DHero({ kind = 'dna', colors, src }: { kind?: Obj
         dust = [0.92, 0.86, 0.6]; spinY = 0.3; tiltX = 0.08;
         root.rotation.x = tiltX;
         const helmet = new Transform(); helmet.setParent(root);
-        helmet.position.y = -0.5; helmet.scale.set(1.05, 1.05, 1.05);
+        // YUKARI KALDIRILDI (-0.5 → 1.15). Miğfer ekranın tam ortasındaydı ve
+        // başlık ("Fatih", accent mavi) ile üst satır doğrudan AÇIK GRİ çelik
+        // yüzeyin üstüne biniyordu → ikisi de okunmuyordu (canlıda doğrulandı,
+        // 2026-07-29). Obje yukarı çıkınca metin koyu gradyan zemine oturuyor.
+        // Bu değer YALNIZ Fatih'i etkiler — 'helmet' türünü başka makale kullanmıyor.
+        helmet.position.y = 1.08; helmet.scale.set(0.86, 0.86, 0.86);
         const steelProg = new Program(gl, {
           vertex: metalVertex, fragment: metalFragment, cullFace: false,
           uniforms: { uColor: { value: [0.58, 0.61, 0.66] as Rgb }, uLightDir: { value: lightDir }, uFog: { value: c[0] }, uMetal: { value: 1.0 }, uRough: { value: 0.22 } },
