@@ -46,10 +46,27 @@ const pressJsonLd = {
 };
 
 const VARLIKLAR: { ad: string; dosya: string; boyut: string; not: string }[] = [
-  { ad: 'Logo — 2048 px', dosya: '/brand/logo_basement_2048x2048.png', boyut: '2048×2048 PNG', not: 'Baskı ve büyük ekran için ana sürüm.' },
-  { ad: 'Logo — 512 px', dosya: '/brand/logo-512.png', boyut: '512×512 PNG', not: 'Web, sunum ve sosyal medya için.' },
+  { ad: 'Yatay logo — açık zemin', dosya: '/brand/yatay-acik-zemin.png', boyut: '1948×496 PNG', not: 'Beyaz/açık zeminde varsayılan kullanım. En sık ihtiyaç duyulan sürüm.' },
+  { ad: 'Yatay logo — koyu zemin', dosya: '/brand/yatay-koyu-zemin.png', boyut: '1948×496 PNG', not: 'Koyu zeminde; yazı beyaz, zemin şeffaf.' },
+  { ad: 'Yatay logo — tek renk', dosya: '/brand/yatay-tek-renk.png', boyut: '1948×496 PNG', not: 'Tek renkle basılacak yerler: sponsor duvarı, kaşe, düşük kaliteli baskı.' },
+  { ad: 'Amblem — 2048 px', dosya: '/brand/logo_basement_2048x2048.png', boyut: '2048×2048 PNG', not: 'Yazısız yıldız. Baskı ve büyük ekran için ana sürüm.' },
+  { ad: 'Amblem — 512 px', dosya: '/brand/logo-512.png', boyut: '512×512 PNG', not: 'Web, sunum ve sosyal medya profil görseli.' },
   { ad: 'Uygulama ikonu — 512 px', dosya: '/icons/icon-512.png', boyut: '512×512 PNG', not: 'Uygulama listesi ve mağaza görselleri.' },
   { ad: 'Uygulama ikonu — 192 px', dosya: '/icons/icon-192.png', boyut: '192×192 PNG', not: 'Küçük boy kullanım.' },
+];
+
+/**
+ * Ekran görüntüleri. `onizleme` = sayfada gösterilen küçük JPEG (720 px),
+ * `dosya` = indirilen tam çözünürlük PNG (2x retina).
+ * Sayfaya tam boy PNG GÖMME — altısı birden ~6 MB eder.
+ */
+const EKRANLAR: { ad: string; dosya: string; onizleme: string; boyut: string; not: string }[] = [
+  { ad: 'Ana sayfa', dosya: '/brand/basin/01-ana-sayfa.png', onizleme: '/brand/basin/onizleme/01-ana-sayfa.jpg', boyut: '2880×1800', not: 'Açılış ekranı — soru odaklı giriş.' },
+  { ad: 'Makale açılışı', dosya: '/brand/basin/02-makale-hero.png', onizleme: '/brand/basin/onizleme/02-makale-hero.jpg', boyut: '2880×1800', not: 'Radyoaktivite makalesinin WebGL açılışı.' },
+  { ad: 'Simülasyon — koyu', dosya: '/brand/basin/03-simulasyon.png', onizleme: '/brand/basin/onizleme/03-simulasyon.jpg', boyut: '2880×1800', not: '“Sen ne kadar radyoaktifsin?” — canlı hesaplayıcı.' },
+  { ad: 'Simülasyon — açık', dosya: '/brand/basin/06-simulasyon-2.png', onizleme: '/brand/basin/onizleme/06-simulasyon-2.jpg', boyut: '2880×1800', not: 'Momentum ve çarpışma simülatörü.' },
+  { ad: 'Mobil', dosya: '/brand/basin/04-mobil.png', onizleme: '/brand/basin/onizleme/04-mobil.jpg', boyut: '780×1688', not: 'Telefonda ana sayfa.' },
+  { ad: 'İçerik listesi', dosya: '/brand/basin/05-kesfet.png', onizleme: '/brand/basin/onizleme/05-kesfet.jpg', boyut: '2880×1800', not: 'Tüm makaleler, konuya göre dağılımıyla.' },
 ];
 
 const RENKLER: { ad: string; hex: string; not: string }[] = [
@@ -145,6 +162,15 @@ export default function BasinPage() {
             </tbody>
           </table>
         </div>
+        <h3 style={h3}>Yatay logo oranları</h3>
+        <p style={p}>
+          Yatay kilitte yıldızın yüksekliği <strong>H</strong> ise, yazının büyük harf yüksekliği
+          yaklaşık <strong>0,42H</strong>, aradaki boşluk <strong>0,35H</strong>&apos;dir. Boşluk
+          bilerek geniş: yıldızın uçları ince ve aralarında çok boşluk var, sıkıştırıldığında yazıyla
+          karışıyor. <strong>Asgari genişlik 160 px</strong> — altında uçlar kaybolur, o boyutlarda
+          yatay kilit yerine yalnız amblemi kullan.
+        </p>
+
         <h3 style={h3}>Logo kullanım kuralları</h3>
         <ul style={ul}>
           <li>Logonun oranını değiştirme, döndürme, gölge veya efekt ekleme.</li>
@@ -153,6 +179,56 @@ export default function BasinPage() {
           <li>Logonun renklerini değiştirme; koyu zeminde de aynı dosya kullanılabilir.</li>
           <li><strong>16 px altında kullanma.</strong> Logonun kontrastını uçları taşıyor; çok küçük boyutta uçlar kaybolur.</li>
         </ul>
+
+        {/* ══════════ Ekran görüntüleri ══════════ */}
+        <h2 style={h2}>Ekran görüntüleri</h2>
+        <p style={p}>
+          Hepsi gerçek siteden, 2x çözünürlükte alındı; üzerinde rötuş yok. Görsele tıkla, tam boy
+          PNG inisin.
+        </p>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
+            gap: 14,
+            margin: '0 0 14px',
+          }}
+        >
+          {EKRANLAR.map((e) => (
+            <a
+              key={e.dosya}
+              href={e.dosya}
+              download
+              style={{
+                display: 'block', textDecoration: 'none', color: 'inherit',
+                border: '1px solid var(--color-border)', borderRadius: 12,
+                overflow: 'hidden', background: 'var(--color-surface)',
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              {/* Sabit yükseklik + üstten kırp: mobil görsel (720×1558) yoksa
+                  hücreyi üç katına çıkarıp ızgarayı dağıtıyor. Üstten kırpmak
+                  ekranın en tanıtıcı kısmını korur. */}
+              <img
+                src={e.onizleme}
+                alt={`${e.ad} ekran görüntüsü`}
+                loading="lazy"
+                style={{
+                  display: 'block', width: '100%', height: 168,
+                  objectFit: 'cover', objectPosition: 'top',
+                  borderBottom: '1px solid var(--color-border)',
+                }}
+              />
+              <div style={{ padding: '9px 11px' }}>
+                <div style={{ fontWeight: 700, fontSize: '0.88rem' }}>{e.ad} ↓</div>
+                <div style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)', marginTop: 2 }}>{e.not}</div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', marginTop: 3, fontFamily: 'ui-monospace, monospace' }}>
+                  {e.boyut} PNG
+                </div>
+              </div>
+            </a>
+          ))}
+        </div>
 
         {/* ══════════ Renkler ══════════ */}
         <h2 style={h2}>Marka renkleri</h2>
