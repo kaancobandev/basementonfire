@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import CorporateLayout, { Kutu, h2, p, table, th, td, linkStyle } from '@/app/components/CorporateLayout';
+import CorporateLayout, { Kutu, h2, p, ul, table, th, td, linkStyle } from '@/app/components/CorporateLayout';
 import { VeriSorumlusu } from '@/app/components/LegalLayout';
 import { jsonLdScript } from '@/lib/seo';
 import { VERI_SORUMLUSU } from '@/lib/legal';
+import { SOSYAL, SOSYAL_URLLER } from '@/lib/social';
 
 // ════════════════════════════════════════════════════════════════════════
 // İLETİŞİM — tek kanal (e-posta), konuya göre ayrılmış konu başlıkları.
@@ -40,6 +41,7 @@ const contactJsonLd = {
     name: 'Basementonfire',
     url: 'https://basementonfire.com',
     email: VERI_SORUMLUSU.eposta,
+    sameAs: SOSYAL_URLLER,
     contactPoint: [
       {
         '@type': 'ContactPoint',
@@ -110,6 +112,23 @@ export default function IletisimPage() {
           gerek yok: ilgili içeriğin menüsündeki <strong>Şikayet et</strong> seçeneği bildirimi
           doğrudan moderasyon kuyruğuna düşürür. Bir kullanıcıyı engellemek için profilindeki
           menüyü kullanabilirsin.
+        </p>
+
+        <h2 style={h2}>Sosyal medya</h2>
+        <p style={p}>
+          Resmi hesaplarımız aşağıdadır. Buradaki listede olmayan hiçbir hesap bize ait değildir.
+        </p>
+        <ul style={{ ...ul, listStyle: 'none', paddingLeft: 0 }}>
+          {SOSYAL.map((s) => (
+            <li key={s.url} style={{ marginBottom: 5 }}>
+              <strong>{s.ad}:</strong>{' '}
+              <a href={s.url} target="_blank" rel="me noopener noreferrer" style={linkStyle}>{s.kullaniciAdi}</a>
+            </li>
+          ))}
+        </ul>
+        <p style={{ ...p, fontSize: '0.86rem', color: 'var(--color-text-muted)' }}>
+          Sosyal medyadan gelen mesajlar her zaman görülemeyebilir. Resmi talepler, KVKK başvuruları
+          ve telif bildirimleri için <strong>e-posta kullan</strong> — yalnız e-posta yasal başvuru kanalıdır.
         </p>
 
         <h2 style={h2}>Kimlik bilgileri</h2>

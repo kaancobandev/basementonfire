@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { jsonLdScript } from '@/lib/seo';
 import { ARTICLES, ARTICLE_MAP } from '@/lib/articles';
 import { gradientFor } from '@/lib/article-gradients';
+import { SOSYAL_URLLER } from '@/lib/social';
 import {
   HERO_DECK, WALL, GATES, VERBS, RULES,
   ARTICLE_COUNT, CATEGORY_COUNT, categoryCounts, cardFor,
@@ -69,6 +70,9 @@ const websiteJsonLd = {
 // robots.txt onu engellemiyor → taranabilir. Eski logo dönerse önce bu URL'in
 // 200 döndüğünü ve yeni logoyu gösterdiğini doğrula (icon.svg bir kez sessizce
 // 404 olmuştu). url alanı WebSite ile aynı → Google iki düğümü aynı markada eşler.
+// sameAs: "bu profiller de aynı marka". Marka adı arandığında doğru hesapların
+// eşleşmesini sağlar. Tek kaynak lib/social.ts — hesap kapanırsa oradan SİL,
+// ölü URL sinyali zayıflatır.
 const organizationJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
@@ -80,6 +84,7 @@ const organizationJsonLd = {
     width: 512,
     height: 512,
   },
+  sameAs: SOSYAL_URLLER,
 };
 
 // Ana sayfa artık 32 makaleye derinlik-1 link veriyor → ItemList ile bunu

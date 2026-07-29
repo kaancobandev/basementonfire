@@ -3,6 +3,7 @@ import Link from 'next/link';
 import CorporateLayout, { Kutu, h2, h3, p, ul, table, th, td, linkStyle } from '@/app/components/CorporateLayout';
 import { jsonLdScript } from '@/lib/seo';
 import { VERI_SORUMLUSU } from '@/lib/legal';
+import { SOSYAL, SOSYAL_URLLER } from '@/lib/social';
 import { ARTICLE_COUNT, CATEGORY_COUNT } from '@/lib/landing';
 
 // ════════════════════════════════════════════════════════════════════════
@@ -35,6 +36,13 @@ const pressJsonLd = {
   url: 'https://basementonfire.com/basin',
   inLanguage: 'tr-TR',
   description,
+  about: {
+    '@type': 'Organization',
+    name: 'Basementonfire',
+    url: 'https://basementonfire.com',
+    email: VERI_SORUMLUSU.eposta,
+    sameAs: SOSYAL_URLLER,
+  },
 };
 
 const VARLIKLAR: { ad: string; dosya: string; boyut: string; not: string }[] = [
@@ -191,9 +199,21 @@ export default function BasinPage() {
               <tr><td style={{ ...td, fontWeight: 700 }}>Dil</td><td style={td}>Türkçe</td></tr>
               <tr><td style={{ ...td, fontWeight: 700 }}>İçerik</td><td style={td}>{ARTICLE_COUNT} interaktif makale, {CATEGORY_COUNT} konu başlığı</td></tr>
               <tr><td style={{ ...td, fontWeight: 700 }}>İletişim</td><td style={td}><a href={`mailto:${VERI_SORUMLUSU.eposta}`} style={linkStyle}>{VERI_SORUMLUSU.eposta}</a></td></tr>
+              {SOSYAL.map((s) => (
+                <tr key={s.url}>
+                  <td style={{ ...td, fontWeight: 700 }}>{s.ad}</td>
+                  <td style={td}>
+                    <a href={s.url} target="_blank" rel="me noopener noreferrer" style={linkStyle}>{s.kullaniciAdi}</a>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
+        <p style={{ ...p, fontSize: '0.86rem', color: 'var(--color-text-muted)' }}>
+          Yukarıdakiler tek resmi hesaplarımızdır. Başka bir platformda &quot;Basementonfire&quot; adıyla
+          gördüğün bir hesap bize ait değildir; bildirirsen seviniriz.
+        </p>
 
         {/* ══════════ İçerik kullanımı ══════════ */}
         <h2 style={h2}>İçerik alıntılama</h2>
