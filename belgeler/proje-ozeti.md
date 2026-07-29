@@ -1,8 +1,16 @@
 # Basementonfire — Proje Özeti
 
-**Jüriye bırakılacak tek sayfa.** A4'e sığmalı, renkli basılmalı, üstünde logo
-ve `basementonfire.com` olmalı. ⟨…⟩ ile işaretli yerleri kendi rakamlarınla
-doldur; doldurulmamış tek bir alan bile kalmasın.
+**Görüşme TELEFONDA olacağı için bu sayfa artık masaya bırakılmıyor —
+görüşmeden hemen sonra e-postayla gönderilecek.** Bu onu daha da önemli
+kılıyor: telefonda gösteremediğin her şeyin tek telafisi bu.
+
+- PDF olarak gönder (Word/Markdown değil), üstünde logo ve `basementonfire.com`
+- E-postaya site bağlantısını ve doğrudan bir makale bağlantısını da koy —
+  jürinin simülasyonu kendi eliyle çalıştırması, anlattığın her şeyden değerli
+- Görüşmede *"isterseniz özeti e-postayla göndereyim"* de ve **aynı gün gönder**
+
+⟨…⟩ ile işaretli yerleri kendi rakamlarınla doldur; doldurulmamış tek bir alan
+bile kalmasın.
 
 ---
 
@@ -58,10 +66,12 @@ nerede kaybolduğunu görmenin temeli.
 | Yayındaki makale | 33, 6 konu başlığında |
 | Kod tabanı | ⟨62.500+⟩ satır TypeScript, ⟨347⟩ commit, ⟨858⟩ dosya |
 | Geliştirme süresi | ⟨…⟩ ay, tek kişi |
-| Aylık ziyaretçi | ⟨…⟩ |
-| Google arama gösterimi | ⟨…⟩ |
-| Kayıtlı kullanıcı | ⟨…⟩ |
 | Dış sermaye | Yok — bugüne kadar tamamı özkaynak |
+| Arama görünürlüğü | Bu ay açıldı; son 10 günde gösterim 0 → günde ~15 |
+
+⚠ **Toplam ziyaretçi / üye sayısı YAZMA.** Rakamlar henüz küçük ve tek başına
+yazılınca projeyi olduğundan zayıf gösterir. Yukarıdaki gibi *eğilim* yaz.
+Sorulursa dürüst cevapla — ama sayfada kendiliğinden durmasın.
 
 Platform KVKK ve GDPR uyumlu olarak inşa edildi: çerezsiz ziyaretçi sayacı,
 ham IP saklamayan ölçüm, veri indirme ve hesap silme, dört ayrı hukuki metin.
