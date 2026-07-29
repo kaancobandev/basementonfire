@@ -3,8 +3,16 @@
 --
 -- SALT OKUR. Hiçbir şey yaratmaz, değiştirmez, silmez. İstediğin kadar çalıştır.
 --
--- NASIL: Supabase → SQL Editor → bu dosyanın TAMAMINI yapıştır → Run.
---        Üç ayrı sonuç tablosu döner (editörde sekme sekme gezinirsin).
+-- ⚠ NASIL ÇALIŞTIRILIR — ÖNEMLİ:
+--   Supabase SQL Editor birden fazla sorguyu birlikte çalıştırdığında
+--   YALNIZCA SONUNCUSUNUN tablosunu gösterir. Tamamını yapıştırıp Run'a
+--   basarsan sadece 4. bölümü görürsün, ilk üçü kaybolur.
+--
+--   DOĞRUSU: dosyanın tamamını yapıştır, sonra çalıştırmak istediğin bölümü
+--   FARE İLE SEÇ ve Run'a bas — Supabase seçili metni çalıştırır.
+--   Dört bölümü sırayla seç, dört sonucu ayrı ayrı al.
+--
+--   Bölümler: 1) göç dosyaları  2) veri durumu  3) indeksler  4) temizlik+korumalar
 --
 -- NEDEN: sql/ altındaki dosyalar elle çalıştırılıyor ve hangisinin
 --        çalıştırıldığını tutan bir kayıt yok. Bu dosya kaydın yerine geçer:
