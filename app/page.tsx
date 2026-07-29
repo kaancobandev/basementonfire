@@ -34,7 +34,12 @@ const description = `Bilim, tarih ve kültürde ${ARTICLE_COUNT} interaktif Tür
 export const metadata: Metadata = {
   title: { absolute: title },
   description,
-  alternates: { canonical: '/' },
+  // hreflang KARŞILIKLI olmak zorunda: /en de buraya geri işaret eder (app/en/page.tsx).
+  // Tek taraflı bildirimi Google yok sayar. x-default Türkçe → varsayılan kitle bu.
+  alternates: {
+    canonical: '/',
+    languages: { 'tr-TR': '/', 'en-US': '/en', 'x-default': '/' },
+  },
   openGraph: { title, description, url: '/' },
 };
 

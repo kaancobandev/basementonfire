@@ -17,6 +17,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/reels`, lastModified: now, changeFrequency: 'daily', priority: 0.5 },
     { url: `${SITE_URL}/muzik`, lastModified: now, changeFrequency: 'weekly', priority: 0.5 },
     { url: `${SITE_URL}/lig`, lastModified: now, changeFrequency: 'daily', priority: 0.4 },
+    // Kurumsal sayfalar — hepsi force-static, anonim istekte 200, kendi metadata'sı
+    // index. E-E-A-T'nin (kim yazıyor, nasıl ulaşılır) doğrudan karşılığı.
+    { url: `${SITE_URL}/hakkimizda`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${SITE_URL}/teknoloji`, lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
+    { url: `${SITE_URL}/iletisim`, lastModified: now, changeFrequency: 'yearly', priority: 0.5 },
+    { url: `${SITE_URL}/basin`, lastModified: now, changeFrequency: 'yearly', priority: 0.4 },
+    // İngilizce genel bakış (tam çeviri değil, tek sayfa — bkz. app/en/page.tsx).
+    { url: `${SITE_URL}/en`, lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
     // Hukuki metinler — herkese açık, güven/E-E-A-T sinyali için indekslensin.
     { url: `${SITE_URL}/gizlilik`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
     { url: `${SITE_URL}/kosullar`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },

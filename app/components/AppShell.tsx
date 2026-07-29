@@ -232,11 +232,21 @@ export default function AppShell({ children }: AppShellProps) {
             <span>Giriş Yap</span>
           </Link>
 
+          {/* Kurumsal satır — hukuki satırdan AYRI tutuldu: ikisi farklı okuyucuya
+              hitap ediyor ve tek blokta yedi bağlantı üç satıra sarıyordu. */}
+          <div className="sidebar-legal" style={{ paddingBottom: 0 }}>
+            <Link href="/hakkimizda">Hakkımızda</Link><span aria-hidden>·</span>
+            <Link href="/teknoloji">Teknoloji</Link><span aria-hidden>·</span>
+            <Link href="/basin">Basın</Link><span aria-hidden>·</span>
+            <Link href="/iletisim">İletişim</Link>
+          </div>
+
           <div className="sidebar-legal">
             <Link href="/gizlilik">Gizlilik</Link><span aria-hidden>·</span>
             <Link href="/aydinlatma">KVKK</Link><span aria-hidden>·</span>
             <Link href="/acik-riza">Açık Rıza</Link><span aria-hidden>·</span>
-            <Link href="/kosullar">Koşullar</Link>
+            <Link href="/kosullar">Koşullar</Link><span aria-hidden>·</span>
+            <Link href="/en" hrefLang="en">English</Link>
           </div>
         </aside>
 

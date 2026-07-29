@@ -12,6 +12,14 @@ const BOT_RE = /bot|crawl|spider|slurp|mediapartners|bingpreview|facebookexterna
 // saklanmaz, ertesi gun eslesmez) -> KVKK/GDPR dostu (Plausible yontemi).
 export async function recordHit(h: HeaderGetter, rawPath: string): Promise<void> {
   try {
+    // GELISTIRME TRAFIGI SAYILMAZ. `next dev` CANLI veritabanina yazar; bu kapi
+    // olmadan localhost'ta gezdigin her sayfa gercek ziyaretci istatistigine
+    // karisir. Istatistikler disariya sunuluyor -> kendi testin sayiyi sisirmesin.
+    // Iki katman: ortam degiskeni (kesin) + Host basligi (dev'i uzaktan acsan da).
+    if (process.env.NODE_ENV !== 'production') return;
+    const host = (h.get('host') || '').toLowerCase();
+    if (host.startsWith('localhost') || host.startsWith('127.0.0.1') || host.startsWith('[::1]')) return;
+
     const ua = h.get('user-agent') || '';
     if (!ua || BOT_RE.test(ua)) return;
 
