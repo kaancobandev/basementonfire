@@ -78,6 +78,7 @@ export function Sayilar({ items }: { items: { n: string; label: string }[] }) {
 const SAYFALAR = [
   { href: '/hakkimizda', label: 'Hakkımızda' },
   { href: '/teknoloji', label: 'Teknoloji' },
+  { href: '/yol-haritasi', label: 'Yol Haritası' },
   { href: '/basin', label: 'Basın' },
   { href: '/iletisim', label: 'İletişim' },
 ];

@@ -21,6 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // index. E-E-A-T'nin (kim yazıyor, nasıl ulaşılır) doğrudan karşılığı.
     { url: `${SITE_URL}/hakkimizda`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${SITE_URL}/teknoloji`, lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
+    { url: `${SITE_URL}/yol-haritasi`, lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
     { url: `${SITE_URL}/iletisim`, lastModified: now, changeFrequency: 'yearly', priority: 0.5 },
     { url: `${SITE_URL}/basin`, lastModified: now, changeFrequency: 'yearly', priority: 0.4 },
     // İngilizce genel bakış (tam çeviri değil, tek sayfa — bkz. app/en/page.tsx).
