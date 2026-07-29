@@ -583,7 +583,7 @@ export default function PyrrhusClient() {
       <ArticleBibliography items={refs} accent="#e0b34a" />
 
       <footer className="pyr-footer">
-        <div className="pyr-footer-mark">BASEMENTS</div>
+        <div className="pyr-footer-mark">BASEMENTONFIRE</div>
         <p>Kral Pirus: her savaşı kazanıp savaşı kaybeden adam. Hırsın ve cesaretin, zaferin ve yıkımın aynı madalyonun iki yüzü olduğunu bize hatırlatan kartal. 🦅</p>
         <Link href="/discover" className="pyr-footer-link">← Diğer içerikleri keşfet</Link>
       </footer>

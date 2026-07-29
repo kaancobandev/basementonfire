@@ -517,7 +517,7 @@ export default function BagirsakClient() {
       <ArticleBibliography items={refs} accent="#2563eb" />
 
       <footer className="gut-footer">
-        <div className="gut-footer-mark">BASEMENTS</div>
+        <div className="gut-footer-mark">BASEMENTONFIRE</div>
         <p>Bir dahaki sefere “içime sinmedi” dediğinde, bunu söyleyenin yalnızca aklın olmadığını hatırla. Karnındaki o sessiz beyin de masada bir oy sahibi. 🌀</p>
         <Link href="/discover" className="gut-footer-link">← Diğer içerikleri keşfet</Link>
       </footer>

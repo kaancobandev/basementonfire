@@ -70,7 +70,7 @@ export async function articleOgImage({ title, subtitle, accent, gradient }: { ti
 }
 
 // ════════════════════════════════════════════════════════════════════════
-// KART ACCENT'İ — kartın marka şeridi + "BASEMENTS" yazısının rengi.
+// KART ACCENT'İ — kartın marka şeridi + "BASEMENTONFIRE" yazısının rengi.
 //
 // Neden burada ve neden lib/article-gradients.ts'te DEĞİL: accent bağlama göre
 // değişir, makalenin sabit bir özelliği değil. Aynı makalenin landing hero'sundaki
@@ -172,7 +172,7 @@ export async function rootOgImage() {
               piksellerin %87'si ≥3:1. Yarım önlem işe yaramaz (beyaz %8 → 1,23:1;
               %14 → 1,47:1): ya tam çip ya hiç. Bu bir MARKA kararı, bekliyor.
 
-              Kart logosuz da eksik değil: üstte amber şerit + "BASEMENTS" wordmark var.
+              Kart logosuz da eksik değil: üstte amber şerit + "BASEMENTONFIRE" wordmark var.
 
               UYGULANIRSA İKİ TUZAK:
               · src olarak SADECE http(s) URL, `data:` URI veya ArrayBuffer kabul edilir

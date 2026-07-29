@@ -38,7 +38,7 @@ export function brandStrip(x: CanvasRenderingContext2D, y: number, accent: strin
   x.textAlign = 'left';
   x.fillStyle = accent; x.fillRect(72, y, 12, 46);
   x.fillStyle = accent; x.font = `bold 30px ${CARD_FONT}`;
-  x.fillText('BASEMENTS', 100, y + 34);
+  x.fillText('BASEMENTONFIRE', 100, y + 34);
 }
 
 /**

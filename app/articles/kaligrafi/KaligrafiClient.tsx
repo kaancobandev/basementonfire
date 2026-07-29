@@ -559,7 +559,7 @@ export default function KaligrafiClient() {
       <ArticleBibliography items={refs} accent="#a87d2c" />
 
       <footer className="cal-footer">
-        <div className="cal-footer-mark">BASEMENTS</div>
+        <div className="cal-footer-mark">BASEMENTONFIRE</div>
         <p>Bir harfi güzelleştirmek için bir ömür yetmeyebilir — ama o ömrün her dakikası, hem kâğıda hem de yazana iyi gelir. Az araç, çok tekrar, sabır. ✒️</p>
         <Link href="/discover" className="cal-footer-link">← Diğer içerikleri keşfet</Link>
       </footer>

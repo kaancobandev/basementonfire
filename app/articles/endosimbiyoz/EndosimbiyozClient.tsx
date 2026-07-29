@@ -579,7 +579,7 @@ export default function EndosimbiyozClient() {
       <ArticleBibliography items={refs} accent="#f4b740" />
 
       <footer className="endo-footer">
-        <div className="endo-footer-mark">BASEMENTS</div>
+        <div className="endo-footer-mark">BASEMENTONFIRE</div>
         <p>Bir dahaki nefesinde, o enerjiyi üreten şeyin bir zamanlar serbest yüzen bir bakteri olduğunu hatırla. Sen, iki kadim canlının iki milyar yıl önce verdiği bir kararın yaşayan devamısın. 🧬</p>
         <Link href="/discover" className="endo-footer-link">← Diğer içerikleri keşfet</Link>
       </footer>

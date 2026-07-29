@@ -579,7 +579,7 @@ export default function BakteriyofajClient() {
       <ArticleBibliography items={refs} accent="#4ade80" />
 
       <footer className="phg-footer">
-        <div className="phg-footer-mark">BASEMENTS</div>
+        <div className="phg-footer-mark">BASEMENTONFIRE</div>
         <p>Mikrobiyoloji, görünmez bir dramı görünür kılma sanatıdır — ve bakteriyofajlar, o dramın hem en eski kahramanları hem de geleceğimizin en umut verici müttefikleridir. 🦠</p>
         <Link href="/discover" className="phg-footer-link">← Diğer içerikleri keşfet</Link>
       </footer>

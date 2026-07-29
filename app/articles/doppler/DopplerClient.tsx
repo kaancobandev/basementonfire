@@ -547,7 +547,7 @@ export default function DopplerClient() {
         <ArticleBibliography items={refs} accent="#38bdf8" />
 
         <footer className="mx-auto max-w-3xl border-t border-white/10 px-6 pb-20 pt-10 text-center">
-          <div className="mb-3 text-xs font-bold tracking-[0.3em] text-sky-400">BASEMENTS</div>
+          <div className="mb-3 text-xs font-bold tracking-[0.3em] text-sky-400">BASEMENTONFIRE</div>
           <p className="mx-auto mb-5 max-w-md text-slate-400">Göreli hareket dalgaları sıkıştırır ya da gerer — bu kadarcık fikir, kalpten kozmosa kadar her yere ulaşıyor. 📡</p>
           <Link href="/discover" className="font-semibold text-sky-400 transition hover:text-sky-300">← Diğer içerikleri keşfet</Link>
         </footer>

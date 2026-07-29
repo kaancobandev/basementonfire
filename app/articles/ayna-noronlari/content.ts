@@ -140,7 +140,7 @@ export const HTML = `
 <div class="ayn-progress" id="ayn-progress"></div>
 
 <div class="brandbar">
-  <span class="mark"><b>BASEMENTS</b></span>
+  <span class="mark"><b>BASEMENTONFIRE</b></span>
   <span class="rule"></span>
   <span class="tag">Sinir Bilim · İnteraktif</span>
 </div>

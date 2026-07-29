@@ -399,7 +399,7 @@ export function ArticleFooter({ tagline, backHref = '/discover', backLabel = 'Di
   return (
     <div className="relative z-10">
       <footer className="mx-auto max-w-3xl border-t border-white/10 px-6 pb-20 pt-10 text-center">
-        <div className="mb-3 text-xs font-bold tracking-[0.3em]" style={{ color: accent }}>BASEMENTS</div>
+        <div className="mb-3 text-xs font-bold tracking-[0.3em]" style={{ color: accent }}>BASEMENTONFIRE</div>
         <p className="mx-auto mb-5 max-w-md text-slate-400">{tagline}</p>
         <Link href={backHref} className="inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-semibold" style={{ color: accent, borderColor: `color-mix(in srgb, ${accent} 30%, transparent)`, background: `color-mix(in srgb, ${accent} 6%, transparent)` }}>
           {backLabel}

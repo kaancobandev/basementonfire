@@ -113,7 +113,7 @@ export function slidesFor(slug: string, photoSrcs: string[] = []): Slide[] {
 export function coverText(slug: string): { kicker: string; title: string; question: string } {
   const a = ARTICLE_MAP[slug];
   return {
-    kicker: (a?.category ?? 'BASEMENTS').toUpperCase(),
+    kicker: (a?.category ?? 'BASEMENTONFIRE').toUpperCase(),
     title: a?.title ?? 'Basementonfire',
     // Soru yoksa desc'e düş (OG kartıyla aynı kural).
     question: questionFor(slug) ?? a?.desc ?? '',

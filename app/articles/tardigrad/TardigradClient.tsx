@@ -621,7 +621,7 @@ export default function TardigradClient() {
       <ArticleBibliography items={refs} accent="#4ade80" />
 
       <footer className="trd-footer">
-        <div className="trd-footer-mark">BASEMENTS</div>
+        <div className="trd-footer-mark">BASEMENTONFIRE</div>
         <p>Tardigradlar bize şunu fısıldıyor: bazen hayatta kalmanın yolu daha hızlı koşmak değil, doğru anda durup beklemeyi bilmektir. 🐻💧</p>
         <Link href="/discover" className="trd-footer-link">← Diğer içerikleri keşfet</Link>
       </footer>

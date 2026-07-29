@@ -556,7 +556,7 @@ export default function TakyonClient() {
 
       {/* ── Footer ── */}
       <footer className="tky-footer">
-        <div className="tky-footer-mark">BASEMENTS</div>
+        <div className="tky-footer-mark">BASEMENTONFIRE</div>
         <p>Takyonlar belki hiç var olmadı. Ama ışığın ötesini hayal etme cesaretimiz, evrenin kurallarını ne kadar derin anladığımızı gösteriyor. ⚡</p>
         <Link href="/discover" className="tky-footer-link">← Diğer içerikleri keşfet</Link>
       </footer>

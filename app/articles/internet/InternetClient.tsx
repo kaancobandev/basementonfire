@@ -901,7 +901,7 @@ export default function InternetClient() {
       <ArticleBibliography items={refs} accent="#38bdf8" />
 
       <footer className="net-footer">
-        <div className="net-footer-mark">BASEMENTS</div>
+        <div className="net-footer-mark">BASEMENTONFIRE</div>
         <p>İnternet, ortak protokoller üzerinde anlaşmış milyarlarca cihazın oluşturduğu, kendi kendini yönlendiren devasa bir orkestradır. 🌐</p>
         <Link href="/discover" className="net-footer-link">← Diğer içerikleri keşfet</Link>
       </footer>
