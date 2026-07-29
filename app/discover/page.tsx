@@ -21,7 +21,21 @@ import DiscoverClient from './DiscoverClient';
 //    (useSearchParams KULLANILMADI: Next tüm client component'i Suspense'e alıp
 //     istemciye kaydırırdı → 32 makale linki HTML'den çıkar, SEO yüzeyi ölürdü.)
 // ════════════════════════════════════════════════════════════════════════
-export const revalidate = 60;
+// ⚠ 60 → 3600 (2026-07-28). Sayfa ISR'dı ama pencere dardı ve bu ÖLÇÜLEBİLİR
+// bir yavaşlıktı: canlıda `Durable; fwd=bypass` + **7,6 sn** görüldü. Sebep
+// /feed'dekiyle aynı — `revalidate` aynı zamanda Netlify durable cache'inin
+// TTL'idir; girdi bayatlayınca Netlify yeniden üretimi BEKLETİR.
+//
+// ⚠⚠ AŞAĞIDAKİ unstable_cache DA 3600 OLMALI: Next, sayfanın efektif
+// revalidate'ini "sayfanınki + render sırasında okunan tüm cache'lerin"
+// MİNİMUMU alır. Yalnız buradaki sayıyı büyütmek NO-OP olur (bu tuzağa /feed'de
+// düşüldü; kontrol yolu `next build` route tablosuna bakmak).
+//
+// BAYATLIK RİSKİ DÜŞÜK: içerik üreten her rota revalidateTag('feed') çağırıyor
+// ve bu cache `tags:['feed']` taşıyor → yeni gönderi/makale anında yansır.
+// Pencere yalnız tag'siz değişenleri bağlar: beğeni sayıları, yeni üye listesi,
+// gündem etiketleri.
+export const revalidate = 3600;
 
 // PAYLAŞILAN içerik (son kullanıcılar + son medya + topluluk makaleleri) —
 // herkes için aynı, kişiye özel değil. ISR ile birlikte ikinci bir katman:
@@ -73,7 +87,8 @@ const getDiscoverContent = unstable_cache(
     return { users: users ?? [], mediaRaw: media, uaRaw: uaRaw ?? [], trending };
   },
   ['discover-content-v3'],
-  { revalidate: 60, tags: ['feed'] },
+  // Sayfanın revalidate'iyle AYNI olmalı — yukarıdaki nota bak (min kazanır).
+  { revalidate: 3600, tags: ['feed'] },
 );
 
 export const metadata: Metadata = {
