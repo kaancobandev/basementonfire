@@ -705,8 +705,15 @@ export default function HomeFeed({
       <main className="main-content">
         {/* Hero banner — yalnızca giriş yapmamış ziyaretçiye (onboarding/tanıtım).
             Giriş yapmış kullanıcı için gereksiz dikey alan işgali → gizli. */}
+        {/* `auth-out` ŞART (2026-07-28): sayfa artık ISR — paylaşılan HTML herkese
+            `currentUser: null` ile gidiyor, yani bu giriş kutusu GİRİŞLİ kullanıcıya
+            da basılıyordu ve /api/feed/personal dönene kadar ekranda kalıyordu
+            (kullanıcı "oturumum mu kapandı?" diye şaşırıyor — canlıda bildirildi).
+            `.auth-out`, kök layout'taki satır-içi script çerezden `data-auth="in"`
+            koyduğu an CSS ile gizler; bu BOYAMADAN ÖNCE olur, yani hiç görünmez.
+            React tarafı (`!currentUser`) da ayrıca kaldırır — iki kat emniyet. */}
         {!currentUser && (
-          <div style={{ position: 'relative', minHeight: 200, overflow: 'hidden', borderBottom: '1px solid var(--color-border)', background: 'var(--gradient-hero)' }}>
+          <div className="auth-out" style={{ position: 'relative', minHeight: 200, overflow: 'hidden', borderBottom: '1px solid var(--color-border)', background: 'var(--gradient-hero)' }}>
             <div style={{ position: 'absolute', inset: 0, padding: '20px 24px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <Logo size={54} />
