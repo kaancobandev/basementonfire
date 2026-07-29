@@ -8,7 +8,20 @@ import AkisClient from './AkisClient';
 // prop'u AkisClient'ta HİÇ kullanılmıyordu (ölü prop). İçerik zaten paylaşımlı
 // (aşağıdaki unstable_cache) → sayfa ISR: her ziyaretçi fonksiyon yerine
 // CDN'den alır, 30sn'de bir arka planda tazelenir.
-export const revalidate = 30;
+// ⚠ 30 → 3600 (2026-07-29). `revalidate` aynı zamanda Netlify durable cache'inin
+// TTL'idir: girdi bayatlayınca Netlify yeniden üretimi BEKLETİR ve o an gelen
+// ziyaretçi saniyeler öder (/discover'da tam bu yüzden 7,6 sn ölçüldü).
+//
+// ⚠⚠ AŞAĞIDAKİ unstable_cache DA 3600 OLMALI — Next efektif revalidate'i
+// "sayfanınki + render'da okunan tüm cache'lerin" MİNİMUMU alır; yalnız buradaki
+// sayıyı büyütmek NO-OP olur (/feed'de bu tuzağa düşüldü). Kontrol: `next build`
+// route tablosunda /akis `1h` yazmalı.
+//
+// PAYLAŞIM AKIŞI ETKİLENMEZ: gönderi yükleyen rota (api/upload) revalidateTag('feed')
+// çağırıyor ve bu cache `tags:['feed']` taşıyor → /gonderi-olustur sonrası buraya
+// yönlenen kullanıcı gönderisini ANINDA görür. Pencere yalnız tag'siz değişenleri
+// (beğeni/yorum sayıları) bağlar.
+export const revalidate = 3600;
 
 // İlk sayfa feed'i PAYLAŞILAN (en yeni gönderiler, kişiye özel değil) → 30sn
 // önbellek. Kendi yeni gönderini akış istemcisi zaten optimistik gösterir;
@@ -26,7 +39,8 @@ const getInitialFeed = unstable_cache(
     return (data ?? []).filter((r: any) => !r.users?.is_private).slice(0, limit);
   },
   ['akis-initial-feed-v1', 'limit-13'],
-  { revalidate: 30, tags: ['feed'] },
+  // Sayfanın revalidate'iyle AYNI olmalı — yukarıdaki nota bak (min kazanır).
+  { revalidate: 3600, tags: ['feed'] },
 );
 
 export const metadata: Metadata = {
