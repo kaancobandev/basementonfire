@@ -182,18 +182,28 @@ order by s;
 -- ═══════════════ 3 · PERFORMANS İNDEKSLERİ ═══════════════
 -- perf-indexes.sql / perf-2026-07-18.sql / audit-2026-07-18.sql çalıştı mı?
 -- Bunlar özellik açmaz, sayfa hızını belirler — eksikse site yavaşlar, bozulmaz.
+--
+-- ⚠ TUZAK (2026-07-29'da bu dosyanın ilk sürümü buna düştü):
+-- Bir göçün yarattığı indeksi SONRAKİ bir göç kasıtlı olarak silebilir.
+-- cleanup-redundant-indexes.sql tam olarak bunu yapıyor — audit dosyasının
+-- eklediği uq_follows_pair / uq_bookmarks_user_post ve perf-indexes'in eklediği
+-- idx_follows_follower_following, zaten var olan UNIQUE kısıtların kopyası
+-- oldukları için düşürülüyor. Onları burada aramak, DOĞRU bir veritabanını
+-- "eksik" diye raporlar. Bu yüzden aşağıda YALNIZCA sonraki göçlerin
+-- dokunmadığı indeksler sorgulanır. Yeni bir dosya eklerken aynı kontrolü yap:
+-- "bu indeksi sonradan silen bir göç var mı?"
 
 with idx(dosya, ad) as (
   values
     ('perf-indexes.sql',       'idx_quick_facts_created'),
-    ('perf-indexes.sql',       'idx_follows_follower_following'),
+    ('perf-indexes.sql',       'idx_follows_following'),
     ('perf-indexes.sql',       'idx_msg_conv_created'),
     ('perf-2026-07-18.sql',    'idx_users_username_trgm'),
     ('perf-2026-07-18.sql',    'idx_users_interests_gin'),
     ('perf-2026-07-18.sql',    'idx_hashtags_tag_trgm'),
-    ('audit-2026-07-18.sql',   'uq_follows_pair'),
-    ('audit-2026-07-18.sql',   'uq_bookmarks_user_post'),
-    ('audit-2026-07-18.sql',   'idx_page_views_created_hash')
+    ('audit-2026-07-18.sql',   'idx_page_views_created_hash'),
+    ('audit-2026-07-18.sql',   'idx_comments_parent'),
+    ('audit-2026-07-18.sql',   'idx_stories_expires_created')
 )
 select
   dosya                                                    as "sql dosyası",
@@ -210,3 +220,45 @@ left join pg_indexes p
   on p.schemaname = 'public' and p.indexname = idx.ad
 group by dosya
 order by dosya;
+
+
+-- ═══════════════ 4 · TEMİZLİK + KORUMALAR ═══════════════
+-- İki soruyu birlikte sorar:
+--   a) cleanup-redundant-indexes.sql çalıştı mı? (mükerrer indeksler gitti mi)
+--   b) ASIL KORUMALAR hâlâ yerinde mi?
+--
+-- (b) kritik. Temizlik, mükerrer indeksleri sildi çünkü aynı garantiyi veren
+-- UNIQUE KISITLAR zaten vardı. O kısıtlardan biri bir şekilde düşmüşse, kopya
+-- da silinmiş olduğu için tablo KORUMASIZ kalır — çift takip, çift kayıt
+-- mümkün hâle gelir. "Kopyayı sildim" ancak "aslı duruyor" ise doğrudur.
+
+select 'Mükerrer indeks temizliği' as "kontrol",
+       case when count(*) = 0 then '✅ ÇALIŞTI'
+            else '⏳ ÇALIŞMAMIŞ (' || count(*)::text || ' mükerrer indeks duruyor)' end as "durum",
+       coalesce(string_agg(indexname, ', '), '—') as "ayrıntı"
+from pg_indexes
+where schemaname = 'public'
+  and indexname in (
+    'uq_follows_pair','uq_bookmarks_user_post','uq_notifications_like',
+    'idx_fact_likes_user','idx_post_likes_user','idx_fact_reposts_user',
+    'idx_follows_follower_following','idx_bookmarks_user_post','idx_users_username',
+    'idx_spotify_created','idx_youtube_created','idx_bookmarks_user','idx_comments_user',
+    'idx_conv_user1','idx_conv_user2','idx_blocks_blocker','idx_stories_expires',
+    'idx_stories_active','idx_page_views_created','idx_msg_conv'
+  )
+
+union all
+
+-- ⚠ BU SATIR '✅' DEMİYORSA HER ŞEYİ BIRAK. Beş korumanın hepsi olmalı.
+select 'Asıl UNIQUE korumaları',
+       case when count(*) = 5 then '✅ SAĞLAM (5/5)'
+            else '❌ EKSİK (' || count(*)::text || '/5) — ÇİFT KAYIT RİSKİ' end,
+       coalesce(string_agg(conname, ', '), 'HİÇBİRİ YOK')
+from pg_constraint
+where conname in (
+  'follows_follower_id_following_id_key',
+  'bookmarks_user_id_post_id_key',
+  'fact_likes_pkey',
+  'post_likes_pkey',
+  'users_username_key'
+);
