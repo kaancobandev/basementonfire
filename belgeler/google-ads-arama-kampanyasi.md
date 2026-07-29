@@ -205,21 +205,24 @@ Sıfat değil sayı yazarız. Emin değilsek emin olmadığımızı yazarız.
 
 ## 6 · Uzantılar (ekle, ücretsiz ve tıklama oranını yükseltir)
 
-**Site bağlantısı uzantıları**
-| Metin | Bağlantı |
-|---|---|
-| Tüm makaleler | `/discover` |
-| Nasıl çalışıyor | `/teknoloji` |
-| Hakkımızda | `/hakkimizda` |
-| Rastgele makale | `/rastgele` |
+**Site bağlantısı uzantıları** (metin ≤25, açıklama satırları ≤35 — ölçüldü)
 
-**Açıklama metni uzantıları**
+| Metin | Açıklama 1 | Açıklama 2 | Bağlantı |
+|---|---|---|---|
+| Tüm makaleler | 33 interaktif makale, 6 konu | Simülasyonlar tarayıcıda çalışır | `/discover` |
+| Nasıl çalışıyor | Motorun nasıl çalıştığı | Simülasyonlar tarayıcıda çalışır | `/teknoloji` |
+| Hakkımızda | Kim yapıyor, neden yapıyor | 33 interaktif makale, 6 konu | `/hakkimizda` |
+| Rastgele makale | Ne okuyacağını bilmiyorsan | Sana rastgele bir makale açar | `/rastgele` |
+
+**Açıklama metni uzantıları** (≤25 karakter)
 ```
-Ücretsiz · Üyelik gerekmez
+Ücretsiz ve üyeliksiz
 Her makalede kaynakça
 Simülasyonlar tarayıcıda
-Reklamsız okuma deneyimi
+Kurulum gerekmez
+Reklamsız okuma
 ```
+⚠ `Ücretsiz · Üyelik gerekmez` yazma — 26 karakter, sınırı aşıyor ve reddedilir.
 
 ## 7 · Yayına aldıktan sonra
 
