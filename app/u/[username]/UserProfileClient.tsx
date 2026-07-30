@@ -4,6 +4,7 @@ import Img from '@/app/components/Img';
 import StoryHighlights from '@/app/components/StoryHighlights';
 import { avatarSrc } from '@/lib/avatar';
 import MediaCarousel, { MultiBadge, AudioThumb, MusicBadge } from '@/app/components/MediaCarousel';
+import { VideoThumb, PlayBadge } from '@/app/components/FeedVideo';
 import { useIsMobile } from '@/lib/useIsMobile';
 import { factMediaList } from '@/lib/types';
 
@@ -397,8 +398,9 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
                 ? <AudioThumb />
                 : post.media_type === 'image'
                 ? <Img src={post.media_url} alt={post.caption} loading="lazy" sizes="(max-width:700px) 33vw, 240px" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.2s' }} />
-                : <video src={post.media_url} muted preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                : <VideoThumb src={post.media_url} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
               }
+              {post.media_type === 'video' && <PlayBadge />}
               {factMediaList(post).filter(m => m.type !== 'audio').length > 1 && <MultiBadge />}
               {post.media_type !== 'audio' && factMediaList(post).some(m => m.type === 'audio') && <MusicBadge />}
               <div className="hb-cell-overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.32)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.15s' }}>

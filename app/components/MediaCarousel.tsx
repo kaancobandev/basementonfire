@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import Img from '@/app/components/Img';
 import MusicPlayer from '@/app/components/MusicPlayer';
+import FeedVideo, { AUDIO_SOLO_EVENT, IconMuted, IconSound } from '@/app/components/FeedVideo';
 import { splitMedia, type MediaItem } from '@/lib/types';
 import { swipeTarget } from '@/lib/swipe';
 
@@ -32,29 +33,21 @@ function NoteIcon({ size = 44 }: { size?: number }) {
     </svg>
   );
 }
-function IconMuted() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M11 5 6 9H2v6h4l5 4z" /><line x1="22" y1="9" x2="16" y2="15" /><line x1="16" y1="9" x2="22" y2="15" />
-    </svg>
-  );
-}
-function IconSound() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M11 5 6 9H2v6h4l5 4z" /><path d="M15.54 8.46a5 5 0 0 1 0 7.07" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-    </svg>
-  );
-}
-
-const SOLO_EVENT = 'bsmnt:audio-solo';
+const SOLO_EVENT = AUDIO_SOLO_EVENT;
 
 /**
  * Gönderinin arka plan müziği. Görünür olunca otomatik (sessiz) çalar; sağ alttaki
  * butonla sesi açılır. Aynı anda tek ses çalar (başka bir gönderinin sesi açılınca
- * bu susturulur). Tarayıcı autoplay politikası gereği ilk oynatma sessizdir.
+ * bu susturulur — video oynatıcısı da AYNI olayı kullanır). Tarayıcı autoplay
+ * politikası gereği ilk oynatma sessizdir.
  */
-function MusicLayer({ url, targetRef }: { url: string; targetRef: React.RefObject<HTMLDivElement | null> }) {
+function MusicLayer({ url, targetRef, shift = false }: {
+  url: string;
+  targetRef: React.RefObject<HTMLDivElement | null>;
+  /** Gönderide video da varsa: videonun sustur düğmesi sağ altta duruyor,
+   *  müzik düğmesini üstüne bindirmemek için yukarı kaydır. */
+  shift?: boolean;
+}) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const id = useId();
   const [muted, setMuted] = useState(true);
@@ -104,7 +97,7 @@ function MusicLayer({ url, targetRef }: { url: string; targetRef: React.RefObjec
         onClick={toggle}
         aria-label={muted ? 'Sesi aç' : 'Sesi kapat'}
         title={muted ? 'Sesi aç' : 'Sesi kapat'}
-        style={{ position: 'absolute', bottom: 10, right: 10, zIndex: 6, width: 34, height: 34, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.55)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(3px)' }}
+        style={{ position: 'absolute', bottom: shift ? 52 : 10, right: 10, zIndex: 6, width: 34, height: 34, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.55)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(3px)' }}
       >
         {muted ? <IconMuted /> : <IconSound />}
       </button>
@@ -246,17 +239,17 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
       return (
         <div ref={containerRef} style={{ position: 'relative', width: '100%', aspectRatio: feedAspect, maxHeight: '100%', overflow: 'hidden', background }}>
           {m.type === 'video'
-            ? <video src={m.url} controls playsInline title={caption} aria-label={caption} onLoadedMetadata={onFeedVideoMeta} style={st} />
+            ? <FeedVideo src={m.url} ariaLabel={caption} variant="feed" onLoadedMetadata={onFeedVideoMeta} />
             : <Img src={m.url} alt={caption || ''} sizes={sizes} onLoad={onFeedImgLoad} loading={priority ? undefined : 'lazy'} fetchPriority={priority ? 'high' : undefined} style={st} />}
-          {audio && <MusicLayer url={audio} targetRef={containerRef} />}
+          {audio && <MusicLayer url={audio} targetRef={containerRef} shift={m.type === 'video'} />}
         </div>
       );
     }
 
-    // Lightbox — müzik yoksa mevcut görünüm (drop-in, hiç değişmez)
+    // Lightbox — müzik yoksa mevcut görünüm (görselde drop-in, hiç değişmez)
     if (!audio) {
       return m.type === 'video'
-        ? <video src={m.url} controls playsInline title={caption} aria-label={caption} style={containStyle} />
+        ? <FeedVideo src={m.url} ariaLabel={caption} variant="lightbox" />
         : <Img src={m.url} alt={caption || ''} sizes={sizes} style={containStyle} />;
     }
 
@@ -264,9 +257,9 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
     return (
       <div ref={containerRef} style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {m.type === 'video'
-          ? <video src={m.url} controls playsInline title={caption} aria-label={caption} style={containStyle} />
+          ? <FeedVideo src={m.url} ariaLabel={caption} variant="lightbox" />
           : <Img src={m.url} alt={caption || ''} sizes={sizes} style={containStyle} />}
-        <MusicLayer url={audio} targetRef={containerRef} />
+        <MusicLayer url={audio} targetRef={containerRef} shift={m.type === 'video'} />
       </div>
     );
   }
@@ -446,7 +439,7 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
           // — telefonda yeterli olmadığı ölçüldü.)
           <div key={i} style={{ flex: `0 0 ${100 / visuals.length}%`, width: `${100 / visuals.length}%`, height: '100%', scrollSnapAlign: 'center', scrollSnapStop: 'always', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {m.type === 'video'
-              ? <video src={m.url} controls playsInline title={caption} aria-label={caption} onLoadedMetadata={variant === 'feed' && i === 0 ? onFeedVideoMeta : undefined} style={mediaStyle} />
+              ? <FeedVideo src={m.url} ariaLabel={caption} variant={variant} onLoadedMetadata={variant === 'feed' && i === 0 ? onFeedVideoMeta : undefined} />
               // KOMŞU SLAYT ÖNCEDEN YÜKLENİR (|i - idx| <= 1).
               // Neden: yatay kaydırma kapsayıcısında tarayıcı `loading="lazy"`
               // görseli ancak belirgin şekilde görünür olunca yüklemeye
@@ -477,7 +470,7 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
         ))}
       </div>
 
-      {audio && <MusicLayer url={audio} targetRef={containerRef} />}
+      {audio && <MusicLayer url={audio} targetRef={containerRef} shift={visuals.some(m => m.type === 'video')} />}
 
       {/* Ok düğmeleri dokunmatikte GİZLİ: parmakla kaydırma zaten var (bkz.
           onTouchStart/Move/End), oklar ise medyanın üstünü kapatıyor.

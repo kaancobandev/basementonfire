@@ -7,6 +7,7 @@ import { useAutoAnimate } from '@formkit/auto-animate/react';
 import Img from '@/app/components/Img';
 import { avatarSrc } from '@/lib/avatar';
 import { uploadToStorage } from '@/lib/upload';
+import { VideoThumb } from '@/app/components/FeedVideo';
 
 interface OtherUser { id: number; username: string; display_name: string; avatar: string | null; }
 interface Conversation { id: number; otherUser: OtherUser; lastMessage: any; unreadCount: number; lastTimeAgo: string; }
@@ -364,7 +365,7 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
                 <span style={{ fontSize: '0.66rem', color: '#8a8178' }}>{mine ? 'Hikayeye yanıt' : 'Hikayene yanıt'}</span>
                 <span style={{ width: 26, height: 40, borderRadius: 6, overflow: 'hidden', flexShrink: 0, border: '1px solid rgba(255,255,255,0.18)' }}>
                   {m.story.media_type === 'video'
-                    ? <video src={m.story.media_url} muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ? <VideoThumb src={m.story.media_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     : <img src={m.story.media_url} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
                 </span>
               </div>

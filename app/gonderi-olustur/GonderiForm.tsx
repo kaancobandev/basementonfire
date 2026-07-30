@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { uploadToStorage, measureMediaDims } from '@/lib/upload';
+import { VideoThumb } from '@/app/components/FeedVideo';
 import dynamic from 'next/dynamic';
 
 const ImageCropper = dynamic(() => import('@/app/components/ImageCropper'), { ssr: false });
@@ -214,7 +215,7 @@ export default function GonderiForm() {
                 {items.map((it, i) => (
                   <div key={it.id} style={{ position: 'relative', aspectRatio: '1', borderRadius: 10, overflow: 'hidden', background: '#000', border: i === 0 ? '2px solid #6366f1' : '1px solid var(--color-border)' }}>
                     {it.type === 'video'
-                      ? <video src={it.url} muted style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                      ? <VideoThumb src={it.url} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                       : <img src={it.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
                     {i === 0 && (
                       <span style={{ position: 'absolute', bottom: 4, left: 4, background: 'rgba(99,102,241,0.9)', color: '#fff', fontSize: '0.62rem', fontWeight: 700, padding: '1px 6px', borderRadius: 6 }}>Kapak</span>

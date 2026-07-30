@@ -2,6 +2,7 @@
 
 import Img from '@/app/components/Img';
 import { AudioThumb } from '@/app/components/MediaCarousel';
+import { VideoThumb, PlayBadge } from '@/app/components/FeedVideo';
 import { avatarSrc } from '@/lib/avatar';
 import ArticleIndex from '@/app/components/ArticleIndex';
 import type { ArticleMeta } from '@/lib/articles';
@@ -158,7 +159,7 @@ export default function DiscoverClient({ users, media, articles, communityArticl
                       ? <AudioThumb />
                       : p.media_type === 'image'
                       ? <Img src={p.media_url} alt="" loading="lazy" sizes="(max-width:700px) 33vw, 200px" />
-                      : <video src={p.media_url} muted preload="none" />
+                      : <><VideoThumb src={p.media_url} /><PlayBadge /></>
                     }
                   </Link>
                 ))}
@@ -242,7 +243,7 @@ export default function DiscoverClient({ users, media, articles, communityArticl
                       ? <AudioThumb />
                       : m.media_type === 'image'
                       ? <Img src={m.media_url} alt={m.caption} loading="lazy" sizes="(max-width:700px) 33vw, 200px" />
-                      : <video src={m.media_url} muted preload="none" />
+                      : <><VideoThumb src={m.media_url} /><PlayBadge /></>
                     }
                   </Link>
                 ))}

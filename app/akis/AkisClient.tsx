@@ -6,6 +6,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import type { QuickFact } from '@/lib/types';
 import { factMediaList } from '@/lib/types';
 import { MultiBadge, AudioThumb, MusicBadge } from '@/app/components/MediaCarousel';
+import { VideoThumb, PlayBadge } from '@/app/components/FeedVideo';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { celebrate } from '@/lib/confetti';
@@ -228,8 +229,9 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
                   ? <AudioThumb />
                   : post.media_type === 'image'
                   ? <Img src={post.media_url} alt={post.caption} loading="lazy" sizes="(max-width:700px) 33vw, 240px" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.25s' }} />
-                  : <video src={post.media_url} muted preload="none" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  : <VideoThumb src={post.media_url} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                 }
+                {post.media_type === 'video' && <PlayBadge />}
                 {factMediaList(post).filter(m => m.type !== 'audio').length > 1 && <MultiBadge />}
                 {post.media_type !== 'audio' && factMediaList(post).some(m => m.type === 'audio') && <MusicBadge />}
                 <div className="hb-cell-overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, opacity: 0, transition: 'opacity 0.2s' }}>
@@ -319,7 +321,7 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
                         {it.type === 'audio'
                           ? <AudioThumb />
                           : it.type === 'video'
-                          ? <video src={it.url} muted style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                          ? <VideoThumb src={it.url} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                           : <img src={it.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
                         <button type="button" onClick={() => removeItem(it.id)} aria-label="Kaldır" style={{ position: 'absolute', top: 3, right: 3, width: 20, height: 20, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.6)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M18 6 6 18M6 6l12 12"/></svg>

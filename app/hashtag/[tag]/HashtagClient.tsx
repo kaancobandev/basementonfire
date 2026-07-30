@@ -3,6 +3,7 @@
 import Img from '@/app/components/Img';
 import { avatarSrc } from '@/lib/avatar';
 import MediaCarousel, { MultiBadge, AudioThumb, MusicBadge } from '@/app/components/MediaCarousel';
+import { VideoThumb, PlayBadge } from '@/app/components/FeedVideo';
 import { useIsMobile } from '@/lib/useIsMobile';
 import { factMediaList } from '@/lib/types';
 
@@ -115,8 +116,11 @@ export default function HashtagClient({ tag, posts, related = [] }: Props) {
                   sizes="(max-width:700px) 33vw, 240px"
                   style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.2s' }} />
               ) : (
-                <video src={post.media_url} muted preload="metadata"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.2s' }} />
+                <>
+                  <VideoThumb src={post.media_url}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.2s' }} />
+                  <PlayBadge />
+                </>
               )}
               {/* Hover overlay */}
               {factMediaList(post).filter(m => m.type !== 'audio').length > 1 && <MultiBadge />}

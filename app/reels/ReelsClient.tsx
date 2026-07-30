@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Img from '@/app/components/Img';
 import { avatarSrc } from '@/lib/avatar';
+import { firstFrameSrc, seekToFirstFrame } from '@/app/components/FeedVideo';
 
 export type Reel = {
   id: number;
@@ -106,11 +107,12 @@ export default function ReelsClient({ reels, loggedIn }: { reels: Reel[]; logged
             <video
               ref={(el) => { videoRefs.current[i] = el; }}
               data-index={i}
-              src={r.videoUrl}
+              src={firstFrameSrc(r.videoUrl)}
               loop
               playsInline
               muted
               preload="metadata"
+              onLoadedMetadata={(e) => seekToFirstFrame(e.currentTarget)}
               onClick={() => togglePlay(i)}
               style={{ width: '100%', height: '100%', objectFit: 'contain', cursor: 'pointer' }}
             />
