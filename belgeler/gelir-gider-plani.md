@@ -244,25 +244,46 @@ Rakamlar değil, **hangi yılda neyin kanıtlanacağı** önemli. Jüriye satıl
 
 ## 5. Başabaş hesabı
 
-İki katman, iki başabaş. Gereken kurum sayısı = yıllık gider ÷ yıllık lisans.
+Formül kanaldan bağımsız: **gereken müşteri sayısı = yıllık gider ÷ yıllık
+sözleşme bedeli.** Değişen tek şey sözleşme bedeli, o da kanala göre farklı.
 
-| Yıllık kurum lisansı | Altyapı başabaşı (18.104 ₺) | Toplam başabaş (96.544 ₺) |
+⚠ **FİYATIN HENÜZ YOK.** Hiçbir dershane ya da yayıneviyle konuşulmadı; fiyat
+o görüşmelerden çıkacak. Bu yüzden aşağıdaki tablo tek bir sayı değil, bir
+**aralık** veriyor — mülakatta hangi satırı kullanırsan kullan, **varsayım
+olduğunu söyleyerek** kullan.
+
+| Yıllık sözleşme bedeli | Altyapı için (18.104 ₺/yıl) | Toplam için (96.544 ₺/yıl) |
 |---|---|---|
-| 10.000 ₺ | **2 kurum** | 10 kurum |
-| 15.000 ₺ | **2 kurum** | 7 kurum |
-| 20.000 ₺ | **1 kurum** | 5 kurum |
-| 25.000 ₺ | **1 kurum** | 4 kurum |
+| 10.000 ₺ | 2 müşteri | 10 müşteri |
+| 15.000 ₺ | 2 müşteri | 7 müşteri |
+| 20.000 ₺ | 1 müşteri | 5 müşteri |
+| 30.000 ₺ | 1 müşteri | 4 müşteri |
+| 50.000 ₺ | 1 müşteri | 2 müşteri |
+| 100.000 ₺ | 1 müşteri | 1 müşteri |
+
+**Kanal başına beklenen büyüklük** (varsayım, görüşmelerle doğrulanacak):
+
+- **Dershane zinciri** → şube bazlı, orta bedel. Hızlı karar, küçük sözleşme.
+- **Eğitim yayıncısı** → kitap projesi ya da yıllık araç lisansı. Daha büyük bedel.
+- **Klasik yayınevi** → eser başına proje ücreti. Tek seferlik, değişken.
+
+Yayınevi tarafında sözleşme bedeli 50.000 ₺ mertebesindeyse **iki yayıneviyle
+tüm gider karşılanır**. Bu makul bir beklenti ama **doğrulanmamış** — cümleyi
+kurarken bunu belirt.
 
 **Mülakatta söylenecek cümle:**
 
-> "Ürünü ayakta tutmanın maliyeti ayda yaklaşık 1.500 lira — bir okulun yıllık
-> lisansı 15.000 lira olsa **iki okulla başabaşa geçiyorum.** Bu hızda
-> geliştirmeye devam etmenin maliyeti ayda 8.000 lira; oraya ulaşmak için
-> yedi okul gerekiyor. Birinci yıl hedefim ilk grup."
+> "Ürünü ayakta tutmanın maliyeti ayda 1.500 lira, bu hızda geliştirmeye devam
+> etmenin maliyeti 8.000 lira — aradaki fark geliştirme araçları, yani
+> kesilebilir bir kalem. Fiyatı henüz bilmiyorum çünkü ilk temasları bu hafta
+> kurdum. Ama aritmetik şu: **yıllık 20.000 liralık bir sözleşmede altyapı için
+> bir, tam hız için beş müşteri** gerekiyor. Fiyat netleşince bu sayı da
+> netleşecek."
 
-Bu cevap üç şeyi birden yapıyor: rakamı biliyorsun, ayrımı görüyorsun, ve
-hedefin ulaşılabilir. "Kaç müşteriyle kâra geçersin?" sorusuna çoğu başvuru
-kem küm eder — sen tek haneli ve savunulabilir bir sayı söyleyeceksin.
+⚠ **ASLA hesabını yapmadığın sayıyı söyleme.** "Üç yayınevi" gibi bir rakam
+verirsen ilk soru "bir yayinevinden ne kadar alacaksınız?" olur ve cevabın
+yoksa o ana kadar söylediğin her şey şüpheli hale gelir. Bilmediğini söylemek
+zayıflık değil; uydurmak yakalandığında dosyayı bitirir.
 
 ---
 
