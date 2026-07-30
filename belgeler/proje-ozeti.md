@@ -44,12 +44,23 @@ Bir fizik simülasyonunu ucuz bir telefonda akıcı çalıştırmak, içerik ür
 zor bir problemdir. Geliştirdiğimiz **uyarlanabilir render katmanı** bunu
 tahminle değil ölçümle çözüyor:
 
-1. **Cihaz sınıflandırma** — sahne kurulmadan önce donanım kabaca sınıflanır;
-   piksel oranı, geometri yoğunluğu ve materyal katmanları buna göre belirlenir.
-2. **Kare süresi bekçisi** — sahne çalışırken cihazın kendi kare süresi ölçülür.
-   Isınma penceresi ve aykırı değerler ayıklanır. Yavaşlarsa çözünürlük düşer;
-   hâlâ yavaşsa animasyon son karesinde dondurulur ve durağan bir görsele
-   dönüşür.
+**1 · Cihaz sınıflandırma** — sahne kurulmadan önce donanım sınıflanır:
+işlemci çekirdeği, bellek, işaretleyici türü, ekran kısa kenarı. Sonuca göre
+piksel oranı tavanı **1,0× / 1,5× / 1,75×** olarak belirlenir; geometri
+yoğunluğu, parçacık sayısı ve pahalı materyal katmanları buna göre kurulur.
+
+**2 · Kare süresi bekçisi** — sahne çalışırken cihazın kendi kare süresi ölçülür:
+
+| Eşik | Değer | Ne olur |
+|---|---|---|
+| Isınma penceresi | **ilk 60 kare** | Sayılmaz — hidrasyon ve görsel çözme her cihazda yavaştır |
+| Aykırı değer | **> 200 ms** | Atılır — çizim maliyeti değil (sekme kısıtlaması, çöp toplama) |
+| Ölçüm penceresi | **90 kare** | Ortalama bu pencerede alınır |
+| Birinci kademe | ortalama **> 26 ms** (< 38 fps) | Çözünürlük düşürülür |
+| İkinci kademe | ortalama **> 30 ms** (< 33 fps) | Animasyon son karesinde dondurulur |
+
+Isınma penceresi olmadan sağlam telefonlar da haksız yere kısıtlanıyordu;
+eşik değerleri ölçümle bulundu.
 
 Sonuç: hiçbir cihazda donma yaşanmaz ve karar, cihaz modeli listesiyle değil
 **o cihazın kendi ölçümüyle** verilir. Bu yöntem tekrar kullanılabilir bir
