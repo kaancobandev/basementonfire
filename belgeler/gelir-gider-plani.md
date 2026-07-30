@@ -56,6 +56,55 @@ modül yazmaktan ucuzdur.
   ağırlıklı olarak Haziran–Eylül arasında imzalanır. Nakit akışı planı bunu
   varsaymalı; yıla eşit yayılmış gelir varsayan bir tablo gerçekçi değildir.
 
+### Akış 1b — Müşteri segmentleri (okul tek kanal değil)
+
+"Kim müşteriniz?" sorusuna tek segment söylemek pazarı haritalamamış izlenimi
+verir. Dört kanal var, aciliyet ve büyüklük sırası farklı:
+
+| Segment | Karar hızı | Bütçe | Not |
+|---|---|---|---|
+| **Dershane / kurs** | **En hızlı** | Küçük–orta | Tek kişi karar verir, rekabet baskısı yüksek. **İlk ödenen fatura buradan gelir** |
+| **Yayınevleri** | Yavaş | **En büyük etki** | Dağıtımları çözülmüş, bizim yaptığımızı yapamıyorlar. Bir anlaşma = yüzlerce okul |
+| **Bilim merkezleri / müzeler** | Orta | Proje bütçesi | Sipariş içerik alırlar; referans değeri yüksek |
+| **Kurumsal eğitim** | Yavaş | **En büyük** | Motor konudan bağımsız — iş güvenliği, teknik eğitim. Uzun vade |
+
+**Üniversiteler** ayrı bir kapı: uzaktan eğitim merkezleri müşteri, akademik
+birimler hakem olabilir. BTM üzerinden doğal giriş noktası.
+
+⚠ **Sponsorlu içerikte dikkat:** bütçe var ama editöryel bağımsızlık markanın
+tek sermayesi. Yapılırsa sponsorluk açıkça yazılmalı.
+
+### Akış 1c — Yayınevi modeli (İlyada örneği)
+
+Yayınevi bir eseri —diyelim İlyada— interaktif hale getirmek istiyor: metin +
+JavaScript ile çalışan haritalar, savaş kronolojisi, karakter ilişki şeması.
+
+**Üç kurgusu var ve SIRA ÖNEMLİ:**
+
+| | Model | Kim emek harcıyor | Ne zaman |
+|---|---|---|---|
+| **A** | **Proje işi** — yayınevi tek kitabın interaktif sürümü için ödeme yapar | Biz | **Şimdi** |
+| **B** | **Araç lisansı** — yayınevi motoru ve yazım aracını kiralar, kendi editörleri üretir | Yayınevi | Sonra |
+| **C** | **Platform/abonelik** — kullanıcı bizim sitemizden yayınevine abone olur, tüm kataloğa erişir | Karma | En son |
+
+**C en cazip görünen ama en son yapılabilecek olan.** Sebebi: yayınevi kitle
+ister, bizde 14 üye var; kullanıcı katalog ister, bizde yayınevi yok. Klasik
+pazar yeri soğuk başlangıç problemi. A ile başlamak bu döngüyü kırar — tek bir
+ödenen proje hem gelir hem referans hem de modelin işlediğinin kanıtı olur.
+
+**B'nin gizli avantajı:** kullanıcıların yalıtılmış çerçevede kendi JavaScript'ini
+çalıştırabildiği yazım aracı **zaten var**. Yayınevinin editörü onu kullanırsa
+emek bizden çıkmaz — model o zaman ölçeklenir.
+
+⚠ **Cevabı hazır olması gereken soru: "Bir kitabı interaktif hale getirmek ne
+kadar sürüyor, kim yapıyor?"** Kendi makalelerimiz haftalar alıyor. Bu soruya
+"biz yaparız" demek, ölçeklenmeyen bir hizmet şirketi tarif etmektir. Doğru
+cevap B'yi işaret eder.
+
+⚠ **Her kitap uygun değil.** Roman interaktiflikten fayda görmez; tarihî,
+coğrafi ya da bilimsel bağlamı olan eserler görür. Hedef katalog seçilirken bu
+süzgeç uygulanmalı.
+
 ### Akış 2 — Bireysel destek / premium
 
 Reklamsız deneyim, çevrimdışı okuma, kişisel ilerleme raporu, erken erişim.
