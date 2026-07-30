@@ -93,20 +93,43 @@ kriterini okumuş ol — jüri en çok bu noktada açık yakalar.
 Bu aşamada yapı **kasıtlı olarak neredeyse sıfır maliyetli**. Bu bir zayıflık
 değil, anlatılacak bir güçtür: ürün, dış sermaye olmadan bu noktaya geldi.
 
-| Kalem | Aylık | Yıllık | Not |
-|---|---|---|---|
-| Alan adı | — | ⟨…⟩ | Yıllık yenileme |
-| Barındırma (Netlify) | ⟨…⟩ | ⟨…⟩ | Ücretsiz katman yetiyorsa 0 yaz |
-| Veritabanı (Supabase) | ⟨…⟩ | ⟨…⟩ | Ücretsiz katman yetiyorsa 0 yaz |
-| Kurumsal e-posta | ⟨…⟩ | ⟨…⟩ | info@basementonfire.com |
-| Yapay zekâ / geliştirme araçları | ⟨…⟩ | ⟨…⟩ | |
-| Görsel/medya üretim araçları | ⟨…⟩ | ⟨…⟩ | |
-| **TOPLAM** | **⟨…⟩** | **⟨…⟩** | |
+Gider **iki katmana ayrılır** ve bu ayrım mülakatta önemlidir: biri ürünü ayakta
+tutmanın maliyeti, diğeri bu hızda geliştirmeye devam etmenin maliyeti. İkisini
+tek rakama toplamak, "bu iş yaşayabilir mi?" sorusunu gereksiz yere zorlaştırır.
 
-**Görünmeyen en büyük gider: kurucunun zamanı.** Planda bunu 0 TL göstermek
-yaygın ama zayıf bir tercihtir. Kendine piyasa değerinde bir maaş yaz ve
-"bu maaş şu an ödenmiyor, bu kadarı özkaynak katkısıdır" de. Jüri bu cümleyi
-olgunluk işareti sayar.
+**Katman 1 — Altyapı** (geliştirme dursa bile ödenir; ürün çalışmaya devam eder)
+
+| Kalem | Aylık | Yıllık |
+|---|---|---|
+| Veritabanı (Supabase) | 636,04 ₺ | 7.632,48 ₺ |
+| Barındırma (Netlify) | 710,40 ₺ | 8.524,80 ₺ |
+| Kurumsal e-posta (Google Workspace) | 126,71 ₺ | 1.520,52 ₺ |
+| Alan adı (426 ₺/yıl) | 35,50 ₺ | 426,00 ₺ |
+| **ARA TOPLAM** | **1.508,65 ₺** | **18.103,80 ₺** |
+
+**Katman 2 — Geliştirme araçları** (üretim hızını belirler, kesilebilir)
+
+| Kalem | Aylık | Yıllık |
+|---|---|---|
+| Yapay zekâ geliştirme aracı (Claude) | 5.683,20 ₺ | 68.198,40 ₺ |
+| Görsel/video üretimi (Higgsfield) | 853,47 ₺ | 10.241,64 ₺ |
+| **ARA TOPLAM** | **6.536,67 ₺** | **78.440,04 ₺** |
+
+**GENEL TOPLAM: 8.045,32 ₺/ay · 96.543,84 ₺/yıl**
+
+*Tek seferlik (sabit gidere KATMA):* Google Ads denemesi 1.000 ₺ (yalnız bu ay).
+
+⚠ **Geliştirme araçlarını gizleme.** "Acemice görünür" diye çıkarmak ters teper:
+rakam yanlış olur, ve "tek başına bunu nasıl yaptın?" sorusuna eksik cevap
+verirsin. Doğru çerçeve şu — zayıflık değil, kaldıraç:
+
+> "Tek kişiyim ve 62.500 satırlık bir ürün çıkardım. Bunu yapabilmemin sebebi
+> geliştirme araçlarına ayda ~6.500 lira ayırmam. Bir ekibin çıktısını bir
+> kişilik bütçeyle alıyorum."
+
+**Görünmeyen en büyük gider: kurucunun zamanı.** Yukarıdaki rakamların hiçbiri
+kendi emeğini içermiyor. Sorulursa bunu ÖNCE SEN söyle — kendi zaafını bilen
+kurucu, olmadığını iddia edenden yüksek puan alır.
 
 ### 3.2 Şirket kurulduktan sonra eklenen sabit giderler
 
@@ -161,19 +184,25 @@ Rakamlar değil, **hangi yılda neyin kanıtlanacağı** önemli. Jüriye satıl
 
 ## 5. Başabaş hesabı
 
-Aylık sabit gider **G**, ortalama yıllık kurum lisansı **L** ise başabaş için
-gereken müşteri sayısı:
+İki katman, iki başabaş. Gereken kurum sayısı = yıllık gider ÷ yıllık lisans.
 
-```
-Gereken kurum sayısı = (G × 12) / L
-```
+| Yıllık kurum lisansı | Altyapı başabaşı (18.104 ₺) | Toplam başabaş (96.544 ₺) |
+|---|---|---|
+| 10.000 ₺ | **2 kurum** | 10 kurum |
+| 15.000 ₺ | **2 kurum** | 7 kurum |
+| 20.000 ₺ | **1 kurum** | 5 kurum |
+| 25.000 ₺ | **1 kurum** | 4 kurum |
 
-Bu tek satırı mülakatta **ezbere** söyleyebilmen gerekiyor. Jürinin en sevdiği
-soru "kaç müşteriyle kâra geçersin?" ve doğru cevap bir sayı değil, bu formül
-artı senin varsayımın.
+**Mülakatta söylenecek cümle:**
 
-**Örnek (kendi rakamlarınla değiştir):** aylık gider ⟨…⟩ TL, ortalama lisans
-⟨…⟩ TL ise başabaş ≈ ⟨…⟩ kurum.
+> "Ürünü ayakta tutmanın maliyeti ayda yaklaşık 1.500 lira — bir okulun yıllık
+> lisansı 15.000 lira olsa **iki okulla başabaşa geçiyorum.** Bu hızda
+> geliştirmeye devam etmenin maliyeti ayda 8.000 lira; oraya ulaşmak için
+> yedi okul gerekiyor. Birinci yıl hedefim ilk grup."
+
+Bu cevap üç şeyi birden yapıyor: rakamı biliyorsun, ayrımı görüyorsun, ve
+hedefin ulaşılabilir. "Kaç müşteriyle kâra geçersin?" sorusuna çoğu başvuru
+kem küm eder — sen tek haneli ve savunulabilir bir sayı söyleyeceksin.
 
 ---
 

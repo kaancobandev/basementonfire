@@ -129,11 +129,14 @@ Tek sayfa, büyük punto, telefonda gözünle bulabileceğin şekilde.
 |---|---|
 | Makale sayısı | 33 (6 konu başlığı) |
 | Quiz sorusu | 94 |
-| Kod | ⟨62.500⟩ satır · ⟨347⟩ commit · ⟨…⟩ ay |
+| Kod | 62.500 satır · 347 commit · ~2 ay |
 | Ekip | 1 kişi |
 | Dış sermaye | Yok |
-| Aylık gider | ⟨…⟩ TL |
-| Başabaş | ⟨…⟩ kurum |
+| **Altyapı gideri** | **1.508 ₺/ay** (18.104 ₺/yıl) |
+| **Geliştirme araçları** | **6.537 ₺/ay** (78.440 ₺/yıl) |
+| **Toplam** | **8.045 ₺/ay** (96.544 ₺/yıl) |
+| **Başabaş** | **2 okul** (altyapı) · **7 okul** (toplam), 15.000 ₺ lisansla |
+| Arama görünürlüğü | Son 10 günde 0 → günde ~15 gösterim |
 | 1. yıl hedefi | ⟨3–5⟩ pilot, 1 ödenen fatura |
 | Marka tescili | ⟨başvuru no / "başvuru hazır"⟩ |
 | Site | basementonfire.com |
@@ -158,6 +161,15 @@ isterse detay ister.
 **"Gelir var mı?"**
 > Hayır, yok. Birinci yılın tek hedefi ilk ödenen fatura — tutarı önemsiz,
 > varlığı belirleyici.
+
+**"Aylık gideriniz ne kadar?"**
+> Ürünü ayakta tutmak ayda 1.500 lira. Bu hızda geliştirmeye devam etmek 8.000
+> lira; aradaki farkın tamamı geliştirme araçları. 15.000 liralık bir okul
+> lisansıyla altyapı için iki, tam hız için yedi okul gerekiyor.
+
+**"Tek başına bunu nasıl yaptın?"**
+> Geliştirme araçlarına ayda 6.500 lira ayırarak. Bir ekibin çıktısını bir
+> kişilik bütçeyle alıyorum — 62.500 satır kod, 33 makale, iki ayda.
 
 **"Kaç kişisiniz?"**
 > Tek kişiyim ve bunu projenin en büyük riski olarak görüyorum. BTM'den ilk
