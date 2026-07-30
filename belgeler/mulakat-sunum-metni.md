@@ -31,6 +31,53 @@ değiştiriyor — bu belge ona göre yeniden yazıldı.
 
 ---
 
+# 📄 CEVAP KARTI — yazdır, telefonun yanına koy
+
+Prova sonrası çıkarıldı. Her satırın **ilk cümlesini** bil; gerisini kendi
+kelimelerinle söyle.
+
+| Soru | İlk cümlen |
+|---|---|
+| **Ne yapıyorsunuz?** | "Radyoaktivite makalesinde kilonuzu giriyorsunuz — yetmiş kilo için ekranda **7.840** yazıyor: şu an vücudunuzda saniyede parçalanan atom çekirdeği sayısı." |
+| **Ar-Ge nerede?** | "Sahne çalışırken cihazın kare süresini ölçüyoruz. **90 karelik pencerede 26 ms'yi aşarsa çözünürlük düşer, 30 ms'yi aşarsa animasyon donar. İlk 60 kare sayılmaz.**" |
+| **Gelir var mı?** | "Yok. Birinci yılın tek hedefi ilk ödenen fatura — tutarı önemsiz, varlığı belirleyici." |
+| **Gideriniz?** | "Ürünü **ayakta tutmak ayda 1.500**, bu hızda **geliştirmek 8.000** lira. Aradaki fark geliştirme araçları — kesilebilir bir kalem." |
+| **Kaç müşteriyle kâra geçersiniz?** | "Fiyatı henüz bilmiyorum, ilk temasları bu hafta kurdum. Aritmetik şu: **20.000 ₺'lik yıllık sözleşmede altyapı için bir, tam hız için beş müşteri.**" |
+| **Müşteriniz kim?** | "Üç kanal: **dershane** hızlı karar veriyor, ilk faturayı oradan bekliyorum · **yayınevi** en büyük etki · **bilim merkezi** sipariş içerik alıyor. Devlet okuluna gitmiyorum, orada karar müdürde değil MEB düzeyinde." |
+| **Görüştünüz mü?** | "Bu hafta **on kuruma** ulaştım: beş dershane zinciri, iki eğitim yayıncısı, üç klasik yayınevi. Dönüş bekliyorum." |
+| **Tek kişisiniz, ya siz olmazsanız?** | "**Bunu projenin en büyük riski olarak görüyorum.** BTM'den ilk beklentim de bu: birinci yılda içerik ya da satış tarafında bir kişi." |
+| **Altı ay sonra ne göreceğiz?** | "Üç şey: **pilot kurumlar**, **ikisinin ücretli lisansa dönmesi**, **iki tamamlanmış sipariş içerik.**" |
+| **Fikri mülkiyet?** | "Marka başvurusu **2026/098481**, sınıf **9, 41, 42**, kelime markası. Kod telif kapsamında, 347 commit'lik tarihli geçmiş kanıt." |
+| **Neden BTM?** | "Ar-Ge personeli istihdamı, akademik hakemlik bağlantısı, ilk kurumsal müşteriye erişim." |
+| **Tek başına nasıl yaptın?** | "Geliştirme araçlarına ayda 6.500 lira ayırarak. Bir ekibin çıktısını bir kişilik bütçeyle alıyorum." |
+
+---
+
+# ⚠ PROVADA TEKRARLANAN DÖRT HATA
+
+Bunlar gerçek provada dört kez tekrarlandı. Yarın da tekrarlanmaya en yatkın olanlar.
+
+### 1. Sayıları unutmak
+Motor sorusunda ilk turda eşikleri verdin, ikinci turda "yavaşlarsa" dedin ve
+soru yeniden geldi. **Jüri her seferinde sayıyı soruyor.** Üç sayı ezberde
+olmalı: **26 ms · 30 ms · 60 kare**.
+
+### 2. Hesabı yapılmamış rakam vermek
+"Üç yayınevi" dendi, "bir yayinevinden ne kadar alacaksınız?" sorusuyla çöktü.
+**Bilmiyorsan bilmediğini söyle, aritmetiği ver, varsayımı belirt.** Uydurulan
+tek sayı, o ana kadarki doğru cevapların hepsini şüpheli hale getiriyor.
+
+### 3. Kanalı karıştırmak
+Aynı görüşmede "yayınevi" ve "pilot okul" dendi; jüri yakaladı. **Kanal
+sıralaman sabit:** dershane → yayınevi → bilim merkezi. Devlet okulu YOK ve
+neden olmadığını söylemek pazarı anladığını gösteriyor.
+
+### 4. Gideri tek rakam olarak söylemek
+"8.045" tek başına projeyi kırılgan gösteriyor. **Her zaman iki katman:**
+ayakta tutmak 1.500, geliştirmek 8.000, fark kesilebilir.
+
+---
+
 # Konuşmanın iskeleti
 
 ⚠ Telefon görüşmesi genelde **monolog değil, soru-cevap** akar. Aşağıyı baştan
@@ -228,3 +275,36 @@ fikri mülkiyet bilen biri varsa o cümle anında güven kaybettirir. Üç ayrı
   feda edilecekler: Mesaj 4'ün kod rakamları → Mesaj 5'in ikinci gelir akışı.
 - Mesaj 2'yi (radyoaktivite örneği) **kelimesi kelimesine** prova et. Tek
   ezberlenecek yer orası ve tüm görüşmenin en değerli 45 saniyesi.
+
+## Provadan çıkan iki ders
+
+**Açılış bir dakikanın tamamını "neden yaptım"a harcama.** Provada problem
+anlatılırken süre doldu ve ürüne sıra gelmedi. Telefonda karşı taraf ekranı
+göremiyor; **30 saniye problem, 30 saniye somut örnek.** Radyoaktivite örneğini
+açılışa koy, sonuna bırakma.
+
+**Yakalandığında toparlama, kabul et.** Tutarsızlık ya da bilmediğin bir rakam
+yakalanırsa savunmaya geçme: *"Haklısınız, o rakamı henüz hesaplamadım"* demek,
+uydurup ikinci soruda çökmekten kat kat iyi. Jüri hatayı değil, hatayı nasıl
+karşıladığını puanlıyor.
+
+---
+
+# Görüşme günü — son kontrol
+
+**Sabah:**
+- [ ] Cevap kartını yazdır, telefonun yanına koy
+- [ ] On satırı yüksek sesle bir kez oku
+- [ ] Sessiz oda ayarla, kapıyı kapat
+
+**Görüşmeden 10 dk önce:**
+- [ ] Telefon şarjda, kablolu kulaklık takılı (hoparlör YOK)
+- [ ] Su, kalem, boş kâğıt masada
+- [ ] Bildirimleri kapat
+- [ ] Ayağa kalk
+
+**İlk 10 saniye:** "Ses iyi geliyor mu?" diye sor.
+
+**Kapanışta:** "İsterseniz proje özetini ve site bağlantısını e-postayla
+göndereyim." — ve **aynı gün gönder**, içine radyoaktivite makalesinin
+doğrudan linkini koy.
