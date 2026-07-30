@@ -43,7 +43,7 @@ kelimelerinle söyle.
 | **Gelir var mı?** | "Yok. Birinci yılın tek hedefi ilk ödenen fatura — tutarı önemsiz, varlığı belirleyici." |
 | **Gideriniz?** | "Ürünü **ayakta tutmak ayda 1.500**, bu hızda **geliştirmek 8.000** lira. Aradaki fark geliştirme araçları — kesilebilir bir kalem." |
 | **Kaç müşteriyle kâra geçersiniz?** | "Fiyatı henüz bilmiyorum, ilk temasları bu hafta kurdum. Aritmetik şu: **20.000 ₺'lik yıllık sözleşmede altyapı için bir, tam hız için beş müşteri.**" |
-| **Müşteriniz kim?** | "Üç kanal: **dershane** hızlı karar veriyor, ilk faturayı oradan bekliyorum · **yayınevi** en büyük etki · **bilim merkezi** sipariş içerik alıyor. Devlet okuluna gitmiyorum, orada karar müdürde değil MEB düzeyinde." |
+| **Müşteriniz kim?** | "Üç kanal: **dershane zincirleri** hızlı karar veriyor, ilk faturayı oradan bekliyorum · **yayınevleri** en büyük etki, dağıtımları var · **TÜBİTAK popüler bilim yayınları gibi kurumlar** sipariş içerik alıyor. Devlet okuluna gitmiyorum, orada karar müdürde değil MEB düzeyinde." |
 | **Görüştünüz mü?** | "Bu hafta **on kuruma** ulaştım: beş dershane zinciri, iki eğitim yayıncısı, üç klasik yayınevi. Dönüş bekliyorum." |
 | **Tek kişisiniz, ya siz olmazsanız?** | "**Bunu projenin en büyük riski olarak görüyorum.** BTM'den ilk beklentim de bu: birinci yılda içerik ya da satış tarafında bir kişi." |
 | **Altı ay sonra ne göreceğiz?** | "Üç şey: **pilot kurumlar**, **ikisinin ücretli lisansa dönmesi**, **iki tamamlanmış sipariş içerik.**" |
@@ -69,7 +69,7 @@ tek sayı, o ana kadarki doğru cevapların hepsini şüpheli hale getiriyor.
 
 ### 3. Kanalı karıştırmak
 Aynı görüşmede "yayınevi" ve "pilot okul" dendi; jüri yakaladı. **Kanal
-sıralaman sabit:** dershane → yayınevi → bilim merkezi. Devlet okulu YOK ve
+sıralaman sabit:** dershane → yayınevi → TÜBİTAK/sipariş içerik. Devlet okulu YOK ve
 neden olmadığını söylemek pazarı anladığını gösteriyor.
 
 ### 4. Gideri tek rakam olarak söylemek
@@ -145,11 +145,17 @@ bugüne kadar tek bir lira pazarlama harcamadım; işi ürün tarafında derinle
 > ürünün kendisi — kurumsal müşteri satın almadan önce ürünün tamamını çalışır
 > hâlde görüyor.
 >
-> Asıl gelir kurum lisansı: okullara ve yayınevlerine yıllık lisans. Bugün ürün
-> okuyucuya yönelik; öğretmene özel araçları henüz yazmadım. Bu hafta okullarla
-> görüşüp neye ihtiyaç duyduklarını dinliyorum, modülleri ona göre yazacağım.
-> İkinci akış sipariş içerik — bir üniversite ya da müze kendi konusunu bu
-> formatta üretmemizi istiyor; her sipariş motora kalıcı bir modül kazandırıyor.
+> Asıl gelir kurum lisansı: **dershane zincirlerine ve yayınevlerine** yıllık
+> lisans. Bugün ürün okuyucuya yönelik; öğretmene özel araçları henüz yazmadım.
+> Bu hafta kurumlarla görüşüp neye ihtiyaç duyduklarını dinliyorum, modülleri
+> ona göre yazacağım.
+>
+> İkinci akış sipariş içerik — örneğin **TÜBİTAK'ın popüler bilim yayınları**
+> gibi bir kurum kendi konusunu bu formatta üretmemizi istiyor; her sipariş
+> motora kalıcı bir modül kazandırıyor.
+>
+> Devlet okuluna gitmiyorum: orada dijital içerik alım kararı müdürde değil,
+> MEB düzeyinde ve bürokrasi uzun.
 
 ⚠ **"Öğretmen quiz atıyor, ilerlemeyi görüyor" DEME — bu özellikler YOK.**
 Olmayan özelliği şimdiki zamanda anlatmak, yakalandığında dosyanın tamamını
@@ -190,7 +196,7 @@ Tek sayfa, büyük punto, telefonda gözünle bulabileceğin şekilde.
 | **Altyapı gideri** | **1.508 ₺/ay** (18.104 ₺/yıl) |
 | **Geliştirme araçları** | **6.537 ₺/ay** (78.440 ₺/yıl) |
 | **Toplam** | **8.045 ₺/ay** (96.544 ₺/yıl) |
-| **Başabaş** | **2 okul** (altyapı) · **7 okul** (toplam), 15.000 ₺ lisansla |
+| **Başabaş** | 20.000 ₺'lik sözleşmede **1 kurum** (altyapı) · **5 kurum** (toplam) |
 | Arama görünürlüğü | Son 10 günde 0 → günde ~15 gösterim |
 | **Müşteri teması** | **10 kurum** (30.07.2026): 5 dershane zinciri · 2 eğitim yayıncısı · 3 klasik yayınevi |
 | 1. yıl hedefi | **3 pilot**, **2'sini ücretliye çevirmek** → altyapı başabaşı |
@@ -234,8 +240,8 @@ sorarlarsa söyle; kendiliğinden isim saymak "anlaşma var" izlenimi yaratır v
 
 **"Aylık gideriniz ne kadar?"**
 > Ürünü ayakta tutmak ayda 1.500 lira. Bu hızda geliştirmeye devam etmek 8.000
-> lira; aradaki farkın tamamı geliştirme araçları. 15.000 liralık bir okul
-> lisansıyla altyapı için iki, tam hız için yedi okul gerekiyor.
+> lira; aradaki farkın tamamı geliştirme araçları. 20.000 liralık yıllık bir
+> sözleşmede altyapı için bir, tam hız için beş kurum gerekiyor.
 
 **"Tek başına bunu nasıl yaptın?"**
 > Geliştirme araçlarına ayda 6.500 lira ayırarak. Bir ekibin çıktısını bir

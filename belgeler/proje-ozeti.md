@@ -91,12 +91,18 @@ ham IP saklamayan ölçüm, veri indirme ve hesap silme, dört ayrı hukuki meti
 **Ücretsiz katman pazarlama gideri değil, ürünün kendisi.** Gelir, okuyucudan
 değil kurumdan geliyor:
 
-1. **Kurum lisansı (birincil)** — okul, kolej, dershane ve yayınevlerine yıllık
-   lisans: sınıf içi kullanım, quiz atama, öğrenci ilerlemesi.
-2. **Sipariş içerik** — üniversite, müze ve kurumlar için aynı formatta
-   içerik üretimi. Her sipariş, motora kalıcı bir modül kazandırır.
+1. **Kurum lisansı (birincil)** — **dershane zincirleri ve yayınevlerine** yıllık
+   lisans. Dershane en hızlı karar veren kanal; yayınevinin ise dağıtımı çözülmüş
+   ve bu içeriği kendisi üretemiyor. *(Kuruma özel araçlar henüz yazılmadı —
+   ihtiyaç, süren görüşmelerde belirlenecek.)*
+2. **Sipariş içerik** — **TÜBİTAK popüler bilim yayınları** gibi kurumlar için
+   aynı formatta içerik üretimi. Her sipariş, motora kalıcı bir modül kazandırır.
+
 3. **Motor lisansı (uzun vade)** — uyarlanabilir render katmanının diğer
    yayıncılara lisanslanması.
+
+⚠ Devlet okulu hedeflenmiyor: dijital içerik alım kararı okul müdüründe değil,
+MEB düzeyinde.
 
 **1. yılın hedefi:** 3 pilot kurum, 2'sini ücretli lisansa çevirmek. Bu, ürünü
 ayakta tutan altyapı maliyetini (yıllık 18.104 ₺) karşılar. Geliştirme araçları
