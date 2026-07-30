@@ -47,7 +47,7 @@ kelimelerinle söyle.
 | **Görüştünüz mü?** | "Bu hafta **on kuruma** ulaştım: beş dershane zinciri, iki eğitim yayıncısı, üç klasik yayınevi. Dönüş bekliyorum." |
 | **Tek kişisiniz, ya siz olmazsanız?** | "**Bunu projenin en büyük riski olarak görüyorum.** BTM'den ilk beklentim de bu: birinci yılda içerik ya da satış tarafında bir kişi." |
 | **Altı ay sonra ne göreceğiz?** | "Üç şey: **pilot kurumlar**, **ikisinin ücretli lisansa dönmesi**, **iki tamamlanmış sipariş içerik.**" |
-| **Fikri mülkiyet?** | "Marka başvurusu **2026/098481**, sınıf **9, 41, 42**, kelime markası. Kod telif kapsamında, 347 commit'lik tarihli geçmiş kanıt." |
+| **Fikri mülkiyet?** | "Marka başvurusu **2026/098481**, sınıf **9, 41, 42**, kelime markası. Kod telif kapsamında, 368 commit'lik tarihli geçmiş kanıt." |
 | **Neden BTM?** | "Ar-Ge personeli istihdamı, akademik hakemlik bağlantısı, ilk kurumsal müşteriye erişim." |
 | **Tek başına nasıl yaptın?** | "Geliştirme araçlarına ayda 6.500 lira ayırarak. Bir ekibin çıktısını bir kişilik bütçeyle alıyorum." |
 
@@ -125,7 +125,7 @@ Telefonda ürünü satacak tek şey bu. Soyut anlatma, **tek bir ekranı tarif e
 
 ## Mesaj 4 — Nerede olduğum (2:30–3:15) · **dürüst ol**
 
-> Bunu tek başıma, dış sermaye almadan yaptım. ⟨…⟩ ayda ⟨347⟩ commit, ⟨62.500⟩
+> Bunu tek başıma, dış sermaye almadan yaptım. İki ayda 368 commit, 64.100
 > satır kod. Platform KVKK ve GDPR uyumlu inşa edildi; ziyaretçi sayacımız çerez
 > koymuyor ve ham IP saklamıyor.
 >
@@ -156,7 +156,8 @@ Olmayan özelliği şimdiki zamanda anlatmak, yakalandığında dosyanın tamam�
 şüpheli hale getirir. Planı plan olarak söylemek zayıflık değil; BTM'nin
 varlık sebebi zaten bu aşamada yardım etmek.
 >
-> Birinci yılın tek hedefi net: ⟨3–5⟩ pilot okul ve en az bir ödenen fatura.
+> Birinci yılın hedefi net: üç pilot kurum ve bunlardan ikisini ücretli lisansa
+> çevirmek — bu, altyapı maliyetini karşılar. Tam başabaş ikinci yılın hedefi.
 >
 > BTM'den beklentim üç şey: Ar-Ge personeli istihdamını mümkün kılan yapı,
 > akademik hakemlik bağlantısı, ve ilk kurumsal müşteriye ulaşım.
@@ -182,7 +183,8 @@ Tek sayfa, büyük punto, telefonda gözünle bulabileceğin şekilde.
 |---|---|
 | Makale sayısı | 33 (6 konu başlığı) |
 | Quiz sorusu | 94 |
-| Kod | 62.500 satır · 347 commit · ~2 ay |
+| Kod | **64.100 satır** · **368 commit** · 888 dosya |
+| Zaman çizelgesi | Alan adı 2024 · aktif geliştirme Eylül 2025 · **mevcut kod tabanı Haziran 2026'da sıfırdan** |
 | Ekip | 1 kişi |
 | Dış sermaye | Yok |
 | **Altyapı gideri** | **1.508 ₺/ay** (18.104 ₺/yıl) |
@@ -191,7 +193,7 @@ Tek sayfa, büyük punto, telefonda gözünle bulabileceğin şekilde.
 | **Başabaş** | **2 okul** (altyapı) · **7 okul** (toplam), 15.000 ₺ lisansla |
 | Arama görünürlüğü | Son 10 günde 0 → günde ~15 gösterim |
 | **Müşteri teması** | **10 kurum** (30.07.2026): 5 dershane zinciri · 2 eğitim yayıncısı · 3 klasik yayınevi |
-| 1. yıl hedefi | 2 pilot kurum, 1 ödenen fatura |
+| 1. yıl hedefi | **3 pilot**, **2'sini ücretliye çevirmek** → altyapı başabaşı |
 | **Marka başvurusu** | **2026/098481** · sınıf 9, 41, 42 · kelime markası |
 | Site | basementonfire.com |
 
@@ -254,7 +256,7 @@ sorarlarsa söyle; kendiliğinden isim saymak "anlaşma var" izlenimi yaratır v
 **"Fikri mülkiyet açısından neredesiniz?"**
 > Marka başvurumuz TÜRKPATENT'te, numarası 2026/098481 — 9, 41 ve 42. sınıflarda,
 > kelime markası olarak, yani adı her yazı tipinde koruyor. Kod ve içerik telif
-> kapsamında; 347 commit'lik tarihli geçmiş eser sahipliğinin kanıtı.
+> kapsamında; 368 commit'lik tarihli geçmiş eser sahipliğinin kanıtı.
 > Uyarlanabilir render yöntemi için patentlenebilirlik araştırması planımızda var.
 
 ⚠ **"Özelliklerimiz patentli" DEME.** Marka adı korur, özelliği değil; jüride

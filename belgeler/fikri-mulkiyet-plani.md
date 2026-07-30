@@ -87,23 +87,24 @@ riski de doğurur.
 
 ### 2.3 Maliyet (2026)
 
+**ÖDENEN GERÇEK TUTAR (30.07.2026):**
+
 | Kalem | Tutar |
 |---|---|
-| Başvuru harcı (sınıf başına) | 2.820 TL |
-| Tescil harcı (sınıf sayısından bağımsız, sabit) | 7.010 TL |
-| **Tek sınıf toplam** | **9.830 TL** |
-| **Üç sınıf (9+41+42) tahmini** | (2.820 × 3) + 7.010 = **15.470 TL** |
-| Marka vekili (isteğe bağlı) | Ayrıca, vekile göre değişir |
+| 1. sınıf başvuru ücreti | 2.820 ₺ |
+| 2. sınıf ek ücreti | 2.820 ₺ |
+| **3. sınıf ek ücreti** | **3.150 ₺** ← 3. sınıftan itibaren yüksek |
+| **Ödenen toplam** | **8.790 ₺** |
+| Tescil ücreti (sonra) | 7.010 ₺ |
+| **Genel toplam** | **15.800 ₺** |
 
-⚠ Bu rakamlar vekil firmaların yayımladığı 2026 listelerinden alınmıştır.
-**Ödeme yapmadan önce TÜRKPATENT'in kendi resmi ücret tarifesinden teyit et.**
-Tescil harcı başvuru kabul edildikten sonra ayrıca ödenir — ilk anda tamamı
-çıkmaz.
+⚠ İlk tahminim 3 × 2.820 = 8.460 ₺ idi; gerçek 8.790 ₺ çıktı. Sebep: TÜRKPATENT
+**üçüncü sınıftan itibaren** daha yüksek ücret alıyor.
 
 ### 2.4 Süreç
 
 1. **EPATS** üzerinden çevrimiçi başvuru (e-Devlet girişi ile)
-2. Gerekenler: marka örneği (logo görseli), sınıf listesi, TC kimlik numarası, harç dekontu
+2. Gerekenler: marka örneği (**kelime markasında düz yazı görseli, logo DEĞİL**), sınıf listesi, TC kimlik numarası, harç dekontu
 3. Şekli inceleme → Resmî Marka Bülteni'nde yayım → **itiraz süresi** → tescil
 4. İtirazsız standart süre: **ortalama 4–6 ay**
 
@@ -141,7 +142,7 @@ ispatı**dır.
 
 Elindeki kanıt aslında güçlü:
 
-- **Git geçmişi:** 347 commit, ilk kayıt 2 Haziran 2026. Her commit tarihli ve
+- **Git geçmişi:** 368 commit, ilk kayıt 2 Haziran 2026. Her commit tarihli ve
   içerik özetiyle (hash) bağlı. Bu, mahkemede kullanılabilir bir zaman kaydıdır.
 - **Uzak depo:** GitHub'daki kayıt bağımsız üçüncü taraf zaman damgası sağlar.
 
@@ -224,7 +225,7 @@ Verilecek cevap (bu adımlar tamamlandıktan sonra):
 
 > "Marka başvurumuz 9, 41 ve 42. sınıflarda TÜRKPATENT'e yapıldı, başvuru
 > numaramız şu. Alan adı ve hesap adları alındı. Kod ve içerik telif kapsamında;
-> 347 commit'lik tarihli git geçmişi eser sahipliğinin kanıtı. Kullandığımız
+> 368 commit'lik tarihli git geçmişi eser sahipliğinin kanıtı. Kullandığımız
 > açık kaynak bileşenlerin lisans envanteri çıkarıldı. Uyarlanabilir render
 > yöntemi için patentlenebilirlik araştırması planımızda var."
 

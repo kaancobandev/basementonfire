@@ -216,7 +216,7 @@ Rakamlar değil, **hangi yılda neyin kanıtlanacağı** önemli. Jüriye satıl
 **Hedef:** "Bu ürünü bir kurum gerçekten kullanır mı?" sorusunu yanıtlamak.
 
 - Ücretsiz kitleyi büyütmeye devam (içerik + arama trafiği)
-- ⟨3–5⟩ pilot okulla **ücretsiz** pilot; karşılığında kullanım verisi ve referans mektubu
+- **3 kurumla ücretsiz pilot** (dershane ağırlıklı); karşılığında kullanım verisi ve referans mektubu
 - Pilotlardan ⟨1–2⟩'sini ücretli lisansa çevirmek
 - Sipariş içerik: ⟨1–2⟩ proje
 - Şirket kuruluşu + marka tescili

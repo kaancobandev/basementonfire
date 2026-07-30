@@ -248,5 +248,8 @@ dönüşüm görebilirsin. Bu, gizlilik duruşunun bedeli — yanlış bir şey 
 
 ## 8 · Bütçe hatırlatması
 
-₺25/gün ≈ **₺750/ay**. Marka tescili (3 sınıf) ~₺15.470 ve geri alınamaz bir
-riski kapatıyor. Reklamı tamamen kesme, ama tescili reklamdan önceye koy.
+₺25/gün ≈ **₺750/ay**.
+
+✅ Marka tescili 30.07.2026'da yapıldı (başvuru **2026/098481**, 8.790 ₺ ödendi).
+Sıradaki geri-alınamaz kalem, aylar sonra gelecek **7.010 ₺ tescil ücreti** —
+reklam bütçesini planlarken onu ayır, çünkü ödenmezse başvuru düşer.

@@ -9,8 +9,7 @@ kılıyor: telefonda gösteremediğin her şeyin tek telafisi bu.
   jürinin simülasyonu kendi eliyle çalıştırması, anlattığın her şeyden değerli
 - Görüşmede *"isterseniz özeti e-postayla göndereyim"* de ve **aynı gün gönder**
 
-⟨…⟩ ile işaretli yerleri kendi rakamlarınla doldur; doldurulmamış tek bir alan
-bile kalmasın.
+Tüm rakamlar dolduruldu ve koddan/faturalardan doğrulandı (30.07.2026).
 
 ---
 
@@ -75,8 +74,8 @@ nerede kaybolduğunu görmenin temeli.
 | | |
 |---|---|
 | Yayındaki makale | 33, 6 konu başlığında |
-| Kod tabanı | ⟨62.500+⟩ satır TypeScript, ⟨347⟩ commit, ⟨858⟩ dosya |
-| Geliştirme süresi | ⟨…⟩ ay, tek kişi |
+| Kod tabanı | 64.100 satır TypeScript, 368 commit, 888 dosya |
+| Zaman çizelgesi | Alan adı 2024 · aktif geliştirme Eylül 2025 · mevcut kod tabanı Haziran 2026'dan beri, tek kişi |
 | Dış sermaye | Yok — bugüne kadar tamamı özkaynak |
 | Arama görünürlüğü | Bu ay açıldı; son 10 günde gösterim 0 → günde ~15 |
 
@@ -99,7 +98,9 @@ değil kurumdan geliyor:
 3. **Motor lisansı (uzun vade)** — uyarlanabilir render katmanının diğer
    yayıncılara lisanslanması.
 
-**1. yılın tek hedefi:** ⟨3–5⟩ pilot okul, en az ⟨1⟩ ödenen fatura.
+**1. yılın hedefi:** 3 pilot kurum, 2'sini ücretli lisansa çevirmek. Bu, ürünü
+ayakta tutan altyapı maliyetini (yıllık 18.104 ₺) karşılar. Geliştirme araçları
+dahil tam başabaş 2. yılın hedefi.
 
 ### Neden BTM
 
@@ -110,7 +111,13 @@ değil kurumdan geliyor:
 
 ### Talep
 
-⟨BTM ön kuluçka programına kabul / ofis tahsisi⟩ ve mentorluk desteği.
+BTM ön kuluçka programına kabul. Beklentimiz üç başlıkta:
+
+1. **Ar-Ge personeli istihdamını mümkün kılan yapı** — proje bugün tek kişiye
+   bağımlı ve en büyük riski bu
+2. **Akademik hakemlik bağlantısı** — içeriğin bilimsel denetimi hem kaliteyi
+   hem kurumsal satışı güçlendiriyor
+3. **İlk kurumsal müşteriye erişim** — eğitim kurumları ve yayıncılarla temas ağı
 
 ---
 
