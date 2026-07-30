@@ -143,7 +143,8 @@ Tek sayfa, büyük punto, telefonda gözünle bulabileceğin şekilde.
 | **Toplam** | **8.045 ₺/ay** (96.544 ₺/yıl) |
 | **Başabaş** | **2 okul** (altyapı) · **7 okul** (toplam), 15.000 ₺ lisansla |
 | Arama görünürlüğü | Son 10 günde 0 → günde ~15 gösterim |
-| 1. yıl hedefi | ⟨3–5⟩ pilot, 1 ödenen fatura |
+| **Müşteri teması** | **10 kurum** (30.07.2026): 5 dershane zinciri · 2 eğitim yayıncısı · 3 klasik yayınevi |
+| 1. yıl hedefi | 2 pilot kurum, 1 ödenen fatura |
 | **Marka başvurusu** | **2026/098481** · sınıf 9, 41, 42 · kelime markası |
 | Site | basementonfire.com |
 
@@ -167,6 +168,20 @@ isterse detay ister.
 **"Gelir var mı?"**
 > Hayır, yok. Birinci yılın tek hedefi ilk ödenen fatura — tutarı önemsiz,
 > varlığı belirleyici.
+
+**"Müşteriyle konuştunuz mu? Kaç kurumla görüştünüz?"**
+> Bu hafta on kuruma ulaştım: beş dershane zinciri, iki eğitim yayıncısı, üç
+> klasik yayınevi. Şu an dönüş bekliyorum. Sorduğum şey satış değil, tek bir
+> soru: derste böyle bir materyali kullanmak isteseler onları bugün ne
+> durduruyor. Modülleri o cevabı duymadan yazmak istemiyorum.
+
+⚠ **Devlet okulu müdürüne gitme gerekçesini de söyle** — pazarı anladığını
+gösterir: *"Devlet okulunda dijital içerik alım kararı müdürde değil, MEB
+düzeyinde. O yüzden hızlı karar veren dershane zincirlerinden başladım."*
+
+⚠ **Şirket adı vermeye gerek yok.** Sayı ve kategori yeterli. Özellikle
+sorarlarsa söyle; kendiliğinden isim saymak "anlaşma var" izlenimi yaratır ve
+"ne dediler?" sorusuna henüz cevabın yok.
 
 **"Aylık gideriniz ne kadar?"**
 > Ürünü ayakta tutmak ayda 1.500 lira. Bu hızda geliştirmeye devam etmek 8.000
