@@ -1,13 +1,40 @@
 # Basementonfire — Fikri Mülkiyet Planı
 
-**Hazırlanma tarihi:** 29 Temmuz 2026
-**Mevcut durum:** Fikri mülkiyet için henüz hiçbir işlem yapılmadı.
+**Hazırlanma tarihi:** 29 Temmuz 2026 · **Güncelleme:** 30 Temmuz 2026
 
-> ⚠ **En acil madde marka tescilidir ve gecikmenin bedeli geri alınamaz.**
-> Türkiye'de marka hakkı "ilk kullanan"a değil, **ilk başvurana** verilir.
-> Teknopark başvurusu, basın görünürlüğü ve sosyal medya büyümesi markayı
-> görünür kılar — görünürlük, üçüncü kişinin aynı ismi tescil ettirme riskini
-> doğrudan artırır. Başvuru tarihi = rüçhan tarihi.
+## ✅ MARKA BAŞVURUSU YAPILDI
+
+| | |
+|---|---|
+| **Başvuru numarası** | **2026/098481** |
+| Başvuru tarihi | 30 Temmuz 2026 |
+| Marka | `Basementonfire` — **kelime markası** (Sadece Kelime) |
+| Sahip | Kaan Çoban, gerçek kişi |
+| Sınıflar | **09-3** · **41-1** · **41-4** · **42-2** |
+| Ödenen | 8.790 ₺ (başvuru ücreti) |
+| Kalan | 7.010 ₺ tescil ücreti — kabul + yayım sonrası |
+
+**Kelime markası seçildi, logolu değil.** Gerekçe: korunan unsur marka örneğidir;
+logo yüklenseydi koruma o görsel kompozisyona bağlanırdı ve logo değişince
+zayıflardı. Kelime markası adı **her yazı tipinde ve her renkte** korur. Marka
+örneği nötr fontla (Arial) üretildi — kendi fontuyla yazmak korumayı o
+stilizasyona doğru daraltırdı. Dosya: `belgeler/marka/marka-ornegi-591x591.jpg`
+
+**Ücret yapısı (2026, ölçüldü):** 1. sınıf 2.820 ₺ · 2. sınıf 2.820 ₺ ·
+**3. sınıf ve sonrası 3.150 ₺**. Toplam maliyet 8.790 + 7.010 = **15.800 ₺**.
+
+### Bundan sonra ne olacak
+
+1. Şekli inceleme
+2. Mutlak ret nedenleri incelemesi
+3. **Resmî Marka Bülteni'nde yayım**
+4. **2 ay itiraz süresi** — üçüncü kişiler itiraz edebilir
+5. İtiraz yoksa → **tescil ücreti ödeme çağrısı**
+6. Tescil belgesi · itirazsız süreç tipik olarak 4-6 ay
+
+⚠ **TESCİL ÜCRETİ ÇAĞRISINI KAÇIRMA.** Süresinde ödenmezse başvuru düşer ve
+bugün aldığın tarih boşa gider. Bildirim EPATS'e kayıtlı e-postaya gelir —
+o kutuyu düzenli kontrol et.
 
 ---
 
@@ -15,8 +42,8 @@
 
 | # | İş | Aciliyet | Şirket gerekli mi? |
 |---|---|---|---|
-| 1 | Marka benzerlik araştırması | **Bu hafta** | Hayır |
-| 2 | Marka tescil başvurusu (TÜRKPATENT) | **Bu ay** | Hayır — gerçek kişi olarak yapılır |
+| 1 | ~~Marka benzerlik araştırması~~ | ✅ Yapıldı | — |
+| 2 | ~~Marka tescil başvurusu~~ | ✅ **2026/098481** | — |
 | 3 | Alan adı ve hesap adı savunması | Bu ay | Hayır |
 | 4 | Telif/eser sahipliği kanıtının düzenlenmesi | Bu ay | Hayır |
 | 5 | Üçüncü taraf lisans temizliği (NOTICE) | 1–2 ay | Hayır |

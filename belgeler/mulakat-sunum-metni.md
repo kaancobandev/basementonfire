@@ -138,7 +138,7 @@ Tek sayfa, büyük punto, telefonda gözünle bulabileceğin şekilde.
 | **Başabaş** | **2 okul** (altyapı) · **7 okul** (toplam), 15.000 ₺ lisansla |
 | Arama görünürlüğü | Son 10 günde 0 → günde ~15 gösterim |
 | 1. yıl hedefi | ⟨3–5⟩ pilot, 1 ödenen fatura |
-| Marka tescili | ⟨başvuru no / "başvuru hazır"⟩ |
+| **Marka başvurusu** | **2026/098481** · sınıf 9, 41, 42 · kelime markası |
 | Site | basementonfire.com |
 
 ---
@@ -184,9 +184,14 @@ isterse detay ister.
 > ama onlarda anlatı ve ölçüm yok, ayrıca Türkçe değiller.
 
 **"Fikri mülkiyet açısından neredesiniz?"**
-> ⟨Marka başvurusu yapıldıysa: "9, 41 ve 42. sınıflarda TÜRKPATENT'e başvurduk,
-> numarası şu."⟩ Kod ve içerik telif kapsamında; tarihli commit geçmişi eser
-> sahipliğinin kanıtı.
+> Marka başvurumuz TÜRKPATENT'te, numarası 2026/098481 — 9, 41 ve 42. sınıflarda,
+> kelime markası olarak, yani adı her yazı tipinde koruyor. Kod ve içerik telif
+> kapsamında; 347 commit'lik tarihli geçmiş eser sahipliğinin kanıtı.
+> Uyarlanabilir render yöntemi için patentlenebilirlik araştırması planımızda var.
+
+⚠ **"Özelliklerimiz patentli" DEME.** Marka adı korur, özelliği değil; jüride
+fikri mülkiyet bilen biri varsa o cümle anında güven kaybettirir. Üç ayrı hakkı
+(marka / telif / patent) doğru adlandırman çok daha ciddi durur.
 
 **"Şirketiniz var mı?"**
 > Henüz yok, kuruluş hazırlığı sürüyor. Ön kuluçka için şirket şartı olmadığını
