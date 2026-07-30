@@ -98,10 +98,16 @@ bugüne kadar tek bir lira pazarlama harcamadım; işi ürün tarafında derinle
 > ürünün kendisi — kurumsal müşteri satın almadan önce ürünün tamamını çalışır
 > hâlde görüyor.
 >
-> Asıl gelir kurum lisansı: okullara ve yayınevlerine yıllık lisans. Öğretmen
-> simülasyonu derste kullanıyor, sınıfına quiz atıyor, öğrencinin ilerlemesini
-> görüyor. İkinci akış sipariş içerik — bir üniversite ya da müze kendi konusunu
-> bu formatta üretmemizi istiyor; her sipariş motora kalıcı bir modül kazandırıyor.
+> Asıl gelir kurum lisansı: okullara ve yayınevlerine yıllık lisans. Bugün ürün
+> okuyucuya yönelik; öğretmene özel araçları henüz yazmadım. Bu hafta okullarla
+> görüşüp neye ihtiyaç duyduklarını dinliyorum, modülleri ona göre yazacağım.
+> İkinci akış sipariş içerik — bir üniversite ya da müze kendi konusunu bu
+> formatta üretmemizi istiyor; her sipariş motora kalıcı bir modül kazandırıyor.
+
+⚠ **"Öğretmen quiz atıyor, ilerlemeyi görüyor" DEME — bu özellikler YOK.**
+Olmayan özelliği şimdiki zamanda anlatmak, yakalandığında dosyanın tamamını
+şüpheli hale getirir. Planı plan olarak söylemek zayıflık değil; BTM'nin
+varlık sebebi zaten bu aşamada yardım etmek.
 >
 > Birinci yılın tek hedefi net: ⟨3–5⟩ pilot okul ve en az bir ödenen fatura.
 >

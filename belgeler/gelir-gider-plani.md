@@ -29,8 +29,19 @@ Dört akış var. İlk yıl hedefi 1 ve 3; 2 ve 4 ölçek geldikçe açılır.
 ### Akış 1 — Kurum lisansı (birincil)
 
 Okul, kolej, dershane ve kurumsal eğitim birimleri için yıllık lisans.
-Satılan şey içerik değil, **öğretmenin kullanabildiği sınıf aracı**: simülasyonu
-projeksiyona yansıtma, sınıf bazlı quiz atama, öğrenci ilerlemesini görme.
+
+⚠ **BU HENÜZ YOK — PLAN.** Bugün ürün, okuyucuya yönelik bir yayın platformu.
+Öğretmene özel hiçbir araç yazılmadı: sınıf yönetimi yok, ödev atama yok,
+öğrenci ilerleme ekranı yok. Aşağıdakiler **varsayım**, ürün tanımı değil.
+
+Satılacak şeyin içerik değil **öğretmenin kullanabildiği sınıf aracı** olması
+gerektiğini düşünüyoruz. Muhtemel bileşenler: simülasyonu projeksiyona
+yansıtmak için sade görünüm, sınıf bazlı quiz atama, öğrenci ilerlemesini görme,
+müfredat kazanımı eşleştirmesi.
+
+**Hangisinin gerçekten gerektiğine öğretmenlerle konuşmadan karar verme.**
+Bu listenin tamamı tahmin; beş öğretmenle yarım saat konuşmak, aylarca yanlış
+modül yazmaktan ucuzdur.
 
 | Paket | Kime | Yıllık liste fiyatı | Not |
 |---|---|---|---|
