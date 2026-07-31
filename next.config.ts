@@ -41,6 +41,10 @@ const nextConfig: NextConfig = {
       { source: '/kartaca', destination: '/articles/carthage', permanent: true },
       { source: '/turklerin-tarihi', destination: '/articles/turkler', permanent: true },
       { source: '/kara-delikler', destination: '/articles/black-hole', permanent: true },
+
+      // Eski gönderi listesi sayfası — Search Console "Bulunamadı (404)"
+      // listesinde çıktı (son tarama 07.07.2026). Karşılığı bugün akış.
+      { source: '/postpage', destination: '/akis', permanent: true },
     ];
   },
 };
