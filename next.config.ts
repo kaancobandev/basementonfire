@@ -24,6 +24,23 @@ const nextConfig: NextConfig = {
       { source: '/icerik/einstein-rosen-koprusu.html', destination: '/articles/einstein-rosen', permanent: true },
       { source: '/icerik/arcade-oyunlar.html', destination: '/articles/arcade', permanent: true },
       { source: '/icerik/tibbi-gercek.html', destination: '/articles/tibbi', permanent: true },
+
+      // ── Eski Türkçe slug'lar (2026-07-31) ────────────────────────────────
+      // Search Console "Tarandı — dizine eklenmedi" listesinde /roma-imparatorlugu/
+      // çıktı; son tarama 17.02.2026, yani mevcut kod tabanından (Haziran 2026)
+      // önce. Zincir şuydu: /roma-imparatorlugu/ → 308 → /roma-imparatorlugu → 404.
+      //
+      // Yalnız ilki DOĞRULANDI. Diğerleri aynı adlandırma desenini izleyen
+      // muhtemel kardeşleri — hiç var olmadılarsa zaten 404 dönecekti, yani
+      // eklemenin maliyeti yok, karşılığı ise eski bağlantının korunması.
+      //
+      // YENİ 404 GÖRÜRSEN: Search Console → Sayfalar → "Bulunamadı (404)"
+      // listesine bak, eski adresleri buraya ekle.
+      { source: '/roma-imparatorlugu', destination: '/articles/rome', permanent: true },
+      { source: '/antik-yunan', destination: '/articles/greece', permanent: true },
+      { source: '/kartaca', destination: '/articles/carthage', permanent: true },
+      { source: '/turklerin-tarihi', destination: '/articles/turkler', permanent: true },
+      { source: '/kara-delikler', destination: '/articles/black-hole', permanent: true },
     ];
   },
 };
