@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { db } from '@/lib/supabase/server';
 import { ARTICLES } from '@/lib/articles';
+import { MAKALE_TARIH, SAYFA_TARIH, URETIM_TARIHI } from '@/lib/sitemap-dates';
 
 const SITE_URL = 'https://basementonfire.com';
 
@@ -10,27 +11,35 @@ export const revalidate = 3600;
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
+  // ── lastModified GERÇEK TARİHTEN (2026-07-31) ───────────────────────────
+  // Önceden her URL `now` alıyordu; harita saatte bir yenilendiği için tüm
+  // sayfalar sürekli "az önce değişti" diyordu. Google, lastmod her zaman
+  // güncelse alanı öğrenip YOK SAYAR — gerçek bir önceliklendirme sinyali
+  // boşa gidiyordu. Tarihler artık git geçmişinden geliyor.
+  // Yenilemek için: node scripts/sitemap-tarihleri.mjs
+  const tarih = (v?: string) => new Date(v ?? URETIM_TARIHI);
+
   const staticRoutes: MetadataRoute.Sitemap = [
-    { url: `${SITE_URL}/`, lastModified: now, changeFrequency: 'daily', priority: 1 },
-    { url: `${SITE_URL}/akis`, lastModified: now, changeFrequency: 'hourly', priority: 0.8 },
-    { url: `${SITE_URL}/discover`, lastModified: now, changeFrequency: 'daily', priority: 0.6 },
-    { url: `${SITE_URL}/reels`, lastModified: now, changeFrequency: 'daily', priority: 0.5 },
-    { url: `${SITE_URL}/muzik`, lastModified: now, changeFrequency: 'weekly', priority: 0.5 },
-    { url: `${SITE_URL}/lig`, lastModified: now, changeFrequency: 'daily', priority: 0.4 },
+    { url: `${SITE_URL}/`, lastModified: tarih(SAYFA_TARIH['/']), changeFrequency: 'daily', priority: 1 },
+    { url: `${SITE_URL}/akis`, lastModified: tarih(SAYFA_TARIH['/akis']), changeFrequency: 'hourly', priority: 0.8 },
+    { url: `${SITE_URL}/discover`, lastModified: tarih(SAYFA_TARIH['/discover']), changeFrequency: 'daily', priority: 0.6 },
+    { url: `${SITE_URL}/reels`, lastModified: tarih(SAYFA_TARIH['/reels']), changeFrequency: 'daily', priority: 0.5 },
+    { url: `${SITE_URL}/muzik`, lastModified: tarih(SAYFA_TARIH['/muzik']), changeFrequency: 'weekly', priority: 0.5 },
+    { url: `${SITE_URL}/lig`, lastModified: tarih(SAYFA_TARIH['/lig']), changeFrequency: 'daily', priority: 0.4 },
     // Kurumsal sayfalar — hepsi force-static, anonim istekte 200, kendi metadata'sı
     // index. E-E-A-T'nin (kim yazıyor, nasıl ulaşılır) doğrudan karşılığı.
-    { url: `${SITE_URL}/hakkimizda`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${SITE_URL}/teknoloji`, lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
-    { url: `${SITE_URL}/yol-haritasi`, lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
-    { url: `${SITE_URL}/iletisim`, lastModified: now, changeFrequency: 'yearly', priority: 0.5 },
-    { url: `${SITE_URL}/basin`, lastModified: now, changeFrequency: 'yearly', priority: 0.4 },
+    { url: `${SITE_URL}/hakkimizda`, lastModified: tarih(SAYFA_TARIH['/hakkimizda']), changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${SITE_URL}/teknoloji`, lastModified: tarih(SAYFA_TARIH['/teknoloji']), changeFrequency: 'monthly', priority: 0.5 },
+    { url: `${SITE_URL}/yol-haritasi`, lastModified: tarih(SAYFA_TARIH['/yol-haritasi']), changeFrequency: 'monthly', priority: 0.4 },
+    { url: `${SITE_URL}/iletisim`, lastModified: tarih(SAYFA_TARIH['/iletisim']), changeFrequency: 'yearly', priority: 0.5 },
+    { url: `${SITE_URL}/basin`, lastModified: tarih(SAYFA_TARIH['/basin']), changeFrequency: 'yearly', priority: 0.4 },
     // İngilizce genel bakış (tam çeviri değil, tek sayfa — bkz. app/en/page.tsx).
-    { url: `${SITE_URL}/en`, lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
+    { url: `${SITE_URL}/en`, lastModified: tarih(SAYFA_TARIH['/en']), changeFrequency: 'monthly', priority: 0.4 },
     // Hukuki metinler — herkese açık, güven/E-E-A-T sinyali için indekslensin.
-    { url: `${SITE_URL}/gizlilik`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
-    { url: `${SITE_URL}/kosullar`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
-    { url: `${SITE_URL}/aydinlatma`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
-    { url: `${SITE_URL}/acik-riza`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${SITE_URL}/gizlilik`, lastModified: tarih(SAYFA_TARIH['/gizlilik']), changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${SITE_URL}/kosullar`, lastModified: tarih(SAYFA_TARIH['/kosullar']), changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${SITE_URL}/aydinlatma`, lastModified: tarih(SAYFA_TARIH['/aydinlatma']), changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${SITE_URL}/acik-riza`, lastModified: tarih(SAYFA_TARIH['/acik-riza']), changeFrequency: 'yearly', priority: 0.3 },
     // ⚠ BİLEREK EKLENMEYENLER — buraya bir URL eklemeden önce iki soruyu sor:
     // "anonim istekte 200 dönüyor mu?" ve "sayfanın kendi metadata'sı index diyor mu?"
     // Search Console sitemap'teki her çelişkiyi HATA olarak raporlar ve haritanın
@@ -48,7 +57,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // sitemap otomatik güncellenir (elle senkron riski yok).
   const articleRoutes: MetadataRoute.Sitemap = ARTICLES.map(a => ({
     url: `${SITE_URL}/articles/${a.slug}`,
-    lastModified: now,
+    lastModified: tarih(MAKALE_TARIH[a.slug]),
     changeFrequency: 'monthly',
     priority: 0.9,
   }));
