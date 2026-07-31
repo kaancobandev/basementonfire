@@ -49,7 +49,114 @@ kelimelerinle söyle.
 | **Altı ay sonra ne göreceğiz?** | "Üç şey: **pilot kurumlar**, **ikisinin ücretli lisansa dönmesi**, **iki tamamlanmış sipariş içerik.**" |
 | **Fikri mülkiyet?** | "Marka başvurusu **2026/098481**, sınıf **9, 41, 42**, kelime markası. Kod telif kapsamında, 368 commit'lik tarihli geçmiş kanıt." |
 | **Neden BTM?** | "Ar-Ge personeli istihdamı, akademik hakemlik bağlantısı, ilk kurumsal müşteriye erişim." |
+| **🎯 İnovasyonunuz ne?** | "İnovasyon içerikte değil, **render katmanında**: bir WebGL sahnesinin bilinmeyen bir cihazdaki kalitesini **çalışma anında ölçerek** uyarlayan yöntem. Sektör cihaz listesi tutar, biz ölçeriz." |
+| **🎯 Farkınız ne?** | "**PhET** simülasyon veriyor, anlatı yok · **Evrim Ağacı/Vikipedi** anlatı veriyor, etkileşim yok · **Khan Academy Türkçesi çeviri**. Biz üçünü aynı sayfada, Türkçe için sıfırdan yapıyoruz — üstelik ucuz telefonda çalışıyor." |
+| **Bu oyunlarda zaten var** | "Oyunda ayarlar menüsü var, kullanıcı kaydırıcıyı çeker. Makalede okuyucu bir kez gelir, hiçbir şey ayarlamaz, takılırsa dönmez. Çözüm otomatik ve ikinci şansı olmayan bir çözüm olmak zorunda." |
 | **Tek başına nasıl yaptın?** | "Geliştirme araçlarına ayda 6.500 lira ayırarak. Bir ekibin çıktısını bir kişilik bütçeyle alıyorum." |
+
+---
+
+# 🎯 İNOVASYON VE FARKLILAŞMA — en ağır sorulan iki soru
+
+Bu mülakata daha önce girenlerin aktardığına göre sorular **ağırlıklı olarak
+buradan** geliyor. Diğer her şeyi bilip bu ikisini kaçırmak, dosyayı kaybettirir.
+
+## Soru A — "İnovasyonunuz ne?"
+
+⚠ **TUZAK: "ürünümüz interaktif" demek.** Bu bir *özellik*, inovasyon değil.
+Jürinin sorduğu şey: **daha önce olmayan ne var?**
+
+Cevabı üç katmanda ve **bu sırayla** ver:
+
+### 1 · Yöntem yeniliği — en güçlü kısım, buradan başla
+
+> "İnovasyon içerikte değil, render katmanında. Bir WebGL sahnesinin
+> **bilinmeyen bir cihazda** çalışma kalitesini, **çalışma anında ölçerek**
+> uyarlayan bir yöntem geliştirdik.
+>
+> Sektör standardı cihaz modeline göre önceden hazırlanmış kalite listeleri
+> tutmaktır. Biz liste tutmuyoruz: sahne çalışırken cihazın kendi kare süresini
+> ölçüyoruz. **90 karelik pencerede ortalama 26 ms'yi aşarsa çözünürlük düşer,
+> 30 ms'yi aşarsa animasyon son karesinde donar.**
+>
+> İki ayrıntı bunu önemsiz bir eşik kontrolünden ayırıyor: **ilk 60 kareyi
+> saymıyoruz** — çünkü sayfa otururken her cihaz yavaştır ve bunu ölçseydik
+> sağlam telefonları da haksız yere kısıtlardık; ve **200 ms'yi aşan kareleri
+> atıyoruz** çünkü onlar çizim maliyeti değil, sekme kısıtlaması ya da çöp
+> toplama. İkisini de test ederken keşfettik."
+
+**Bu paragrafın gücü, hataları anlatmasında.** "Warm-up penceresi olmadan sağlam
+telefonlar da kısıtlanıyordu" cümlesi, gerçekten deneyip ölçtüğünün kanıtı.
+Jüri teoriyi değil, bunu duymak istiyor.
+
+### 2 · Kategori boşluğu
+
+> "İkinci yenilik teknik değil, konumlanma: **anlatı, simülasyon ve ölçüm aynı
+> sayfada, Türkçe için sıfırdan.** Bu birleşim Türkçede yok."
+
+### 3 · Neyin YENİ OLMADIĞINI söyle
+
+> "Şunu da açık söyleyeyim: kullanıcıların tarayıcıda kendi JavaScript'ini
+> yazabilmesi yeni bir şey değil — CodePen benzeri araçlar yıllardır yapıyor.
+> Bizim yeniliğimiz orada değil, render katmanında."
+
+⚠ **Bu üçüncü madde en çok puan getiren yer.** Neyin yeni olmadığını kendin
+söylediğinde, yeni olduğunu iddia ettiğin şey inandırıcı hale gelir. Her şeye
+"inovatif" diyen başvurudan tam tersi izlenim kalır.
+
+---
+
+## Soru B — "Rakiplerinizden farkınız ne?"
+
+⚠ **"Rakibim yok" ASLA deme.** Bu cevap ya pazarı bilmediğini ya da pazar
+olmadığını gösterir; ikisi de kötü.
+
+Karşılaştırmayı **eksen eksen** yap, isim vererek:
+
+| | Anlatı | Etkileşim | Türkçe (yerli) | Ölçüm |
+|---|---|---|---|---|
+| Vikipedi, Evrim Ağacı | ✓ | ✗ | ✓ | ✗ |
+| YouTube eğitim kanalları | ✓ | ✗ | ✓ | ✗ |
+| PhET (Colorado Üniv.) | ✗ | ✓ | çeviri | ✗ |
+| Khan Academy Türkçe | ✓ | kısmen | çeviri | ✓ |
+| **Basementonfire** | ✓ | ✓ | ✓ | ✓ |
+
+**Söyleyeceğin cümle:**
+
+> "PhET simülasyon veriyor ama anlatı yok — tek başına duran deneyler. Evrim
+> Ağacı ve Vikipedi anlatı veriyor ama okuyucu hiçbir şeyi deneyemiyor. Khan
+> Academy'nin Türkçesi çeviri, üstelik video ve alıştırma temelli.
+>
+> Biz üçünü aynı sayfada birleştiriyoruz ve **Türkçe için çeviri değil, sıfırdan**
+> üretiyoruz. Bir de kimsenin çözmediği bir kısıtı çözüyoruz: bu simülasyonlar
+> **ucuz telefonda da çalışıyor.**"
+
+---
+
+## Beklenen karşı atak — hazır ol
+
+**"Dinamik çözünürlük ölçekleme oyunlarda yıllardır var. Sizinki ne farklı?"**
+
+Bu soru gelecek. Cevabı ezberle:
+
+> "Doğru, oyunlarda var — ama oyun farklı bir problem. Oyunda kullanıcı kurulum
+> yapmış, ayarlar menüsü var, donanım hedefi belli ve kalite kaydırıcısını
+> kendisi çekebiliyor.
+>
+> Tarayıcıdaki bir makalede bunların hiçbiri yok. Okuyucu bir kez geliyor,
+> hiçbir şey ayarlamıyor, takılırsa geri dönmüyor. Yani çözüm **otomatik**,
+> **anlık** ve **ikinci şansı olmayan** bir çözüm olmak zorunda.
+>
+> Bir fark daha var: biz kaliteyi kademeli düşürmüyoruz sadece — son kademede
+> animasyonu **son karesinde donduruyoruz.** Sahne takılmış gibi değil, durağan
+> bir görsel gibi görünüyor. Yani bozulma değil, **kasıtlı görünen bir son
+> durum.** Oyun motorlarında böyle bir davranış yok, çünkü oyunda donmuş kare
+> zaten başarısızlıktır; makalede ise kabul edilebilir bir bitiş."
+
+**"Ayarlar menüsü koysanız olmaz mıydı?"**
+
+> "Olurdu ama kimse kullanmazdı. Bir makaleyi okumaya gelen kişi grafik ayarı
+> yapmaz. Kararı ondan almak, ürünün çalışmasının ön koşulu."
 
 ---
 
