@@ -142,7 +142,7 @@ ispatı**dır.
 
 Elindeki kanıt aslında güçlü:
 
-- **Git geçmişi:** 368 commit, ilk kayıt 2 Haziran 2026. Her commit tarihli ve
+- **Git geçmişi:** 370'in üzerinde commit, ilk kayıt 2 Haziran 2026. Her commit tarihli ve
   içerik özetiyle (hash) bağlı. Bu, mahkemede kullanılabilir bir zaman kaydıdır.
 - **Uzak depo:** GitHub'daki kayıt bağımsız üçüncü taraf zaman damgası sağlar.
 
@@ -225,7 +225,7 @@ Verilecek cevap (bu adımlar tamamlandıktan sonra):
 
 > "Marka başvurumuz 9, 41 ve 42. sınıflarda TÜRKPATENT'e yapıldı, başvuru
 > numaramız şu. Alan adı ve hesap adları alındı. Kod ve içerik telif kapsamında;
-> 368 commit'lik tarihli git geçmişi eser sahipliğinin kanıtı. Kullandığımız
+> 370'in üzerinde commit'lik tarihli git geçmişi eser sahipliğinin kanıtı. Kullandığımız
 > açık kaynak bileşenlerin lisans envanteri çıkarıldı. Uyarlanabilir render
 > yöntemi için patentlenebilirlik araştırması planımızda var."
 

@@ -4,10 +4,12 @@
 **Durum:** BTM (Bilgiyi Ticarileştirme Merkezi) başvurusu — şirket henüz kurulmadı
 **Para birimi:** TL (aksi belirtilmedikçe)
 
-> **BU BELGE BİR ŞABLONDUR.** İçindeki tutarlar sıra-büyüklüğü tahminidir ve
-> senin gerçek rakamlarınla değiştirilmelidir. Değiştirilmesi gereken her hücre
-> `⟨…⟩` ile işaretli. Jüriye **uydurma kesinlik** sunmak, "bilmiyorum" demekten
-> daha kötüdür — bir rakamı savunamıyorsan aralık ver ve varsayımını söyle.
+> **GİDER RAKAMLARI GERÇEK** (30.07.2026, faturalardan). Gelir tarafındaki
+> fiyatlar ise **henüz yok** — hiçbir kurumla konuşulmadı, fiyat o görüşmelerden
+> çıkacak. Hâlâ `⟨…⟩` işaretli olanlar şirketleşme sonrası kalemler.
+>
+> Jüriye **uydurma kesinlik** sunmak, "bilmiyorum" demekten daha kötüdür —
+> savunamadığın rakamı aralık olarak ver ve varsayım olduğunu söyle.
 
 ---
 
@@ -28,7 +30,8 @@ Dört akış var. İlk yıl hedefi 1 ve 3; 2 ve 4 ölçek geldikçe açılır.
 
 ### Akış 1 — Kurum lisansı (birincil)
 
-Okul, kolej, dershane ve kurumsal eğitim birimleri için yıllık lisans.
+**Dershane zincirleri ve yayınevleri** için yıllık lisans. (Devlet okulu
+hedeflenmiyor: alım kararı müdürde değil, MEB düzeyinde.)
 
 ⚠ **BU HENÜZ YOK — PLAN.** Bugün ürün, okuyucuya yönelik bir yayın platformu.
 Öğretmene özel hiçbir araç yazılmadı: sınıf yönetimi yok, ödev atama yok,
@@ -65,7 +68,7 @@ verir. Dört kanal var, aciliyet ve büyüklük sırası farklı:
 |---|---|---|---|
 | **Dershane / kurs** | **En hızlı** | Küçük–orta | Tek kişi karar verir, rekabet baskısı yüksek. **İlk ödenen fatura buradan gelir** |
 | **Yayınevleri** | Yavaş | **En büyük etki** | Dağıtımları çözülmüş, bizim yaptığımızı yapamıyorlar. Bir anlaşma = yüzlerce okul |
-| **Bilim merkezleri / müzeler** | Orta | Proje bütçesi | Sipariş içerik alırlar; referans değeri yüksek |
+| **TÜBİTAK popüler bilim yayınları, bilim merkezleri** | Orta | Proje bütçesi | Sipariş içerik alırlar; referans değeri yüksek |
 | **Kurumsal eğitim** | Yavaş | **En büyük** | Motor konudan bağımsız — iş güvenliği, teknik eğitim. Uzun vade |
 
 **Üniversiteler** ayrı bir kapı: uzaktan eğitim merkezleri müşteri, akademik
@@ -114,7 +117,8 @@ düşüktür; buradan gelen geliri planın belkemiği yapmak hatadır.
 
 ### Akış 3 — Sponsorlu / sipariş içerik
 
-Bir kurumun (üniversite, müze, vakıf, teknoloji şirketi) konusunu aynı
+Bir kurumun (TÜBİTAK popüler bilim yayınları, bilim merkezi, vakıf, teknoloji
+şirketi) konusunu aynı
 interaktif formatta üretmek. Proje başına ⟨…⟩ TL.
 
 Bunun stratejik değeri gelirinden büyük: **hizmet işi, ürünün Ar-Ge'sini
@@ -183,7 +187,7 @@ tek rakama toplamak, "bu iş yaşayabilir mi?" sorusunu gereksiz yere zorlaştı
 rakam yanlış olur, ve "tek başına bunu nasıl yaptın?" sorusuna eksik cevap
 verirsin. Doğru çerçeve şu — zayıflık değil, kaldıraç:
 
-> "Tek kişiyim ve 62.500 satırlık bir ürün çıkardım. Bunu yapabilmemin sebebi
+> "Tek kişiyim ve 64.000 satırlık bir ürün çıkardım. Bunu yapabilmemin sebebi
 > geliştirme araçlarına ayda ~6.500 lira ayırmam. Bir ekibin çıktısını bir
 > kişilik bütçeyle alıyorum."
 

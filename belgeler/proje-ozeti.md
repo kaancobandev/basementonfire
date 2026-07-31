@@ -74,7 +74,7 @@ nerede kaybolduğunu görmenin temeli.
 | | |
 |---|---|
 | Yayındaki makale | 33, 6 konu başlığında |
-| Kod tabanı | 64.100 satır TypeScript, 368 commit, 888 dosya |
+| Kod tabanı | 64.000'in üzerinde satır TypeScript, 370'in üzerinde commit, ~890 dosya |
 | Zaman çizelgesi | Alan adı 2024 · aktif geliştirme Eylül 2025 · mevcut kod tabanı Haziran 2026'dan beri, tek kişi |
 | Dış sermaye | Yok — bugüne kadar tamamı özkaynak |
 | Arama görünürlüğü | Bu ay açıldı; son 10 günde gösterim 0 → günde ~15 |

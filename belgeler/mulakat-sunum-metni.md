@@ -47,7 +47,7 @@ kelimelerinle söyle.
 | **Görüştünüz mü?** | "Bu hafta **on kuruma** ulaştım: beş dershane zinciri, iki eğitim yayıncısı, üç klasik yayınevi. Dönüş bekliyorum." |
 | **Tek kişisiniz, ya siz olmazsanız?** | "**Bunu projenin en büyük riski olarak görüyorum.** BTM'den ilk beklentim de bu: birinci yılda içerik ya da satış tarafında bir kişi." |
 | **Altı ay sonra ne göreceğiz?** | "Üç şey: **pilot kurumlar**, **ikisinin ücretli lisansa dönmesi**, **iki tamamlanmış sipariş içerik.**" |
-| **Fikri mülkiyet?** | "Marka başvurusu **2026/098481**, sınıf **9, 41, 42**, kelime markası. Kod telif kapsamında, 368 commit'lik tarihli geçmiş kanıt." |
+| **Fikri mülkiyet?** | "Marka başvurusu **2026/098481**, sınıf **9, 41, 42**, kelime markası. Kod telif kapsamında, 370'in üzerinde commit'lik tarihli geçmiş kanıt." |
 | **Neden BTM?** | "Ar-Ge personeli istihdamı, akademik hakemlik bağlantısı, ilk kurumsal müşteriye erişim." |
 | **🎯 İnovasyonunuz ne?** | "İnovasyon içerikte değil, **render katmanında**: bir WebGL sahnesinin bilinmeyen bir cihazdaki kalitesini **çalışma anında ölçerek** uyarlayan yöntem. Sektör cihaz listesi tutar, biz ölçeriz." |
 | **🎯 Farkınız ne?** | "**PhET** simülasyon veriyor, anlatı yok · **Evrim Ağacı/Vikipedi** anlatı veriyor, etkileşim yok · **Khan Academy Türkçesi çeviri**. Biz üçünü aynı sayfada, Türkçe için sıfırdan yapıyoruz — üstelik ucuz telefonda çalışıyor." |
@@ -232,8 +232,7 @@ Telefonda ürünü satacak tek şey bu. Soyut anlatma, **tek bir ekranı tarif e
 
 ## Mesaj 4 — Nerede olduğum (2:30–3:15) · **dürüst ol**
 
-> Bunu tek başıma, dış sermaye almadan yaptım. İki ayda 368 commit, 64.100
-> satır kod. Platform KVKK ve GDPR uyumlu inşa edildi; ziyaretçi sayacımız çerez
+> Bunu tek başıma, dış sermaye almadan yaptım. İki ayda 370'in üzerinde commit, 64.000'in üzerinde satır kod. Platform KVKK ve GDPR uyumlu inşa edildi; ziyaretçi sayacımız çerez
 > koymuyor ve ham IP saklamıyor.
 >
 > Dağıtım tarafı ise daha yeni başlıyor: arama trafiği bu ay açıldı, son on
@@ -296,7 +295,7 @@ Tek sayfa, büyük punto, telefonda gözünle bulabileceğin şekilde.
 |---|---|
 | Makale sayısı | 33 (6 konu başlığı) |
 | Quiz sorusu | 94 |
-| Kod | **64.100 satır** · **368 commit** · 888 dosya |
+| Kod | **64.000'in üzerinde satır** · **370'in üzerinde commit** · ~890 dosya |
 | Zaman çizelgesi | Alan adı 2024 · aktif geliştirme Eylül 2025 · **mevcut kod tabanı Haziran 2026'da sıfırdan** |
 | Ekip | 1 kişi |
 | Dış sermaye | Yok |
@@ -352,7 +351,7 @@ sorarlarsa söyle; kendiliğinden isim saymak "anlaşma var" izlenimi yaratır v
 
 **"Tek başına bunu nasıl yaptın?"**
 > Geliştirme araçlarına ayda 6.500 lira ayırarak. Bir ekibin çıktısını bir
-> kişilik bütçeyle alıyorum — 62.500 satır kod, 33 makale, iki ayda.
+> kişilik bütçeyle alıyorum — 64.000'in üzerinde satır kod, 33 makale, iki ayda.
 
 **"Kaç kişisiniz?"**
 > Tek kişiyim ve bunu projenin en büyük riski olarak görüyorum. BTM'den ilk
@@ -369,7 +368,7 @@ sorarlarsa söyle; kendiliğinden isim saymak "anlaşma var" izlenimi yaratır v
 **"Fikri mülkiyet açısından neredesiniz?"**
 > Marka başvurumuz TÜRKPATENT'te, numarası 2026/098481 — 9, 41 ve 42. sınıflarda,
 > kelime markası olarak, yani adı her yazı tipinde koruyor. Kod ve içerik telif
-> kapsamında; 368 commit'lik tarihli geçmiş eser sahipliğinin kanıtı.
+> kapsamında; 370'in üzerinde commit'lik tarihli geçmiş eser sahipliğinin kanıtı.
 > Uyarlanabilir render yöntemi için patentlenebilirlik araştırması planımızda var.
 
 ⚠ **"Özelliklerimiz patentli" DEME.** Marka adı korur, özelliği değil; jüride
