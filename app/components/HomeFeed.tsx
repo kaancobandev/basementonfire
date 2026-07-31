@@ -26,7 +26,7 @@ import { normalizeStoryLink } from '@/lib/storyLink';
 import { ARTICLES } from '@/lib/articles';
 import { renderArticleStoryCard, renderTextStoryCard, TEXT_STORY_BGS } from '@/lib/storyCard';
 
-// Bağlantı alanının önerileri: 32 makale. Serbest yol da yazılabilir (datalist
+// Bağlantı alanının önerileri: makale listesinin tamamı. Serbest yol da yazılabilir (datalist
 // kısıtlamaz), ama en sık kullanılacak hedefler elle yazılmadan seçilebilsin.
 const articleLinkOptions = ARTICLES.map(a => ({ path: `/articles/${a.slug}`, title: a.title }));
 // Kırpıcı yalnız görsel seçilince insin — react-easy-crop akışın ilk yükünde yer almasın.

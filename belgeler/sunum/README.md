@@ -18,6 +18,19 @@ cümle/rakam değiştirmek için orayı düzenle, sonra üret.
 
 Slayt tipleri: `cover · bullets · stat · table · quadrant · timeline · closing`
 
+## Makale sayısı ELLE YAZILMAZ
+
+`{MAKALE}` ve `{KONU}` yer tutucuları, üretim sırasında `lib/articles.ts`'ten
+sayılarak dolduruluyor. Yeni makale eklediğinde sunumda değiştirilecek bir şey
+yok — sadece yeniden üret.
+
+Sitenin kendisi de aynı mantıkla çalışıyor (`ARTICLE_COUNT` / `CATEGORY_COUNT`),
+yani site ve sunum aynı kaynaktan besleniyor ve ayrışamıyorlar.
+
+⚠ Reklam metinleri (`../google-ads-arama-kampanyasi.md`) türetilemiyor — Google
+paneline elle yapıştırılıyor. Orada kesin sayı yerine **"30+"** tabanı kullanılıyor;
+40'a ulaşınca elle güncelle.
+
 ## Rakamlar nereden geliyor
 
 Hepsi `belgeler/` altındaki diğer dosyalarla aynı kaynaktan:

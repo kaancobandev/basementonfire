@@ -8,6 +8,11 @@ Arama Ağı'nda ise konuyu **zaten arayan** kişiye çıkıyorsun.
 Aşağıdaki metinlerin tamamı makalelerin gerçek içeriğinden çıkarıldı, uydurma yok.
 Karakter sayıları ölçüldü (başlık ≤30, açıklama ≤90).
 
+⚠ **Reklam metninde kesin sayı YAZMA.** Makale sayısı arttıkça reklamlar
+sessizce yalan söylemeye başlar ve Google panelinde bunu hatırlatan bir şey
+yoktur. Bu yüzden "30+" gibi bir taban kullanılıyor: 30-39 arası doğru kalır.
+40'a ulaşınca "40+" yap.
+
 ---
 
 ## 1 · Önce PMax'i duraklat
@@ -130,7 +135,7 @@ Türkçe İnteraktif Fizik
 Ay Neden Düşmüyor?
 Radyoaktivite Nedir?
 Deneyi Kendin Çalıştır
-33 İnteraktif Makale
+30+ İnteraktif Makale
 Kaynakçalı, Sıfatsız
 Doppler Etkisi Nedir?
 Fiziğe Sıfırdan Başla
@@ -188,7 +193,7 @@ Türkçe İnteraktif Biyoloji
 Kaç Hücren Sana Ait?
 Tardigrad Nedir?
 Endosimbiyoz Nedir?
-33 İnteraktif Makale
+30+ İnteraktif Makale
 Kaynakçalı, Sıfatsız
 Hesabı Kendin Yap
 Bakteriyofaj Nedir?
@@ -209,9 +214,9 @@ Sıfat değil sayı yazarız. Emin değilsek emin olmadığımızı yazarız.
 
 | Metin | Açıklama 1 | Açıklama 2 | Bağlantı |
 |---|---|---|---|
-| Tüm makaleler | 33 interaktif makale, 6 konu | Simülasyonlar tarayıcıda çalışır | `/discover` |
+| Tüm makaleler | 30+ interaktif makale, 6 konu | Simülasyonlar tarayıcıda çalışır | `/discover` |
 | Nasıl çalışıyor | Motorun nasıl çalıştığı | Simülasyonlar tarayıcıda çalışır | `/teknoloji` |
-| Hakkımızda | Kim yapıyor, neden yapıyor | 33 interaktif makale, 6 konu | `/hakkimizda` |
+| Hakkımızda | Kim yapıyor, neden yapıyor | 30+ interaktif makale, 6 konu | `/hakkimizda` |
 | Rastgele makale | Ne okuyacağını bilmiyorsan | Sana rastgele bir makale açar | `/rastgele` |
 
 **Açıklama metni uzantıları** (≤25 karakter)

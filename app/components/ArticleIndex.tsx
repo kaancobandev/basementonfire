@@ -79,7 +79,7 @@ export default function ArticleIndex({
   );
 
   // Kırpma yalnız "Tümü" görünümünde ve yalnız açılmamışken. Kırpılan satırlar
-  // DOM'DAN SİLİNMEZ, sadece gizlenir → 32 makale linki HTML'de kalır (SEO
+  // DOM'DAN SİLİNMEZ, sadece gizlenir → tüm makale linkleri HTML'de kalır (SEO
   // yüzeyi korunur; bu sayfada o linkler bilinçli olarak prerender ediliyor).
   const kirp = baslangicAdet != null && kategori === 'Tümü' && !hepsiAcik;
   const gizliSayi = kirp ? Math.max(0, articles.length - baslangicAdet!) : 0;
@@ -129,7 +129,7 @@ export default function ArticleIndex({
      kalacağını önceden hesapla. Akan tek bir sayaç yetmiyordu — tamamı kırpılan
      bölümün BAŞLIĞI boş listeyle görünüyordu (12 satır açıkken "KİMYA" başlığı
      altında hiç satır yoktu). Bölüm de `hidden` alıyor ama DOM'DAN SİLİNMİYOR,
-     böylece 32 makale linki HTML'de kalıyor. */
+     böylece tüm makale linkleri HTML'de kalıyor. */
   let kalan = kirp ? baslangicAdet! : Infinity;
   const bolumler = gruplar.map((g) => {
     const acik = Math.min(g.list.length, Math.max(0, kalan));

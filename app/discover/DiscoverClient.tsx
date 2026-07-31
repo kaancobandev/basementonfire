@@ -35,7 +35,7 @@ export default function DiscoverClient({ users, media, articles, communityArticl
   // ?q=... ile gelindiğinde (Google sitelinks arama kutusu) otomatik ara.
   // useSearchParams KULLANILMIYOR — sayfa artık ISR (bkz. page.tsx): o hook,
   // Next'i bu client component'i Suspense'e alıp İSTEMCİYE kaydırmaya zorlar ve
-  // 32 makale linki prerender HTML'inden çıkardı (SEO yüzeyi ölürdü).
+  // tüm makale linkleri prerender HTML'inden çıkardı (SEO yüzeyi ölürdü).
   // Mount'ta window.location okumak prerender'ı hiç etkilemez; ?q= zaten nadir
   // bir giriş yolu ve arama sonucu sayfası zaten indekslenmiyor.
   useEffect(() => {
@@ -184,7 +184,7 @@ export default function DiscoverClient({ users, media, articles, communityArticl
               İlk 12 satır açık, kalanı "Tümünü gör" ile açılıyor:
               32 kart bu hub sayfasında Gündem/Son Paylaşımlar/Kullanıcılar
               bölümlerini ekranın çok altına itiyordu. Kırpılan satırlar DOM'dan
-              SİLİNMİYOR (yalnız `hidden`) → 32 makale linki prerender HTML'inde
+              SİLİNMİYOR (yalnız `hidden`) → tüm makale linkleri prerender HTML'inde
               kalıyor, bu sayfanın SEO yüzeyi korunuyor. */}
           <div className="dc-section">
             <h2 className="dc-section-title">Makaleler</h2>

@@ -25,7 +25,7 @@ export const TR = {
     { tip: 'bullets', etiket: 'ÇÖZÜM', baslik: 'Her makalenin mekanizması çalışıyor.',
       alt: 'Anlatılan şey metinde kalmıyor; tarayıcıda çalışan bir simülasyona dönüşüyor. Kurulum yok, eklenti yok, güçlü cihaz gerekmiyor.',
       maddeler: [
-        ['33 uzun makale', 'Altı konu başlığında, tamamı Türkçe.'],
+        ['{MAKALE} uzun makale', '{KONU} konu başlığında, tamamı Türkçe.'],
         ['Ücretsiz ve üyeliksiz', 'Okumak için hesap açmak gerekmiyor.'],
         ['Her makalede kaynakça', 'Kaynaklar çelişiyorsa iki sürüm yan yana konuyor.'],
       ] },
@@ -33,7 +33,7 @@ export const TR = {
     { tip: 'stat', etiket: 'SOMUT ÖRNEK', baslik: 'Radyoaktivite: kendi sayını gör.',
       sayi: '7.840', sayiAlt: 'saniyede parçalanan atom çekirdeği · 70 kg için',
       govde: 'Okuyucu kilosunu giriyor, ekranda canlı bir sayaç dönüyor. Kaydırıcı oynadıkça sayı değişiyor. Okuyucu «radyoaktivite her yerdedir» cümlesini okumuyor — kendi vücudundaki sayıyı görüyor.',
-      not: '33 makalenin her birinde bunun gibi bir modül var: kuşatma simülasyonu, çift yarık deneyi, momentum çarpışması, mol hesaplayıcı.' },
+      not: '{MAKALE} makalenin her birinde bunun gibi bir modül var: kuşatma simülasyonu, çift yarık deneyi, momentum çarpışması, mol hesaplayıcı.' },
 
     { tip: 'table', etiket: 'AR-GE · 1', baslik: 'Tahmin etmiyoruz, ölçüyoruz.',
       alt: 'Bir fizik simülasyonunu ucuz bir telefonda akıcı çalıştırmak, içerik üretmekten zor bir problem. Sektör standardı cihaz modeline göre kalite listesi tutmaktır. Biz cihazın kendi kare süresini ölçüyoruz.',
@@ -77,7 +77,7 @@ export const TR = {
 
     { tip: 'bullets', etiket: 'ÜRÜN', baslik: 'Bugün yayında olanlar.',
       maddeler: [
-        ['İçerik', '33 uzun makale, 6 konu başlığı, 94 quiz sorusu. Her makalede çalışan bir simülasyon ve kaynakça.'],
+        ['İçerik', '{MAKALE} uzun makale, {KONU} konu başlığı, 94 quiz sorusu. Her makalede çalışan bir simülasyon ve kaynakça.'],
         ['Ölçüm katmanı', 'Okuma ilerlemesi, makale sonu quiz, karar noktası oyları. Kişiselleştirilmiş öğrenme yolunun temeli.'],
         ['Kullanıcı üretimi', 'Okuyucular yalıtılmış bir çerçevede kendi JavaScript kodlarını çalıştırarak interaktif makale yazabiliyor.'],
         ['Uyum', 'KVKK ve GDPR uyumlu: çerezsiz ziyaretçi sayacı, ham IP saklamayan ölçüm, veri indirme ve hesap silme.'],
@@ -94,7 +94,7 @@ export const TR = {
     { tip: 'table', etiket: 'MEVCUT DURUM', baslik: 'Kanıt.',
       basliklar: ['', ''],
       satirlar: [
-        ['Yayındaki makale', '33, altı konu başlığında'],
+        ['Yayındaki makale', '{MAKALE}, {KONU} konu başlığında'],
         ['Kod tabanı', "64.000+ satır TypeScript · 370+ commit · ~890 dosya"],
         ['Zaman çizelgesi', "Alan adı 2024 · aktif geliştirme Eylül 2025 · mevcut kod tabanı Haziran 2026'dan beri"],
         ['Ekip', '1 kişi'],
@@ -224,7 +224,7 @@ export const EN = {
     { tip: 'bullets', etiket: 'SOLUTION', baslik: 'Every article runs its own mechanism.',
       alt: 'What the article explains does not stay in the text; it becomes a simulation running in the browser. No install, no plugin, no powerful device required.',
       maddeler: [
-        ['33 long-form articles', 'Across six subject areas, all in Turkish.'],
+        ['{MAKALE} long-form articles', 'Across {KONU} subject areas, all in Turkish.'],
         ['Free, no account', 'Reading requires no sign-up.'],
         ['A bibliography in every article', 'Where sources conflict, both versions are shown side by side.'],
       ] },
@@ -232,7 +232,7 @@ export const EN = {
     { tip: 'stat', etiket: 'CONCRETE EXAMPLE', baslik: 'Radioactivity: see your own number.',
       sayi: '7,840', sayiAlt: 'nuclei decaying per second · for 70 kg',
       govde: 'The reader enters their weight and a live counter starts. Move the slider and the number changes. The reader does not read the sentence “radioactivity is everywhere” — they see the number inside their own body.',
-      not: 'Each of the 33 articles carries a module like this: a siege simulation, the double-slit experiment, momentum collision, a mole calculator.' },
+      not: 'Each of the {MAKALE} articles carries a module like this: a siege simulation, the double-slit experiment, momentum collision, a mole calculator.' },
 
     { tip: 'table', etiket: 'R&D · 1', baslik: 'We measure rather than predict.',
       alt: 'Running a physics simulation smoothly on a cheap phone is harder than producing the content. The industry standard is a quality list keyed to device models. We measure the device’s own frame time instead.',
@@ -276,7 +276,7 @@ export const EN = {
 
     { tip: 'bullets', etiket: 'PRODUCT', baslik: 'What is live today.',
       maddeler: [
-        ['Content', '33 long-form articles, 6 subject areas, 94 quiz questions. A working simulation and a bibliography in each.'],
+        ['Content', '{MAKALE} long-form articles, {KONU} subject areas, 94 quiz questions. A working simulation and a bibliography in each.'],
         ['Measurement layer', 'Reading progress, end-of-article quizzes, decision-point polls. The basis for a personalised learning path.'],
         ['User-generated', 'Readers can write interactive articles by running their own JavaScript inside a sandboxed frame.'],
         ['Compliance', 'Built for KVKK and GDPR: cookieless visitor counting, no raw IP stored, data export and account deletion.'],
@@ -293,7 +293,7 @@ export const EN = {
     { tip: 'table', etiket: 'CURRENT STATE', baslik: 'Evidence.',
       basliklar: ['', ''],
       satirlar: [
-        ['Articles live', '33, across six subject areas'],
+        ['Articles live', '{MAKALE}, across {KONU} subject areas'],
         ['Codebase', '64,000+ lines of TypeScript · 370+ commits · ~890 files'],
         ['Timeline', 'Domain 2024 · active development from September 2025 · current codebase since June 2026'],
         ['Team', '1 person'],

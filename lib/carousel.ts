@@ -71,7 +71,7 @@ export function carouselTheme(slug: string): CarouselTheme {
 // ── Slayt çözümleyici ───────────────────────────────────────────────────────
 // FLAGSHIP içerik: elle yazılmış fact slaytları. Yalnızca makale kanıtına
 // dayanır (uydurma yok); kaynak makalenin kendi metnidir. Girişi olmayan makale
-// OTOMATİK 3 slayta düşer (kapak + fotoğraf + kapanış) — 32 makalenin hepsi
+// OTOMATİK 3 slayta düşer (kapak + fotoğraf + kapanış) — makalelerin hepsi
 // sıfır ek içerikle çalışır.
 const FLAGSHIP: Record<string, Slide[]> = {
   sezar: [

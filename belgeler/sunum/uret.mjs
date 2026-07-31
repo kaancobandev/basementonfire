@@ -12,7 +12,21 @@ const PROFILE = path.join(process.env.TEMP, 'bof-deck');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const logoB64 = 'data:image/png;base64,' + fs.readFileSync(LOGO).toString('base64');
-const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+// ── SAYILAR KAYNAKTAN OKUNUR (2026-07-31) ─────────────────────────────────
+// Makale sayısı sunumda ELLE yazılıydı; her yeni makalede sunum sessizce
+// yalan söylemeye başlıyordu. Artık lib/articles.ts'ten sayılıyor — site
+// zaten ARTICLE_COUNT kullanıyor, sunum da aynı kaynağa bağlandı.
+const ART_TS = fs.readFileSync('C:/Users/Kaan/Desktop/Kaan/basements-nextjs/lib/articles.ts', 'utf8');
+const MAKALE = (ART_TS.match(/slug: '[^']+'/g) ?? []).length;
+const KONU = new Set((ART_TS.match(/category: '[^']+'/g) ?? [])).size;
+// Sunumda rakam kullanılıyor, yazıyla sayı yok — Türkçe sayı yazımı için
+// yardımcı eklemeye gerek yok (bir denemesi 40'ta "otuz kırk" üretiyordu).
+const doldur = (x) => typeof x === 'string'
+  ? x.replaceAll('{MAKALE}', String(MAKALE)).replaceAll('{KONU}', String(KONU))
+  : x;
+console.log(`sayilar: ${MAKALE} makale, ${KONU} konu`);
+const esc = (s) => doldur(String(s)).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 // ── Slayt gövdeleri ────────────────────────────────────────────────────────
 function kapak(s) {
