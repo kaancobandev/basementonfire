@@ -65,10 +65,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // NOT: IndexNow tarafı DEĞİŞMEDİ — yeni gönderi hâlâ /p/ ve /u/ URL'lerini
   // ping'liyor (app/api/upload, app/api/quick-facts/[id]). Orası ayrı bir kanal;
   // tutarlılık istersen onu da ayrıca kararlaştır.
+  // ── HASHTAG EŞİĞİ (2026-07-30) ──────────────────────────────────────────
+  // Etiket sayfaları, /u ve /p ile AYNI zayıflık sınıfında ve daha kötüsü:
+  // birbirlerinin neredeyse kopyası oluyorlar. Ölçüldü — on etiket sayfasının
+  // her biri 1034 kelime döndürüyordu ve dördü de AYNI tek gönderiyi
+  // (/p/14) listeliyordu; benzersiz içerik yalnızca başlıktaki kelime.
+  // Sitemap'in %17'si bu sayfalardan oluşuyordu.
+  //
+  // Sayfalar çalışmaya devam ediyor (kullanıcı ve iç link için gerekli),
+  // yalnızca "bunu indeksle" diye GÖNDERMİYORUZ. Etiket yeterince gönderi
+  // toplayınca kendiliğinden haritaya giriyor.
+  const HASHTAG_MIN_GONDERI = 3;
+
   let dynamicRoutes: MetadataRoute.Sitemap = [];
   try {
     const [{ data: tags }, { data: userArticles }] = await Promise.all([
-      db.from('hashtags').select('tag').limit(2000),
+      db.from('hashtags').select('tag, post_hashtags(hashtag_id)').limit(2000),
       // Onaylı (yayındaki) kullanıcı makaleleri — /makale/[slug] herkese açık yayınlanmış içerik.
       db.from('user_articles')
         .select('slug, published_at, updated_at')
@@ -77,7 +89,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         .limit(5000),
     ]);
     const tagRoutes: MetadataRoute.Sitemap = (tags ?? [])
-      .filter((t: any) => t.tag)
+      .filter((t: any) => t.tag && (t.post_hashtags?.length ?? 0) >= HASHTAG_MIN_GONDERI)
       .map((t: any) => ({
         // encodeURIComponent ŞART (Türkçe etiketler) — rota tarafı bunu
         // lib/caption.ts → tagFromParam() ile çözer, ikisi birlikte çalışır.
