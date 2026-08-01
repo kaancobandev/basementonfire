@@ -462,7 +462,7 @@ export const ITALYA_ANKET = {
 
 export const OLUM = {
   yil: 453,
-  gelin: 'Ildico',
+  gelin: 'İldiko',
   sahne:
     'Düğün gecesi. Sabah kapı açılmıyor. İçeri girildiğinde Atilla ölü bulunuyor, yanında ağlayan gelin var. Görünür bir yara yok.',
   girisMetni:
@@ -480,7 +480,7 @@ export const OLUM = {
     },
     {
       id: 'ildico',
-      label: 'Ildico öldürdü',
+      label: 'İldiko öldürdü',
       ozet: '"Bir kadının eliyle" ölüm.',
       kaynak: 'Marcellinus Comes (~518-534)',
       delil:

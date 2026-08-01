@@ -9,8 +9,8 @@
 // bağlı tek şey KavimlerGocu'nun oynatıcısı ve o da mount sonrası çalışıyor.
 
 import { useEffect, useRef, useState } from 'react';
-import { ACCENT, BONE, GARNET, GOLD, IRON, WidgetFrame, ActionButton, WordNote, clamp, tr, useReducedMotion } from './ui';
-import { ONCEKILER, GOC, KAGAN, BARBAR, ISIM, KILIC, HARAC, SURLAR, CATALAUNUM } from './data';
+import { ACCENT, BONE, GARNET, GOLD, IRON, WidgetFrame, ActionButton, WordNote, buyuk, clamp, tr, useReducedMotion } from './ui';
+import { ONCEKILER, GOC, KAGAN, BARBAR, ISIM, KILIC, HARAC, SURLAR, CATALAUNUM, DEFIN, EFSANE } from './data';
 
 /* ══════════════ Perde 1 · Bozkır zaman şeridi ══════════════ */
 
@@ -596,6 +596,136 @@ export function SayiDedektoru() {
       )}
 
       <p className="mt-4 text-sm leading-relaxed text-slate-400">{CATALAUNUM.sayi.itiraz}</p>
+    </WidgetFrame>
+  );
+}
+
+/* ══════════════ Perde 9 · Üç tabut ══════════════ */
+
+// Jordanes'in anlattığı defin: demir, gümüş, altın iç içe. Okur üçünü tek tek
+// açıyor ve MERKEZDE HİÇBİR ŞEY BULMUYOR — çünkü mezar hiç bulunamadı.
+// Bu, makalenin kapanış tezinin görsel hâli: elde kalan şey ceset değil, ad.
+const TABUT_RENK: Record<string, string> = { Demir: IRON, Gümüş: '#c9ccd4', Altın: GOLD };
+
+export function UcTabut() {
+  const [acilan, setAcilan] = useState(0); // kaç tabut açıldı (0..3)
+  const bitti = acilan >= DEFIN.tabutlar.length;
+  const siradaki = DEFIN.tabutlar[acilan];
+
+  return (
+    <WidgetFrame
+      hero
+      kicker={`PERDE 9 · ${buyuk(DEFIN.ad)}`}
+      title="Üç tabut"
+      hint={DEFIN.tanim}
+    >
+      <svg viewBox="0 0 320 200" className="w-full rounded-xl border border-white/10" style={{ background: '#0a0706' }}
+        role="img" aria-label={`İç içe üç tabut; ${acilan} tanesi açıldı`}>
+        {DEFIN.tabutlar.map((t, i) => {
+          const acik = i < acilan;
+          const pad = i * 26;
+          const renk = TABUT_RENK[t.madde] ?? IRON;
+          return (
+            <g key={t.madde} style={{ opacity: acik ? 0.16 : 1, transition: 'opacity 0.7s ease' }}>
+              <rect x={30 + pad} y={30 + pad * 0.62} width={260 - pad * 2} height={140 - pad * 1.24} rx="8"
+                fill="none" stroke={renk} strokeWidth={acik ? 1 : 2.5} />
+              <text x={38 + pad} y={46 + pad * 0.62} fill={renk} fontSize="11" fontWeight="700"
+                fontFamily="system-ui, sans-serif">{t.madde}</text>
+            </g>
+          );
+        })}
+        {bitti && (
+          <text x="160" y="106" fill={BONE} fontSize="15" fontWeight="700" textAnchor="middle"
+            fontFamily="system-ui, sans-serif" style={{ animation: 'atilla-fade 0.8s ease-out' }}>
+            boş
+          </text>
+        )}
+      </svg>
+
+      <div className="mt-3 space-y-2">
+        {DEFIN.tabutlar.slice(0, acilan).map((t) => (
+          <div key={t.madde} className="rounded-xl border px-3.5 py-2.5"
+            style={{ borderColor: `color-mix(in srgb, ${TABUT_RENK[t.madde] ?? IRON} 40%, transparent)`, background: `color-mix(in srgb, ${TABUT_RENK[t.madde] ?? IRON} 8%, transparent)` }}>
+            <span className="text-sm font-bold" style={{ color: TABUT_RENK[t.madde] ?? IRON }}>{t.madde}</span>
+            <span className="ml-2 text-[0.84rem] text-slate-300">{t.anlam}</span>
+          </div>
+        ))}
+      </div>
+
+      {!bitti ? (
+        <div className="mt-4">
+          <ActionButton onClick={() => setAcilan(acilan + 1)} full tone="ghost">
+            {siradaki.madde} tabutu aç
+          </ActionButton>
+        </div>
+      ) : (
+        <div className="mt-4 space-y-3" style={{ animation: 'atilla-fade 0.6s ease-out' }}>
+          <p className="text-sm leading-relaxed text-slate-300">{DEFIN.gomu}</p>
+          <p className="text-base font-bold" style={{ color: GARNET }}>{DEFIN.bugun}</p>
+          <p className="text-[0.92rem] font-semibold leading-relaxed" style={{ color: ACCENT }}>{DEFIN.punch}</p>
+        </div>
+      )}
+    </WidgetFrame>
+  );
+}
+
+/* ══════════════ Perde 10 · Efsane karşılaştırıcı ══════════════ */
+
+export function EfsaneKarsilastirici() {
+  const [sel, setSel] = useState(0);
+  const g = EFSANE.gelenekler[sel];
+  const renk = ({ iron: IRON, gold: GOLD, ember: ACCENT, garnet: GARNET } as Record<string, string>)[g.renk] ?? ACCENT;
+
+  return (
+    <WidgetFrame
+      hero
+      kicker="PERDE 10 · DÖRT GELENEK"
+      title="Aynı adam, dört ayrı portre"
+      hint="Dördü de onu sahiplendi ve dördü de başka birini anlattı. Sekmelere dokun."
+      footnote={EFSANE.punch}
+    >
+      <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+        {EFSANE.gelenekler.map((x, i) => {
+          const r = ({ iron: IRON, gold: GOLD, ember: ACCENT, garnet: GARNET } as Record<string, string>)[x.renk] ?? ACCENT;
+          const on = sel === i;
+          return (
+            <button
+              key={x.ad}
+              onClick={() => setSel(i)}
+              aria-pressed={on}
+              className="min-h-[56px] rounded-xl border px-2 py-2 text-center text-[0.7rem] font-bold leading-tight transition"
+              style={{
+                borderColor: on ? r : 'rgba(255,255,255,0.12)',
+                background: on ? `color-mix(in srgb, ${r} 16%, transparent)` : 'rgba(255,255,255,0.02)',
+                color: on ? '#fff' : '#a8a29e',
+              }}
+            >
+              {x.ad}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="mt-3 rounded-xl border p-4" style={{ borderColor: `${renk}55`, background: `color-mix(in srgb, ${renk} 8%, transparent)` }}>
+        <div className="font-mono text-[0.66rem]" style={{ color: renk }}>{g.nerede}</div>
+        <div className="mt-1 text-base font-bold" style={{ color: BONE }}>{g.eser}</div>
+        <p className="mt-2 text-[0.88rem] leading-relaxed text-slate-300">{g.portre}</p>
+      </div>
+
+      {/* Aynı ölüm, dört anlatı */}
+      <div className="mt-5">
+        <div className="mb-2 text-[0.62rem] font-bold tracking-[0.2em]" style={{ color: IRON }}>
+          {buyuk(EFSANE.ayniSahne.baslik)}
+        </div>
+        <div className="space-y-1.5">
+          {EFSANE.ayniSahne.satirlar.map((s) => (
+            <div key={s.kim} className="flex items-baseline gap-3 rounded-lg px-2 py-2 hover:bg-white/5">
+              <span className="w-[8.6rem] shrink-0 text-[0.7rem] font-semibold" style={{ color: IRON }}>{s.kim}</span>
+              <span className="min-w-0 flex-1 text-[0.84rem] leading-snug text-slate-300">{s.ne}</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </WidgetFrame>
   );
 }

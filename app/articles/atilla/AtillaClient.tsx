@@ -3,19 +3,22 @@
 import dynamic from 'next/dynamic';
 import {
   ArticleShell, ArticleHero, ArticleLede, ArticleSection,
+  HorizontalTimeline, ArticleQuiz, ArticleBibliography, ArticleFooter,
 } from '@/app/components/article/ArticleBlocks';
 import SourceCompare, { type CompareSource } from '@/app/components/article/SourceCompare';
 import { ACCENT, BG, BONE, GARNET, GOLD, IRON, InView, MythNote, SourceNote, Stat, WidgetSkeleton, buyuk, tokenHex, tr } from './ui';
 import { ReadingProgress, PerdeNav } from './chrome';
 import {
   BozkirSeridi, KavimlerGocu, KaganlikSemasi, BarbarPanosu, IsimAgaci, KilicIfsa,
-  HaracSayaci, SurKesiti, SayiDedektoru,
+  HaracSayaci, SurKesiti, SayiDedektoru, UcTabut, EfsaneKarsilastirici,
 } from './widgets';
-import { HonoriaKarar, ItalyaAnketi } from './decisions';
+import { HonoriaKarar, ItalyaAnketi, OtagKarari } from './decisions';
 import { CatalaunumPoster } from './posters';
+import { refs } from './refs';
 import {
   OTAG, GOC, KAGAN, BARBAR, ISIM, BLEDA, BLEDA_SOURCES, NUMBERS,
   SURLAR, HONORIA, AETIUS, CATALAUNUM, ITALYA, ITALYA_SOURCES,
+  OLUM, EFSANE, SONRASI, timeline, quizQs,
 } from './data';
 
 // Tek ağır modül: CSS transition'lı SVG savaş animasyonu. InView + poster ile
@@ -38,6 +41,9 @@ const PERDES = [
   { id: 'perde-6', label: 'Yüzük' },
   { id: 'perde-7', label: 'Catalaunum' },
   { id: 'perde-8', label: 'İtalya ve Papa' },
+  { id: 'perde-9', label: 'Otağ' },
+  { id: 'perde-10', label: 'Efsane' },
+  { id: 'perde-11', label: 'Yıkmadığı Roma' },
 ];
 
 const bledaSources: CompareSource[] = BLEDA_SOURCES.map((s) => ({
@@ -355,8 +361,114 @@ export default function AtillaClient() {
         </ArticleSection>
       </div>
 
-      {/* ── Perde 9-11 bir sonraki adımda: otağ karar modülü + üç tabut,
-           efsane karşılaştırıcı, kapanış (476 ve Orestes). ── */}
+      {/* ══════════ PERDE 9 — Otağ ══════════ */}
+      <div id="perde-9" className="scroll-mt-16">
+        <ArticleSection kicker={`PERDE 9 · ${SONRASI.dagilma[0].yil}`} title="Otağ">
+          <p className="leading-relaxed text-slate-300">
+            İtalya’dan döndükten sonraki yıl. Yeni bir evlilik, {OLUM.gelin} adında genç bir gelin, bir düğün gecesi.
+            Ertesi sabah muhafızlar kapıyı kırmak zorunda kalıyor.
+          </p>
+
+          <div className="my-7">
+            <OtagKarari />
+          </div>
+
+          <p className="leading-relaxed text-slate-300">
+            Ölümden sonra yapılanlar da en az ölümün kendisi kadar dikkat çekici — çünkü hepsi
+            <strong> geriye iz bırakmamak</strong> üzerine kurulu.
+          </p>
+
+          <div className="my-7">
+            <UcTabut />
+          </div>
+        </ArticleSection>
+      </div>
+
+      {/* ══════════ PERDE 10 — Efsane ══════════ */}
+      <div id="perde-10" className="scroll-mt-16">
+        <ArticleSection kicker="PERDE 10 · HAFIZA" title="Efsane">
+          <p className="leading-relaxed text-slate-300">{EFSANE.giris}</p>
+
+          <div className="my-7">
+            <EfsaneKarsilastirici />
+          </div>
+
+          <p className="leading-relaxed text-slate-300">
+            Dikkat: bu dört metin <em>tarih kaydı</em> değil, <strong>hafıza belgesi</strong>. Ne olduğunu değil,
+            kimin sahiplendiğini anlatıyorlar. Ve bir hükümdar için bu ikincisi bazen daha uzun ömürlü çıkıyor.
+          </p>
+        </ArticleSection>
+      </div>
+
+      {/* ══════════ PERDE 11 — Yıkmadığı Roma ══════════ */}
+      <div id="perde-11" className="scroll-mt-16">
+        <ArticleSection kicker="PERDE 11 · KAPANIŞ" title="Yıkmadığı Roma">
+          <p className="leading-relaxed text-slate-300">
+            Atilla öldükten sonra imparatorluğun dağılması uzun sürmedi. Bir devlet kurumlarıyla ayakta duruyorsa
+            hükümdarını gömer ve yoluna devam eder; kişisiyle ayakta duruyorsa onunla birlikte durur.
+          </p>
+
+          <ol className="my-7 space-y-3">
+            {SONRASI.dagilma.map((d) => (
+              <li key={d.yil} className="flex gap-4 rounded-xl border border-white/10 bg-white/[0.03] p-4">
+                <span className="shrink-0 font-mono text-sm font-bold" style={{ color: GARNET }}>{d.yil}</span>
+                <span className="leading-relaxed text-slate-300">{d.olay}</span>
+              </li>
+            ))}
+          </ol>
+
+          <div className="my-7 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+            <Stat value={tr(NUMBERS.olum)} label="Atilla öldü" color={ACCENT} />
+            <Stat value={tr(NUMBERS.imparatorlukSonu)} label="imparatorluk bitti" color={GARNET} />
+            <Stat value={tr(SONRASI.omur)} label="yıl sürdü" color={IRON} />
+            <Stat value={tr(NUMBERS.romaSonu)} label="Batı Roma düştü" color={GOLD} />
+          </div>
+
+          <h3 className="mt-10 text-xl font-bold text-white">Peki Roma’yı kim yıktı?</h3>
+          <p className="mt-3 leading-relaxed text-slate-300">{SONRASI.roma.olay}</p>
+          <p className="mt-4 leading-relaxed text-slate-300">{SONRASI.roma.tebaa}</p>
+
+          <div className="my-7 rounded-xl border p-5" style={{ borderColor: `${GOLD}55`, background: `color-mix(in srgb, ${GOLD} 8%, transparent)` }}>
+            <div className="mb-2 text-[0.62rem] font-bold tracking-[0.2em]" style={{ color: GOLD }}>
+              {buyuk(SONRASI.roma.orestes.baslik)}
+            </div>
+            <p className="leading-relaxed text-slate-200">{SONRASI.roma.orestes.metin}</p>
+            <p className="mt-3 text-lg font-bold leading-relaxed" style={{ color: BONE }}>{SONRASI.roma.orestes.punch}</p>
+          </div>
+
+          {/* Kapanış tezi */}
+          <div className="my-8 space-y-4 border-l-2 pl-5" style={{ borderColor: ACCENT }}>
+            {SONRASI.kapanis.map((k, i) => (
+              <p
+                key={i}
+                className={i === SONRASI.kapanis.length - 1 ? 'text-xl font-bold leading-relaxed' : 'leading-relaxed text-slate-300'}
+                style={i === SONRASI.kapanis.length - 1 ? { color: ACCENT } : undefined}
+              >
+                {k}
+              </p>
+            ))}
+          </div>
+
+          <p className="leading-relaxed text-slate-400">
+            Bu seri, kendisinden sonra işlemeye devam eden makineler kuran adamları anlatıyor:{' '}
+            <a href="/articles/sezar" className="article-ilink">Sezar</a>,{' '}
+            <a href="/articles/augustus" className="article-ilink">Augustus</a>,{' '}
+            <a href="/articles/fatih" className="article-ilink">Fatih</a> ve{' '}
+            <a href="/articles/kanuni" className="article-ilink">Kanuni</a>. Atilla serinin negatifi:
+            makine kurmadı, makinenin kendisiydi. Hunların Avrupa’ya gelene kadarki yolu için{' '}
+            <a href="/articles/turkler" className="article-ilink">Türklerin Tarihi</a>, karşısındaki devletin
+            hikâyesi için <a href="/articles/rome" className="article-ilink">Roma İmparatorluğu</a>.
+          </p>
+        </ArticleSection>
+      </div>
+
+      <HorizontalTimeline heading="MÖ 209’dan 476’ya" items={timeline} />
+
+      <ArticleQuiz questions={quizQs} />
+
+      <ArticleBibliography items={refs} accent={ACCENT} />
+
+      <ArticleFooter tagline="Bozkırdan geldi, öldü, geriye efsanesi kaldı." />
     </ArticleShell>
   );
 }
