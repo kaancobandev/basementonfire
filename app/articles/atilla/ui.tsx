@@ -67,6 +67,21 @@ export function tr(n: number, dec = 0): string {
 
 export const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
+/**
+ * TÜRKÇE BÜYÜK HARF. Düz `toUpperCase()` KULLANMA.
+ *
+ * ⚠ ÖLÇÜLDÜ (2026-08-01): savaş animasyonunun faz başlığı ekranda "FAZ 1 ·
+ * DIZILIŞ" çıkıyordu — "Diziliş" kelimesindeki `i`, `İ` değil `I` oluyor.
+ * Aynı hata "MILANO'DAKI TABLO", "TALEBI KABUL ET", "ATILLA'NIN KARARGÂHI"
+ * gibi her kicker'da tekrarlıyordu.
+ *
+ * NİYE `toLocaleUpperCase('tr-TR')` DEĞİL: o çağrı ortamın ICU verisine bağlı;
+ * Node ile tarayıcı ayrışırsa SSR/hidrasyon uyuşmazlığı doğar. `i → İ` elle
+ * çevrilip sonra toUpperCase çağrılıyor → sonuç her ortamda AYNI string.
+ * (Aynı ders `CATEGORY_SLUG`'un elle harita yazılmasına yol açmıştı.)
+ */
+export const buyuk = (s: string) => s.replace(/i/g, 'İ').toUpperCase();
+
 /** Deterministik sahte-rastgele (posterler; Math.random YASAK — SSR tutarlılığı). */
 export const rnd = (i: number) => (((Math.sin(i * 12.9898) * 43758.5453) % 1) + 1) % 1;
 

@@ -1,13 +1,26 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import {
   ArticleShell, ArticleHero, ArticleLede, ArticleSection,
 } from '@/app/components/article/ArticleBlocks';
 import SourceCompare, { type CompareSource } from '@/app/components/article/SourceCompare';
-import { ACCENT, BG, BONE, GARNET, GOLD, IRON, MythNote, SourceNote, Stat, tokenHex, tr } from './ui';
+import { ACCENT, BG, BONE, GARNET, GOLD, IRON, InView, MythNote, SourceNote, Stat, WidgetSkeleton, buyuk, tokenHex, tr } from './ui';
 import { ReadingProgress, PerdeNav } from './chrome';
-import { BozkirSeridi, KavimlerGocu, KaganlikSemasi, BarbarPanosu, IsimAgaci, KilicIfsa } from './widgets';
-import { OTAG, GOC, KAGAN, BARBAR, ISIM, BLEDA, BLEDA_SOURCES, NUMBERS } from './data';
+import {
+  BozkirSeridi, KavimlerGocu, KaganlikSemasi, BarbarPanosu, IsimAgaci, KilicIfsa,
+  HaracSayaci, SurKesiti, SayiDedektoru,
+} from './widgets';
+import { HonoriaKarar, ItalyaAnketi } from './decisions';
+import { CatalaunumPoster } from './posters';
+import {
+  OTAG, GOC, KAGAN, BARBAR, ISIM, BLEDA, BLEDA_SOURCES, NUMBERS,
+  SURLAR, HONORIA, AETIUS, CATALAUNUM, ITALYA, ITALYA_SOURCES,
+} from './data';
+
+// Tek ağır modül: CSS transition'lı SVG savaş animasyonu. InView + poster ile
+// ekrana girene kadar indirilmiyor (bkz. [[article-interactive-heavy-pattern]]).
+const CatalaunumSim = dynamic(() => import('./sim-catalaunum'), { ssr: false, loading: () => <WidgetSkeleton height={560} /> });
 
 // Bozkır gecesi: yanık toprak siyahı → garnet → kor. Kanuni'nin kobalt gecesinden
 // ve Fatih'in takıntı mavisinden BİLEREK uzak: bu bir saray makalesi değil.
@@ -21,9 +34,17 @@ const PERDES = [
   { id: 'perde-2', label: 'Kağan' },
   { id: 'perde-3', label: 'İsim' },
   { id: 'perde-4', label: 'İki kağan, bir taht' },
+  { id: 'perde-5', label: 'Haraç ve surlar' },
+  { id: 'perde-6', label: 'Yüzük' },
+  { id: 'perde-7', label: 'Catalaunum' },
+  { id: 'perde-8', label: 'İtalya ve Papa' },
 ];
 
 const bledaSources: CompareSource[] = BLEDA_SOURCES.map((s) => ({
+  name: s.name, role: s.role, text: s.text, color: tokenHex[s.color],
+}));
+
+const italyaSources: CompareSource[] = ITALYA_SOURCES.map((s) => ({
   name: s.name, role: s.role, text: s.text, color: tokenHex[s.color],
 }));
 
@@ -65,7 +86,7 @@ export default function AtillaClient() {
 
       {/* ══════════ PERDE 0 — Cold open: tahta kadeh ══════════ */}
       <div id="perde-0" className="scroll-mt-16">
-        <ArticleSection kicker={`PERDE 0 · COLD OPEN · ${OTAG.year} · ${OTAG.place.toUpperCase()}`} title="Tahta kadeh">
+        <ArticleSection kicker={`PERDE 0 · COLD OPEN · ${OTAG.year} · ${buyuk(OTAG.place)}`} title="Tahta kadeh">
           <p className="leading-relaxed text-slate-300">
             Doğu Roma’dan bir elçilik heyeti Tuna’nın kuzeyine geliyor. Heyetin kâtibi {OTAG.witness} — ve bugün
             Atilla hakkında elimizdeki <strong>tek görgü tanığı</strong> o. Akşam ziyafete çağrılıyorlar. Priskos gördüğü
@@ -223,8 +244,119 @@ export default function AtillaClient() {
         </ArticleSection>
       </div>
 
-      {/* ── Perde 5-11 bir sonraki adımda: haraç + surlar, Honoria, Catalaunum
-           animasyonu, İtalya + Papa, otağ karar modülü, efsane, kapanış. ── */}
+      {/* ══════════ PERDE 5 — Haraç ve surlar ══════════ */}
+      <div id="perde-5" className="scroll-mt-16">
+        <ArticleSection kicker="PERDE 5 · MAKİNE" title="Haraç ve surlar">
+          <p className="leading-relaxed text-slate-300">
+            Şimdi devletin nasıl <em>beslendiğine</em> geliyoruz. Atilla’nın Roma’yla ilişkisi bir yağma ilişkisi değil,
+            bir <strong>ödeme planıdır</strong>: tutarı pazarlıkla belirlenen, gecikince birikmiş borç olarak hesaplanan,
+            metne bağlanan bir akış.
+          </p>
+
+          <div className="my-7">
+            <HaracSayaci />
+          </div>
+
+          <p className="leading-relaxed text-slate-300">
+            Ve bu, Atilla’nın en çok yanlış anlaşılan tarafını açıklıyor: neden Konstantinopolis’i almadı?
+            Cevabı 447’de, surların önünde duruyor.
+          </p>
+
+          <MythNote title="Depremin günü bile tartışmalı">
+            {SURLAR.deprem.tarihTartismasi}
+          </MythNote>
+
+          <div className="my-7">
+            <SurKesiti />
+          </div>
+
+          <div className="my-7 rounded-xl border p-5" style={{ borderColor: `${GOLD}44`, background: `color-mix(in srgb, ${GOLD} 7%, transparent)` }}>
+            <div className="mb-2 text-[0.62rem] font-bold tracking-[0.2em]" style={{ color: GOLD }}>BİN YIL SONRA</div>
+            <p className="leading-relaxed text-slate-200">{SURLAR.köprü}</p>
+            <p className="mt-3 text-sm leading-relaxed text-slate-400">
+              O ikinci sınavı ayrıntısıyla anlatan ayrı bir makale var:{' '}
+              <a href="/articles/fatih" className="article-ilink">Fatih Sultan Mehmed</a> — aynı duvar, bu kez düşüyor.
+            </p>
+          </div>
+        </ArticleSection>
+      </div>
+
+      {/* ══════════ PERDE 6 — Yüzük ══════════ */}
+      <div id="perde-6" className="scroll-mt-16">
+        <ArticleSection kicker={`PERDE 6 · ${HONORIA.yil}`} title="Yüzük">
+          <p className="leading-relaxed text-slate-300">
+            {HONORIA.kisi} — {HONORIA.kim}. Hikâyenin bundan sonrası, bir kadının kendi hayatı üzerindeki
+            kontrolünü geri alma girişiminin bir kıta ölçeğinde nasıl okunduğuyla ilgili.
+          </p>
+
+          <div className="my-7">
+            <HonoriaKarar />
+          </div>
+        </ArticleSection>
+      </div>
+
+      {/* ══════════ PERDE 7 — Catalaunum ══════════ */}
+      <div id="perde-7" className="scroll-mt-16">
+        <ArticleSection kicker={`PERDE 7 · ${CATALAUNUM.yil}`} title="Catalaunum">
+          <p className="leading-relaxed text-slate-300">
+            451’de Galya’da karşılaşan iki ordunun komutanları birbirine yabancı değildi.
+            Roma tarafında <strong>{AETIUS.ad}</strong> vardı — {AETIUS.unvan} ve Roma’nın Hunları içeriden tanıyan tek adamı.
+          </p>
+
+          <div className="my-7">
+            <InView poster={<CatalaunumPoster />} minHeight={560}>
+              <CatalaunumSim />
+            </InView>
+          </div>
+
+          <p className="leading-relaxed text-slate-300">
+            Muharebeyi anlatan kaynak, ölü sayısını da veriyor. Ve tam burada makalenin kuralı devreye giriyor:
+            bir sayıyı beğenmemek yetmez, <strong>sınamak</strong> gerekir.
+          </p>
+
+          <div className="my-7">
+            <SayiDedektoru />
+          </div>
+
+          <SourceNote>
+            Rakamın kaynağı {CATALAUNUM.sayi.kaynak}. Abartılı ölü sayıları antik ve ortaçağ kroniklerinde
+            kural sayılacak kadar yaygındır: sayı bir ölçüm değil, olayın büyüklüğüne dair bir <em>iddiadır</em>.
+          </SourceNote>
+        </ArticleSection>
+      </div>
+
+      {/* ══════════ PERDE 8 — İtalya ve Papa ══════════ */}
+      <div id="perde-8" className="scroll-mt-16">
+        <ArticleSection kicker={`PERDE 8 · ${ITALYA.yil}`} title="İtalya ve Papa">
+          <p className="leading-relaxed text-slate-300">{ITALYA.aquileia}</p>
+
+          <div className="my-7 rounded-xl border p-5" style={{ borderColor: `${GARNET}44`, background: `color-mix(in srgb, ${GARNET} 7%, transparent)` }}>
+            <div className="mb-2 text-[0.62rem] font-bold tracking-[0.2em]" style={{ color: GARNET }}>{buyuk(ITALYA.milano.baslik)}</div>
+            <p className="leading-relaxed text-slate-200">{ITALYA.milano.metin}</p>
+            <p className="mt-3 leading-relaxed" style={{ color: BONE }}>{ITALYA.milano.yorum}</p>
+          </div>
+
+          <p className="leading-relaxed text-slate-300">{ITALYA.mincio.olay}</p>
+          <p className="mt-4 text-lg font-semibold leading-relaxed text-slate-100">{ITALYA.mincio.soru}</p>
+
+          <div className="my-7">
+            <ItalyaAnketi />
+          </div>
+
+          <div className="my-8">
+            <SourceCompare
+              accent={GARNET}
+              event={`${ITALYA.yil} · Mincio ırmağı`}
+              question="Atilla İtalya’dan neden döndü?"
+              bottom="Dördü de aynı olayı anlatıyor ve dördü de farklı bir şeye bakıyor. Birini seçip ötekileri silmek, elimizdeki kaynaklardan fazlasını bildiğimizi iddia etmek olurdu."
+              sources={italyaSources}
+            />
+          </div>
+        </ArticleSection>
+      </div>
+
+      {/* ── Perde 9-11 bir sonraki adımda: otağ karar modülü + üç tabut,
+           efsane karşılaştırıcı, kapanış (476 ve Orestes). ── */}
     </ArticleShell>
   );
 }

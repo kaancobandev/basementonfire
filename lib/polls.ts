@@ -9,6 +9,11 @@ export const POLLS: Record<string, readonly string[]> = {
   'fatih-zehir': ['zehir', 'hastalik'], // Hünkâr Çayırı: zehirlendi / hastalıktan öldü
   'kanuni-cadir': ['gir', 'donme', 'adam'], // Şehzade Mustafa: otağa gir / girme, dön / adamlarınla gir
   'kanuni-kardes-katli': ['fatih', 'sonradan'], // Kardeş katli maddesi: Fatih yazdı / sonradan eklendi
+  // Atilla — seçenek id'leri app/articles/atilla/data.ts ile BİREBİR aynı olmalı
+  // (HONORIA.karar.secenekler, ITALYA_ANKET.secenekler, OLUM.secenekler).
+  'atilla-honoria': ['ver', 'oldur', 'inkar', 'oyala'], // Valentinianus: çeyizi ver / Honoria'yı öldürt / nişanı inkâr et / elçiyle oyala
+  'atilla-italya': ['papa', 'salgin', 'marcianus', 'hepsi'], // 452 dönüşü: Papa Leo / kıtlık-salgın / Marcianus'un saldırısı / üçü birden
+  'atilla-otag': ['dogal', 'ildico', 'komplo', 'ic'], // 453: kendi öldü / Ildico / Doğu Roma tertibi / iç muhalefet
 };
 
 export const isPollKey = (key: string): boolean =>

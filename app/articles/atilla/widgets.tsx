@@ -9,8 +9,8 @@
 // bağlı tek şey KavimlerGocu'nun oynatıcısı ve o da mount sonrası çalışıyor.
 
 import { useEffect, useRef, useState } from 'react';
-import { ACCENT, BONE, GARNET, GOLD, IRON, WidgetFrame, ActionButton, WordNote, useReducedMotion } from './ui';
-import { ONCEKILER, GOC, KAGAN, BARBAR, ISIM, KILIC } from './data';
+import { ACCENT, BONE, GARNET, GOLD, IRON, WidgetFrame, ActionButton, WordNote, clamp, tr, useReducedMotion } from './ui';
+import { ONCEKILER, GOC, KAGAN, BARBAR, ISIM, KILIC, HARAC, SURLAR, CATALAUNUM } from './data';
 
 /* ══════════════ Perde 1 · Bozkır zaman şeridi ══════════════ */
 
@@ -345,6 +345,257 @@ export function KilicIfsa() {
           </p>
         </div>
       )}
+    </WidgetFrame>
+  );
+}
+
+/* ══════════════ Perde 5 · Haraç sayacı ══════════════ */
+
+// ÇEVRİMLER BELGELİ, UYDURMA DEĞİL:
+//   1 Roma librası ≈ 327 g  ·  1 libra = 72 solidus (Constantinus sonrası darp standardı)
+// Bilerek YAPILMAYAN şey: "bu altın bugün kaç dolar / kaç askerin maaşı" demek.
+// 5. yy asker maaşı için güvenilir tek rakam yok; uydurulmuş bir satın alma gücü
+// makalenin "sıfat değil sayı" kuralını tam da en görünür yerde çiğnerdi.
+const GRAM_PER_LIBRA = 327;
+const SOLIDI_PER_LIBRA = 72;
+
+export function HaracSayaci() {
+  const [i, setI] = useState(0);
+  const b = HARAC.basamaklar[i];
+  const enBuyuk = HARAC.basamaklar[HARAC.basamaklar.length - 1].tutar;
+  const [gosterBorc, setGosterBorc] = useState(false);
+
+  const tutar = gosterBorc ? HARAC.birikmis : b.tutar;
+  const kg = (tutar * GRAM_PER_LIBRA) / 1000;
+  const solidi = tutar * SOLIDI_PER_LIBRA;
+  const oran = clamp(tutar / HARAC.birikmis, 0, 1);
+
+  return (
+    <WidgetFrame
+      hero
+      kicker="PERDE 5 · HARAÇ MAKİNESİ"
+      title="Yıllık ödeme, basamak basamak"
+      hint="Yılları gez. Sütun büyüdükçe Doğu Roma’nın bütçesinden çıkan altın da büyüyor."
+      footnote={HARAC.dispute}
+    >
+      <div className="flex gap-1.5">
+        {HARAC.basamaklar.map((s, k) => (
+          <button
+            key={s.yil}
+            onClick={() => { setI(k); setGosterBorc(false); }}
+            aria-pressed={!gosterBorc && i === k}
+            className="min-h-[44px] flex-1 rounded-xl border px-2 font-mono text-xs font-bold transition"
+            style={{
+              borderColor: !gosterBorc && i === k ? GOLD : 'rgba(255,255,255,0.12)',
+              background: !gosterBorc && i === k ? `color-mix(in srgb, ${GOLD} 16%, transparent)` : 'rgba(255,255,255,0.02)',
+              color: !gosterBorc && i === k ? '#fff' : '#a8a29e',
+            }}
+          >
+            {s.yil}
+          </button>
+        ))}
+        <button
+          onClick={() => setGosterBorc(true)}
+          aria-pressed={gosterBorc}
+          className="min-h-[44px] flex-1 rounded-xl border px-2 text-[0.68rem] font-bold leading-tight transition"
+          style={{
+            borderColor: gosterBorc ? GARNET : 'rgba(255,255,255,0.12)',
+            background: gosterBorc ? `color-mix(in srgb, ${GARNET} 16%, transparent)` : 'rgba(255,255,255,0.02)',
+            color: gosterBorc ? '#fff' : '#a8a29e',
+          }}
+        >
+          birikmiş<br />borç
+        </button>
+      </div>
+
+      {/* Altın sütunu */}
+      <div className="mt-4 flex items-end gap-4 rounded-xl border border-white/10 bg-black/25 p-4" style={{ minHeight: 190 }}>
+        <div className="flex h-[150px] w-16 shrink-0 items-end overflow-hidden rounded-lg border border-white/10 bg-black/40">
+          <div
+            className="w-full rounded-b-lg transition-all duration-700"
+            style={{
+              height: `${Math.max(4, oran * 100)}%`,
+              background: gosterBorc
+                ? `linear-gradient(to top, ${GARNET}, color-mix(in srgb, ${GARNET} 55%, ${GOLD}))`
+                : `linear-gradient(to top, color-mix(in srgb, ${GOLD} 70%, black), ${GOLD})`,
+            }}
+          />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="font-mono text-3xl font-bold leading-none" style={{ color: gosterBorc ? GARNET : GOLD }}>
+            {tr(tutar)}
+          </div>
+          <div className="mt-1 text-xs text-slate-400">{HARAC.birim} · {gosterBorc ? 'tek seferlik birikmiş borç' : 'yıllık'}</div>
+          <div className="mt-3 space-y-1 font-mono text-[0.72rem] text-slate-300">
+            <div>≈ {tr(kg, 0)} kg altın</div>
+            <div>= {tr(solidi)} solidus</div>
+          </div>
+        </div>
+      </div>
+
+      <p className="mt-4 text-sm leading-relaxed text-slate-300">
+        {gosterBorc
+          ? 'Bu tutar yıllık değil: geçmiş ödemelerin toplamı olarak, peşin isteniyor.'
+          : b.olay}
+      </p>
+
+      {!gosterBorc && b.tutar === enBuyuk && (
+        <p className="mt-3 border-l-2 pl-3 text-sm leading-relaxed text-slate-400" style={{ borderColor: `${GARNET}66` }}>
+          {HARAC.etki}
+        </p>
+      )}
+
+      <div className="mt-5 rounded-xl border p-4" style={{ borderColor: `${ACCENT}44`, background: `color-mix(in srgb, ${ACCENT} 8%, transparent)` }}>
+        <div className="text-sm font-bold" style={{ color: ACCENT }}>{HARAC.strateji.baslik}</div>
+        <p className="mt-1.5 text-sm leading-relaxed text-slate-300">{HARAC.strateji.metin}</p>
+      </div>
+    </WidgetFrame>
+  );
+}
+
+/* ══════════════ Perde 5 · Theodosius surları kesiti ══════════════ */
+
+export function SurKesiti() {
+  const [sel, setSel] = useState(3); // ic sur (asil duvar)
+  const k = SURLAR.katmanlar[sel];
+
+  // Kesit geometrisi: soldan saga hendek → dis sur → teras → ic sur.
+  const bloklar = [
+    { x: 30, w: 90, h: 26, y: 150, ad: 'Hendek' },
+    { x: 150, w: 46, h: 62, y: 114, ad: 'Dış sur' },
+    { x: 210, w: 74, h: 12, y: 164, ad: 'Teras' },
+    { x: 300, w: 70, h: 120, y: 56, ad: 'İç sur' },
+  ];
+
+  return (
+    <WidgetFrame
+      kicker={`PERDE 5 · ${SURLAR.deprem.yil} · KONSTANTİNOPOLİS`}
+      title="Atilla’nın önüne geldiği duvar"
+      hint="Katmanlara dokun. Saldıran taraf soldan geliyor — dördünü de geçmesi gerekiyor."
+    >
+      <div className="grid grid-cols-3 gap-2.5">
+        <Stat2 value={tr(SURLAR.deprem.kuleler)} label="yıkılan kule" color={GARNET} />
+        <Stat2 value={tr(SURLAR.onarim.gun)} label="günde onarıldı" color={ACCENT} />
+        <Stat2 value="4" label="katman" color={IRON} />
+      </div>
+
+      <svg viewBox="0 0 400 200" className="mt-4 w-full rounded-xl border border-white/10" style={{ background: '#0a0706' }} role="img" aria-label="Theodosius surlarının kesiti: soldan sağa hendek, dış sur, teras ve iç sur">
+        {/* zemin */}
+        <rect x="0" y="176" width="400" height="24" fill="rgba(255,255,255,0.05)" />
+        {/* saldiri yonu */}
+        <path d="M6 96 L26 96 M20 90 L26 96 L20 102" stroke={GARNET} strokeWidth="2" fill="none" />
+        <text x="6" y="86" fill={GARNET} fontSize="9" fontWeight="700" fontFamily="system-ui, sans-serif">SALDIRI</text>
+
+        {bloklar.map((b, i) => {
+          const on = sel === i;
+          return (
+            <g key={b.ad} onClick={() => setSel(i)} style={{ cursor: 'pointer' }}>
+              <rect
+                x={b.x} y={b.y} width={b.w} height={b.h} rx="3"
+                fill={on ? ACCENT : 'rgba(255,255,255,0.14)'}
+                stroke={on ? ACCENT : 'rgba(255,255,255,0.25)'}
+                strokeWidth={on ? 2 : 1}
+                opacity={i === 0 ? 0.55 : 1}
+              />
+              {/* ic surun kuleleri */}
+              {i === 3 && [0, 1].map((t) => (
+                <rect key={t} x={b.x + 6 + t * 40} y={b.y - 16} width="24" height="18" rx="2"
+                  fill={on ? ACCENT : 'rgba(255,255,255,0.2)'} />
+              ))}
+              <text x={b.x + b.w / 2} y={b.y + b.h + 13} fill={on ? '#fff' : 'rgba(255,255,255,0.5)'}
+                fontSize="9" fontWeight="700" textAnchor="middle" fontFamily="system-ui, sans-serif">
+                {b.ad}
+              </text>
+            </g>
+          );
+        })}
+        <text x="394" y="16" fill="rgba(255,255,255,0.4)" fontSize="9" textAnchor="end" fontWeight="600" fontFamily="system-ui, sans-serif">ŞEHİR →</text>
+      </svg>
+
+      <div className="mt-3 rounded-xl border border-white/10 bg-black/25 p-4">
+        <div className="text-sm font-bold" style={{ color: BONE }}>{k.ad}</div>
+        <p className="mt-1.5 text-[0.88rem] leading-relaxed text-slate-300">{k.ne}</p>
+      </div>
+
+      <div className="mt-4 rounded-xl border p-4" style={{ borderColor: `${ACCENT}44`, background: `color-mix(in srgb, ${ACCENT} 8%, transparent)` }}>
+        <p className="text-[0.88rem] leading-relaxed text-slate-200">
+          {SURLAR.onarim.faktiyonlar} {SURLAR.onarim.eklenen}
+        </p>
+        <p className="mt-2 text-[0.82rem] leading-relaxed text-slate-400">{SURLAR.onarim.kitabe}</p>
+      </div>
+
+      <p className="mt-4 text-sm leading-relaxed text-slate-300">{SURLAR.sonuc}</p>
+    </WidgetFrame>
+  );
+}
+
+/** SurKesiti içi küçük istatistik (ui.tsx'teki Stat ile aynı görünüm, yerel kopya değil). */
+function Stat2({ value, label, color }: { value: string; label: string; color: string }) {
+  return (
+    <div className="rounded-xl border p-3 text-center"
+      style={{ borderColor: `color-mix(in srgb, ${color} 30%, transparent)`, background: `color-mix(in srgb, ${color} 10%, transparent)` }}>
+      <div className="font-mono text-xl font-bold leading-tight sm:text-2xl" style={{ color }}>{value}</div>
+      <div className="mt-0.5 text-[0.68rem] leading-tight text-slate-400">{label}</div>
+    </div>
+  );
+}
+
+/* ══════════════ Perde 7 · "Bu sayı mümkün mü?" ══════════════ */
+
+/**
+ * Jordanes Catalaunum için 165.000 ölü verir. Bu widget o sayıyı SIFATLA değil
+ * ARİTMETİKLE sınıyor: bir orduyu yürüten şey cesaret değil tahıl, su ve yoldur.
+ * Varsayımlar data.ts'te açıkça yazılı ve ekranda gösteriliyor — okur beğenmezse
+ * kaydırıcıyı kendi kabulüne çekip sonucu yeniden okuyabilsin diye.
+ */
+export function SayiDedektoru() {
+  const v = CATALAUNUM.sayi.varsayimlar;
+  // ⚠ <number> ŞART: data.ts `as const` olduğu için `iddia` literal tip (165000);
+  // açık tip vermezsen useState state'i o literale kilitler ve kaydırıcı derlenmez.
+  const [n, setN] = useState<number>(CATALAUNUM.sayi.iddia);
+
+  const at = Math.round(n * v.atOrani);
+  const tahilKg = n * v.tahilKisiGun + at * v.atYemGun;
+  const suL = n * v.suKisiGun + at * v.suAtGun;
+  const kolonKm = (n / v.siraBoyu) * v.kolonMetreKisi / 1000;
+
+  return (
+    <WidgetFrame
+      kicker="PERDE 7 · SIFAT DEĞİL, SAYI"
+      title="Bu sayı mümkün mü?"
+      hint="Kaydırıcıyı Jordanes’in verdiği rakama getir. Sonra o ordunun bir GÜNDE ne yemesi gerektiğine bak."
+      footnote={`Varsayımlar: asker ${v.tahilKisiGun} kg tahıl ve ${v.suKisiGun} L su/gün · at ${v.atYemGun} kg yem ve ${v.suAtGun} L su/gün · kişi başına ${v.atOrani} at · ${v.siraBoyu} kişilik sıra, kişi başı ${v.kolonMetreKisi} m. Bunlar kaba büyüklük tahminleridir; amaç kesin rakam değil, MERTEBE.`}
+    >
+      <label className="block text-xs font-semibold text-slate-400" htmlFor="atilla-ordu">
+        Ordu mevcudu: <span className="font-mono font-bold" style={{ color: ACCENT }}>{tr(n)}</span> kişi
+      </label>
+      <input
+        id="atilla-ordu"
+        type="range" min={10000} max={200000} step={5000} value={n}
+        onChange={(e) => setN(Number(e.target.value))}
+        className="mt-2 w-full accent-orange-500"
+      />
+
+      <div className="mt-4 grid grid-cols-3 gap-2.5">
+        <Stat2 value={`${tr(tahilKg / 1000, 0)} t`} label="tahıl + yem / gün" color={GOLD} />
+        <Stat2 value={`${tr(suL / 1000, 0)} m³`} label="su / gün" color={ACCENT} />
+        <Stat2 value={`${tr(kolonKm, 0)} km`} label="yürüyüş kolonu" color={GARNET} />
+      </div>
+
+      {n >= CATALAUNUM.sayi.iddia && (
+        <div className="mt-4 rounded-xl border p-4" style={{ borderColor: `${GARNET}55`, background: `color-mix(in srgb, ${GARNET} 9%, transparent)` }}>
+          <div className="mb-1 text-[0.62rem] font-bold tracking-[0.2em]" style={{ color: GARNET }}>
+            JORDANES’İN RAKAMI · {tr(CATALAUNUM.sayi.iddia)}
+          </div>
+          <p className="text-sm leading-relaxed text-slate-200">
+            Bu mevcut, her gün {tr(tahilKg / 1000, 0)} ton yiyecek ve {tr(suL / 1000, 0)} m³ su ister; kolon
+            yaklaşık {tr(kolonKm, 0)} km uzar — yani öncü kamp kurarken artçı hâlâ bir önceki konaktadır.
+            5. yüzyıl Galya’sında bunu günlerce sürdürecek bir ikmal düzeni yok.
+          </p>
+        </div>
+      )}
+
+      <p className="mt-4 text-sm leading-relaxed text-slate-400">{CATALAUNUM.sayi.itiraz}</p>
     </WidgetFrame>
   );
 }
