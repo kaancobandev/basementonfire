@@ -45,7 +45,10 @@ Eşleme türü: hepsi **sıralı eşleme** (`"tırnak içinde"`) ile başla. Gen
 bu bütçede alakasız aramalara savurur; veri gelince genişletirsin.
 
 ### Grup A — Fizik
-**Açılış sayfası:** `https://basementonfire.com/discover`
+**Açılış sayfası:** `https://basementonfire.com/discover/fizik`
+> 2026-08-01: genel `/discover` iken kategori sayfasına çekildi. Açılış sayfası
+> alaka düzeyi kalite puanına giriyor; arayanı 33 makalelik karışık listeye
+> indirmek hem dönüşümü hem puanı düşürüyordu.
 
 ```
 "kara delik nedir"
@@ -62,7 +65,10 @@ bu bütçede alakasız aramalara savurur; veri gelince genişletirsin.
 ```
 
 ### Grup B — Tarih
-**Açılış sayfası:** `https://basementonfire.com/articles/fatih`
+**Açılış sayfası:** `https://basementonfire.com/discover/tarih`
+> Marka dışı geniş tarih aramaları için kategori sayfası daha doğru.
+> `"istanbul'un fethi"` ve `"fatih sultan mehmed"` gibi TEK makaleyi arayan
+> kelimeleri ayrı bir reklam grubuna alıp doğrudan `/articles/fatih`'e indir.
 
 ```
 "istanbul'un fethi"
@@ -77,7 +83,10 @@ bu bütçede alakasız aramalara savurur; veri gelince genişletirsin.
 ```
 
 ### Grup C — Biyoloji ve Kimya
-**Açılış sayfası:** `https://basementonfire.com/discover`
+**Açılış sayfası:** `https://basementonfire.com/discover/biyoloji`
+> ⚠ Kimyanın kategori sayfası YOK (3 makale eşiğinin altında, tek makale var).
+> `"mol nedir kimya"`, `"mol hesaplama"`, `"avogadro sayısı"` kelimelerini
+> doğrudan `/articles/mol`'e indir — biyoloji sayfasına indirme.
 
 ```
 "mol nedir kimya"
@@ -214,9 +223,9 @@ Sıfat değil sayı yazarız. Emin değilsek emin olmadığımızı yazarız.
 
 | Metin | Açıklama 1 | Açıklama 2 | Bağlantı |
 |---|---|---|---|
-| Tüm makaleler | 30+ interaktif makale, 6 konu | Simülasyonlar tarayıcıda çalışır | `/discover` |
+| Tüm makaleler | 30+ interaktif makale, 9 konu | Simülasyonlar tarayıcıda çalışır | `/discover` |
 | Nasıl çalışıyor | Motorun nasıl çalıştığı | Simülasyonlar tarayıcıda çalışır | `/teknoloji` |
-| Hakkımızda | Kim yapıyor, neden yapıyor | 30+ interaktif makale, 6 konu | `/hakkimizda` |
+| Hakkımızda | Kim yapıyor, neden yapıyor | 30+ interaktif makale, 9 konu | `/hakkimizda` |
 | Rastgele makale | Ne okuyacağını bilmiyorsan | Sana rastgele bir makale açar | `/rastgele` |
 
 **Açıklama metni uzantıları** (≤25 karakter)
