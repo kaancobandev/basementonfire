@@ -47,6 +47,21 @@ type Traffic = {
   top_pages: { path: string; views: number; uniques: number }[];
   daily: { day: string; views: number; uniques: number }[];
 };
+type PerfMetric = {
+  sira: number; ad: string; aciklama: string; iyi: number; kotu: number;
+  p50: number | null; p75: number | null; p95: number | null; n: number;
+};
+type Perf = {
+  orneklem_toplam: number; orneklem_30: number; orneklem_7: number;
+  metrikler: PerfMetric[];
+  lcp_dagilim: { iyi: number; orta: number; kotu: number } | null;
+  cls_p75: number | null;
+  cihazlar: { cihaz: string; n: number; lcp_p75: number | null; ttfb_p75: number | null }[];
+  baglantilar: { tur: string; n: number; lcp_p75: number | null }[];
+  sayfalar: { path: string; n: number; lcp_p75: number | null; ttfb_p75: number | null; ttfb_max: number | null }[];
+  gunluk: { day: string; n: number; lcp_p75: number | null }[];
+  soguk: { adet: number; toplam: number; ornekler: { path: string; ttfb_ms: number; lcp_ms: number | null; created_at: string }[] } | null;
+};
 
 function StatCard({ label, value, accent }: { label: string; value: number; accent?: boolean }) {
   return (
@@ -100,17 +115,70 @@ function CountryBars({ rows, unit }: { rows: { code: string; name: string; count
 }
 
 // 14 günlük bar grafiği. Boş günleri sıfırla doldurur (Istanbul tz).
-function DailyBars({ series }: { series: { day: string; label: string; value: number; title: string }[] }) {
+// `fmt` verilmezse ham sayı yazılır (ziyaretçi/giriş). Süre serilerinde 4
+// haneli ms değerleri 14 çubuğa sığmadığı için kısaltılmış biçim geçilir.
+function DailyBars({ series, fmt, renk }: {
+  series: { day: string; label: string; value: number; title: string }[];
+  fmt?: (v: number) => string;
+  renk?: (v: number) => string;
+}) {
   const max = Math.max(1, ...series.map((d) => d.value));
   return (
     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 110 }}>
       {series.map((d) => (
         <div key={d.day} title={d.title} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, minWidth: 0 }}>
-          <div style={{ fontSize: '0.68rem', color: 'var(--color-text-muted)', fontWeight: 700 }}>{d.value || ''}</div>
-          <div style={{ width: '100%', height: `${Math.round((d.value / max) * 78)}px`, minHeight: d.value ? 3 : 0, background: 'var(--color-primary)', borderRadius: '4px 4px 0 0' }} />
+          <div style={{ fontSize: '0.68rem', color: 'var(--color-text-muted)', fontWeight: 700 }}>{d.value ? (fmt ? fmt(d.value) : d.value) : ''}</div>
+          <div style={{ width: '100%', height: `${Math.round((d.value / max) * 78)}px`, minHeight: d.value ? 3 : 0, background: renk ? renk(d.value) : 'var(--color-primary)', borderRadius: '4px 4px 0 0' }} />
           <div style={{ fontSize: '0.6rem', color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>{d.label}</div>
         </div>
       ))}
+    </div>
+  );
+}
+
+// ── Gerçek kullanıcı hızı yardımcıları ──────────────────────────────────────
+// Süre okunabilir biçimde: 342 ms / 1,24 sn. Bir sayıyı hem ms hem sn yazmak
+// karşılaştırmayı zorlaştırdığı için eşik 1000 ms'de sabit.
+function ms(v?: number | null): string {
+  if (v == null) return '—';
+  return v >= 1000
+    ? `${(v / 1000).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} sn`
+    : `${v} ms`;
+}
+// Google'ın Core Web Vitals eşiklerine göre renk. Eşikler RPC'den gelir (iyi/kotu).
+function perfRenk(v: number | null | undefined, iyi: number, kotu: number): string {
+  if (v == null) return 'var(--color-text-muted)';
+  if (v <= iyi) return 'var(--color-success)';
+  if (v <= kotu) return 'var(--color-accent-ink)';
+  return 'var(--color-danger)';
+}
+
+// LCP dağılımı — tek bakışta "kaç ziyaretçi hızlı gördü". Yüzdelikten daha
+// anlaşılır, çünkü paydası kişi sayısı.
+function LcpDagilim({ d }: { d: { iyi: number; orta: number; kotu: number } }) {
+  const toplam = d.iyi + d.orta + d.kotu;
+  if (toplam === 0) return null;
+  const yuzde = (n: number) => (n / toplam) * 100;
+  const parcalar = [
+    { n: d.iyi, renk: 'var(--color-success)', ad: '≤2,5 sn (iyi)' },
+    { n: d.orta, renk: 'var(--color-accent)', ad: '2,5–4 sn (orta)' },
+    { n: d.kotu, renk: 'var(--color-danger)', ad: '>4 sn (kötü)' },
+  ];
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ display: 'flex', height: 22, borderRadius: 999, overflow: 'hidden', background: 'var(--color-hover)' }}>
+        {parcalar.map((p) => p.n > 0 && (
+          <div key={p.ad} title={`${p.ad}: ${p.n} açılış`} style={{ width: `${yuzde(p.n)}%`, background: p.renk }} />
+        ))}
+      </div>
+      <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+        {parcalar.map((p) => (
+          <span key={p.ad} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <span style={{ width: 10, height: 10, borderRadius: 3, background: p.renk, flexShrink: 0 }} />
+            {p.ad} · <b style={{ color: 'var(--color-text)' }}>%{Math.round(yuzde(p.n))}</b>
+          </span>
+        ))}
+      </div>
     </div>
   );
 }
@@ -133,9 +201,10 @@ export default async function GirisIstatistikPage() {
   if (!isAdmin(me as any)) redirect('/');
 
   // İki özet + son girişler tek turda paralel.
-  const [trafficRes, loginRes, recentRes] = await Promise.all([
+  const [trafficRes, loginRes, perfRes, recentRes] = await Promise.all([
     db.rpc('traffic_dashboard'),
     db.rpc('login_dashboard'),
+    db.rpc('perf_dashboard'),
     db.from('login_events')
       .select('id, created_at, method, country_code, country_name, city, users!login_events_user_id_fkey(username, display_name)')
       .order('created_at', { ascending: false })
@@ -144,6 +213,7 @@ export default async function GirisIstatistikPage() {
 
   const trafficDormant = !!trafficRes.error;
   const loginDormant = !!loginRes.error;
+  const perfDormant = !!perfRes.error;
 
   const t: Traffic = (trafficRes.data as Traffic) ?? {
     online_now: 0, views_today: 0, views_7: 0, views_total: 0,
@@ -151,6 +221,10 @@ export default async function GirisIstatistikPage() {
   };
   const l: LoginStats = (loginRes.data as LoginStats) ?? {
     total: 0, today: 0, last7: 0, last30: 0, unique_users: 0, online_now: 0, countries: [], daily: [],
+  };
+  const perf: Perf = (perfRes.data as Perf) ?? {
+    orneklem_toplam: 0, orneklem_30: 0, orneklem_7: 0, metrikler: [], lcp_dagilim: null,
+    cls_p75: null, cihazlar: [], baglantilar: [], sayfalar: [], gunluk: [], soguk: null,
   };
 
   const recent: RecentRow[] = (recentRes.data ?? []).map((r: any) => ({
@@ -173,6 +247,14 @@ export default async function GirisIstatistikPage() {
     const uniques = d?.uniques ?? 0;
     const views = d?.views ?? 0;
     return { day: a.day, label: a.label, value: uniques, title: `${a.label}: ${uniques} ziyaretçi · ${views} görüntüleme` };
+  });
+  // Günlük p75 LCP — çubuk yüksekliği SÜREYE orantılı, yani UZUN ÇUBUK KÖTÜ.
+  // (Diğer iki grafikte uzun çubuk iyi; başlıkta bunu ayrıca yazıyoruz.)
+  const perfDaily = new Map((perf.gunluk ?? []).map((d) => [String(d.day), d]));
+  const perfSeries = axis.map((a) => {
+    const d = perfDaily.get(a.day);
+    const v = d?.lcp_p75 ?? 0;
+    return { day: a.day, label: a.label, value: v, title: `${a.label}: p75 LCP ${ms(d?.lcp_p75)} · ${d?.n ?? 0} açılış` };
   });
   const loginDaily = new Map((l.daily ?? []).map((d) => [String(d.day), d.count]));
   const loginSeries = axis.map((a) => {
@@ -234,6 +316,152 @@ export default async function GirisIstatistikPage() {
           </Section>
         </div>
 
+        {/* ============ GERÇEK KULLANICI HIZI (RUM, çerezsiz) ============ */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div>
+            <h1 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 900, color: 'var(--color-text)' }}>⚡ Gerçek kullanıcı hızı</h1>
+            <p style={{ margin: '2px 0 0', fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+              Süreyi ziyaretçinin <b>kendi tarayıcısı</b> raporluyor — kendi masaüstümüzden ölçtüğümüz değil, telefonda gerçekten görülen süre.
+              Son 30 gün, {perf.orneklem_30.toLocaleString('tr-TR')} açılış.
+            </p>
+          </div>
+
+          {perfDormant && <Dormant file="sql/features-web-vitals.sql" />}
+
+          {!perfDormant && perf.orneklem_30 === 0 ? (
+            <div style={{ border: '1px solid var(--color-border)', borderRadius: 14, padding: 16, background: 'var(--color-surface)', fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+              Henüz ölçüm yok. İlk veri için canlı siteyi (basementonfire.com) bir tarayıcıda aç, gez ve <b>sekmeyi gizle veya kapat</b> —
+              ölçüm o anda gönderilir. Localhost sayılmaz.
+            </div>
+          ) : !perfDormant && (
+            <>
+              {perf.lcp_dagilim && (
+                <Section title="Sayfayı ne kadar hızlı gördüler? (LCP dağılımı)">
+                  <LcpDagilim d={perf.lcp_dagilim} />
+                </Section>
+              )}
+
+              <Section title="Metrikler — p75 asıl rakam (ziyaretçilerin %75'i bundan hızlı gördü)">
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.84rem', minWidth: 460 }}>
+                    <thead>
+                      <tr style={{ color: 'var(--color-text-muted)', fontSize: '0.74rem', textAlign: 'right' }}>
+                        <th style={{ textAlign: 'left', fontWeight: 700, paddingBottom: 6 }}>Metrik</th>
+                        <th style={{ fontWeight: 700, paddingBottom: 6 }}>Orta (p50)</th>
+                        <th style={{ fontWeight: 800, paddingBottom: 6, color: 'var(--color-text)' }}>p75</th>
+                        <th style={{ fontWeight: 700, paddingBottom: 6 }}>En kötü %5</th>
+                        <th style={{ fontWeight: 700, paddingBottom: 6 }}>Ölçüm</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {perf.metrikler.map((m) => (
+                        <tr key={m.ad} style={{ borderTop: '1px solid var(--color-border)' }}>
+                          <td style={{ padding: '7px 0' }}>
+                            <div style={{ fontWeight: 800, color: 'var(--color-text)' }}>{m.ad}</div>
+                            <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>{m.aciklama}</div>
+                          </td>
+                          <td style={{ textAlign: 'right', color: 'var(--color-text-muted)' }}>{ms(m.p50)}</td>
+                          <td style={{ textAlign: 'right', fontWeight: 900, fontSize: '0.95rem', color: perfRenk(m.p75, m.iyi, m.kotu) }} title={`iyi ≤ ${ms(m.iyi)} · kötü > ${ms(m.kotu)}`}>{ms(m.p75)}</td>
+                          <td style={{ textAlign: 'right', color: 'var(--color-text-muted)' }}>{ms(m.p95)}</td>
+                          <td style={{ textAlign: 'right', color: 'var(--color-text-muted)' }}>{m.n.toLocaleString('tr-TR')}</td>
+                        </tr>
+                      ))}
+                      <tr style={{ borderTop: '1px solid var(--color-border)' }}>
+                        <td style={{ padding: '7px 0' }}>
+                          <div style={{ fontWeight: 800, color: 'var(--color-text)' }}>CLS</div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>Sayfa okurken zıpladı mı</div>
+                        </td>
+                        <td />
+                        <td style={{ textAlign: 'right', fontWeight: 900, fontSize: '0.95rem', color: perfRenk(perf.cls_p75, 100, 250) }} title="iyi ≤ 0,10 · kötü > 0,25">
+                          {perf.cls_p75 == null ? '—' : (perf.cls_p75 / 1000).toLocaleString('tr-TR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}
+                        </td>
+                        <td /><td />
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </Section>
+
+              <Section title="Cihaza göre — masaüstü ile telefon farkı">
+                {perf.cihazlar.length === 0 ? (
+                  <div style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>Henüz veri yok.</div>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 10 }}>
+                    {perf.cihazlar.map((c) => (
+                      <div key={c.cihaz} style={{ border: '1px solid var(--color-border)', borderRadius: 12, padding: '12px 14px' }}>
+                        <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', fontWeight: 700 }}>
+                          {c.cihaz === 'mobil' ? '📱 Telefon' : c.cihaz === 'masaustu' ? '🖥️ Masaüstü' : '❔ Bilinmiyor'} · {c.n.toLocaleString('tr-TR')} açılış
+                        </div>
+                        <div style={{ fontSize: '1.35rem', fontWeight: 900, marginTop: 4, color: perfRenk(c.lcp_p75, 2500, 4000) }}>{ms(c.lcp_p75)}</div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>p75 LCP · sunucu {ms(c.ttfb_p75)}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {perf.baglantilar.length > 0 && (
+                  <div style={{ marginTop: 12, display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+                    <span style={{ fontWeight: 700 }}>Bağlantı:</span>
+                    {perf.baglantilar.map((b) => (
+                      <span key={b.tur}>{b.tur} → <b style={{ color: perfRenk(b.lcp_p75, 2500, 4000) }}>{ms(b.lcp_p75)}</b> ({b.n})</span>
+                    ))}
+                  </div>
+                )}
+              </Section>
+
+              {perf.soguk && perf.soguk.toplam > 0 && (
+                <Section title="Soğuk vuruşlar — önbellek bayatken gelen ziyaretçiler">
+                  <div style={{ fontSize: '0.85rem', color: 'var(--color-text)' }}>
+                    {perf.soguk.toplam.toLocaleString('tr-TR')} açılışın <b style={{ color: perfRenk(perf.soguk.adet, 0, Math.max(1, perf.soguk.toplam * 0.05)) }}>{perf.soguk.adet.toLocaleString('tr-TR')} tanesinde</b> sunucu
+                    1 sn'den geç yanıt verdi (%{perf.soguk.toplam ? Math.round((perf.soguk.adet / perf.soguk.toplam) * 100) : 0}).
+                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: 4 }}>
+                      Bu ziyaretçiler ISR süresi dolmuş bir sayfaya denk gelip yeniden üretimi <b>bekledi</b>. Sık tekrarlıyorsa çare
+                      düzenli ısıtma ya da <code>revalidate</code> penceresini genişletmek.
+                    </div>
+                  </div>
+                  {perf.soguk.ornekler.length > 0 && (
+                    <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column' }}>
+                      {perf.soguk.ornekler.map((s, i) => (
+                        <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '5px 0', borderTop: '1px solid var(--color-border)', fontSize: '0.8rem' }}>
+                          <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--color-text)' }}>{s.path}</span>
+                          <span style={{ flexShrink: 0, fontWeight: 800, color: 'var(--color-danger)' }}>{ms(s.ttfb_ms)}</span>
+                          <span style={{ flexShrink: 0, color: 'var(--color-text-muted)', width: 92, textAlign: 'right' }}>
+                            {new Date(s.created_at).toLocaleString('tr-TR', { timeZone: 'Europe/Istanbul', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </Section>
+              )}
+
+              <Section title="Sayfa bazında p75 (uzun = yavaş)">
+                {perf.sayfalar.length === 0 ? (
+                  <div style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>Henüz veri yok.</div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    {perf.sayfalar.map((p) => (
+                      <div key={p.path} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderTop: '1px solid var(--color-border)' }}>
+                        <Link href={p.path} target="_blank" style={{ flex: 1, minWidth: 0, fontSize: '0.85rem', color: 'var(--color-primary)', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.path}</Link>
+                        <span style={{ flexShrink: 0, fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{p.n.toLocaleString('tr-TR')} açılış</span>
+                        <span style={{ flexShrink: 0, width: 76, textAlign: 'right', fontSize: '0.85rem', fontWeight: 800, color: perfRenk(p.lcp_p75, 2500, 4000) }} title="p75 LCP">{ms(p.lcp_p75)}</span>
+                        <span style={{ flexShrink: 0, width: 68, textAlign: 'right', fontSize: '0.78rem', color: perfRenk(p.ttfb_p75, 800, 1800) }} title={`p75 sunucu · en kötü ${ms(p.ttfb_max)}`}>{ms(p.ttfb_p75)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Section>
+
+              <Section title="Günlük p75 LCP (son 14 gün) — bu grafikte UZUN ÇUBUK KÖTÜ">
+                <DailyBars
+                  series={perfSeries}
+                  fmt={(v) => (v / 1000).toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
+                  renk={(v) => perfRenk(v, 2500, 4000)}
+                />
+              </Section>
+            </>
+          )}
+        </div>
+
         {/* ================= ÜYE GİRİŞLERİ ================= */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div>
@@ -262,6 +490,7 @@ export default async function GirisIstatistikPage() {
 
         <p style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', textAlign: 'center', margin: 0 }}>
           Sunucu tarafı sayım — çerez onayından bağımsız, tüm ziyaretçileri kapsar. Ham IP saklanmaz. Sayfa 30 sn'de bir yenilenir.
+          <br />Hız ölçümü ziyaretçinin tarayıcısından gelir; kimlik veya çerez taşımaz, yalnızca süre ve sayfa yolu kaydedilir.
         </p>
       </div>
     </main>

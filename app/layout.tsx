@@ -23,6 +23,7 @@ import CelebrateOnParam from './components/CelebrateOnParam';
 import CookieConsent from './components/CookieConsent';
 import SignupEvent from './components/SignupEvent';
 import PageviewBeacon from './components/PageviewBeacon';
+import WebVitalsBeacon from './components/WebVitalsBeacon';
 
 // Google Analytics (GA4) ID — CookieConsent'e geçilir. GA YALNIZCA hem
 // NEXT_PUBLIC_GA_ID tanımlıysa hem de ziyaretçi çerez onayı verdiyse yüklenir
@@ -204,6 +205,9 @@ export default function RootLayout({ children, modal }: { children: React.ReactN
         {modal}
         {/* Çerezsiz sayfa görüntüleme beacon'ı — onaydan bağımsız, herkesi sayar */}
         <PageviewBeacon />
+        {/* Gerçek kullanıcı hızı (TTFB/LCP/INP) — kendi ölçümümüz masaüstü+sıcak
+            önbellek; ziyaretçinin telefonda gördüğü süreyi ancak burası ölçer. */}
+        <WebVitalsBeacon />
         <CookieConsent gaId={GA_ID} />
         {/* Kayıt başarısında (?signup=1) `sign_up` GA4/Ads dönüşümünü gönderir. */}
         <SignupEvent />

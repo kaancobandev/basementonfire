@@ -4,7 +4,8 @@ import { readGeoFromHeaders, clientIp, type HeaderGetter } from '@/lib/geo';
 
 // Botlari say(ma)mak icin: gercek tarayici UA'lari bunlarin hicbirini icermez.
 // (Zaten botlar JS calistirmaz -> beacon gondermez; bu ekstra guvence.)
-const BOT_RE = /bot|crawl|spider|slurp|mediapartners|bingpreview|facebookexternalhit|whatsapp|telegram|slackbot|discordbot|embedly|redditbot|applebot|petalbot|yandex|baidu|semrush|ahrefs|mj12|dotbot|headless|lighthouse|python-requests|curl\/|wget|axios|go-http-client|node-fetch/i;
+// (lib/perf-tracking.ts de ayni listeyi kullanir -> tek kaynak.)
+export const BOT_RE = /bot|crawl|spider|slurp|mediapartners|bingpreview|facebookexternalhit|whatsapp|telegram|slackbot|discordbot|embedly|redditbot|applebot|petalbot|yandex|baidu|semrush|ahrefs|mj12|dotbot|headless|lighthouse|python-requests|curl\/|wget|axios|go-http-client|node-fetch/i;
 
 // Cerezsiz sayfa goruntuleme kaydi. /api/hit route'undan cagrilir (istemci
 // beacon'i tetikler) -> sayfa goruntuleme basina TAM BIR KEZ, render yolundan
