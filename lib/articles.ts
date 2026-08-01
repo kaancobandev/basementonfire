@@ -1,4 +1,38 @@
-export type ArticleCategory = 'Fizik' | 'Kimya' | 'Tarih' | 'Biyoloji' | 'Teknoloji' | 'Kültür';
+/**
+ * BİRİNCİL KATEGORİ — makalenin durduğu RAF. Her makalenin TAM BİR tanesi olur.
+ *
+ * KURAL (2026-08-01): raflar birbirinin içine giremez. Bir başlık başka bir
+ * başlığın alt kümesiyse kategori OLAMAZ, topic olur. "Osmanlı" Tarih'in
+ * içindedir → topic. "İmparatorlar" Tarih'in içindedir → topic. Fatih'in
+ * kategorisi bu yüzden tartışmasız `Tarih`.
+ *
+ * İkinci doğrulama: bir makale iki rafa birden sığıyorsa o iki raf kardeş
+ * değil, iç içedir → biri topic olmalı.
+ *
+ * 6 → 9 (2026-08-01). Eski `Kültür` bir raf değil ARTIK KUTUSU olmuştu:
+ * içinde ekonomi + kaligrafi + sanat akımları vardı, üçünün ortak konusu yok.
+ * Kaldırıldı; yerine Sanat ve Ekonomi geldi. Aynı sıkışma iki yerde daha
+ * vardı: `dunya` (gezegen oluşumu) Fizik'te, `tibbi`/`bagirsak` Biyoloji'de.
+ *
+ * BÖLME KURALI: bir kategori diğerlerinin ortalamasının ~3 katına çıkınca ya da
+ * içindeki bir topic tek başına kategori büyüklüğüne ulaşınca bölünür. Yılda
+ * bir-iki kez yapılan bilinçli bir iş — makale başına verilen bir karar DEĞİL.
+ * Bir topic ne kadar büyürse büyüsün kategoriye TERFİ ETMEZ; kendi URL'ini alır
+ * ama rafının altında kalır.
+ *
+ * ⚠ Buraya kategori eklersen şu dört yer birlikte güncellenir. Dördü de
+ * `Record<ArticleCategory, …>` ya da `ArticleCategory[]` olduğu için **`tsc`
+ * hepsini yakalar** — unutursan derleme durur, sessiz hata olmaz:
+ *   1. app/components/ArticleIndex.tsx → SIRA + RENK + `--ink-*`
+ *      ⚠ `--ink-*` CSS'i tsc'nin GÖREMEDİĞİ tek parça: İKİ TEMA için renk
+ *        ekle ve AA'yı ÖLÇ (mevcut taban: açık 5.18 / koyu 6.55).
+ *   2. lib/landing.ts             → CATEGORY_ORDER
+ *   3. app/okuma-listesi/page.tsx → CATEGORY_EMOJI
+ *   4. lib/badges.ts              → BADGES + CATEGORY_BADGE_KEYS
+ */
+export type ArticleCategory =
+  | 'Fizik' | 'Astronomi' | 'Kimya' | 'Biyoloji' | 'Tıp'
+  | 'Teknoloji' | 'Tarih' | 'Sanat' | 'Ekonomi';
 
 export type ArticleMeta = {
   slug: string;
@@ -12,35 +46,35 @@ export type ArticleMeta = {
 // rastgele keşfet ve okuma listesi buradan beslenir. Sıra discover ile aynı tutuldu
 // (görünüm değişmesin); ilgili-konular kategoriye göre filtreler, sıradan bağımsız.
 export const ARTICLES: ArticleMeta[] = [
-  { slug: 'black-hole', title: 'Kara Delikler', emoji: '🕳️', desc: 'Evrenin en gizemli yapıları', category: 'Fizik' },
+  { slug: 'black-hole', title: 'Kara Delikler', emoji: '🕳️', desc: 'Evrenin en gizemli yapıları', category: 'Astronomi' },
   { slug: 'turkler', title: 'Türklerin Tarihi', emoji: '🏹', desc: "Orta Asya'dan Anadolu'ya", category: 'Tarih' },
   { slug: 'rome', title: 'Roma İmparatorluğu', emoji: '🏛️', desc: 'Bin yıllık medeniyet', category: 'Tarih' },
   { slug: 'greece', title: 'Antik Yunan', emoji: '⚡', desc: 'Demokrasinin beşiği', category: 'Tarih' },
   { slug: 'carthage', title: 'Kartaca', emoji: '⚓', desc: "Akdeniz'in efendileri", category: 'Tarih' },
-  { slug: 'ekonomi', title: 'Ekonominin Dili', emoji: '📈', desc: 'Faiz, parite, borsa — interaktif sözlük', category: 'Kültür' },
-  { slug: 'einstein-rosen', title: 'Einstein–Rosen Köprüsü', emoji: '🌀', desc: 'İnteraktif solucan deliği rehberi', category: 'Fizik' },
+  { slug: 'ekonomi', title: 'Ekonominin Dili', emoji: '📈', desc: 'Faiz, parite, borsa — interaktif sözlük', category: 'Ekonomi' },
+  { slug: 'einstein-rosen', title: 'Einstein–Rosen Köprüsü', emoji: '🌀', desc: 'İnteraktif solucan deliği rehberi', category: 'Astronomi' },
   { slug: 'arcade', title: 'Arcade', emoji: '🕹️', desc: 'Oyun salonu tarihi + oynanabilir klasikler', category: 'Teknoloji' },
   // 15 → 25 (2026-07-16): makalede 25 olgu var; 25 <article>, 25 "Kaynak ·" atfı ve
   // gövdedeki "yirmi beş olgu" ile doğrulandı. Bkz. app/articles/tibbi/page.tsx.
-  { slug: 'tibbi', title: '25 Tuhaf Tıbbi Olgu', emoji: '🧬', desc: 'Doğrulanmış akıl almaz tıp gerçekleri', category: 'Biyoloji' },
+  { slug: 'tibbi', title: '25 Tuhaf Tıbbi Olgu', emoji: '🧬', desc: 'Doğrulanmış akıl almaz tıp gerçekleri', category: 'Tıp' },
   { slug: 'internet', title: 'İnternet Nasıl Çalışır?', emoji: '🌐', desc: 'OSI, TCP/IP, DNS, paketler — diyagramlarla', category: 'Teknoloji' },
   { slug: 'pirus', title: 'Kral Pirus', emoji: '🐘', desc: 'Filler, Pirus zaferi ve destansı savaşlar', category: 'Tarih' },
   { slug: 'takyon', title: 'Takyonlar', emoji: '⚡', desc: 'Işıktan hızlı parçacıklar — benzetmelerle', category: 'Fizik' },
   { slug: 'tardigrad', title: 'Tardigradlar (Su Ayıları)', emoji: '🐻', desc: 'Yok edilemez minik canavar + mini 2B oyun', category: 'Biyoloji' },
-  { slug: 'bagirsak', title: 'Bağırsaklar — İkinci Beyin', emoji: '🧠', desc: 'Kararlarımızı ve ruh halimizi yöneten ikinci beyin', category: 'Biyoloji' },
-  { slug: 'bakteriyofaj', title: 'Bakteriyofajlar', emoji: '🦠', desc: 'Bakteri yiyen virüsler: faj terapisi, CRISPR ve antibiyotik krizine umut', category: 'Biyoloji' },
+  { slug: 'bagirsak', title: 'Bağırsaklar — İkinci Beyin', emoji: '🧠', desc: 'Kararlarımızı ve ruh halimizi yöneten ikinci beyin', category: 'Tıp' },
+  { slug: 'bakteriyofaj', title: 'Bakteriyofajlar', emoji: '🦠', desc: 'Bakteri yiyen virüsler: faj terapisi, CRISPR ve antibiyotik krizine umut', category: 'Tıp' },
   { slug: 'endosimbiyoz', title: 'Endosimbiyoz', emoji: '🧬', desc: 'İki hücrenin birleşip karmaşık yaşamı yarattığı an: mitokondri, Margulis, nitroplast', category: 'Biyoloji' },
-  { slug: 'kaligrafi', title: 'Kaligrafi', emoji: '✒️', desc: 'Güzel yazının sanatı: hat, Doğu Asya ve Batı gelenekleri, araçlar ve başlangıç rehberi', category: 'Kültür' },
+  { slug: 'kaligrafi', title: 'Kaligrafi', emoji: '✒️', desc: 'Güzel yazının sanatı: hat, Doğu Asya ve Batı gelenekleri, araçlar ve başlangıç rehberi', category: 'Sanat' },
   { slug: 'doppler', title: 'Doppler Etkisi', emoji: '📡', desc: 'Hareketin sesi ve ışığı nasıl değiştirdiği: kırmızıya kayma, radar, evrenin genişlemesi — interaktif', category: 'Fizik' },
   { slug: 'dogal-secilim', title: 'Doğal Seçilim', emoji: '🐦', desc: "Darwin'in büyük fikri: çeşitlilik, kalıtım ve uyum — kamuflaj simülasyonu ve gerçek örneklerle interaktif", category: 'Biyoloji' },
-  { slug: 'dunya', title: 'Dünya', emoji: '🌍', desc: "Gezegenimizin doğum hikâyesi: güneş bulutsusundan demir çekirdeğe, dev çarpışmadan Ay'a — interaktif iç yapı modeliyle", category: 'Fizik' },
+  { slug: 'dunya', title: 'Dünya', emoji: '🌍', desc: "Gezegenimizin doğum hikâyesi: güneş bulutsusundan demir çekirdeğe, dev çarpışmadan Ay'a — interaktif iç yapı modeliyle", category: 'Astronomi' },
   { slug: 'newton', title: 'Isaac Newton', emoji: '🍎', desc: "Hareket yasaları, kütleçekim, kalkülüs ve optik — F=ma oyun alanı, ters-kare simülasyonu ve dolandırılma hikâyesiyle interaktif", category: 'Fizik' },
   { slug: 'bilgisayar', title: 'Bilgisayar Nasıl Çalışır?', emoji: '💻', desc: "CPU, GPU, RAM, SSD, anakart, LCD, mikrofon ve hoparlör — bol benzetme ve interaktif araçlarla (ikili sayı, komut döngüsü, RGB piksel) tüm parçaların rehberi", category: 'Teknoloji' },
   { slug: 'cift-yarik', title: 'Çift Yarık Deneyi', emoji: '⚛️', desc: "Kuantumun tek gerçek gizemi: dalga-parçacık ikiliği, tek elektronların girişimi, gözlemin etkisi — interaktif çift yarık simülatörü, dalga havuzu ve de Broglie hesaplayıcısıyla, arka planda hareket eden elektronlarla", category: 'Fizik' },
   { slug: 'kuantum-olumsuzlugu', title: 'Kuantum Ölümsüzlüğü', emoji: '♾️', desc: "Kendi ölümünü neden hiç deneyimlemeyebilirsin? Süperpozisyon, Çok Dünyalı Yorum ve kuantum intiharı — ve fikrin Adam Fawer'ın Mobius romanına kaçmış hâli; interaktif dallanma simülatörü ve dönen Möbius şeridiyle", category: 'Fizik' },
   { slug: 'mol', title: 'Kimyada Mol Kavramı', emoji: '⚗️', desc: "Kimyanın en temel kavramı gündelik örneklerle: 1 mol = 6,022 × 10²³ tane. Molar kütle, dönüşüm haritası, molarite ve stokiyometri — interaktif mol hesaplayıcı, Avogadro ölçeği ve periyodik tablodan molar kütle aracıyla", category: 'Kimya' },
   { slug: 'fizik-101', title: 'Sıfırdan Fizik', emoji: '🚀', desc: "Fizik hiç bilmeyenler için sıfırdan: kütle, kuvvet, Newton (F=ma), ivme, hız, momentum, enerji, sürtünme — gündelik örnekler ve bolca interaktif deneyle (kuvvet laboratuvarı, çarpışma simülatörü, enerji rampası). Açık temalı", category: 'Fizik' },
-  { slug: 'sanat-akimlari', title: 'Sanat Akımları', emoji: '🎨', desc: "Rönesans'tan yapay zekâya 60'tan fazla akım: hangi akım, nerede, kim, neden? Beş 'motor' çerçevesi + aranıp filtrelenebilen interaktif akım kâşifi. Batı-dışı gelenekler ve Türkiye dahil", category: 'Kültür' },
+  { slug: 'sanat-akimlari', title: 'Sanat Akımları', emoji: '🎨', desc: "Rönesans'tan yapay zekâya 60'tan fazla akım: hangi akım, nerede, kim, neden? Beş 'motor' çerçevesi + aranıp filtrelenebilen interaktif akım kâşifi. Batı-dışı gelenekler ve Türkiye dahil", category: 'Sanat' },
   { slug: 'radyoaktivite', title: 'Radyoaktivite', emoji: '☢️', desc: "Kararsız bir çekirdeğin kendiliğinden bozunması: yarılanma süresi, alfa-beta-gama, bozunma zinciri, doz ve radon. Becquerel'in kazasından Curie'nin defterlerine, Oklo'nun doğal reaktöründen kemiklerinizdeki potasyum-40'a — yıldız yarılanma simülatörü, sürüklenebilir nüfuz kutusu, sesli Geiger sayacı ve 'sen ne kadar radyoaktifsin?' hesaplayıcısıyla interaktif", category: 'Fizik' },
   { slug: 'ayna-noronlari', title: 'Ayna Nöronları', emoji: '🪞', desc: "Sen bir şeyi yaptığında da başkasının yaptığını izlediğinde de ateşlenen nöronlar: Parma'daki kazara keşiften empati/otizm hype'ına, Hickok ve Heyes'in ciddi geri tepkisine — sinirsel aynalamanın çekişmeli hikâyesi. three.js 3B ayna-nöron ağı + 'nöronu ateşle', eylem-vs-gözlem ve bulaşma demolarıyla interaktif", category: 'Biyoloji' },
   { slug: 'sezar', title: 'Julius Caesar', emoji: '🗡️', desc: "Kendisini öldürenleri affeden adam: korsanlara fidyesini az bulan çocuktan Galya'daki bir milyon ölüye, Rubicon'dan Alesia'nın çift suruna, herkesi affeden diktatörden 23 bıçağa. Merhametin neden bir silah — ve neden bir ölüm fermanı — olduğunun hikâyesi. Rubicon karar noktası (sen ne yapardın?), Alesia çift sur sahnesi, 23 yara diyagramı ve Caesar → Kaiser → Çar isim ağacıyla interaktif", category: 'Tarih' },

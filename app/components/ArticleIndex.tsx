@@ -37,16 +37,22 @@ const YEREL_KANCA: Record<string, string> = {
 export const kancaFor = (a: ArticleMeta) => questionFor(a.slug) ?? YEREL_KANCA[a.slug] ?? a.desc;
 
 /* Kategori mürekkepleri TEMAYA DUYARLI (ölçüldü). Tek sabit ton iki temada
-   birden AA'yı geçmiyordu: açıkta Kültür 2.94, koyuda Fizik 3.40.
-   Bu iki set ile en düşük kontrast açık 5.18 / koyu 6.55. Değiştirirsen ÖLÇ. */
-const SIRA: ArticleCategory[] = ['Fizik', 'Tarih', 'Biyoloji', 'Kültür', 'Teknoloji', 'Kimya'];
+   birden AA'yı geçmiyordu (koyuda Fizik 3.40'ta kalıyordu) → iki ayrı set.
+   En düşük kontrast: açık 5.18 / koyu 6.55. Değiştirir ya da EKLERSEN ÖLÇ —
+   göz kararı yeterli değil, iki zemin de (beyaz ve #16202a) hesaplanmalı. */
+// Sıra SAYIYA GÖRE DEĞİL alan grubuna göre: doğa bilimleri → uygulamalı →
+// beşerî. Sayıya göre olsaydı her yeni makalede bölümler yer değiştirirdi.
+const SIRA: ArticleCategory[] = ['Fizik', 'Astronomi', 'Kimya', 'Biyoloji', 'Tıp', 'Teknoloji', 'Tarih', 'Sanat', 'Ekonomi'];
 const RENK: Record<ArticleCategory, string> = {
   Fizik: 'var(--ink-fizik)',
-  Tarih: 'var(--ink-tarih)',
-  Biyoloji: 'var(--ink-biyoloji)',
-  Kültür: 'var(--ink-kultur)',
-  Teknoloji: 'var(--ink-teknoloji)',
+  Astronomi: 'var(--ink-astronomi)',
   Kimya: 'var(--ink-kimya)',
+  Biyoloji: 'var(--ink-biyoloji)',
+  Tıp: 'var(--ink-tip)',
+  Teknoloji: 'var(--ink-teknoloji)',
+  Tarih: 'var(--ink-tarih)',
+  Sanat: 'var(--ink-sanat)',
+  Ekonomi: 'var(--ink-ekonomi)',
 };
 
 const azalt = () =>
@@ -129,13 +135,25 @@ export default function ArticleIndex({
      kalacağını önceden hesapla. Akan tek bir sayaç yetmiyordu — tamamı kırpılan
      bölümün BAŞLIĞI boş listeyle görünüyordu (12 satır açıkken "KİMYA" başlığı
      altında hiç satır yoktu). Bölüm de `hidden` alıyor ama DOM'DAN SİLİNMİYOR,
-     böylece tüm makale linkleri HTML'de kalıyor. */
-  let kalan = kirp ? baslangicAdet! : Infinity;
-  const bolumler = gruplar.map((g) => {
-    const acik = Math.min(g.list.length, Math.max(0, kalan));
-    kalan -= acik;
-    return { ...g, acik };
-  });
+     böylece tüm makale linkleri HTML'de kalıyor.
+
+     ÖNCE HER BÖLÜME BİR SATIR (2026-08-01). Kategori 6→9 olunca düz "sırayla
+     doldur" bozuldu: ilk dört bölüm 12 satırlık bütçeyi bitiriyor ve en büyük
+     kategori (Tarih, 9 makale) varsayılan görünümde HİÇ görünmüyordu. Artık
+     önce her bölüm birer satır alıyor, ARTAN bütçe sırayla dağıtılıyor — katalog
+     ilk bakışta kaç raftan oluştuğunu gösteriyor. Kırpma yalnız GÖRÜNÜRLÜK;
+     satırların tamamı yine DOM'da, Googlebot hepsini görüyor. */
+  const bolumler = (() => {
+    if (!kirp) return gruplar.map((g) => ({ ...g, acik: g.list.length }));
+    const acik = gruplar.map((g) => Math.min(1, g.list.length));
+    let kalan = baslangicAdet! - acik.reduce((t, n) => t + n, 0);
+    for (let i = 0; i < gruplar.length && kalan > 0; i++) {
+      const ek = Math.min(gruplar[i].list.length - acik[i], kalan);
+      acik[i] += ek;
+      kalan -= ek;
+    }
+    return gruplar.map((g, i) => ({ ...g, acik: acik[i] }));
+  })();
 
   return (
     <div ref={kokRef} className="ai-kok">
@@ -194,13 +212,20 @@ export default function ArticleIndex({
         .ai-kok {
           /* Açık tema mürekkepleri — beyaz üstünde 5.18–7.80 (AA) */
           --ink-fizik:#5433c9; --ink-tarih:#b4471f; --ink-biyoloji:#1c7a51;
-          --ink-kultur:#8a5e08; --ink-teknoloji:#1d6699; --ink-kimya:#0d7a74;
+          --ink-teknoloji:#1d6699; --ink-kimya:#0d7a74;
+          /* 2026-08-01 eklenenler — beyaz üstünde 5.70/6.32/6.92/5.84 (AA).
+             --ink-sanat, kaldırılan --ink-kultur'un altın tonunu devraldı. */
+          --ink-astronomi:#8e2f9c; --ink-tip:#b81d4e;
+          --ink-sanat:#8a5e08; --ink-ekonomi:#5f6b12;
           --on-ink:#fff;
         }
         /* Koyu tema mürekkepleri — #16202a üstünde 6.55–7.88 (AA) */
         [data-theme="dark"] .ai-kok {
           --ink-fizik:#a595ff; --ink-tarih:#f0906a; --ink-biyoloji:#4cc98d;
-          --ink-kultur:#e0a63c; --ink-teknoloji:#63b0e0; --ink-kimya:#3fc4b8;
+          --ink-teknoloji:#63b0e0; --ink-kimya:#3fc4b8;
+          /* eklenenler — #16202a üstünde 8.85/8.43/7.60/9.66 (AA) */
+          --ink-astronomi:#e2a8ff; --ink-tip:#ff9db5;
+          --ink-sanat:#e0a63c; --ink-ekonomi:#c3ce5c;
           --on-ink:#16202a;
         }
 

@@ -2,6 +2,8 @@
 // kazandikca user_badges tablosuna yazilir (boylece "yeni kazanildi" bildirimi
 // tek sefer gosterilir ve esik dususe bile rozet kaybolmaz).
 
+import type { ArticleCategory } from '@/lib/articles';
+
 export type Badge = { key: string; name: string; emoji: string; desc: string };
 
 // Sira onemli: profilde bu sirayla gosterilir.
@@ -22,17 +24,29 @@ export const BADGES: Badge[] = [
   { key: 'koleksiyon_tarih',     name: 'Tarih Rafi',     emoji: '🏛️', desc: 'Tum Tarih makalelerini okudun' },
   { key: 'koleksiyon_biyoloji',  name: 'Biyoloji Rafi',  emoji: '🧬', desc: 'Tum Biyoloji makalelerini okudun' },
   { key: 'koleksiyon_teknoloji', name: 'Teknoloji Rafi', emoji: '💻', desc: 'Tum Teknoloji makalelerini okudun' },
-  { key: 'koleksiyon_kultur',    name: 'Kultur Rafi',    emoji: '🎭', desc: 'Tum Kultur makalelerini okudun' },
+  // 2026-08-01: 'koleksiyon_kultur' KALDIRILDI (Kültür kategorisi artık yok).
+  // Kimsenin kazanmadigi DOGRULANDI (user_badges sorgulandi) -> yetim rozet yok.
+  { key: 'koleksiyon_astronomi', name: 'Astronomi Rafi', emoji: '🔭', desc: 'Tum Astronomi makalelerini okudun' },
+  { key: 'koleksiyon_tip',       name: 'Tip Rafi',       emoji: '🩺', desc: 'Tum Tip makalelerini okudun' },
+  { key: 'koleksiyon_sanat',     name: 'Sanat Rafi',     emoji: '🎨', desc: 'Tum Sanat makalelerini okudun' },
+  { key: 'koleksiyon_ekonomi',   name: 'Ekonomi Rafi',   emoji: '📈', desc: 'Tum Ekonomi makalelerini okudun' },
 ];
 
 // Kategori adi (lib/articles.ts) → koleksiyon rozeti anahtari.
-export const CATEGORY_BADGE_KEYS: Record<string, string> = {
+// TIP `Record<ArticleCategory, string>`, `Record<string, string>` DEGIL: eskiden
+// serbest string'di ve yeni bir kategori eklenince buraya eklemeyi unutmak
+// SESSIZ bir hataydi -- rozet hic yazilmiyordu, hicbir yerde patlamiyordu.
+// Artik kategori eklenip buraya eklenmezse `tsc` derlemeyi durdurur.
+export const CATEGORY_BADGE_KEYS: Record<ArticleCategory, string> = {
   'Fizik': 'koleksiyon_fizik',
+  'Astronomi': 'koleksiyon_astronomi',
   'Kimya': 'koleksiyon_kimya',
-  'Tarih': 'koleksiyon_tarih',
   'Biyoloji': 'koleksiyon_biyoloji',
+  'Tıp': 'koleksiyon_tip',
   'Teknoloji': 'koleksiyon_teknoloji',
-  'Kültür': 'koleksiyon_kultur',
+  'Tarih': 'koleksiyon_tarih',
+  'Sanat': 'koleksiyon_sanat',
+  'Ekonomi': 'koleksiyon_ekonomi',
 };
 
 export const BADGE_MAP: Record<string, Badge> = Object.fromEntries(BADGES.map(b => [b.key, b]));

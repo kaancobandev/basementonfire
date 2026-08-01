@@ -8,7 +8,8 @@ export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: 'Okuma Listem', robots: { index: false } };
 
 const CATEGORY_EMOJI: Record<ArticleCategory, string> = {
-  Fizik: '⚛️', Kimya: '🧪', Tarih: '🏛️', Biyoloji: '🧬', Teknoloji: '💻', Kültür: '🎭',
+  Fizik: '⚛️', Astronomi: '🔭', Kimya: '🧪', Biyoloji: '🧬', Tıp: '🩺',
+  Teknoloji: '💻', Tarih: '🏛️', Sanat: '🎨', Ekonomi: '📈',
 };
 
 export default async function OkumaListesiPage() {

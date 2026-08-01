@@ -95,7 +95,9 @@ export const RULES: { claim: string; proof: string }[] = [
 /* ══════════ Türetilmiş sayılar — ASLA elle yazma ══════════ */
 // Elle yazılırsa 33. makalede hero yalan söyler ve markanın kendi kuralını ilk
 // çiğneyen sayfa landing olur.
-export const CATEGORY_ORDER: ArticleCategory[] = ['Fizik', 'Tarih', 'Biyoloji', 'Kültür', 'Teknoloji', 'Kimya'];
+// Landing zaten n'e göre azalan sıralar (aşağıda); buradaki sıra yalnız KAYNAK
+// listesi. Kategori eklenince buraya da eklenmeli — yoksa landing'de sayılmaz.
+export const CATEGORY_ORDER: ArticleCategory[] = ['Fizik', 'Astronomi', 'Kimya', 'Biyoloji', 'Tıp', 'Teknoloji', 'Tarih', 'Sanat', 'Ekonomi'];
 
 export function categoryCounts(): { cat: ArticleCategory; n: number }[] {
   return CATEGORY_ORDER

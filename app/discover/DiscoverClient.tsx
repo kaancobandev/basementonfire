@@ -188,7 +188,9 @@ export default function DiscoverClient({ users, media, articles, communityArticl
               kalıyor, bu sayfanın SEO yüzeyi korunuyor. */}
           <div className="dc-section">
             <h2 className="dc-section-title">Makaleler</h2>
-            <ArticleIndex articles={articles} baslangicAdet={12} />
+            {/* 12 → 18 (2026-08-01): sayı 6 kategoriye göre ayarlanmıştı, 9 oldu.
+                9'u birer satır aldıktan sonra artan 9 satır sırayla dağılır. */}
+            <ArticleIndex articles={articles} baslangicAdet={18} />
           </div>
 
           {/* Topluluk makaleleri — kullanıcıların yazıp yayınladığı makaleler */}
