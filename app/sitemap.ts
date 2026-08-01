@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { db } from '@/lib/supabase/server';
-import { ARTICLES } from '@/lib/articles';
+import { ARTICLES, kategoriSayfalari } from '@/lib/articles';
 import { MAKALE_TARIH, SAYFA_TARIH, URETIM_TARIHI } from '@/lib/sitemap-dates';
 
 const SITE_URL = 'https://basementonfire.com';
@@ -52,6 +52,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     //  · /eslesme      → giriş + 18 yaş gerektirir, herkese açık değil.
     //  · /login,/register ve korumalı yollar → robots.txt'te zaten Disallow.
   ];
+
+  // ── KATEGORİ SAYFALARI (2026-08-01) ─────────────────────────────────────
+  // Sağlık kuralı işletildi: hepsi force-static, anonim istekte 200, kendi
+  // metadata'sı index. Liste kategoriSayfalari()'nden geliyor → 3 makale
+  // eşiğinin altındaki kategori (bugün Kimya, Ekonomi, Sanat) haritaya
+  // GİRMEZ; zaten sayfası da yok, dynamicParams=false ile 404 döner.
+  // Eşiği geçen kategori kendiliğinden hem sayfa hem harita kaydı kazanır.
+  const kategoriRoutes: MetadataRoute.Sitemap = kategoriSayfalari().map(k => ({
+    url: `${SITE_URL}/discover/${k.slug}`,
+    lastModified: tarih(SAYFA_TARIH['/discover']),
+    changeFrequency: 'weekly',
+    priority: 0.7,
+  }));
 
   // Makale listesi TEK kaynaktan (lib/articles.ts) — yeni makale eklenince
   // sitemap otomatik güncellenir (elle senkron riski yok).
@@ -120,5 +133,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // DB erişilemezse statik + makale haritası yine de döner
   }
 
-  return [...staticRoutes, ...articleRoutes, ...dynamicRoutes];
+  return [...staticRoutes, ...kategoriRoutes, ...articleRoutes, ...dynamicRoutes];
 }

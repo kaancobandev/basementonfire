@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import type { ArticleCategory, ArticleMeta } from '@/lib/articles';
+import { kategoriYolu, type ArticleCategory, type ArticleMeta } from '@/lib/articles';
 import { questionFor } from '@/lib/questions';
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -61,10 +61,17 @@ const azalt = () =>
 export default function ArticleIndex({
   articles,
   baslangicAdet,
+  tekKategori = false,
 }: {
   articles: ArticleMeta[];
   /** "Tümü" görünümünde ilk kaç satır açık gelsin. Verilmezse hepsi. */
   baslangicAdet?: number;
+  /**
+   * Kategori sayfasında (/discover/tarih) true. Çipleri gizler — tek kategorili
+   * listede sekiz çipin "0" göstermesi anlamsız — ve bölüm başlığını linke
+   * ÇEVİRMEZ: sayfa zaten o kategorinin sayfası, kendine link vermek gereksiz.
+   */
+  tekKategori?: boolean;
 }) {
   const [kategori, setKategori] = useState<ArticleCategory | 'Tümü'>('Tümü');
   const [hepsiAcik, setHepsiAcik] = useState(false);
@@ -157,25 +164,43 @@ export default function ArticleIndex({
 
   return (
     <div ref={kokRef} className="ai-kok">
-      {/* Kategori çipleri */}
-      <div className="ai-cipler">
-        <Cip aktif={kategori === 'Tümü'} sayi={articles.length} onClick={() => setKategori('Tümü')}>
-          Tümü
-        </Cip>
-        {SIRA.map((c) => (
-          <Cip key={c} aktif={kategori === c} sayi={sayilar[c]} renk={RENK[c]} onClick={() => setKategori(c)}>
-            {c}
+      {/* Kategori çipleri — kategori sayfasında gizli (bkz. tekKategori) */}
+      {!tekKategori && (
+        <div className="ai-cipler">
+          <Cip aktif={kategori === 'Tümü'} sayi={articles.length} onClick={() => setKategori('Tümü')}>
+            Tümü
           </Cip>
-        ))}
-      </div>
+          {SIRA.map((c) => (
+            <Cip key={c} aktif={kategori === c} sayi={sayilar[c]} renk={RENK[c]} onClick={() => setKategori(c)}>
+              {c}
+            </Cip>
+          ))}
+        </div>
+      )}
 
-      {bolumler.map((g) => (
-        <section key={g.cat} className="ai-bolum" hidden={g.acik === 0}>
-          <h3 className="ai-raf" style={{ color: RENK[g.cat] }}>
+      {bolumler.map((g) => {
+        // Bölüm başlığı, o kategorinin sayfasına GİDEN LİNK olur. Çipler istemci
+        // state'i olduğu için taranamıyordu; başlık linki kategori sayfalarına
+        // taranabilir tek iç bağlantıyı veriyor (eşiğin altındaki kategoride
+        // kategoriYolu null döner → düz başlık kalır).
+        const yol = tekKategori ? null : kategoriYolu(g.cat);
+        const baslikIci = (
+          <>
             <span className="ai-nokta" style={{ background: RENK[g.cat] }} aria-hidden />
             {g.cat}
             <span className="ai-raf-sayi">{g.list.length} makale</span>
-          </h3>
+          </>
+        );
+        return (
+        <section key={g.cat} className="ai-bolum" hidden={g.acik === 0}>
+          {/* Kategori sayfasında bölüm başlığı YOK: sayfanın h1'i zaten
+              "Tarih Makaleleri" diyor, hemen altına "TARİH · 9 makale"
+              koymak aynı şeyi iki kez söylemek olurdu. */}
+          {!tekKategori && (
+            <h3 className="ai-raf" style={{ color: RENK[g.cat] }}>
+              {yol ? <Link href={yol} className="ai-raf-link">{baslikIci}</Link> : baslikIci}
+            </h3>
+          )}
 
           <ul className="ai-liste">
             {g.list.map((a, i) => {
@@ -190,7 +215,9 @@ export default function ArticleIndex({
                   >
                     <span className="ai-ray" aria-hidden />
                     <span className="ai-govde">
-                      <span className="ai-etiket">{a.category} · {a.title}</span>
+                      {/* Kategori sayfasında "TARİH ·" öneki düşer — dokuz
+                          satırın dokuzunda aynı kelimeyi tekrarlamanın anlamı yok. */}
+                      <span className="ai-etiket">{tekKategori ? a.title : `${a.category} · ${a.title}`}</span>
                       <span className="ai-soru">{kancaFor(a)}</span>
                     </span>
                     <span className="ai-ok" aria-hidden>→</span>
@@ -200,7 +227,8 @@ export default function ArticleIndex({
             })}
           </ul>
         </section>
-      ))}
+        );
+      })}
 
       {gizliSayi > 0 && (
         <button className="ai-tumu" onClick={() => setHepsiAcik(true)}>
@@ -247,6 +275,13 @@ export default function ArticleIndex({
           letter-spacing:.1em; text-transform:uppercase;
         }
         .ai-nokta { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+        /* Başlık linki rengi/dizilimi başlıktan MİRAS ALIR — kategori mürekkebi
+           h3'te tanımlı, link onu ezmemeli (yoksa dokuz renk de mavi olur). */
+        .ai-raf-link {
+          display:flex; align-items:baseline; gap:8px;
+          color:inherit; text-decoration:none;
+        }
+        .ai-raf-link:hover { text-decoration:underline; text-underline-offset:3px; }
         .ai-raf-sayi {
           color:var(--color-text-muted); font-weight:600;
           letter-spacing:normal; text-transform:none; font-size:.74rem;

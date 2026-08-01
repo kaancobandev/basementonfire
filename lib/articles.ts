@@ -120,6 +120,58 @@ export const ARTICLES: ArticleMeta[] = [
 
 export const ARTICLE_MAP: Record<string, ArticleMeta> = Object.fromEntries(ARTICLES.map(a => [a.slug, a]));
 
+// ── KATEGORİ SAYFALARI (/discover/<slug>) ───────────────────────────────────
+/**
+ * Kategori → URL parçası. ELLE YAZILAN HARİTA, `toLowerCase()` DEĞİL: Türkçe'de
+ * büyük-küçük dönüşümü yerele bağlıdır — 'Tıp'.toLowerCase() ortama göre 'tıp'
+ * ya da 'tip' verir ve rota sessizce 404'e düşer. Ayrıca rota parametresi
+ * çözülmemiş gelir (`t%C4%B1p`), yani URL'de ASCII kalmak tek güvenli yol.
+ * Tip `Record<ArticleCategory, …>`: yeni kategori slug'sız derlenmez.
+ */
+export const CATEGORY_SLUG: Record<ArticleCategory, string> = {
+  Fizik: 'fizik',
+  Astronomi: 'astronomi',
+  Kimya: 'kimya',
+  Biyoloji: 'biyoloji',
+  Tıp: 'tip',
+  Teknoloji: 'teknoloji',
+  Tarih: 'tarih',
+  Sanat: 'sanat',
+  Ekonomi: 'ekonomi',
+};
+
+/**
+ * Bir kategori ancak BU KADAR makale toplayınca kendi sayfasını hak eder.
+ * Konularda ve etiket sayfalarında uygulanan kuralın aynısı: tek makalelik bir
+ * liste sayfası, kaçındığımız ince-içerik sorununun kendisidir (etiketlerde
+ * ölçüldü — on sayfa birbirinin kopyasıydı, haritanın %17'siydi).
+ * Eşiğin altındaki kategori /discover'da yine filtrelenebilir, yalnız kendi
+ * URL'i YOKTUR. Eşiği geçince sayfa kendiliğinden açılır.
+ */
+export const KATEGORI_MIN_MAKALE = 3;
+
+export function articlesByCategory(cat: ArticleCategory): ArticleMeta[] {
+  return ARTICLES.filter(a => a.category === cat);
+}
+
+/** Kendi sayfası olan kategoriler — sitemap ve generateStaticParams TEK kaynağı. */
+export function kategoriSayfalari(): { cat: ArticleCategory; slug: string; adet: number }[] {
+  return (Object.keys(CATEGORY_SLUG) as ArticleCategory[])
+    .map(cat => ({ cat, slug: CATEGORY_SLUG[cat], adet: articlesByCategory(cat).length }))
+    .filter(x => x.adet >= KATEGORI_MIN_MAKALE);
+}
+
+/** URL parçası → kategori. Sayfası olmayan kategori için null (rota 404 verir). */
+export function kategoriFromSlug(slug: string): ArticleCategory | null {
+  const bulunan = kategoriSayfalari().find(x => x.slug === slug);
+  return bulunan ? bulunan.cat : null;
+}
+
+/** Kategorinin sayfası varsa yolu, yoksa null (ArticleIndex başlığı buna göre linklenir). */
+export function kategoriYolu(cat: ArticleCategory): string | null {
+  return articlesByCategory(cat).length >= KATEGORI_MIN_MAKALE ? `/discover/${CATEGORY_SLUG[cat]}` : null;
+}
+
 export function isArticleSlug(slug: string): boolean {
   return Object.prototype.hasOwnProperty.call(ARTICLE_MAP, slug);
 }
