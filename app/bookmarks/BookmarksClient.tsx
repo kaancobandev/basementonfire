@@ -137,7 +137,10 @@ export default function BookmarksClient({ initialPosts, meId = null, collections
         </p>
       )}
 
-      {/* Grid */}
+      {/* Grid — HÜCRE KARE (2026-08-01, önceden 3:4). Kayıtlar Instagram'da da
+          karedir; profil ızgarasından (4:5) BİLEREK ayrı: burası kendi
+          içeriğinin vitrini değil, karışık kaynaklı bir arşiv — kare ızgarada
+          farklı oranlardan gelen gönderiler eşit ağırlıkta görünüyor. */}
       {visible.length > 0 && (
         <div ref={gridRef} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 3, padding: 3 }}>
           {visible.map(post => (
@@ -146,7 +149,7 @@ export default function BookmarksClient({ initialPosts, meId = null, collections
               onClick={() => openLightbox(post)}
               aria-label={post.caption}
               style={{
-                aspectRatio: '3/4',
+                aspectRatio: '1',
                 overflow: 'hidden',
                 background: 'var(--color-border)',
                 border: 'none',

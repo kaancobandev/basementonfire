@@ -264,9 +264,15 @@ export default function ProfileClient({ user, bg, age, followersCount, following
             <p style={{ fontSize: '0.85rem' }}><Link href="/akis" style={{ color: 'var(--color-primary)' }}>İlk gönderini paylaş</Link></p>
           </div>
         ) : (
+          // IZGARA HÜCRESİ 4:5 (2026-08-01, önceden 3:4). Instagram profil
+          // ızgarasını Ocak 2025'te kareden 4:5'e çevirdi; asıl gerekçe iç
+          // tutarlılık: kendi kırpma ekranımızın en dikey seçeneği ZATEN 4:5
+          // (ImageCropper ASPECTS). 3:4 hücrede o gönderiler yanlardan %6,25
+          // kırpılıyordu — yani kullanıcının seçtiği kadraj profilde bozuluyordu.
+          // Artık 4:5 kırpılan gönderi ızgaraya piksel piksel oturuyor.
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 3, padding: 3 }}>
             {posts.map(post => (
-              <button key={post.id} onClick={() => { setLightbox(post); setConfirmingDelete(false); }} style={{ aspectRatio: '3/4', overflow: 'hidden', background: 'var(--color-border)', border: 'none', padding: 0, cursor: 'pointer', position: 'relative' }} className="hb-cell">
+              <button key={post.id} onClick={() => { setLightbox(post); setConfirmingDelete(false); }} style={{ aspectRatio: '4/5', overflow: 'hidden', background: 'var(--color-border)', border: 'none', padding: 0, cursor: 'pointer', position: 'relative' }} className="hb-cell">
                 {post.media_type === 'audio' ? <AudioThumb /> : post.media_type === 'image' ? <Img src={post.media_url} alt={post.caption} loading="lazy" sizes="(max-width:700px) 33vw, 240px" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.2s' }} /> : <><VideoThumb src={post.media_url} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} /><PlayBadge /></>}
                 {factMediaList(post).filter(m => m.type !== 'audio').length > 1 && <MultiBadge />}
                 {post.media_type !== 'audio' && factMediaList(post).some(m => m.type === 'audio') && <MusicBadge />}
@@ -292,7 +298,7 @@ export default function ProfileClient({ user, bg, age, followersCount, following
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 3, padding: 3 }}>
             {savedPosts.map(post => (
-              <button key={post.id} onClick={() => setLightbox(post)} style={{ aspectRatio: '3/4', overflow: 'hidden', background: 'var(--color-border)', border: 'none', padding: 0, cursor: 'pointer', position: 'relative' }} className="hb-cell">
+              <button key={post.id} onClick={() => setLightbox(post)} style={{ aspectRatio: '4/5', overflow: 'hidden', background: 'var(--color-border)', border: 'none', padding: 0, cursor: 'pointer', position: 'relative' }} className="hb-cell">
                 {post.media_type === 'audio' ? <AudioThumb /> : post.media_type === 'image' ? <Img src={post.media_url} alt={post.caption} loading="lazy" sizes="(max-width:700px) 33vw, 240px" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} /> : <><VideoThumb src={post.media_url} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} /><PlayBadge /></>}
                 {factMediaList(post).filter(m => m.type !== 'audio').length > 1 && <MultiBadge />}
                 {post.media_type !== 'audio' && factMediaList(post).some(m => m.type === 'audio') && <MusicBadge />}
@@ -318,7 +324,7 @@ export default function ProfileClient({ user, bg, age, followersCount, following
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 3, padding: 3 }}>
             {repostedPosts.map(post => (
-              <button key={post.id} onClick={() => setLightbox(post)} style={{ aspectRatio: '3/4', overflow: 'hidden', background: 'var(--color-border)', border: 'none', padding: 0, cursor: 'pointer', position: 'relative' }} className="hb-cell">
+              <button key={post.id} onClick={() => setLightbox(post)} style={{ aspectRatio: '4/5', overflow: 'hidden', background: 'var(--color-border)', border: 'none', padding: 0, cursor: 'pointer', position: 'relative' }} className="hb-cell">
                 {post.media_type === 'audio' ? <AudioThumb /> : post.media_type === 'image' ? <Img src={post.media_url} alt={post.caption} loading="lazy" sizes="(max-width:700px) 33vw, 240px" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} /> : <><VideoThumb src={post.media_url} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} /><PlayBadge /></>}
                 {factMediaList(post).filter(m => m.type !== 'audio').length > 1 && <MultiBadge />}
                 {post.media_type !== 'audio' && factMediaList(post).some(m => m.type === 'audio') && <MusicBadge />}

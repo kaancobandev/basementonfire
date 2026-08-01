@@ -391,7 +391,9 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
             <button
               key={post.id}
               onClick={() => openLightbox(post)}
-              style={{ aspectRatio: '3/4', overflow: 'hidden', background: 'var(--color-border)', border: 'none', padding: 0, cursor: 'pointer', position: 'relative' }}
+              // 4:5 — kendi profil ızgaramızla (app/profile) ve kırpma ekranının
+              // en dikey seçeneğiyle aynı oran. Bkz. ProfileClient'taki not.
+              style={{ aspectRatio: '4/5', overflow: 'hidden', background: 'var(--color-border)', border: 'none', padding: 0, cursor: 'pointer', position: 'relative' }}
               className="hb-cell"
             >
               {post.media_type === 'audio'
