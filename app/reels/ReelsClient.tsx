@@ -103,7 +103,13 @@ export default function ReelsClient({ reels, loggedIn }: { reels: Reel[]; logged
       {reels.map((r, i) => {
         const ls = likeState[r.id] ?? { liked: r.liked, likes: r.likes };
         return (
-          <section key={r.id} style={{ height: '100dvh', scrollSnapAlign: 'start', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+          // SÜTUN yerleşim (2026-08-01). Önceden video 100dvh'nin ORTASINA
+          // yerleşiyor, açıklama bloğu da `position:absolute; bottom:0` ile
+          // ÜSTÜNE biniyordu. Videoların altyazısı kareye gömülü olduğu için
+          // alttaki satırlar açıklamanın ve dock'un altında kalıyordu —
+          // kullanıcı bunu "video alttan kırpılmış" diye görüyor. Sütunda
+          // video kalan alanı alır, açıklama ALTINA iner: hiçbir kare örtülmez.
+          <section key={r.id} style={{ height: '100dvh', scrollSnapAlign: 'start', position: 'relative', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <video
               ref={(el) => { videoRefs.current[i] = el; }}
               data-index={i}
@@ -114,7 +120,9 @@ export default function ReelsClient({ reels, loggedIn }: { reels: Reel[]; logged
               preload="metadata"
               onLoadedMetadata={(e) => seekToFirstFrame(e.currentTarget)}
               onClick={() => togglePlay(i)}
-              style={{ width: '100%', height: '100%', objectFit: 'contain', cursor: 'pointer' }}
+              // flex:1 + minHeight:0 → video, açıklama bloğundan ARTAN alanı alır.
+              // `height:100%` YAZMA: sütun içinde taşırır ve alt kısmı keser.
+              style={{ width: '100%', flex: 1, minHeight: 0, objectFit: 'contain', cursor: 'pointer' }}
             />
 
             {/* Duraklatınca ortada oynat ikonu */}
@@ -125,8 +133,10 @@ export default function ReelsClient({ reels, loggedIn }: { reels: Reel[]; logged
               </button>
             )}
 
-            {/* Alt sol: yazar + açıklama. Alt dock'u (--nav-space) hesaba katar. */}
-            <div style={{ position: 'absolute', left: 0, right: 64, bottom: 0, padding: '0 16px calc(20px + var(--nav-space, 0px))', zIndex: 3, background: 'linear-gradient(to top, rgba(0,0,0,0.65), transparent)', pointerEvents: 'none' }}>
+            {/* Yazar + açıklama — artık videonun ÜSTÜNDE değil, ALTINDA (normal
+                akış). Sağda 64px boşluk: eylem rayı oraya oturuyor. Gradyan
+                kaldırıldı; blok düz siyah zeminde, örteceği bir kare yok. */}
+            <div style={{ flexShrink: 0, padding: '10px 64px calc(20px + var(--nav-space, 0px)) 16px', zIndex: 3, pointerEvents: 'none' }}>
               <Link href={`/u/${r.username}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none', pointerEvents: 'auto', marginBottom: 8 }}>
                 <span style={{ width: 34, height: 34, borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '1.5px solid rgba(255,255,255,0.7)' }}>
                   <Img src={avatarSrc(r.username, r.avatar)} alt="" fixedWidth={68} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
