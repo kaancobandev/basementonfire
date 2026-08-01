@@ -14,6 +14,12 @@ export async function uploadToStorage(
    *  çağıran taraf bunu yüzdeye çevirip ekranda gösterir. */
   onProgress?: (loaded: number, total: number) => void,
 ): Promise<{ path: string; mediaType: 'image' | 'video' | 'audio' }> {
+  // Video ise ÖNCE kodek/yapı denetimi — yüklemeden, hatta imza istemeden önce.
+  if (file.type.startsWith('video/')) {
+    const sorun = await videoSorunu(file);
+    if (sorun) throw new Error(sorun);
+  }
+
   const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
 
   const signRes = await fetch('/api/storage/sign', {
@@ -33,6 +39,92 @@ export async function uploadToStorage(
   await putWithProgress(sign.signedUrl as string, file, onProgress);
 
   return { path: sign.path as string, mediaType: sign.mediaType as 'image' | 'video' | 'audio' };
+}
+
+// ── VİDEO ÖN DENETİMİ ────────────────────────────────────────────────────────
+// 2026-08-01: akıştaki üç videonun da SESİ çalıp GÖRÜNTÜSÜ gelmiyordu. Sebep
+// H.265/HEVC (hvc1) kodekti — ses AAC olduğu için çözülüyor, video izi Android
+// Chrome'da hiç çözülemiyor. Üstüne `moov` kutusu dosyanın SONUNDAYDI: tarayıcı
+// ilk kareyi boyayabilmek için 182 MB'ın tamamını indirmek zorunda kalıyordu,
+// bu yüzden ızgarada kapak görselleri de hiç çıkmıyordu.
+//
+// Bu denetim olmadan aynı hata sessizce tekrarlanır: yükleme başarılı görünür,
+// gönderi yayınlanır, kırık olduğu ancak başka bir cihazda fark edilir.
+// Dosyanın yalnız iki ucu okunur (512 KB) — büyük videoda bile anlıktır.
+
+const OKUMA = 256 * 1024;
+/** Bunun altında `moov` sonda olsa da sorun değil; dosyanın tamamı zaten ucuz. */
+const FASTSTART_ESIK = 25 * 1024 * 1024;
+
+function fourcc(b: Uint8Array, i: number): string {
+  return String.fromCharCode(b[i], b[i + 1], b[i + 2], b[i + 3]);
+}
+function icerir(b: Uint8Array, ad: string): number {
+  for (let i = 0; i + 3 < b.length; i++) if (fourcc(b, i) === ad) return i;
+  return -1;
+}
+
+/** MP4 üst düzey kutularını yürür: `moov`, `mdat`'tan ÖNCE mi geliyor? */
+function faststartVar(bas: Uint8Array): boolean {
+  const dv = new DataView(bas.buffer, bas.byteOffset, bas.byteLength);
+  let off = 0;
+  while (off + 8 <= bas.length) {
+    const boy = dv.getUint32(off);
+    const tip = fourcc(bas, off + 4);
+    if (tip === 'moov') return true;
+    if (tip === 'mdat') return false; // moov'u görmeden mdat'a geldik → moov sonda
+    // boy=1 → 64-bit largesize, boy=0 → dosya sonuna kadar (yani son kutu)
+    if (boy === 0) return false;
+    off += boy === 1 ? Number(dv.getBigUint64(off + 8)) : boy;
+    if (boy < 8) return false; // bozuk kutu; karar veremiyoruz, engelleme
+  }
+  return false;
+}
+
+/**
+ * Sorun varsa KULLANICIYA GÖSTERİLECEK cümleyi döner, yoksa null.
+ * Emin olamadığımız her durumda null döner — yanlış yere engellemek,
+ * kırık videoyu geçirmekten daha kötü bir kullanıcı deneyimi olurdu.
+ */
+export async function videoSorunu(file: File): Promise<string | null> {
+  try {
+    const bas = new Uint8Array(await file.slice(0, OKUMA).arrayBuffer());
+    const son = file.size > OKUMA
+      ? new Uint8Array(await file.slice(Math.max(0, file.size - OKUMA)).arrayBuffer())
+      : new Uint8Array(0);
+
+    // MP4 değilse (webm/ogg) bu denetim geçerli değil — dokunma.
+    if (icerir(bas.subarray(0, 64), 'ftyp') < 0) return null;
+
+    // moov faststart'ta başta, değilse sonda → kodek kutuları iki uçtan birinde.
+    const kodekAlani = faststartVar(bas) ? bas : son;
+
+    for (const kod of ['hvc1', 'hev1', 'hvcC']) {
+      if (icerir(kodekAlani, kod) >= 0) {
+        return 'Bu video H.265 (HEVC) kodekli. Android telefonlarda görüntü hiç açılmaz, yalnızca ses duyulur. '
+          + 'Videoyu H.264 olarak yeniden dışa aktarıp tekrar dene — dışa aktarma ayarlarında "H.264" ya da "En uyumlu" seçeneği.';
+      }
+    }
+
+    // H.264 ama 10-bit (High 10, profil 110) → mobil donanım çözücüler 8-bit.
+    const a = icerir(kodekAlani, 'avcC');
+    if (a >= 0 && kodekAlani[a + 5] === 110) {
+      return 'Bu video 10-bit H.264 (High 10) kodekli. Telefonların donanım çözücüsü 10-bit desteklemez, görüntü açılmaz. '
+        + 'Videoyu 8-bit H.264 olarak yeniden dışa aktar.';
+    }
+
+    if (file.size > FASTSTART_ESIK && !faststartVar(bas)) {
+      const mb = Math.round(file.size / 1048576);
+      return `Bu videonun oynatma bilgisi (moov) dosyanın sonunda. Tarayıcı ilk kareyi gösterebilmek için ${mb} MB'ın `
+        + 'tamamını indirmek zorunda kalır; kapak görseli çıkmaz ve mobil veride çok yavaş açılır. '
+        + 'Dışa aktarırken "web için optimize et" / "faststart" seçeneğini aç.';
+    }
+
+    return null;
+  } catch {
+    // Dosya okunamadıysa engelleme — asıl yükleme zaten kendi hatasını verir.
+    return null;
+  }
 }
 
 /** İmzalı URL'e PUT — ilerleme olayları yayınlar, hatayı okunur mesaja çevirir. */
