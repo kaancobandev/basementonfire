@@ -1,0 +1,95 @@
+<ArticleImage
+  src="/articles/atilla/hun-kazani.webp"
+  ratio="1600 / 1067"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Gary Todd from Xinzheng, China · CC0"
+/>
+
+<ArticleImage
+  src="/articles/atilla/deforme-kafatasi.webp"
+  ratio="1600 / 2133"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Ceoil · CC0"
+/>
+
+<ArticleImage
+  src="/articles/atilla/viyana-kilici.webp"
+  ratio="1440 / 833"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Unknown author Unknown author · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/atilla/solidus-theodosius.webp"
+  ratio="1600 / 1600"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Unknown author Unknown author · CC0"
+/>
+
+<ArticleImage
+  src="/articles/atilla/theodosius-surlari.webp"
+  ratio="1600 / 1060"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Carole Raddato from FRANKFURT, Germany · CC BY-SA 2.0"
+/>
+
+<ArticleImage
+  src="/articles/atilla/honoria-sikkesi.webp"
+  ratio="1500 / 692"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Classical Numismatic Group, Inc. http://www.cngcoins.com"
+/>
+
+<ArticleImage
+  src="/articles/atilla/aquileia-kusatmasi.webp"
+  ratio="1600 / 1199"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/atilla/raphael-mincio.webp"
+  ratio="1600 / 1201"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Raphael · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/atilla/codex-regius-atlamal.webp"
+  ratio="1600 / 300"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="The Árni Magnússon Institute for Icelandic Studies · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/atilla/bulgar-nominalia.webp"
+  ratio="900 / 854"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="from the Middle Ages, unknown · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/atilla/chronicon-attila-taht.webp"
+  ratio="1600 / 2080"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Márk Kálti · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/atilla/romulus-augustulus.webp"
+  ratio="1600 / 1554"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="ANS · CC0"
+/>

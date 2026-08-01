@@ -150,7 +150,7 @@ export default function FatihClient() {
             src="/articles/fatih/theodosius-surlari.jpg"
             ratio="679 / 451"
             alt="Konstantinopolis'in taş ve tuğla kuşaklı çok katmanlı kara surları ve burçları, altın ışıkta."
-            caption="Teodosius Surları: 1123 yıl boyunca yirmiden fazla kuşatmaya dayandı. Hendek, dış sur, iç sur — sırayla ve her biri bir öncekinden yüksek."
+            caption={<>Teodosius Surları: 1123 yıl boyunca yirmiden fazla kuşatmaya dayandı. Hendek, dış sur, iç sur — sırayla ve her biri bir öncekinden yüksek. İlk büyük sınavı tam bin yıl önceydi: 447’de deprem 57 kuleyi yıktı, duvar 60 günde örüldü ve <Link href="/articles/atilla" className="article-ilink" style={{ color: MARBLE }}>Atilla</Link> şehre yüklenmeden döndü.</>}
           />
           <p className="leading-relaxed text-slate-300">
             Sultanın çözümü bir mühendisti. <strong>{URBAN.name}</strong> — {URBAN.origin}. {URBAN.firstWent} {URBAN.sultanPaid}

@@ -6,6 +6,7 @@ import {
   HorizontalTimeline, ArticleQuiz, ArticleBibliography, ArticleFooter,
 } from '@/app/components/article/ArticleBlocks';
 import SourceCompare, { type CompareSource } from '@/app/components/article/SourceCompare';
+import ArticleImage from '@/app/components/article/ArticleImage';
 import { ACCENT, BG, BONE, GARNET, GOLD, IRON, InView, MythNote, SourceNote, Stat, WidgetSkeleton, buyuk, tokenHex, tr } from './ui';
 import { ReadingProgress, PerdeNav } from './chrome';
 import {
@@ -147,6 +148,14 @@ export default function AtillaClient() {
             boyunda hâlâ çalışıyordu.
           </p>
 
+          <ArticleImage
+            src="/articles/atilla/hun-kazani.webp"
+            ratio="1600 / 1067"
+            alt="Yeşil pas tutmuş, ağzı kırık bronz bir kazan; gövdesinde kabartma bantlar, altında açık işli yüksek bir ayak. Yanında iki kazan daha duruyor."
+            caption="Asya Hunlarından bir bronz kazan (Moğolistan Milli Müzesi). Bu tipteki kazanlar Moğolistan’dan Karpat Havzası’na kadar bulunuyor — Hun hareketinin en somut fizikî izi. Atilla’ya ait değil; bir halkın güzergâhının işareti."
+            credit="Gary Todd · CC0"
+          />
+
           <MythNote title="Peki Avrupa Hunları ile Asya Hunları aynı mı?">
             Bu soru uzun süre yalnız filolojiyle tartışıldı: ~313 tarihli Sogd Mektupları Luoyang’ı basanlara Sogdca
             &laquo;xwn&raquo; diyor ve bu, iki ad arasındaki en güçlü köprü. 2025’te {tr(NUMBERS.genom)} antik genomluk bir çalışma
@@ -176,6 +185,14 @@ export default function AtillaClient() {
           <div className="my-7">
             <KaganlikSemasi />
           </div>
+
+          <ArticleImage
+            src="/articles/atilla/deforme-kafatasi.webp"
+            ratio="1600 / 2133"
+            alt="Müze vitrininde, önden görünen bir insan kafatası. Kafatası tepeye doğru belirgin biçimde uzatılmış ve arkaya doğru eğimli; yüz kısmı normal oranlarda."
+            caption="Mozs (Macaristan), ~5. yüzyıl: bebeklikte sarılarak biçimlendirilmiş bir kafatası. Karpat Havzası’nda Hun döneminin en görünür arkeolojik işaretlerinden. ⚠ Uygulama yalnız Hunlara özgü değil — aynı bölgede başka topluluklarda ve Avrasya’nın başka yerlerinde de görülür."
+            credit="Ceoil · CC0"
+          />
 
           <p className="leading-relaxed text-slate-300">
             Şemadaki en önemli kutu <strong>{KAGAN.ikili.ad}</strong>. Onu şimdi aklında tut: Perde 4’te Atilla’nın
@@ -247,6 +264,14 @@ export default function AtillaClient() {
           <div className="my-7">
             <KilicIfsa />
           </div>
+
+          <ArticleImage
+            src="/articles/atilla/viyana-kilici.webp"
+            ratio="1440 / 833"
+            alt="Altın kabzalı, hafif kavisli bir sabre ve üstünde kını. Kabza ve balçak kabartma altın işlemeli, kabza bileziğinde kırmızı ve mavi taşlar kakılı."
+            caption="Viyana’daki Kunsthistorisches Museum hazine dairesinde yüzyıllardır “Atilla’nın Kılıcı” adıyla duran sabre. 1063 sonbaharında Kraliçe Ana Anastasia bunu Bavyera Dükü Otto von Nordheim’a hediye etmişti ve Macar sarayında Atilla’nın kılıcı sayılıyordu. Nesne gerçek; ad sonradan takıldı — biçim ve teknik onu Atilla’dan yaklaşık beş yüz yıl sonrasına koyuyor. Ve dikkat: bu bir sabre, yani kavisli. 5. yüzyıl bozkır kılıcı düz ve çift ağızlıydı."
+            credit="Kunsthistorisches Museum, Viyana · kamu malı"
+          />
         </ArticleSection>
       </div>
 
@@ -258,6 +283,14 @@ export default function AtillaClient() {
             bir <strong>ödeme planıdır</strong>: tutarı pazarlıkla belirlenen, gecikince birikmiş borç olarak hesaplanan,
             metne bağlanan bir akış.
           </p>
+
+          <ArticleImage
+            src="/articles/atilla/solidus-theodosius.webp"
+            ratio="1600 / 1600"
+            alt="Aşınmış bir altın sikke, ön yüzünde cepheden bakan miğferli ve zırhlı bir imparator büstü; çevresinde daire hâlinde Latince kabartma yazı."
+            caption="II. Theodosius solidusu — haracın ödendiği paranın kendisi. Bir Roma librası 72 solidus ediyordu; yukarıdaki sayaçtaki 2.100 libre, bu sikkeden 151.200 tane demek."
+            credit="CC0"
+          />
 
           <div className="my-7">
             <HaracSayaci />
@@ -271,6 +304,14 @@ export default function AtillaClient() {
           <MythNote title="Depremin günü bile tartışmalı">
             {SURLAR.deprem.tarihTartismasi}
           </MythNote>
+
+          <ArticleImage
+            src="/articles/atilla/theodosius-surlari.webp"
+            ratio="1600 / 1060"
+            alt="Aşağıdan çekilmiş, gökyüzüne karşı yükselen kalın bir sur duvarı; taş sıralarının arasında yatay kırmızı tuğla bantları, solda bir kule kütlesi, üstünde ot bitmiş yıkık taç."
+            caption="Theodosius surları, bugünkü hâliyle. Taş sıraları arasındaki kırmızı tuğla bantları yapının imzası. ⚠ Ayakta duran her taş 5. yüzyıldan değil: duvar sonraki yüzyıllarda defalarca onarıldı ve 20. yüzyılda restore edildi."
+            credit="Carole Raddato · CC BY-SA 2.0"
+          />
 
           <div className="my-7">
             <SurKesiti />
@@ -294,6 +335,14 @@ export default function AtillaClient() {
             {HONORIA.kisi} — {HONORIA.kim}. Hikâyenin bundan sonrası, bir kadının kendi hayatı üzerindeki
             kontrolünü geri alma girişiminin bir kıta ölçeğinde nasıl okunduğuyla ilgili.
           </p>
+
+          <ArticleImage
+            src="/articles/atilla/honoria-sikkesi.webp"
+            ratio="1500 / 692"
+            alt="Bir altın sikkenin iki yüzü yan yana. Solda incilerle bezeli saç ve gerdanlıkla sağa dönük bir kadın büstü; sağda uzun bir haç tutan kanatlı Zafer figürü."
+            caption="Iusta Grata Honoria solidusu, Ravenna darbı. Perde 6’nın merkezindeki kadının elimizdeki tek çağdaş “portresi” bu — bir madalyon değil, tedavüldeki para."
+            credit="Classical Numismatic Group · CC BY-SA 2.5"
+          />
 
           <div className="my-7">
             <HonoriaKarar />
@@ -336,6 +385,14 @@ export default function AtillaClient() {
         <ArticleSection kicker={`PERDE 8 · ${ITALYA.yil}`} title="İtalya ve Papa">
           <p className="leading-relaxed text-slate-300">{ITALYA.aquileia}</p>
 
+          <ArticleImage
+            src="/articles/atilla/aquileia-kusatmasi.webp"
+            ratio="1600 / 1199"
+            alt="Ortaçağ elyazması tezhibi: solda mavi miğferli zırhlı atlılar mızraklarla saldırıyor, sağda burçlu ve kuleli bir şehir; üstte kırmızı mürekkeple Latince başlık, çevresinde çiçekli bordür."
+            caption="Chronicon Pictum (1358): kırmızı satır “Rex atyla expugnat ciuitatem Aquilegiam” — Kral Atilla Aquileia şehrini zapt ediyor. ⚠ Olaydan ~900 yıl sonra Macaristan’da yapıldı; askerler 14. yüzyıl Avrupa zırhı içinde. Dönem tasviri değil — ama tam da bu yüzden Perde 10’un konusu."
+            credit="Márk Kálti · kamu malı"
+          />
+
           <div className="my-7 rounded-xl border p-5" style={{ borderColor: `${GARNET}44`, background: `color-mix(in srgb, ${GARNET} 7%, transparent)` }}>
             <div className="mb-2 text-[0.62rem] font-bold tracking-[0.2em]" style={{ color: GARNET }}>{buyuk(ITALYA.milano.baslik)}</div>
             <p className="leading-relaxed text-slate-200">{ITALYA.milano.metin}</p>
@@ -358,6 +415,14 @@ export default function AtillaClient() {
               sources={italyaSources}
             />
           </div>
+
+          <ArticleImage
+            src="/articles/atilla/raphael-mincio.webp"
+            ratio="1600 / 1201"
+            alt="Kemerli bir duvar freski: solda beyaz at üstünde papa ve kardinaller, sağda ürken atlı savaşçılar ve mızraklar, gökyüzünde kılıç taşıyan iki havari uçuyor, arkada yanan bir şehir."
+            caption="Raffaello, Vatikan, 1514. Gökte Petrus ve Pavlus kılıçla beliriyor, Atilla’nın atlıları geri kaçıyor. Fresk olaydan ~1060 yıl sonra yapıldı: bir kayıt değil, bir yorumun duvara çivilenmesi — ve bugün çoğu insanın kafasındaki sahne bu."
+            credit="Raffaello · kamu malı"
+          />
         </ArticleSection>
       </div>
 
@@ -389,8 +454,35 @@ export default function AtillaClient() {
         <ArticleSection kicker="PERDE 10 · HAFIZA" title="Efsane">
           <p className="leading-relaxed text-slate-300">{EFSANE.giris}</p>
 
+          <ArticleImage
+            src="/articles/atilla/codex-regius-atlamal.webp"
+            ratio="1600 / 300"
+            alt="Yıpranmış parşömen üzerinde birkaç satır ortaçağ İzlanda el yazısı; sağ altta parşömende doğal bir delik var."
+            caption="Codex Regius (GKS 2365 4to), folio 41r: Atlamál’ın başladığı yer — Atli’nin, yani Atilla’nın hain çizildiği şiir. Kaynağın tam sayfası daha büyük; bu görsel bir şerit hâlinde kırpılmış."
+            credit="Árni Magnússon Enstitüsü · kamu malı"
+          />
+
           <div className="my-7">
             <EfsaneKarsilastirici />
+          </div>
+
+          <div className="my-8 grid gap-5 sm:grid-cols-2">
+            <ArticleImage
+              src="/articles/atilla/bulgar-nominalia.webp"
+              ratio="900 / 854"
+              narrow
+              alt="Açık bir elyazmasının iki sayfası; Kiril harfleriyle sık satırlar, aralarda kırmızı mürekkeple yazılmış baş harfler."
+              caption="Bulgar Hanları Nominaliası, Moskova nüshası: Dulo hanedanını Avitohol ve İrnik’le başlatan liste. ⚠ Nüsha geç tarihli; İrnik = Ernak özdeşliği yaygın kabul görür, Avitohol = Atilla ise tartışmalıdır."
+              credit="Kamu malı"
+            />
+            <ArticleImage
+              src="/articles/atilla/chronicon-attila-taht.webp"
+              ratio="1600 / 2080"
+              narrow
+              alt="Altın yaldızlı bir elyazması baş harfinin içinde tahtta oturan taçlı, sakallı bir kral; elinde asa, üzerinde sarı kaftan. Altta gotik yazıyla Latince metin."
+              caption="Chronicon Pictum, 1358: Atilla taçlı ve tahtta, ilk Macar kralı olarak resmedilmiş. Alttaki satırlarda “Hungari sive Huni” — Macarlar yahut Hunlar — geçiyor. Tarih kaydı değil, hak iddiası belgesi."
+              credit="Márk Kálti · kamu malı"
+            />
           </div>
 
           <p className="leading-relaxed text-slate-300">
@@ -426,6 +518,14 @@ export default function AtillaClient() {
 
           <h3 className="mt-10 text-xl font-bold text-white">Peki Roma’yı kim yıktı?</h3>
           <p className="mt-3 leading-relaxed text-slate-300">{SONRASI.roma.olay}</p>
+
+          <ArticleImage
+            src="/articles/atilla/romulus-augustulus.webp"
+            ratio="1600 / 1554"
+            alt="Cepheden bakan miğferli bir imparator büstü taşıyan altın sikke; kenarında daire hâlinde Latince yazı, yüzey hafif aşınmış."
+            caption="Romulus Augustulus solidusu — Batı Roma’nın son imparatoru. Onu tahta çıkaran babası Orestes, yirmi yedi yıl önce Atilla’nın otağında Latince yazan kâtipti."
+            credit="American Numismatic Society · CC0"
+          />
           <p className="mt-4 leading-relaxed text-slate-300">{SONRASI.roma.tebaa}</p>
 
           <div className="my-7 rounded-xl border p-5" style={{ borderColor: `${GOLD}55`, background: `color-mix(in srgb, ${GOLD} 8%, transparent)` }}>

@@ -233,7 +233,7 @@ export default function TurklerPage() {
             src="/articles/turkler/attila-hunlar.webp"
             ratio="1600 / 1276"
             alt="Romantik tablo: sütunlu bir Roma villasının içinde atlılar ve savaşçılar, yerde devrilmiş eşyalar, arkada duman ve alev."
-            caption="Hunların Galya’da bir Roma villasını yağmalayışı — Georges-Antoine Rochegrosse. Temsilî: olaydan yaklaşık 1450 yıl sonra çizilmiş romantik bir kurgu ve Attila’nın portresi değil; çağdaş bir Attila resmi elimizde yok."
+            caption={<>Hunların Galya’da bir Roma villasını yağmalayışı — Georges-Antoine Rochegrosse. Temsilî: olaydan yaklaşık 1450 yıl sonra çizilmiş romantik bir kurgu ve Attila’nın portresi değil; çağdaş bir Attila resmi elimizde yok. Hunları bir korku hikâyesi değil bir devlet olarak anlatan ayrı bir makale var: <Link href="/articles/atilla" className="article-ilink">Atilla — Bozkırdan Gelen Kağan</Link>.</>}
             credit="Georges-Antoine Rochegrosse · kamu malı"
           />
           <ArticleImage

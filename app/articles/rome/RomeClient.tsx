@@ -430,7 +430,7 @@ export default function RomePage() {
             <div className="ro-two-col">
               <div>
                 <p className="ro-p">MS 395'te İmparator I. Theodosius, imparatorluğu iki oğlu arasında kalıcı biçimde <strong className="ro-gold">Doğu</strong> ve <strong className="ro-gold">Batı Roma</strong> olarak böldü. Sınırlardaki baskı, ekonomik bunalım, salgınlar ve iç çekişmeler Batı'yı giderek zayıflattı.</p>
-                <p className="ro-p">Kavimler Göçü ile gelen Germen kabileleri sınırları zorladı; Roma MS 410'da Vizigotlar, MS 455'te Vandallar tarafından yağmalandı. Son Batı Roma imparatoru <strong className="ro-gold">Romulus Augustulus</strong>, MS 476'da Germen komutan Odoacer tarafından tahttan indirildi — bu tarih geleneksel olarak Batı Roma'nın sonu kabul edilir.</p>
+                <p className="ro-p">Kavimler Göçü ile gelen Germen kabileleri sınırları zorladı; Roma MS 410'da Vizigotlar, MS 455'te Vandallar tarafından yağmalandı. Son Batı Roma imparatoru <strong className="ro-gold">Romulus Augustulus</strong>, MS 476'da Germen komutan Odoacer tarafından tahttan indirildi — bu tarih geleneksel olarak Batı Roma'nın sonu kabul edilir. Göçü tetikleyen basıncın kaynağı ve Roma'yı yıkmakla anılan ama yıkmayan adam için: <Link href="/articles/atilla" className="article-ilink">Atilla</Link>.</p>
                 <p className="ro-p">Ancak <Link href="/articles/turkler" className="article-ilink"><strong className="ro-gold">Doğu Roma (Bizans)</strong></Link> İmparatorluğu, başkenti Konstantinopolis'te bin yıl daha yaşadı ve nihayet MS <strong className="ro-gold">1453</strong>'te İstanbul'un fethiyle tarihe karıştı.</p>
               </div>
               <div className="ro-colosseum">

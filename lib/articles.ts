@@ -83,6 +83,7 @@ export type ArticleMeta = {
 export const ARTICLES: ArticleMeta[] = [
   { slug: 'black-hole', title: 'Kara Delikler', emoji: '🕳️', desc: 'Evrenin en gizemli yapıları', category: 'Astronomi', topics: ['Görelilik', 'Kütleçekim', 'Evren'] },
   { slug: 'turkler', title: 'Türklerin Tarihi', emoji: '🏹', desc: "Orta Asya'dan Anadolu'ya", category: 'Tarih', topics: ['Türk Tarihi', 'İmparatorluklar', 'Savaş'] },
+  { slug: 'atilla', title: 'Atilla', emoji: '⚔️', desc: "Bozkırdan gelen kağan: kut ve ikili teşkilat, haraç makinesi, Catalaunum'da Aetius, otağdaki son gece — ve yıkmakla anıldığı hâlde yıkmadığı Roma", category: 'Tarih', topics: ['Türk Tarihi', 'Antik Çağ', 'Roma', 'İmparatorluklar', 'Savaş', 'Liderlik'] },
   { slug: 'rome', title: 'Roma İmparatorluğu', emoji: '🏛️', desc: 'Bin yıllık medeniyet', category: 'Tarih', topics: ['Antik Çağ', 'Roma', 'İmparatorluklar', 'Akdeniz'] },
   { slug: 'greece', title: 'Antik Yunan', emoji: '⚡', desc: 'Demokrasinin beşiği', category: 'Tarih', topics: ['Antik Çağ', 'Yunan', 'Felsefe', 'Akdeniz'] },
   { slug: 'carthage', title: 'Kartaca', emoji: '⚓', desc: "Akdeniz'in efendileri", category: 'Tarih', topics: ['Antik Çağ', 'Roma', 'Savaş', 'Akdeniz', 'Kuşatma'] },
