@@ -181,6 +181,20 @@ export const QUESTIONS: Record<string, string> = {
   // sekme 'language' (:63) → savaş kartları SSR HTML'ine GİRMİYOR. Okur için sorun
   // değil (bir tık) ama crawler soruyu cevaplayan metni görmez. Ayrı iş.
   turkler: `Kaçan bir ordu seni nereye götürür?`,
+
+  // KANIT data.ts SONRASI.kapanis — «Bir kanunnâme bırakmadı. Bir başkent
+  // bırakmadı. Sikke bastırmadı, yazı bırakmadı, mezarı bile bulunamadı.»
+  // Karşısına Perde 10 (EFSANE) dört geleneği koyuyor: Bulgar Nominaliası soyunu
+  // ona bağlıyor, Macar kroniği ondan miras iddia ediyor, Nibelungenlied onu
+  // ağırlıyor, Şiirsel Edda ondan korkuyor. Soru ikisinin arasındaki boşluk.
+  // ⚠ APOLİTİK ÇİZGİ [[turkler]] ile aynı: soru millet adı ya da hüküm İÇERMEZ.
+  // Makale Hun-Türk hattını kurumlar/soy/miras üzerinden kuruyor ama OG kartı
+  // bir kimlik iddiası taşımaz — kartın işi merakı açmak, tezi ilan etmek değil.
+  // ⚠ REDDEDİLENLER: "Tanrı'nın Kırbacı" (makale bu adı zaten ÇÜRÜTÜYOR, kartta
+  // kullanmak makaleyle çelişirdi) · "Roma'yı kim yıktı?" (Perde 11'in cevabı
+  // Odoacer — doğru ama kart clickbait okunur) · ölüm sahnesi (Perde 9 okurun
+  // kendi kararına bırakılmış, kartta spoiler olur).
+  atilla: `Geriye hiçbir şey bırakmayan adam neden unutulmadı?`,
 };
 
 /** Makalenin cevapladığı soru; kürate edilmemişse null (kart alt satırı desc'e düşer). */

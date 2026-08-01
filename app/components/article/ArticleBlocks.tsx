@@ -39,6 +39,7 @@ const ThreeChipHero = dynamic(() => import('./ThreeChipHero'), { ssr: false, loa
 const ThreeRoseWindowHero = dynamic(() => import('./ThreeRoseWindowHero'), { ssr: false, loading: () => null });
 const ThreeEarthHero = dynamic(() => import('./ThreeEarthHero'), { ssr: false, loading: () => null });
 const ThreeCrownHero = dynamic(() => import('./ThreeCrownHero'), { ssr: false, loading: () => null });
+const ThreeSwordHero = dynamic(() => import('./ThreeSwordHero'), { ssr: false, loading: () => null });
 
 // Zemin de temaya dahil: koyu-yeşil varsayılan korunur (mevcut makaleler değişmesin),
 // ama bir makale kendi zeminini verebilir (ör. Sezar'ın obsidyen-kan siyahı).
@@ -154,6 +155,7 @@ export function ArticleHero({ title, fullTitle, eyebrow, subtitle, colors, gradi
             : object3d === 'rose' ? <ThreeRoseWindowHero />
             : object3d === 'earth' ? <ThreeEarthHero />
             : object3d === 'crown' ? <ThreeCrownHero />
+            : object3d === 'sword' ? <ThreeSwordHero />
               : object3d ? <Object3DHero kind={object3d} colors={colors} src={object3dSrc} />
               : <ShaderHero colors={colors} />}
       </div>
