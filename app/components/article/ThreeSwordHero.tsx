@@ -25,7 +25,8 @@ import { deviceTier, dprCap, makeFpsGuard } from './heroPerf';
 //   • buildBlade  — eşkenar dörtgen kesitli, uca doğru incelen çift ağızlı namlu
 //                   (flatShading → orta sırt keskin okunur)
 //   • buildCracks — zeminde ışıyan radyal çatlaklar
-//   + lathe (kabza), box (balçak), sphere (topuz + garnet kakmalar), points (kor)
+//   + lathe (kabza gövdesi), tube (kabzayı saran sarmal altın tel), box (balçak),
+//     torus (bilezikler), sphere (topuz + garnet kakmalar), points (kor)
 // Dış model, doku indirmesi, GLB YOK → lisans ve CSP riski sıfır.
 //
 // ENV-MAP NEDEN TERS: diğer hero'larda gök üstte aydınlıktır. Burada ışık
@@ -45,7 +46,7 @@ const GOLD = 0xd9a441;
 const GOLD_DEEP = 0x9c6f26;
 const GARNET = 0xa01f2d;
 const EMBER = 0xe2622b;
-const GRIP = 0x2a1c16; // koyu deri/ahşap sargı
+const GRIP = 0x7d5a1e; // kabza gövdesi: koyu antik altın (üstündeki tel parlak altın)
 
 /** Kılıcın yerel uzaydaki dikey sınırları — kadraj çözücüsü bunları kullanır. */
 const Y_TOP = 2.62; // topuzun tepesi
@@ -88,16 +89,38 @@ function buildBlade(len: number, halfW: number, thick: number, M: number): THREE
   return geo;
 }
 
-/** Kabza profili (lathe): balçaktan topuza doğru hafif fıçı biçimi. */
+/**
+ * Kabza profili (lathe). Düz fıçı DEĞİL: aşağıdan yukarı bilezik → bel → orta
+ * şişkinlik → bel → bilezik. Tek eğri bir silindir 375 px'te "çubuk" gibi
+ * okunuyordu; bilezikler ve bel, siluete kılıç kabzası ritmi veriyor.
+ */
 function gripProfile(): THREE.Vector2[] {
-  const pts: THREE.Vector2[] = [];
-  const STEPS = 10;
-  for (let i = 0; i <= STEPS; i++) {
-    const t = i / STEPS;
-    const r = 0.105 + Math.sin(t * Math.PI) * 0.022; // ortası hafif şişkin
-    pts.push(new THREE.Vector2(r, 1.72 + t * 0.72));
+  // [t (0=balçak, 1=topuz), yarıçap]
+  const KEYS: [number, number][] = [
+    [0.00, 0.100], [0.045, 0.134], [0.095, 0.129], // alt bilezik
+    [0.170, 0.101],                                 // bel
+    [0.340, 0.119], [0.500, 0.125], [0.660, 0.119], // orta şişkinlik
+    [0.830, 0.101],                                 // üst bel
+    [0.905, 0.131], [0.955, 0.135], [1.000, 0.104], // üst bilezik
+  ];
+  return KEYS.map(([t, r]) => new THREE.Vector2(r, 1.72 + t * 0.72));
+}
+
+/**
+ * Kabza teli: gövdeyi saran sarmal. Ayrık düz halkalar yerine gerçek bir
+ * helis — iki ters yönlü sarmal birlikte çapraz dokuma (telkari) hissi verir.
+ * `dir` -1 verilince ters yöne sarar.
+ */
+function gripWireCurve(turns: number, dir: number): THREE.CatmullRomCurve3 {
+  const pts: THREE.Vector3[] = [];
+  const N = 72;
+  for (let i = 0; i <= N; i++) {
+    const t = i / N;
+    const r = 0.114 + Math.sin(t * Math.PI) * 0.012; // gövdenin şişkinliğini takip et
+    const a = t * turns * TAU * dir;
+    pts.push(new THREE.Vector3(Math.cos(a) * r, 1.80 + t * 0.56, Math.sin(a) * r));
   }
-  return pts;
+  return new THREE.CatmullRomCurve3(pts);
 }
 
 /**
@@ -165,10 +188,13 @@ function makeEnv(renderer: THREE.WebGLRenderer): { env: THREE.Texture; dispose: 
     const ctx = c.getContext('2d');
     if (!ctx) return null;
     const g = ctx.createLinearGradient(0, 0, 0, 32);
-    g.addColorStop(0.00, '#12141c'); // tepe: soğuk bozkır gecesi
-    g.addColorStop(0.42, '#241a1a');
-    g.addColorStop(0.62, '#5e2a17'); // ufuk: korun ısıttığı bant
-    g.addColorStop(0.82, '#c2521f');
+    // Üst iki durak bilerek AÇILDI (#12141c/#241a1a → aşağıdaki): kabza ve
+    // balçak yalnız üst yarıyı yansıtıyor, o yarı neredeyse siyah olunca
+    // kılıcın üstü kayboluyordu. Gece hissi korunuyor, taban kalkıyor.
+    g.addColorStop(0.00, '#1c2130'); // tepe: soğuk bozkır gecesi
+    g.addColorStop(0.42, '#3d2b25');
+    g.addColorStop(0.62, '#7a3a1e'); // ufuk: korun ısıttığı bant
+    g.addColorStop(0.82, '#d0601f');
     g.addColorStop(1.00, '#ff8a3d'); // dip: ateş
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, 64, 32);
@@ -212,7 +238,10 @@ export default function ThreeSwordHero() {
       const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: tier !== 'low', powerPreference: 'high-performance' });
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, dprCap(tier)));
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.35;
+      // 1.35 → 1.62: hero metninin arkasındaki koyu bant (ArticleBlocks'taki
+      // okunabilirlik perdesi) kılıcın üst yarısını da yutuyordu. Perde ORTAK
+      // bileşende ve kontrastı ölçülmüş — ona dokunmak yerine sahne aydınlatıldı.
+      renderer.toneMappingExposure = 1.62;
 
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(34, 1, 0.5, 60);
@@ -243,7 +272,7 @@ export default function ThreeSwordHero() {
       });
       const goldMat = new THREE.MeshStandardMaterial({ color: GOLD, metalness: 0.95, roughness: 0.28, envMapIntensity: 1.4 });
       const goldDeepMat = new THREE.MeshStandardMaterial({ color: GOLD_DEEP, metalness: 0.92, roughness: 0.42, envMapIntensity: 1.15 });
-      const gripMat = new THREE.MeshStandardMaterial({ color: GRIP, metalness: 0.12, roughness: 0.82, envMapIntensity: 0.55 });
+      const gripMat = new THREE.MeshStandardMaterial({ color: GRIP, metalness: 0.88, roughness: 0.40, envMapIntensity: 1.2 });
       const garnetMat = new THREE.MeshStandardMaterial({
         color: GARNET, metalness: 0.2, roughness: 0.14, envMapIntensity: 1.7, emissive: GARNET, emissiveIntensity: 0.35,
       });
@@ -270,15 +299,23 @@ export default function ThreeSwordHero() {
         body.add(cap);
       }
 
-      // ── Kabza: koyu sargı + altın tel halkalar ──
+      // ── Kabza: koyu antik altın gövde + sarmal parlak altın tel + bilezikler ──
       const grip = new THREE.Mesh(keep(new THREE.LatheGeometry(gripProfile(), SEG)), gripMat);
       body.add(grip);
-      const wireGeo = keep(new THREE.TorusGeometry(0.118, 0.011, 6, SEG));
-      for (let i = 0; i < 5; i++) {
-        const w = new THREE.Mesh(wireGeo, goldMat);
-        w.rotation.x = Math.PI / 2;
-        w.position.y = 1.84 + i * 0.14;
-        body.add(w);
+      // Sarmal tel. Zayıf cihazda tek yön, diğerlerinde çapraz dokuma (iki yön).
+      const wireTubular = tier === 'low' ? 44 : 104;
+      const wireRadial = tier === 'low' ? 5 : 7;
+      for (const dir of tier === 'low' ? [1] : [1, -1]) {
+        const wGeo = keep(new THREE.TubeGeometry(gripWireCurve(6.5, dir), wireTubular, 0.0125, wireRadial, false));
+        body.add(new THREE.Mesh(wGeo, goldMat));
+      }
+      // Alt ve üst bilezik: gövdeden bir ton parlak, kabzayı balçak ve topuza bağlar.
+      const ferruleGeo = keep(new THREE.TorusGeometry(0.129, 0.019, 6, SEG));
+      for (const fy of [1.785, 2.375]) {
+        const f = new THREE.Mesh(ferruleGeo, goldMat);
+        f.rotation.x = Math.PI / 2;
+        f.position.y = fy;
+        body.add(f);
       }
 
       // ── Topuz (pommel): basık küre + tepe garnet ──
@@ -346,13 +383,16 @@ export default function ThreeSwordHero() {
       const ground = new THREE.PointLight(EMBER, 26, 9, 2);
       ground.position.set(0, Y_GROUND + 0.35, 0.5);
       scene.add(ground);
-      const key = new THREE.DirectionalLight(0xffd9b0, 1.5);
-      key.position.set(-2.2, 1.4, 3.2);
+      // Anahtar ve kenar ışığı YUKARI çekildi (1.5→2.0 / 1.15→1.45) ve key biraz
+      // yükseltildi: kabza ve topuz kadrajın üst yarısında, oradaki tek ışık
+      // kaynağı bunlardı — kor yerden geldiği için yukarı yetişmiyor.
+      const key = new THREE.DirectionalLight(0xffd9b0, 2.0);
+      key.position.set(-2.2, 2.3, 3.2);
       scene.add(key);
-      const rim = new THREE.DirectionalLight(0x9fb4ff, 1.15);
-      rim.position.set(2.8, 2.2, -2.2);
+      const rim = new THREE.DirectionalLight(0x9fb4ff, 1.45);
+      rim.position.set(2.8, 2.6, -2.2);
       scene.add(rim);
-      scene.add(new THREE.HemisphereLight(0x30405e, 0x1a0d08, 0.55));
+      scene.add(new THREE.HemisphereLight(0x3b4c6e, 0x1a0d08, 0.78));
 
       // ── Kadraj: crown hero ile aynı disiplin (sabit sayı yok, çözülüyor) ──
       // Obje ÇOK dar ve ÇOK uzun → kadrajı tamamen DİKEY uzunluk belirler.
