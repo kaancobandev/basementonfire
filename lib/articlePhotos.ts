@@ -257,6 +257,16 @@ export const ARTICLE_PHOTOS: Record<string, string[]> = {
     "/articles/newton/prizma-isik-ayrisimi.webp",
     "/articles/newton/woolsthorpe-elma-agaci.webp"
   ],
+  "periyodik-tablo": [
+    "/articles/periyodik-tablo/duvar-tablosu-1885.webp",
+    "/articles/periyodik-tablo/el-yazisi-calisma-sayfasi.webp",
+    "/articles/periyodik-tablo/eriyik-galyum.webp",
+    "/articles/periyodik-tablo/espey-bor-ocagi.webp",
+    "/articles/periyodik-tablo/henry-moseley-portre.webp",
+    "/articles/periyodik-tablo/moseley-spektrum-merdiveni.webp",
+    "/articles/periyodik-tablo/riken-kuryum-hedef-tekerlegi.webp",
+    "/articles/periyodik-tablo/winkler-germanyum-1886.webp"
+  ],
   "pirus": [
     "/articles/pirus/ambracia-apollon.webp",
     "/articles/pirus/appius-kineas.webp",

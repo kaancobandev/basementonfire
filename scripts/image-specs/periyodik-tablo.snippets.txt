@@ -1,0 +1,63 @@
+<ArticleImage
+  src="/articles/periyodik-tablo/duvar-tablosu-1885.webp"
+  ratio="1600 / 1067"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Dmitri Mendeleev · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/periyodik-tablo/el-yazisi-calisma-sayfasi.webp"
+  ratio="1600 / 1200"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Scotted400 · CC0"
+/>
+
+<ArticleImage
+  src="/articles/periyodik-tablo/winkler-germanyum-1886.webp"
+  ratio="1024 / 755"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Unknown author Unknown author · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/periyodik-tablo/eriyik-galyum.webp"
+  ratio="1600 / 1063"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Pixelmaniac pictures ( Leave a reply ) · CC0"
+/>
+
+<ArticleImage
+  src="/articles/periyodik-tablo/moseley-spektrum-merdiveni.webp"
+  ratio="1363 / 1750"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Henry Moseley (1887 - 1915) · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/periyodik-tablo/henry-moseley-portre.webp"
+  ratio="1600 / 2002"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Nature magazine · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/periyodik-tablo/riken-kuryum-hedef-tekerlegi.webp"
+  ratio="884 / 825"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="RIKEN · CC BY 4.0"
+/>
+
+<ArticleImage
+  src="/articles/periyodik-tablo/espey-bor-ocagi.webp"
+  ratio="1600 / 900"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Ahmet KAYNARPUNAR"
+/>
