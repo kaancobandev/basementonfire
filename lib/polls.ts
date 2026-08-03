@@ -14,6 +14,10 @@ export const POLLS: Record<string, readonly string[]> = {
   'atilla-honoria': ['ver', 'oldur', 'inkar', 'oyala'], // Valentinianus: çeyizi ver / Honoria'yı öldürt / nişanı inkâr et / elçiyle oyala
   'atilla-italya': ['papa', 'salgin', 'marcianus', 'hepsi'], // 452 dönüşü: Papa Leo / kıtlık-salgın / Marcianus'un saldırısı / üçü birden
   'atilla-otag': ['dogal', 'ildico', 'komplo', 'ic'], // 453: kendi öldü / Ildico / Doğu Roma tertibi / iç muhalefet
+  // Periyodik tablo — id'ler app/articles/periyodik-tablo/data.ts ile BİREBİR aynı
+  // (BOSLUK_KARARI.secenekler, ADLANDIRMA_KARARI.secenekler).
+  'periyodik-bosluk': ['olcum', 'sirala', 'bosluk', 'baska'],      // 1869 tellür-iyot: ölçüm yanlış / ağırlığa uy / araya element koy / sıralama ilkesi başka
+  'periyodik-adlandirma': ['ilk', 'dogrulanan', 'iupac', 'paylas'], // transfermiyum savaşları: ilk yayımlayan / doğrulanan / komite / paylaştırılsın
 };
 
 export const isPollKey = (key: string): boolean =>

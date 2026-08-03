@@ -36,6 +36,15 @@ export const QUESTIONS: Record<string, string> = {
   /* ══════════ Soru duvarında olanlar (lib/landing.ts WALL) ══════════ */
   'black-hole': `Bir kara deliğe düşsen ne hissederdin?`,
   mol: `Bir bardak suda kaç tane su var?`,
+
+  // KANIT data.ts EKA_SILISYUM — 1871 tahmini ile 1886 ölçümü on iki özellikte
+  // yan yana: yoğunluk 5,5 / 5,47 · klorürün kaynama noktası "<100 °C" / 86 °C.
+  // Makalenin tezi birebir bu: tablo bir dolap değil, tahmin makinesi.
+  // ⚠ Perde 2 aynı soruya ikinci cevabı da veriyor (on dört hayalet, %50 altı
+  //   isabet) — yani soru clickbait değil, iki yönlü cevaplanıyor.
+  // ⚠ REDDEDİLEN: "Mendeleyev kaç tahmininde yanıldı?" → sayı odaklı ve kurala
+  //   uygun ama makaleyi bir kişinin sicili gibi çerçeveliyor; konu tablo.
+  'periyodik-tablo': `Olmayan bir elementi nasıl tarif edersin?`,
   pirus: `Kazandığın bir savaş seni nasıl bitirir?`,
   'dogal-secilim': `Bir avcı kadar iyi görebiliyor musun?`,
   bilgisayar: `Şu an baktığın ekranda tam olarak ne oluyor?`,

@@ -88,6 +88,7 @@ const OG_ACCENTS: Record<string, string> = {
   carthage: '#5eead4',
   ekonomi: '#6ee7b7',
   enflasyon: '#e8a33d',
+  'periyodik-tablo': '#e879f9',
   'einstein-rosen': '#67e8f9',
   arcade: '#f9a8d4',
   tibbi: '#93c5fd',

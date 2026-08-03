@@ -37,6 +37,8 @@ export const ARTICLE_GRADIENTS: Record<string, string> = {
   'cift-yarik': 'linear-gradient(135deg,#3b0764,#0e7490)',
   'kuantum-olumsuzlugu': 'linear-gradient(135deg,#1e1b4b,#0f766e)',
   'mol': 'linear-gradient(135deg,#78350f,#f59e0b)',
+  // mol'ün kahve-amberinden bilerek UZAK: iki Kimya kartı keşifte yan yana düşecek.
+  'periyodik-tablo': 'linear-gradient(135deg,#2e1065,#a21caf)',
   'fizik-101': 'linear-gradient(135deg,#2563eb,#f59e0b)',
   'sanat-akimlari': 'linear-gradient(135deg,#6b0f2a,#e11d48)',
   'radyoaktivite': 'linear-gradient(135deg,#1a2e05,#65a30d)',
