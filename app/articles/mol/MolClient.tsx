@@ -151,7 +151,7 @@ export default function MolClient() {
         </div>
 
         <p className="mb-6 leading-relaxed text-slate-300">
-          Bir maddenin 1 molünün gram cinsinden kütlesine <strong className="text-amber-300">molar kütle</strong> denir (g/mol). Kimyanın en zarif hilesi: periyodik tabloda bir elementin altında yazan sayı (bağıl atom kütlesi), aynı zamanda o elementin gram cinsinden molar kütlesidir. Bir element seç, gör:
+          Bir maddenin 1 molünün gram cinsinden kütlesine <strong className="text-amber-300">molar kütle</strong> denir (g/mol). Kimyanın en zarif hilesi: <Link href="/articles/periyodik-tablo" className="article-ilink">periyodik tabloda bir elementin altında yazan sayı</Link> (bağıl atom kütlesi), aynı zamanda o elementin gram cinsinden molar kütlesidir. Bir element seç, gör:
         </p>
         <ArticleImage
           className="ml-img my-6"
