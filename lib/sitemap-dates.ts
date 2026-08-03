@@ -33,7 +33,7 @@ export const MAKALE_TARIH: Record<string, string> = {
   "bilgisayar": "2026-07-24T13:12:13+03:00",
   "cift-yarik": "2026-07-24T11:31:37+03:00",
   "kuantum-olumsuzlugu": "2026-07-24T11:05:42+03:00",
-  "periyodik-tablo": "2026-08-03T22:41:27+03:00",
+  "periyodik-tablo": "2026-08-03T22:51:45+03:00",
   "mol": "2026-08-03T22:13:39+03:00",
   "fizik-101": "2026-07-21T16:39:36+03:00",
   "sanat-akimlari": "2026-07-24T13:38:39+03:00",
@@ -65,4 +65,4 @@ export const SAYFA_TARIH: Record<string, string> = {
 };
 
 /** Bilinmeyen rota için güvenli geri düşüş: dosyanın üretildiği an. */
-export const URETIM_TARIHI = '2026-08-03T19:41:35.405Z';
+export const URETIM_TARIHI = '2026-08-03T19:51:52.534Z';
