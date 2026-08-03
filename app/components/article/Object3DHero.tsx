@@ -22,7 +22,11 @@ import { deviceTier, dprCap, makeFpsGuard } from './heroPerf';
 // ThreeChipHero / ThreeRoseWindowHero / ThreeEarthHero / ThreeCrownHero /
 // ThreeSwordHero) — ArticleHero bu değerleri görünce Object3DHero yerine
 // ilgili three.js bileşenini render eder.
-export type Object3DKind = 'dna' | 'coin' | 'wreath' | 'cannon' | 'helmet' | 'prism' | 'atom' | 'nucleus' | 'orbital' | 'particles' | 'mobius' | 'slit' | 'chip' | 'rose' | 'earth' | 'crown' | 'sword';
+// ⚠ Buraya bir değer eklemek YETMEZ: three.js tabanlı hero'lar (mobius, slit,
+// chip, rose, earth, crown, sword, periodic) ArticleBlocks'taki ternary'de KENDİ
+// dalını da almalı. Almazsa kod sessizce buraya düşer, burada o kind için
+// `else if` olmadığı için hiç obje kurulmaz — hata yok, sadece boş zemin.
+export type Object3DKind = 'dna' | 'coin' | 'wreath' | 'cannon' | 'helmet' | 'prism' | 'atom' | 'nucleus' | 'orbital' | 'particles' | 'mobius' | 'slit' | 'chip' | 'rose' | 'earth' | 'crown' | 'sword' | 'periodic';
 
 const DEFAULT_COLORS: [Rgb, Rgb, Rgb, Rgb] = [
   [0.016, 0.086, 0.063], [0.063, 0.45, 0.30], [0.40, 0.83, 0.31], [0.98, 0.74, 0.18],

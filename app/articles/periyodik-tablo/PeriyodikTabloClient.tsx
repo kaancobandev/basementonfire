@@ -3,7 +3,7 @@
 // MONTAJ dosyası — iş mantığı YOK. İskelet ArticleBlocks'tan (GSAP orada kurulur),
 // modüller widgets/decisions/sim-tablo'dan gelir.
 //
-// Hero: object3d="orbital" — union'da tanımlı ve hiçbir makalede kullanılmamıştı.
+// Hero: object3d="periodic" — makaleye ozel ThreePeriodicHero.
 // Süs değil, TEZİN KENDİSİ: tablonun şekli orbital doldurmasından çıkıyor.
 
 import dynamic from 'next/dynamic';
@@ -60,7 +60,7 @@ export default function PeriyodikTabloClient() {
           eyebrow="KİMYA · TAHMİN · SINIR"
           subtitle="Bir sıralama şeması, henüz keşfedilmemiş şeyler hakkında nasıl doğru konuşabilir?"
           colors={HERO_COLORS}
-          object3d="orbital"
+          object3d="periodic"
         />
 
         <ArticleLede
