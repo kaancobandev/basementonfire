@@ -14,6 +14,10 @@ export const ARTICLE_GRADIENTS: Record<string, string> = {
   'greece': 'linear-gradient(135deg,#1e3a8a,#0369a1)',
   'carthage': 'linear-gradient(135deg,#0f766e,#6d28d9)',
   'ekonomi': 'linear-gradient(135deg,#065f46,#15803d)',
+  // Bilerek ekonomi'nin yeşilinden UZAK: iki Ekonomi kartı keşifte yan yana
+  // düşecek, ilk bakışta ayrılmalı. Çelik grisi → bakır: makalenin kendi
+  // konusu (gümüşün bakırla seyreltilmesi) renkte de duruyor.
+  'enflasyon': 'linear-gradient(135deg,#1c2536,#c2761b)',
   'einstein-rosen': 'linear-gradient(135deg,#4c1d95,#0e7490)',
   'arcade': 'linear-gradient(135deg,#be185d,#7c3aed)',
   'tibbi': 'linear-gradient(135deg,#0e7490,#1d4ed8)',

@@ -107,6 +107,19 @@ export const QUESTIONS: Record<string, string> = {
   // korunma vaadi ima eder. İkisi de metinde cevaplı ama ikisi de kullanılamaz.
   ekonomi: `Gönderdiğin para sınırı nasıl geçiyor?`,
 
+  // KANIT EnflasyonClient.tsx bölüm 02, makalenin tezi: «enflasyon aslında
+  // fiyatların hikâyesi değil, paranın hikâyesi. Fiyatlar yükseliyor demek,
+  // paranın satın alma gücü düşüyor demektir. Aynı cümlenin iki yüzü.»
+  // Footer da aynı cümleyle kapanıyor — soru gerçekten makalenin omurgası.
+  // ⚠ APOLİTİK: fail yok, suçlanan yok, korunma vaadi yok — kavramsal bir
+  // yeniden çerçeveleme. Yukarıdaki ekonomi girdisinin iki reddedilen adayı
+  // tam da bu makalenin etrafında dolaştığı için sınır burada daha dar.
+  // ⚠ REDDEDİLENLER: "Cebindeki para neden küçülüyor?" → "Bankadaki paran
+  // neden eriyor?" ile aynı sınıfta (Türkiye bağlamında politik okunur).
+  // "Senin enflasyonun kaç?" → hesaplayıcıyı iyi tarif ediyor ama resmî
+  // ölçümü karşısına alır gibi okunur; makale tam olarak bunu YAPMIYOR.
+  enflasyon: `Fiyatlar mı artıyor, para mı küçülüyor?`,
+
   // KANIT EndosimbiyozClient.tsx:303 — makalenin kendi blockquote'u: «Senin hücrenin
   // çekirdeği bir arkeden, enerji santralin ise bir bakteriden geliyor. Sen,
   // kelimenin tam anlamıyla, iki ayrı yaşam alanının birleşmesinden doğan bir

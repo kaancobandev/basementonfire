@@ -1,0 +1,55 @@
+<ArticleImage
+  src="/articles/enflasyon/osmanli-akcesi.webp"
+  ratio="1600 / 698"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="icollector · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/enflasyon/bir-milyon-lira.webp"
+  ratio="1485 / 713"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Kerhaneci31 · CC0"
+/>
+
+<ArticleImage
+  src="/articles/enflasyon/berlin-ekmek-izdihami.webp"
+  ratio="1600 / 1170"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Agence de presse Meurisse. Agence photographique (commandita · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/enflasyon/macaristan-1946.webp"
+  ratio="1600 / 1600"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Takkk · CC BY-SA 3.0"
+/>
+
+<ArticleImage
+  src="/articles/enflasyon/denarius-gumus.webp"
+  ratio="1600 / 1312"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="The Portable Antiquities Scheme/ The Trustees of the British Museum"
+/>
+
+<ArticleImage
+  src="/articles/enflasyon/antoninianus-billon.webp"
+  ratio="1600 / 872"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="The Portable Antiquities Scheme/ The Trustees of the British Museum"
+/>
+
+<ArticleImage
+  src="/articles/enflasyon/diocletianus-fermani.webp"
+  ratio="1195 / 1035"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="User:MatthiasKabel · CC BY-SA 3.0"
+/>

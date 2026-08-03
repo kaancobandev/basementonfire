@@ -88,6 +88,10 @@ export const ARTICLES: ArticleMeta[] = [
   { slug: 'greece', title: 'Antik Yunan', emoji: '⚡', desc: 'Demokrasinin beşiği', category: 'Tarih', topics: ['Antik Çağ', 'Yunan', 'Felsefe', 'Akdeniz'] },
   { slug: 'carthage', title: 'Kartaca', emoji: '⚓', desc: "Akdeniz'in efendileri", category: 'Tarih', topics: ['Antik Çağ', 'Roma', 'Savaş', 'Akdeniz', 'Kuşatma'] },
   { slug: 'ekonomi', title: 'Ekonominin Dili', emoji: '📈', desc: 'Faiz, parite, borsa — interaktif sözlük', category: 'Ekonomi', topics: ['Başlangıç Rehberi'] },
+  // topics'te 'Osmanlı' YOK — bilinçli. Makalenin açılışı 1585 tağşişi ama bu
+  // 8 bölümün biri; kuralın istediği "makale gerçekten o konuyu işliyor" eşiğini
+  // geçmiyor. Kanuni'ye giden bağ zaten gövdedeki açık iç linkle kuruluyor.
+  { slug: 'enflasyon', title: 'Enflasyon', emoji: '🪙', desc: 'Paranın sessizce küçülmesi: TÜFE sepeti nasıl kurulur, çekirdek enflasyon nedir, bileşik etki parayı kaç yılda yarıya indirir? 1585 akçe tağşişinden Diocletianus’un fiyat fermanına ve Macaristan 1946’ya — kendi sepetini doldurup kendi enflasyonunu hesaplayabildiğin interaktif dosya', category: 'Ekonomi', topics: ['Başlangıç Rehberi'] },
   { slug: 'einstein-rosen', title: 'Einstein–Rosen Köprüsü', emoji: '🌀', desc: 'İnteraktif solucan deliği rehberi', category: 'Astronomi', topics: ['Görelilik', 'Kütleçekim', 'Evren', 'Zaman'] },
   { slug: 'arcade', title: 'Arcade', emoji: '🕹️', desc: 'Oyun salonu tarihi + oynanabilir klasikler', category: 'Teknoloji', topics: ['Bilgisayar', 'Tasarım'] },
   // 15 → 25 (2026-07-16): makalede 25 olgu var; 25 <article>, 25 "Kaynak ·" atfı ve

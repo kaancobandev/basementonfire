@@ -1,7 +1,4 @@
-// OTOMATİK ÜRETİLDİ — elle düzenleme. Kaynak: public/articles/<slug>/ tarandı.
-// Paylaşım stüdyosu (CarouselStudio) hangi fotoğrafların var olduğunu build'de
-// bilemez; bu manifest onu istemciye taşır. Yeni görsel eklenince yeniden üret:
-//   node scripts/gen-article-photos.cjs   (aşağıdaki mantık)
+// OTOMATİK ÜRETİLDİ — elle düzenleme. node scripts/gen-article-photos.cjs
 export const ARTICLE_PHOTOS: Record<string, string[]> = {
   "arcade": [
     "/articles/arcade/donkey-kong-kabin.webp",
@@ -12,6 +9,20 @@ export const ARTICLE_PHOTOS: Record<string, string[]> = {
     "/articles/arcade/spacewar-pdp1.webp",
     "/articles/arcade/tennis-for-two-osiloskop.webp",
     "/articles/arcade/toru-iwatani-portre.webp"
+  ],
+  "atilla": [
+    "/articles/atilla/aquileia-kusatmasi.webp",
+    "/articles/atilla/bulgar-nominalia.webp",
+    "/articles/atilla/chronicon-attila-taht.webp",
+    "/articles/atilla/codex-regius-atlamal.webp",
+    "/articles/atilla/deforme-kafatasi.webp",
+    "/articles/atilla/honoria-sikkesi.webp",
+    "/articles/atilla/hun-kazani.webp",
+    "/articles/atilla/raphael-mincio.webp",
+    "/articles/atilla/romulus-augustulus.webp",
+    "/articles/atilla/solidus-theodosius.webp",
+    "/articles/atilla/theodosius-surlari.webp",
+    "/articles/atilla/viyana-kilici.webp"
   ],
   "augustus": [
     "/articles/augustus/actium-savasi.webp",
@@ -150,6 +161,15 @@ export const ARTICLE_PHOTOS: Record<string, string[]> = {
     "/articles/endosimbiyoz/mitokondri-tem.webp",
     "/articles/endosimbiyoz/nick-lane.webp"
   ],
+  "enflasyon": [
+    "/articles/enflasyon/antoninianus-billon.webp",
+    "/articles/enflasyon/berlin-ekmek-izdihami.webp",
+    "/articles/enflasyon/bir-milyon-lira.webp",
+    "/articles/enflasyon/denarius-gumus.webp",
+    "/articles/enflasyon/diocletianus-fermani.webp",
+    "/articles/enflasyon/macaristan-1946.webp",
+    "/articles/enflasyon/osmanli-akcesi.webp"
+  ],
   "fatih": [
     "/articles/fatih/ayasofya.jpg",
     "/articles/fatih/bellini-portre.jpg",
@@ -200,6 +220,14 @@ export const ARTICLE_PHOTOS: Record<string, string[]> = {
     "/articles/kaligrafi/lantingji-xu.webp",
     "/articles/kaligrafi/seyh-hamdullah-murakka.webp",
     "/articles/kaligrafi/suleyman-tugra.webp"
+  ],
+  "kanuni": [
+    "/articles/kanuni/divan.jpg",
+    "/articles/kanuni/ibrahim-pasa.jpg",
+    "/articles/kanuni/mohac.jpg",
+    "/articles/kanuni/suleymaniye.jpg",
+    "/articles/kanuni/tugra.jpg",
+    "/articles/kanuni/venedik-migferi.jpg"
   ],
   "kuantum-olumsuzlugu": [
     "/articles/kuantum-olumsuzlugu/cift-yarik-tonomura.webp",
@@ -276,6 +304,7 @@ export const ARTICLE_PHOTOS: Record<string, string[]> = {
     "/articles/sezar/pompeius-bust.webp",
     "/articles/sezar/rubicon-deresi.webp",
     "/articles/sezar/sezarin-olumu.webp",
+    "/articles/sezar/sikke-caesar.webp",
     "/articles/sezar/vercingetorix-teslim.webp"
   ],
   "takyon": [
