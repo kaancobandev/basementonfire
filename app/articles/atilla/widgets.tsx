@@ -142,16 +142,58 @@ export function KavimlerGocu() {
 
 /* ══════════════ Perde 2 · Kağanlık şeması ══════════════ */
 
-const SEMA = [
-  { id: 'kut', ust: 'GÖK', ad: 'Kut', renk: GOLD },
-  { id: 'kagan', ust: 'YETKİ', ad: 'Kağan', renk: ACCENT },
-  { id: 'ikili', ust: 'İKİ KANAT', ad: 'Sol / Sağ', renk: GARNET },
-  { id: 'boy', ust: 'TABAN', ad: 'Boylar', renk: IRON },
-  { id: 'kurultay', ust: 'MECLİS', ad: 'Kurultay', renk: BONE },
-] as const;
+// SEMA sabiti kaldırıldı: eski beş-sekme düzeninin verisiydi, düğümler artık
+// şemanın kendi içinde konumlarıyla birlikte tanımlı.
+
+const ASAGI = 'M-4 -4 L0 3 L4 -4 Z';
+const YUKARI = 'M-4 4 L0 -3 L4 4 Z';
+
+/** Şema oku — ok başı elle çiziliyor (SurKesiti deseni), marker/defs gerekmiyor. */
+function Ok({ d, renk, yon, kesik = false }: {
+  d: string; renk: string; yon: [number, number, string]; kesik?: boolean;
+}) {
+  return (
+    <g>
+      <path d={d} fill="none" stroke={renk} strokeWidth="1.6" strokeDasharray={kesik ? '4 4' : undefined}
+        style={{ transition: 'stroke .3s ease' }} />
+      <path d={yon[2]} fill={renk} transform={`translate(${yon[0]},${yon[1]})`}
+        style={{ transition: 'fill .3s ease' }} />
+    </g>
+  );
+}
+
+/** Tıklanabilir şema düğümü. ⚠ <g onClick> tek başına klavyeyle erişilemez —
+ *  SurKesiti'nde bu eksik; burada tekrarlanmıyor (role+tabIndex+onKeyDown). */
+function Dugum({ id, x, y, w, ust, ad, renk, sel, setSel, ariza }: {
+  id: string; x: number; y: number; w: number; ust: string; ad: string; renk: string;
+  sel: string; setSel: (s: string) => void; ariza: boolean;
+}) {
+  const on = sel === id;
+  const c = ariza && id === 'kagan' ? IRON : renk;
+  return (
+    <g role="button" tabIndex={0} aria-pressed={on} aria-label={ad}
+      onClick={() => setSel(id)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSel(id); } }}
+      style={{ cursor: 'pointer' }}>
+      <rect x={x - w / 2} y={y - 17} width={w} height={34} rx={8}
+        fill={`color-mix(in srgb, ${c} ${on ? 22 : 8}%, transparent)`}
+        stroke={on ? c : `color-mix(in srgb, ${c} 40%, transparent)`}
+        strokeWidth={on ? 2 : 1}
+        style={{ transition: 'fill .3s ease, stroke .3s ease, stroke-width .3s ease' }} />
+      <text x={x} y={y - 4} textAnchor="middle" fontSize="7" fontWeight="800" letterSpacing="1.2"
+        fill={on ? c : 'rgba(255,255,255,0.45)'} fontFamily="system-ui, sans-serif"
+        style={{ transition: 'fill .3s ease' }}>{ust}</text>
+      <text x={x} y={y + 10} textAnchor="middle" fontSize="12" fontWeight="800"
+        fill={on ? '#fff' : '#a8a29e'} fontFamily="system-ui, sans-serif"
+        style={{ transition: 'fill .3s ease' }}>{ad}</text>
+    </g>
+  );
+}
 
 export function KaganlikSemasi() {
   const [sel, setSel] = useState<string>('kut');
+  const [ariza, setAriza] = useState(false);          // "kut kalkarsa" senaryosu
+  const kanatX = ariza ? 34 : 0;                       // arızada iki kanat AYRILIYOR
 
   const metin: Record<string, { ad: string; tanim: string; ek?: string }> = {
     kut: { ad: KAGAN.kut.ad, tanim: KAGAN.kut.tanim },
@@ -166,37 +208,54 @@ export function KaganlikSemasi() {
     <WidgetFrame
       kicker="PERDE 2 · DEVLET NASIL İŞLER"
       title="Bozkır devletinin şeması"
-      hint="Beş parça. Her birine dokun — Atilla’nın oturduğu koltuğun nasıl kurulduğunu görürsün."
+      hint="Yetki yukarıdan iner, rıza aşağıdan çıkar. Bir düğüme dokun — ya da kutu kaldırıp ne olduğunu gör."
     >
-      <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
-        {SEMA.map((s) => {
-          const on = sel === s.id;
-          return (
-            <button
-              key={s.id}
-              onClick={() => setSel(s.id)}
-              aria-pressed={on}
-              className="min-h-[68px] rounded-xl border px-1 py-2 text-center transition hover:brightness-125"
-              style={{
-                borderColor: on ? s.renk : 'rgba(255,255,255,0.1)',
-                background: on ? `color-mix(in srgb, ${s.renk} 16%, transparent)` : 'rgba(255,255,255,0.02)',
-              }}
-            >
-              <span className="block text-[0.5rem] font-bold tracking-[0.12em]" style={{ color: on ? s.renk : 'rgba(255,255,255,0.4)' }}>
-                {s.ust}
-              </span>
-              <span className="mt-1 block text-[0.72rem] font-bold leading-tight sm:text-sm" style={{ color: on ? '#fff' : '#a8a29e' }}>
-                {s.ad}
-              </span>
-            </button>
-          );
-        })}
-      </div>
+      {/* ── ŞEMA ARTIK GERÇEKTEN ŞEMA ──
+          Eskiden yan yana beş sekme + aria-hidden 1px gradyan çizgi vardı; adı
+          "şema" olan modülde parçalar arasındaki İLİŞKİ hiç çizilmiyordu.
+          Asıl iddia iki okta: Gök'ten AŞAĞI inen yetki, kurultaydan YUKARI çıkan
+          rıza. "Kağan mutlak değildir" cümlesi böylece çizimin kendisi oluyor.
+          viewBox 360 birim (Catalaunum'un 800'ü değil) → SVG metni telefonda da
+          ~10 px'e denk geliyor, ölçek burada lehimize çalışıyor. */}
+      <svg viewBox="0 0 360 306" className="w-full rounded-xl border border-white/10 bg-black/25" role="img"
+        aria-label="Bozkır devletinin şeması: Gök'ten kağana inen yetki, kurultaydan kağana çıkan rıza, iki kanat ve boylar.">
+        <Ok d="M180 50 L180 84" renk={ariza ? IRON : GOLD} yon={[180, 86, ASAGI]} kesik={ariza} />
+        <Ok d={`M168 122 L${118 - kanatX} 152`} renk={GARNET} yon={[116 - kanatX, 154, ASAGI]} />
+        <Ok d={`M192 122 L${242 + kanatX} 152`} renk={GARNET} yon={[244 + kanatX, 154, ASAGI]} />
+        <Ok d={`M${92 - kanatX} 190 L164 214`} renk={IRON} yon={[166, 216, ASAGI]} />
+        <Ok d={`M${268 + kanatX} 190 L196 214`} renk={IRON} yon={[194, 216, ASAGI]} />
+        <Ok d="M180 250 L180 262" renk={BONE} yon={[180, 264, ASAGI]} />
+        {/* Şemanın asıl iddiası: rıza AŞAĞIDAN YUKARI çıkıyor. */}
+        <Ok d="M148 282 C 26 272, 26 132, 150 108" renk={ariza ? GARNET : BONE} yon={[152, 107, YUKARI]} />
 
-      {/* akış oku */}
-      <div aria-hidden className="my-3 h-px w-full" style={{ background: `linear-gradient(90deg, ${GOLD}55, ${ACCENT}55, ${GARNET}55, ${IRON}55, ${BONE}44)` }} />
+        <text x="30" y="196" fontSize="7.5" fontWeight="800" letterSpacing="1"
+          fill={ariza ? GARNET : `color-mix(in srgb, ${BONE} 70%, transparent)`}
+          fontFamily="system-ui, sans-serif" transform="rotate(-90 30 196)"
+          style={{ transition: 'fill .3s ease' }}>RIZA</text>
+        <text x="196" y="72" fontSize="7.5" fontWeight="800" letterSpacing="1"
+          fill={ariza ? IRON : `color-mix(in srgb, ${GOLD} 75%, transparent)`}
+          fontFamily="system-ui, sans-serif" style={{ transition: 'fill .3s ease' }}>YETKİ</text>
 
-      <div className="rounded-xl border border-white/10 bg-black/25 p-4">
+        <Dugum id="kut" x={180} y={32} w={132} ust="GÖK" ad="Kut" renk={GOLD} sel={sel} setSel={setSel} ariza={ariza} />
+        <Dugum id="kagan" x={180} y={104} w={126} ust="YETKİ" ad="Kağan" renk={ACCENT} sel={sel} setSel={setSel} ariza={ariza} />
+        <g transform={`translate(${-kanatX},0)`} style={{ transition: 'transform .45s ease' }}>
+          <Dugum id="ikili" x={92} y={172} w={104} ust="SOL KANAT" ad="Yabgu" renk={GARNET} sel={sel} setSel={setSel} ariza={ariza} />
+        </g>
+        <g transform={`translate(${kanatX},0)`} style={{ transition: 'transform .45s ease' }}>
+          <Dugum id="ikili" x={268} y={172} w={104} ust="SAĞ KANAT" ad="Yabgu" renk={GARNET} sel={sel} setSel={setSel} ariza={ariza} />
+        </g>
+        <Dugum id="boy" x={180} y={232} w={148} ust="TABAN" ad="Boylar" renk={IRON} sel={sel} setSel={setSel} ariza={ariza} />
+        <Dugum id="kurultay" x={180} y={282} w={148} ust="MECLİS" ad="Kurultay" renk={BONE} sel={sel} setSel={setSel} ariza={ariza} />
+
+        {/* Arıza modunda her kanadın üstünde AYRI taç: iki meşru veraset hattı. */}
+        {ariza && [92 - kanatX, 268 + kanatX].map((cx) => (
+          <g key={cx} transform={`translate(${cx},144)`}>
+            <path d="M-9 4 L-9 -4 L-4 1 L0 -6 L4 1 L9 -4 L9 4 Z" fill={GARNET} />
+          </g>
+        ))}
+      </svg>
+
+      <div className="mt-3 rounded-xl border border-white/10 bg-black/25 p-4">
         <div className="text-sm font-bold" style={{ color: BONE }}>{m.ad}</div>
         <p className="mt-1.5 text-[0.86rem] leading-relaxed text-slate-300">{m.tanim}</p>
         {m.ek && (
@@ -205,6 +264,22 @@ export function KaganlikSemasi() {
           </p>
         )}
       </div>
+
+      {/* Tek düğme, üç paragraflık iddiayı çizime çeviriyor: kut kalkınca yetki
+          oku kesiliyor, kağan soluyor ve iki kanat ayrılıyor — yani veraset
+          krizinin NEDEN yapısal olduğu anlatılmıyor, gösteriliyor. */}
+      <div className="mt-3">
+        <ActionButton tone="ghost" full onClick={() => setAriza(!ariza)}>
+          {ariza ? '↺ Kutu geri ver' : 'Peki kut kalkarsa ne olur?'}
+        </ActionButton>
+      </div>
+      {ariza && (
+        <p className="mt-3 rounded-xl border p-3 text-[0.84rem] leading-relaxed text-slate-300"
+          style={{ borderColor: `${GARNET}55`, background: `color-mix(in srgb, ${GARNET} 7%, transparent)`, animation: 'atilla-fade 0.4s ease-out' }}>
+          Yetki oku kesildi, kağan soldu — ve iki kanat birbirinden ayrıldı: her birinin
+          başında artık ayrı bir meşru hat var. {KAGAN.ikili.sonuc}
+        </p>
+      )}
     </WidgetFrame>
   );
 }
