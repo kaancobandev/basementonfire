@@ -92,8 +92,68 @@ export function KavimlerGocu() {
       kicker="PERDE 1 · BASINÇ ZİNCİRİ"
       title="Kavimler Göçü — ve Atilla’nın henüz doğmamış olması"
       hint="Bir halk yerinden olunca komşusunu iter, o da kendi komşusunu. Zincirin sonu Roma sınırı."
-      footnote={GOC.onemli}
+      footnote="Zincirin tarihleri Atilla’nın doğumundan (~406) ve kağan oluşundan (434) öncedir."
     >
+      {/* ── BASINÇ ARTIK GÖRÜNÜYOR ──
+          Eskiden modülün adında basınç vardı ama ekranda yalnız sırayla beliren
+          beş kutu vardı: yön yok, itme yok, duvar yok. Şimdi doğudan batıya bir
+          koridor var; her halk bir sonrakini İTİYOR ve zincirin sonunda Roma
+          sınırı duruyor. Basınç sınıra ulaşınca duvarda çatlak beliriyor. */}
+      <svg viewBox="0 0 360 150" className="mb-3 w-full rounded-xl border border-white/10 bg-black/25" role="img"
+        aria-label="Doğudan batıya bir koridor: her halk bir sonrakini itiyor, zincirin sonunda Roma sınırı ve 378'de duvarda çatlak.">
+        <text x="10" y="18" fontSize="7.5" fontWeight="800" letterSpacing="1" fill={IRON} fontFamily="system-ui, sans-serif">DOĞU · BOZKIR</text>
+        <text x="350" y="18" fontSize="7.5" fontWeight="800" letterSpacing="1" fill={IRON} textAnchor="end" fontFamily="system-ui, sans-serif">ROMA SINIRI</text>
+        <line x1="10" y1="26" x2="350" y2="26" stroke="rgba(255,255,255,0.08)" />
+
+        {/* Roma sınırı — basınç arttıkça çatlıyor */}
+        <rect x="318" y="38" width="12" height="76" rx="2"
+          fill={`color-mix(in srgb, ${BONE} ${step >= 3 ? 10 : 18}%, transparent)`}
+          stroke={step >= 3 ? GARNET : BONE} strokeWidth={step >= 3 ? 2 : 1.4}
+          style={{ transition: 'stroke .5s ease, fill .5s ease' }} />
+        <path d="M324 60 L318 72 L328 82 L320 96" fill="none" stroke={GARNET} strokeWidth="1.6"
+          style={{ opacity: step >= 3 ? 1 : 0, transition: 'opacity .6s ease' }} />
+
+        {GOC.zincir.map((z, i) => {
+          const on = step > i;
+          const x = 34 + i * 62;
+          return (
+            <g key={z.n} style={{ opacity: on ? 1 : 0.3, transition: 'opacity .5s ease' }}>
+              {/* itme oku — bu halk bir sonrakini itiyor */}
+              {i < GOC.zincir.length - 1 && (
+                <g style={{ opacity: step > i + 1 ? 1 : 0, transition: 'opacity .5s ease' }}>
+                  <line x1={x + 15} y1="76" x2={x + 50} y2="76" stroke={ACCENT} strokeWidth="1.6" />
+                  <path d="M-5 -4 L2 0 L-5 4 Z" fill={ACCENT} transform={`translate(${x + 54},76)`} />
+                </g>
+              )}
+              <rect x={x - 13} y="62" width="27" height="28" rx="5"
+                fill={`color-mix(in srgb, ${ACCENT} ${on ? 22 : 6}%, transparent)`}
+                stroke={on ? ACCENT : 'rgba(255,255,255,0.18)'} strokeWidth={on ? 1.8 : 1}
+                style={{ transition: 'fill .5s ease, stroke .5s ease' }} />
+              <text x={x} y="80" textAnchor="middle" fontSize="11" fontWeight="800"
+                fill={on ? '#fff' : 'rgba(255,255,255,0.4)'} fontFamily="ui-monospace, monospace">{z.n}</text>
+              <text x={x} y="106" textAnchor="middle" fontSize="7.5" fontWeight="700"
+                fill={on ? ACCENT : IRON} fontFamily="ui-monospace, monospace"
+                style={{ transition: 'fill .5s ease' }}>{z.yil}</text>
+            </g>
+          );
+        })}
+
+        {/* Zaman ekseni: zincirin tamamı Atilla sahneye çıkmadan bitiyor */}
+        <line x1="24" y1="130" x2="336" y2="130" stroke="rgba(255,255,255,0.14)" />
+        <text x="24" y="144" fontSize="7" fontWeight="700" fill={IRON} fontFamily="system-ui, sans-serif">~370</text>
+        <text x="238" y="144" fontSize="7" fontWeight="700" fill={BONE} fontFamily="system-ui, sans-serif">~406 Atilla doğuyor</text>
+        <circle cx="232" cy="130" r="3" fill={BONE} />
+        <text x="336" y="144" fontSize="7" fontWeight="700" fill={IRON} textAnchor="end" fontFamily="system-ui, sans-serif">434 kağan</text>
+        <circle cx="330" cy="130" r="3" fill={IRON} />
+      </svg>
+
+      {/* Modülün varlık sebebi olan cümle dipnottan ÇIKARILDI: zincirin tamamının
+          Atilla doğmadan başladığı, bu widget'ın söylediği asıl şey. */}
+      <p className="mb-3 rounded-xl border p-3 text-[0.86rem] font-semibold leading-relaxed"
+        style={{ borderColor: `${BONE}44`, background: `color-mix(in srgb, ${BONE} 6%, transparent)`, color: BONE }}>
+        {GOC.onemli}
+      </p>
+
       <div className="space-y-2">
         {GOC.zincir.map((z, i) => {
           const on = step > i;

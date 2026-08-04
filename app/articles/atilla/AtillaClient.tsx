@@ -169,7 +169,14 @@ export default function AtillaClient() {
             <KavimlerGocu />
           </div>
 
-          <p className="leading-relaxed text-slate-300">{GOC.punch}</p>
+          {/* GOC.punch buradan KALDIRILDI: zinciri tamamlayan okur o cümleyi
+              widget'ın kendi kapanışında zaten alıyor; hemen altında tekrar
+              basılınca kazanılmış cümle bedava tekrara dönüşüyordu. */}
+          <p className="leading-relaxed text-slate-300">
+            Atilla 434’te bu dünyanın içine doğdu ve onu devraldı. Sonraki yirmi yıl,
+            bir adamın kurduğu düzenin değil, hazır bulduğu basıncı nasıl kullandığının
+            hikâyesidir.
+          </p>
         </ArticleSection>
       </div>
 

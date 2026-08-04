@@ -68,13 +68,13 @@ export const ONCEKILER = [
     yil: '~400-410',
     ad: 'Uldin',
     ne: 'Roma kaynaklarında Tuna boyunda adı geçen ilk Hun önderi. Artık Roma’nın muhatabı olan bir güç var.',
-    not: '',
+    not: 'Bir önderin adının Roma kayıtlarına geçmesi kendi başına bilgidir: kayda geçen şey muhatap alınandır. Uldin’den önce Hunlar Roma metinlerinde isimsiz bir kalabalık.',
   },
   {
     yil: '~412-422',
     ad: 'Karaton',
     ne: 'Geçiş kuşağı. Hun gücü Tuna’nın kuzeyinde kalıcılaşıyor.',
-    not: '',
+    not: 'Hakkında elimizde neredeyse hiçbir şey yok — adı ve dönemi dışında. Bu boşluk bize kaynakların doğasını hatırlatıyor: Hunlar hakkında bildiklerimiz, Roma’nın onlarla ne zaman ilgilendiğine bağlı.',
   },
   {
     yil: '~422-434',
@@ -86,7 +86,7 @@ export const ONCEKILER = [
     yil: '?-öl. ~434 öncesi',
     ad: 'Muncuk (Mundzuk) — Atilla’nın babası',
     ne: 'Rua’nın kardeşi. Atilla ve Bleda’nın babası.',
-    not: '',
+    not: 'Kağan olmadan öldü ve kaynaklarda neredeyse yalnızca oğullarının babası olarak geçiyor. Yani Atilla’nın kutu babasından değil, amcası Rua’dan devraldığı hattan geliyor — bozkırda veraset babadan oğula bir otomatik akış değil.',
   },
 ] as const;
 
