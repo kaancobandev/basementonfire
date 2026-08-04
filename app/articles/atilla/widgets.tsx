@@ -386,15 +386,37 @@ export function IsimAgaci() {
 
 /* ══════════════ Perde 4 · Mars’ın Kılıcı — hero ifşası ══════════════ */
 
+/** Viyana sabresini tarihlendiren üç ölçüt. Sıra serbest; üçü de açılınca hüküm gelir. */
+const ADIMLAR = [
+  {
+    ad: 'Ağız sayısı',
+    bulgu: 'Tek ağızlı.',
+    metin: '5. yüzyıl bozkır kılıcı çift ağızlıydı — iki yandan da keser, doğrudan saplamaya uygundur. Viyana’daki nesne tek ağızlı: sırtı kalın, yalnız bir yüzü keskin.',
+  },
+  {
+    ad: 'Eğrilik',
+    bulgu: 'Kavisli.',
+    metin: 'Sabre biçimi, yani kavisli tek ağızlı kılıç, bu coğrafyaya Atilla’dan çok sonra geldi. 5. yüzyılda burada kimsenin elinde bu eğrilikte bir kılıç yoktu.',
+  },
+  {
+    ad: 'Kabza ve teknik',
+    bulgu: '10. yüzyıl işçiliği.',
+    metin: 'Kabza topuzu, süsleme ve dövme tekniği 9.-10. yüzyıla işaret ediyor. Nesnenin kendisi gerçek ve dönemin gerçek bir eseri — sadece o dönem Atilla’nın dönemi değil.',
+  },
+] as const;
+
 export function KilicIfsa() {
-  const [acildi, setAcildi] = useState(false);
+  const [adim, setAdim] = useState(0);     // 0 = hiçbiri açık değil
+  const [acilan, setAcilan] = useState(0); // kaç ölçüt açıldı (geri dönüşte azalmaz)
+
+  useEffect(() => { if (adim > acilan) setAcilan(adim); }, [adim, acilan]);
 
   return (
     <WidgetFrame
       hero
       kicker="PERDE 4 · SAYFANIN BAŞINDAKİ OBJE"
       title="Mars’ın Kılıcı"
-      hint="Bu sayfayı açtığında dönen kılıcı gördün. Şimdi ne olduğunu öğreniyorsun."
+      hint="Bu sayfayı açtığında dönen kılıcı gördün. Viyana’da da bu adla sergilenen bir kılıç var — üç ölçütü aç ve kendin karar ver."
     >
       <p className="text-[0.92rem] leading-relaxed text-slate-300">{KILIC.hikaye}</p>
 
@@ -403,13 +425,75 @@ export function KilicIfsa() {
         <p className="text-[0.88rem] leading-relaxed text-slate-200">{KILIC.anlam}</p>
       </div>
 
-      {!acildi ? (
-        <div className="mt-4">
-          <ActionButton onClick={() => setAcildi(true)} full tone="ghost">
-            Peki bugün Viyana’da sergilenen kılıç?
-          </ActionButton>
+      {/* ── NESNEYİ TARİHLENDİRME ──
+          Eskiden tek bir "Peki Viyana'daki kılıç?" düğmesi vardı ve düğmenin
+          kendisi cevabı ele veriyordu; okur tıklamadan önce hükmü biliyordu.
+          Şimdi okur üç ölçütü tek tek açıyor ve hükmü KENDİ kuruyor —
+          SayiDedektoru'nun (Perde 7) nesne versiyonu. */}
+      <div className="mt-5">
+        <div className="mb-2 text-[0.62rem] font-bold tracking-[0.2em]" style={{ color: IRON }}>
+          İKİ KILIÇ, AYNI ÖLÇEKTE
         </div>
-      ) : (
+        <svg viewBox="0 0 360 176" className="w-full rounded-xl border border-white/10 bg-black/25" role="img"
+          aria-label="Üstte 5. yüzyıl bozkır kılıcı: düz ve çift ağızlı. Altta Viyana'daki sabre: kavisli, tek ağızlı, süslü kabza.">
+          <text x="12" y="20" fontSize="8" fontWeight="800" letterSpacing="1" fill={BONE} fontFamily="system-ui, sans-serif">5. YÜZYIL · BOZKIR</text>
+          {/* düz, çift ağızlı */}
+          <g style={{ opacity: adim >= 1 ? 1 : 0.75, transition: 'opacity .35s ease' }}>
+            <path d="M60 44 L300 44 L316 52 L300 60 L60 60 Z" fill="none"
+              stroke={adim === 1 ? ACCENT : BONE} strokeWidth={adim === 1 ? 2.4 : 1.4}
+              style={{ transition: 'stroke .35s ease, stroke-width .35s ease' }} />
+            <line x1="60" y1="52" x2="300" y2="52" stroke={BONE} strokeWidth="0.6" strokeDasharray="2 3" opacity="0.5" />
+            <rect x="44" y="36" width="8" height="32" rx="2" fill="none" stroke={adim === 3 ? ACCENT : BONE} strokeWidth={adim === 3 ? 2.4 : 1.4}
+              style={{ transition: 'stroke .35s ease, stroke-width .35s ease' }} />
+            <rect x="16" y="48" width="28" height="8" rx="3" fill="none" stroke={adim === 3 ? ACCENT : BONE} strokeWidth={adim === 3 ? 2.4 : 1.4}
+              style={{ transition: 'stroke .35s ease, stroke-width .35s ease' }} />
+          </g>
+
+          <text x="12" y="112" fontSize="8" fontWeight="800" letterSpacing="1" fill={GOLD} fontFamily="system-ui, sans-serif">VİYANA’DAKİ SABRE</text>
+          {/* kavisli, tek ağızlı, süslü kabza */}
+          <g style={{ opacity: adim >= 1 ? 1 : 0.75, transition: 'opacity .35s ease' }}>
+            <path d="M60 132 Q 190 118 316 142 Q 306 152 300 150 Q 180 132 60 146 Z" fill="none"
+              stroke={adim === 1 || adim === 2 ? ACCENT : GOLD} strokeWidth={adim === 1 || adim === 2 ? 2.4 : 1.4}
+              style={{ transition: 'stroke .35s ease, stroke-width .35s ease' }} />
+            <rect x="44" y="126" width="8" height="26" rx="2" fill="none" stroke={adim === 3 ? ACCENT : GOLD} strokeWidth={adim === 3 ? 2.4 : 1.4}
+              style={{ transition: 'stroke .35s ease, stroke-width .35s ease' }} />
+            <circle cx="24" cy="139" r="9" fill="none" stroke={adim === 3 ? ACCENT : GOLD} strokeWidth={adim === 3 ? 2.4 : 1.4}
+              style={{ transition: 'stroke .35s ease, stroke-width .35s ease' }} />
+            <circle cx="24" cy="139" r="4" fill="none" stroke={adim === 3 ? ACCENT : GOLD} strokeWidth="1" opacity="0.7" />
+          </g>
+          {/* eğrilik referans çizgisi — 2. adımda beliriyor */}
+          <line x1="60" y1="132" x2="316" y2="132" stroke={ACCENT} strokeWidth="0.8" strokeDasharray="4 4"
+            style={{ opacity: adim === 2 ? 0.9 : 0, transition: 'opacity .35s ease' }} />
+        </svg>
+      </div>
+
+      <div className="mt-3 grid grid-cols-3 gap-1.5">
+        {ADIMLAR.map((a, i) => (
+          <button
+            key={a.ad}
+            onClick={() => setAdim(i + 1)}
+            aria-pressed={adim === i + 1}
+            className="min-h-[44px] rounded-lg border px-2 py-2 text-[0.68rem] font-bold transition"
+            style={{
+              borderColor: adim === i + 1 ? ACCENT : acilan > i ? `${ACCENT}55` : 'rgba(255,255,255,0.12)',
+              background: acilan > i ? `color-mix(in srgb, ${ACCENT} ${adim === i + 1 ? 18 : 7}%, transparent)` : 'rgba(255,255,255,0.02)',
+              color: adim === i + 1 ? '#fff' : acilan > i ? '#d6d3d1' : '#a8a29e',
+            }}
+          >
+            {a.ad}
+          </button>
+        ))}
+      </div>
+
+      {adim > 0 && (
+        <p className="mt-3 rounded-xl border border-white/10 bg-black/25 p-3 text-[0.84rem] leading-relaxed text-slate-300"
+          style={{ animation: 'atilla-fade 0.35s ease-out' }}>
+          <span className="font-bold" style={{ color: ACCENT }}>{ADIMLAR[adim - 1].bulgu}</span>{' '}
+          {ADIMLAR[adim - 1].metin}
+        </p>
+      )}
+
+      {acilan >= 3 && (
         <div className="mt-4 space-y-3" style={{ animation: 'atilla-fade 0.5s ease-out' }}>
           <div className="rounded-xl border p-4" style={{ borderColor: `${IRON}55`, background: 'rgba(255,255,255,0.03)' }}>
             <div className="mb-1 text-sm font-bold" style={{ color: BONE }}>{KILIC.viyana.baslik}</div>
