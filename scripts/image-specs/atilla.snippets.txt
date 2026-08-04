@@ -93,3 +93,11 @@
   caption="TODO — anlatıya bağla"
   credit="ANS · CC0"
 />
+
+<ArticleImage
+  src="/articles/atilla/leo-atilla-muzakere.webp"
+  ratio="1300 / 745"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Francesco Solimena · kamu malı"
+/>

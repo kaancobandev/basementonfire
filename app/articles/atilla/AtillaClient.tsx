@@ -288,7 +288,7 @@ export default function AtillaClient() {
             src="/articles/atilla/solidus-theodosius.webp"
             ratio="1600 / 1600"
             alt="Aşınmış bir altın sikke, ön yüzünde cepheden bakan miğferli ve zırhlı bir imparator büstü; çevresinde daire hâlinde Latince kabartma yazı."
-            caption="II. Theodosius solidusu — haracın ödendiği paranın kendisi. Bir Roma librası 72 solidus ediyordu; yukarıdaki sayaçtaki 2.100 libre, bu sikkeden 151.200 tane demek."
+            caption="II. Theodosius solidusu — haracın ödendiği paranın kendisi. Doğu Roma’nın Atilla’ya bağladığı yıllık ödeme 443’ten sonra, yaygın rakamla 2.100 Roma librası altına çıktı; bir libra 72 solidus ettiğine göre bu, her yıl bu sikkeden 151.200 tane demek. Ödemenin oraya nasıl geldiğini aşağıdaki sayaç basamak basamak gösteriyor."
             credit="CC0"
           />
 
@@ -301,7 +301,19 @@ export default function AtillaClient() {
             Cevabı 447’de, surların önünde duruyor.
           </p>
 
-          <MythNote title="Depremin günü bile tartışmalı">
+          {/* Deprem ÖNCE anlatılır, sonra kaynak tartışması gelir. Tersi olduğunda
+              okur bir olayın varlığını, o olayın tarihinin tartışmalı olduğunu
+              söyleyen uyarı kutusundan öğreniyordu. */}
+          <p className="mt-4 leading-relaxed text-slate-300">
+            {SURLAR.deprem.yil}’de şehri bir deprem vuruyor. Surun uzun bölümleri ve{' '}
+            {tr(SURLAR.deprem.kuleler)} kule çöküyor — Konstantinopolis, tarihinin en savunmasız
+            anına, Hun ordusunun Trakya’da olduğu yılda giriyor. Sonra duvar{' '}
+            {tr(SURLAR.onarim.gun)} günde yeniden örülüyor; onarımda hipodromun birbirine düşman
+            iki fraksiyonu birlikte omuz veriyor. Atilla surların önüne geldiğinde karşısında
+            yıkıntı değil, yeni bir duvar buluyor.
+          </p>
+
+          <MythNote title="Peki deprem tam olarak ne zaman oldu?">
             {SURLAR.deprem.tarihTartismasi}
           </MythNote>
 
@@ -411,7 +423,7 @@ export default function AtillaClient() {
               accent={GARNET}
               event={`${ITALYA.yil} · Mincio ırmağı`}
               question="Atilla İtalya’dan neden döndü?"
-              bottom="Dördü de aynı olayı anlatıyor ve dördü de farklı bir şeye bakıyor. Birini seçip ötekileri silmek, elimizdeki kaynaklardan fazlasını bildiğimizi iddia etmek olurdu."
+              bottom="Dördü de aynı olayı anlatıyor ama dördü de aynı türden değil: üçü kayıt ya da hesap, dördüncüsü bin yıl sonra bir tarafın kendi duvarına yazdığı cevap. Birini seçip ötekileri silmek, elimizdeki kaynaklardan fazlasını bildiğimizi iddia etmek olurdu."
               sources={italyaSources}
             />
           </div>
@@ -420,8 +432,19 @@ export default function AtillaClient() {
             src="/articles/atilla/raphael-mincio.webp"
             ratio="1600 / 1201"
             alt="Kemerli bir duvar freski: solda beyaz at üstünde papa ve kardinaller, sağda ürken atlı savaşçılar ve mızraklar, gökyüzünde kılıç taşıyan iki havari uçuyor, arkada yanan bir şehir."
-            caption="Raffaello, Vatikan, 1514. Gökte Petrus ve Pavlus kılıçla beliriyor, Atilla’nın atlıları geri kaçıyor. Fresk olaydan ~1060 yıl sonra yapıldı: bir kayıt değil, bir yorumun duvara çivilenmesi — ve bugün çoğu insanın kafasındaki sahne bu."
+            caption="Raffaello, Vatikan, 1514. Gökte Petrus ve Pavlus kılıçla beliriyor, Atilla’nın atlıları geri kaçıyor. Fresk olaydan ~1060 yıl sonra, papalığın kendi sarayının duvarına yapıldı: bir kayıt değil, Batı’nın kendi zaferini resmetmesi. ⚠ Bu, Atilla’nın BATIDAKİ portresidir. Türk hafızasında bu sahnenin karşılığı yoktur — orada aynı adam gökten inen bir cezanın önünde ürken figür değil, bozkırdan gelen bir kağandır."
             credit="Raffaello · kamu malı"
+          />
+
+          {/* Raffaello'nun KARŞI AĞIRLIĞI. Tek başına duran fresk okura yalnız bir
+              yorumu gösteriyordu; aynı olayın mucizesiz anlatımı yanına gelince
+              kararı okur veriyor. Makalenin "dört gelenek" tezinin görsel karşılığı. */}
+          <ArticleImage
+            src="/articles/atilla/leo-atilla-muzakere.webp"
+            ratio="1300 / 745"
+            alt="Yağlıboya tablo: solda zırhlı ve başında taçla duran Atilla elini uzatmış, arkasında çadırı ve askerleri; sağda papalık kıyafetiyle Leo ayakta konuşuyor, çevresinde kardinaller ve diz çökmüş figürler. Gökyüzü boş."
+            caption="Aynı karşılaşma, mucizesiz anlatımı. Gökte kimse yok, Atilla ürkmüyor: solda zırhlı bir hükümdar, sağda ondan bir şey isteyen bir papa. İki tasvir yan yana durunca soru şu hâle geliyor — 451’de Mincio kıyısında bir ordu ilahi bir müdahaleyle mi durdu, yoksa iki taraf mı pazarlık etti? ⚠ Bu da bir kayıt değil: 18. yüzyıl, olaydan ~1300 yıl sonra ve yine bir Avrupalı ressamın elinden. Kanıt olarak değil, aynı olayın başka türlü de anlatılabildiğinin göstergesi olarak duruyor."
+            credit="Francesco Solimena, 18. yy · kamu malı"
           />
         </ArticleSection>
       </div>
@@ -564,9 +587,15 @@ export default function AtillaClient() {
 
       <HorizontalTimeline heading="MÖ 209’dan 476’ya" items={timeline} />
 
-      <ArticleQuiz questions={quizQs} />
-
-      <ArticleBibliography items={refs} accent={ACCENT} />
+      {/* ⚠ `relative z-10` ŞART: ArticleShell'in .art-ambient katmanı
+          position:fixed + z-index:0 ve TAMAMEN OPAK. Sarmalayıcı olmadan
+          Kaynakça ve altındaki sosyal ayak (İlgili Konular kartları) o katmanın
+          ALTINDA boyanıyor — DOM'da var, rengi doğru, sadece görünmüyor.
+          Fatih/kanuni/sezar hep sarmalıyor; burada unutulmuştu. */}
+      <div className="relative z-10">
+        <ArticleQuiz questions={quizQs} />
+        <ArticleBibliography items={refs} accent={ACCENT} />
+      </div>
 
       <ArticleFooter tagline="Bozkırdan geldi, öldü, geriye efsanesi kaldı." />
     </ArticleShell>

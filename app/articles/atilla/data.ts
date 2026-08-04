@@ -298,7 +298,7 @@ export const SURLAR = {
     yil: 447,
     kuleler: 57,
     tarihTartismasi:
-      'Depremin günü bile kesin değil: 26 Ocak, 6 Kasım, 8 Kasım ve 8 Aralık tarihlerinin hepsi öne sürülmüştür. Yıkımın büyüklüğü konusunda ise ayrılık yok — 57 kule ve surun uzun bölümleri çöktü.',
+      'Kaynaklar günde anlaşamıyor: 26 Ocak, 6 Kasım, 8 Kasım ve 8 Aralık tarihlerinin hepsi öne sürülmüştür. Yıkımın büyüklüğünde ise ayrılık yok — 57 kule ve surun uzun bölümleri çöktü.',
   },
   onarim: {
     gun: 60,
@@ -440,10 +440,10 @@ export const ITALYA_SOURCES = [
   },
   {
     name: 'Raffaello',
-    role: '1514 — olaydan ~1060 yıl sonra',
+    role: '1514 — Batı’nın sonradan verdiği cevap',
     color: 'gold',
     text:
-      'Vatikan’daki fresk sahneyi kesin bir cevaba bağlar: gökte Aziz Petrus ve Pavlus kılıçla belirir, Atilla ürker. Bu bir tarih kaydı değil, bir tarih YORUMUNUN duvara çivilenmesidir — ve bugün çoğu insanın kafasındaki sahne budur.',
+      'Vatikan’daki fresk sahneyi kesin bir cevaba bağlar: gökte Aziz Petrus ve Pavlus kılıçla belirir, Atilla ürker. Ama bu bir kaynak değil, bir taraftır: olaydan ~1060 yıl sonra, papalığın kendi zaferini anlatmak için kendi sarayının duvarına yapıldı. Batı’da “Atilla” denince akla gelen görüntü budur; Türk hafızasında bu sahne hiç yoktur. Nitekim “Tanrı’nın Kırbacı” adı da (Perde 3) ona çağdaşları tarafından değil, sonraki yüzyılların Hristiyan yorumu tarafından takıldı. Yani bu fresk Atilla hakkında değil, ona bakan hakkında bilgi verir.',
   },
 ] as const;
 
@@ -566,14 +566,24 @@ export const EFSANE = {
     },
   ],
   // Aynı sahnenin dört gelenekte nasıl değiştiğini gösteren karşılaştırma.
+  // ⚠ BU LİSTE YUKARIDAKİ SEKMELERLE AYNI DÖRTLÜ DEĞİL — ve olmamalı.
+  // Sekmeler dört GELENEĞİ gösteriyor (Roma, İskandinav, Alman, Bulgar/Macar);
+  // bu liste ise ölüm sahnesini anlatan dört METNİ. İkisi kesişiyor ama örtüşmüyor:
+  // Priskos/Jordanes ve Marcellinus çağdaş Roma kaydı, gelenek değil; Bulgar ve
+  // Macar kayıtları ise ölüm hakkında hiçbir şey söylemiyor. Okur iki dörtlüyü
+  // aynı sanıp kopukluk hissediyordu → ayrım artık `tur` alanıyla EKRANDA yazıyor.
+  // `gelenek` = sekme indeksi (kayıtlarda null). DÖRT satırın hepsinde bulunmalı,
+  // yoksa `as const` union üretir ve erişim derlenmez.
   ayniSahne: {
-    baslik: 'Aynı ölüm, dört anlatı',
+    baslik: 'Ölüm sahnesi: kayıt mı, destan mı?',
     satirlar: [
-      { kim: 'Priskos / Jordanes', ne: 'Kanama. Yara yok. Kaza.' },
-      { kim: 'Marcellinus Comes', ne: 'Bir kadının eli. Cinayet.' },
-      { kim: 'Şiirsel Edda', ne: 'Guðrún intikam alır. Hak edilmiş son.' },
-      { kim: 'Nibelungenlied', ne: 'Etzel felaketin sorumlusu değil; ardında yas var.' },
+      { kim: 'Priskos / Jordanes', ne: 'Kanama. Yara yok. Kaza.', tur: 'kayıt', gelenek: null as number | null },
+      { kim: 'Marcellinus Comes', ne: 'Bir kadının eli. Cinayet.', tur: 'kayıt', gelenek: null as number | null },
+      { kim: 'Şiirsel Edda', ne: 'Guðrún intikam alır. Hak edilmiş son.', tur: 'destan', gelenek: 0 as number | null },
+      { kim: 'Nibelungenlied', ne: 'Etzel felaketin sorumlusu değil; ardında yas var.', tur: 'destan', gelenek: 1 as number | null },
     ],
+    bosluk:
+      'Bulgar Nominaliası ve Macar kroniği bu listede yok — çünkü ikisi de Atilla’nın NASIL öldüğüyle değil, KİMİN atası olduğuyla ilgilenir. Bir geleneğin sustuğu yer de veridir.',
   },
   punch:
     'Dikkat: bu dört gelenek onun hakkında anlaşamıyor ama biri bile onu unutmuyor. Bir hükümdarın gerçek mirası bazen bıraktığı devlet değil, adını bırakmadığı yer olur.',

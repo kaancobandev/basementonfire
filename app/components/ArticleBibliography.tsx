@@ -18,8 +18,21 @@ export type BibItem = {
  */
 export default function ArticleBibliography({ items, accent = 'var(--color-text-muted)' }: { items: BibItem[]; accent?: string }) {
   return (
-    <>
-    <section className="art-bib" style={{ ['--bib-accent']: accent } as CSSProperties} aria-label="Kaynakça">
+    // ⚠ BEKÇİ — bu sarmalayıcı kaldırılmasın. ArticleShell, arka planında
+    // `position:fixed; z-index:0` ve TAMAMEN OPAK bir `.art-ambient` katmanı
+    // taşıyor. Şablonun kendi bölümleri `relative z-10` içinde olduğu için onun
+    // üstünde kalıyor; ama bu bileşen çağrı yerinde sarmalanmayı UNUTULURSA
+    // opak katmanın altında boyanıyordu — DOM'da var, rengi doğru, sadece
+    // görünmüyor. tsc geçer, build geçer, sayfa 200 döner: sessiz kayıp.
+    // İki makalede yaşandı (atilla, periyodik-tablo). Artık bileşen kendi
+    // istifleme yerini kendisi garantiliyor.
+    //
+    // `--bib-accent` de buraya taşındı: ArticleSocial artık onu miras alıyor,
+    // böylece İlgili Konular kartları site indigosu yerine makalenin kendi
+    // vurgu rengini kullanabiliyor (bkz. RelatedArticles).
+    <div className="art-bib-wrap" style={{ ['--bib-accent']: accent } as CSSProperties}>
+    <style>{`.art-bib-wrap { position: relative; z-index: 1; }`}</style>
+    <section className="art-bib" aria-label="Kaynakça">
       <h2 className="art-bib-h">📚 Kaynakça</h2>
       <ol className="art-bib-list">
         {items.map((it, i) => (
@@ -54,6 +67,6 @@ export default function ArticleBibliography({ items, accent = 'var(--color-text-
     {/* Ortak makale sosyal ayağı: İlgili Konular + Rastgele + Kaydet + Tartışma.
         Her makale Kaynakça kullandığından, buradan tek seferde tüm makalelere eklenir. */}
     <ArticleSocial />
-    </>
+    </div>
   );
 }

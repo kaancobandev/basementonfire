@@ -281,9 +281,13 @@ export default function PeriyodikTabloClient() {
 
         <HorizontalTimeline heading="Yüz elli yılda ne oldu?" items={timeline} />
 
-        <ArticleQuiz questions={quizQs} />
-
-        <ArticleBibliography items={refs} accent={ACCENT} />
+        {/* ⚠ `relative z-10` ŞART — bkz. ArticleBibliography'deki .art-bib-wrap notu.
+            Atilla'da aynı hata canlıda yakalandı: sarmalayıcısız Kaynakça,
+            ArticleShell'in opak .art-ambient katmanının altında kalıyor. */}
+        <div className="relative z-10">
+          <ArticleQuiz questions={quizQs} />
+          <ArticleBibliography items={refs} accent={ACCENT} />
+        </div>
 
         <ArticleFooter tagline="Tablo bir dolap değil, çalışan ve tökezleyen bir tahmin makinesi. Ve hâlâ yazılıyor. ⚗️" />
       </ArticleShell>

@@ -717,14 +717,48 @@ export function EfsaneKarsilastirici() {
         <div className="mb-2 text-[0.62rem] font-bold tracking-[0.2em]" style={{ color: IRON }}>
           {buyuk(EFSANE.ayniSahne.baslik)}
         </div>
+        {/* İki bant: ÇAĞDAŞ KAYIT ve DESTAN. Destan satırları yukarıdaki sekmeye
+            bağlı — tıklanınca o geleneğe geçiyor. Kayıt satırları buton DEĞİL,
+            çünkü sekmelerde karşılıkları yok; hover vaadi de onlardan kaldırıldı. */}
         <div className="space-y-1.5">
-          {EFSANE.ayniSahne.satirlar.map((s) => (
-            <div key={s.kim} className="flex items-baseline gap-3 rounded-lg px-2 py-2 hover:bg-white/5">
-              <span className="w-[8.6rem] shrink-0 text-[0.7rem] font-semibold" style={{ color: IRON }}>{s.kim}</span>
-              <span className="min-w-0 flex-1 text-[0.84rem] leading-snug text-slate-300">{s.ne}</span>
-            </div>
-          ))}
+          {EFSANE.ayniSahne.satirlar.map((s) => {
+            const destan = s.gelenek !== null;
+            const etiket = (
+              <span
+                className="w-[5.4rem] shrink-0 font-mono text-[0.56rem] font-bold tracking-[0.12em]"
+                style={{ color: destan ? ACCENT : IRON }}
+              >
+                {destan ? 'DESTAN' : 'ÇAĞDAŞ KAYIT'}
+              </span>
+            );
+            const govde = (
+              <>
+                {etiket}
+                <span className="w-[8.6rem] shrink-0 text-[0.7rem] font-semibold" style={{ color: destan ? BONE : IRON }}>{s.kim}</span>
+                <span className="min-w-0 flex-1 text-[0.84rem] leading-snug text-slate-300">{s.ne}</span>
+              </>
+            );
+            return destan ? (
+              <button
+                key={s.kim}
+                type="button"
+                onClick={() => setSel(s.gelenek as number)}
+                aria-pressed={sel === s.gelenek}
+                className="flex w-full items-baseline gap-3 rounded-lg px-2 py-2 text-left transition hover:bg-white/5"
+                style={sel === s.gelenek ? { background: `${ACCENT}14` } : undefined}
+              >
+                {govde}
+              </button>
+            ) : (
+              <div key={s.kim} className="flex items-baseline gap-3 rounded-lg px-2 py-2">
+                {govde}
+              </div>
+            );
+          })}
         </div>
+        <p className="mt-3 border-l-2 pl-3 text-xs leading-relaxed text-slate-500" style={{ borderColor: `${IRON}66` }}>
+          {EFSANE.ayniSahne.bosluk}
+        </p>
       </div>
     </WidgetFrame>
   );
