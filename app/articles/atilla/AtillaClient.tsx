@@ -10,6 +10,7 @@ import ArticleImage from '@/app/components/article/ArticleImage';
 import { ACCENT, BG, BONE, GARNET, GOLD, IRON, InView, MythNote, SourceNote, Stat, WidgetSkeleton, buyuk, tokenHex, tr } from './ui';
 import { ReadingProgress, PerdeNav } from './chrome';
 import {
+  SofraSahnesi,
   BozkirSeridi, KavimlerGocu, KaganlikSemasi, BarbarPanosu, IsimAgaci, KilicIfsa,
   HaracSayaci, SurKesiti, SayiDedektoru, UcTabut, EfsaneKarsilastirici,
 } from './widgets';
@@ -100,28 +101,21 @@ export default function AtillaClient() {
             her şeyi yazıyor, çünkü işi bu.
           </p>
 
-          <ul className="mt-5 space-y-2">
-            {OTAG.scene.map((s, i) => (
-              <li key={i} className="flex gap-3 leading-relaxed text-slate-300">
-                <span className="mt-1 font-mono text-xs" style={{ color: ACCENT }}>{String(i + 1).padStart(2, '0')}</span>
-                <span>{s}</span>
-              </li>
-            ))}
-          </ul>
-
-          <p className="mt-5 leading-relaxed text-slate-300">{OTAG.dress}</p>
-
-          <div className="my-7 grid grid-cols-3 gap-2.5">
-            <Stat value={tr(NUMBERS.haracZirve)} label="libre altın · yıllık haraç" color={GOLD} />
-            <Stat value="1" label="tahta kadeh" color={ACCENT} />
-            <Stat value="1" label="görgü tanığı" color={IRON} />
+          {/* Sahne artık düz liste değil, kurulan bir sofra. Okurun dokunduğu ilk
+              şey de Perde 1'den buraya, hero'nun hemen ardına çekildi. */}
+          <div className="my-7">
+            <SofraSahnesi />
           </div>
 
-          <p className="mt-6 text-lg font-semibold leading-relaxed text-slate-100">{OTAG.punch}</p>
-
-          <div className="mt-5 rounded-xl border p-4" style={{ borderColor: `${GARNET}44`, background: `color-mix(in srgb, ${GARNET} 8%, transparent)` }}>
-            <p className="leading-relaxed" style={{ color: BONE }}>{OTAG.thesis}</p>
-          </div>
+          {/* ÜÇLÜ STAT KALDIRILDI. Üç sebep:
+              (1) "2.100 libre altın" Perde 5'in doruk rakamı; burada bağlamsız
+                  duruyor ve HaracSayaci'nın varış noktasını beş perde önceden
+                  yakıyordu.
+              (2) ui.tsx'teki kendi kuralımızı çiğniyordu: GOLD yalnız haraç ve
+                  miras bağlamında kullanılır ki Perde 5'te altın sayfaya
+                  sızdığında okur bunu HİSSETSİN — altın Perde 0'da giriyordu.
+              (3) "1 tahta kadeh" bir ölçüm değil süstü; "sıfat değil sayı"
+                  kuralının tam tersi. */}
 
           <SourceNote>
             Priskos’un eseri <em>kayıp</em>. Elimizdeki bu sahne, başkalarının onun metninden yaptığı alıntılardan geliyor —
