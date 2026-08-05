@@ -324,24 +324,40 @@ export function HorizontalTimeline({ heading, kicker = 'ZAMAN ÇİZELGESİ', ite
     // `resize` olayı gönderiyor ve hemen yukarıdaki tameMobilePin()
     // (ignoreMobileResize: true) tam da o olayı mobilde yok sayıyor.
     // Çözüm sentetik olay değil, DOĞRUDAN refresh.
+    // ⚠ DÖNGÜ TEHLİKESİ — bu yüzden çıplak bir ResizeObserver YETMEZ:
+    // ScrollTrigger.refresh() pin-spacer'ı yeniden ölçüyor ve bu belge
+    // yüksekliğini DEĞİŞTİRİYOR → gözlemci tekrar tetikleniyor → sonsuz
+    // refresh. Bu, düzeltmeye çalıştığımız hatadan kötü olurdu. İki kilit:
+    //   1. Yükseklik eşiği: 4 px'ten küçük değişim yok sayılır.
+    //   2. refresh SONRASI yükseklik yeniden kaydedilir, yani pin-spacer'ın
+    //      kendi ürettiği değişim yeni bir tur başlatamaz.
     let bekle: ReturnType<typeof setTimeout> | null = null;
+    let sonYukseklik = document.body.scrollHeight;
+    let tazeleniyor = false;
     const tazele = () => {
+      if (tazeleniyor) return;
+      const h = document.body.scrollHeight;
+      if (Math.abs(h - sonYukseklik) < 4) return;
+      sonYukseklik = h;
       if (bekle) clearTimeout(bekle);
-      bekle = setTimeout(() => ScrollTrigger.refresh(), 160);   // yığılan değişiklikleri tek seferde topla
+      bekle = setTimeout(() => {                 // yığılan değişiklikleri tek seferde topla
+        tazeleniyor = true;
+        ScrollTrigger.refresh();
+        sonYukseklik = document.body.scrollHeight;
+        tazeleniyor = false;
+      }, 160);
     };
+    // Asıl büyüme kaynağı InView: poster minHeight ile duruyor, yerine gelen
+    // gerçek modülün boyu farklı oluyor. (ArticleImage suçlu DEĞİL — sabit
+    // aspectRatio kutusuyla yerini önceden ayırıyor, yüksekliği değişmiyor.)
     const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(tazele) : null;
     ro?.observe(document.body);
     window.addEventListener('load', tazele);
-    // Görseller yüklendikçe belge yüksekliği değişiyor; ResizeObserver bunu
-    // yakalıyor ama geç kalan tek tük yükleme için ikinci bir ağ da atılıyor.
-    const gorseller = Array.from(document.images).filter((i) => !i.complete);
-    gorseller.forEach((i) => i.addEventListener('load', tazele, { once: true }));
 
     return () => {
       if (bekle) clearTimeout(bekle);
       ro?.disconnect();
       window.removeEventListener('load', tazele);
-      gorseller.forEach((i) => i.removeEventListener('load', tazele));
     };
   }, { scope: tlRef });
 
