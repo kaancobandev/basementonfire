@@ -45,10 +45,35 @@ export default function ArticleRuntime({ js, cdns = [] }: { js: string; cdns?: s
       return () => { target.addEventListener = orig; };
     };
 
+    // Prototip için AYRI sarmalayıcı: bind(Element.prototype) dinleyiciyi elemana
+    // değil prototipe takar ve captured'a yanlış hedefi yazar. Burada `this`
+    // korunuyor, yani gerçek eleman hem kaydediliyor hem de sökülebiliyor.
+    const wrapProtoAEL = (proto: any) => {
+      const orig = proto.addEventListener;
+      proto.addEventListener = function (this: any, type: string, fn: any, opts: any) {
+        captured.push({ t: this, type, fn, opts });
+        return orig.call(this, type, fn, opts);
+      };
+      return () => { proto.addEventListener = orig; };
+    };
+
     const runInline = () => {
       if (stopped) return;
       const restoreWin = wrapAEL(window);
       const restoreDoc = wrapAEL(document);
+      // ⚠ ELEMAN DİNLEYİCİLERİ DE YAKALANMALI. Eskiden yalnız window ve document
+      // sarmalanıyordu; oysa makale scriptleri UYGULAMANIN KENDİ öğelerine de
+      // dinleyici takabiliyor. Somut vaka (tibbi):
+      //     document.querySelectorAll('a, button').forEach(el => {
+      //       el.addEventListener('mouseenter', () => ring.classList.add('big'));
+      //     });
+      // Bu, sol menüdeki her bağlantıya imleç kodunu bağlıyor. Makaleden
+      // çıkıldığında `ring` DOM'dan siliniyor (aşağıda) ama dinleyiciler kalıyor
+      // → kullanıcı başka sayfalarda menüye dokundukça ölü bir düğüme yazan
+      // kod çalışmaya devam ediyor. Prototip yaması yalnızca script'in SENKRON
+      // init'i boyunca açık; hemen sonra geri alınıyor, yani başka bileşenlerin
+      // dinleyicileri etkilenmiyor.
+      const restoreEl = wrapProtoAEL(Element.prototype);
       try {
         const s = document.createElement('script');
         s.textContent = js;
@@ -57,6 +82,7 @@ export default function ArticleRuntime({ js, cdns = [] }: { js: string; cdns?: s
       } finally {
         restoreWin();
         restoreDoc();
+        restoreEl();
       }
     };
 
