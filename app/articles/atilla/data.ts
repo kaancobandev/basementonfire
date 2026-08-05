@@ -106,6 +106,42 @@ export const GOC = {
     'Yani "Avrupa’yı Atilla altüst etti" cümlesi tarihi kırk yıl geç okuyor. Altüst oluş başlamıştı; Atilla onun içine doğdu.',
 } as const;
 
+/* ══════════════ Perde 1 · Zincirin ortasındaki halk: Gotlar ══════════════ */
+
+// NİYE BU BÖLÜM VAR: basınç zincirinin 2., 3. ve 5. halkası Gotlar. Okur onları
+// "itilen bir halk" olarak görüyor ama Roma için ne anlama geldiklerini
+// bilmiyor — ve bilmezse Hun basıncının neden bu kadar sarsıcı olduğunu da
+// anlamıyor. Asıl kanca sonda: Catalaunum'da Gotlar İKİ TARAFTA birden savaştı.
+export const GOTLAR = {
+  baslik: 'Zincirin ortasındaki halk',
+  giris:
+    'Hunlar Avrupa’ya girdiğinde önlerinde boş bir kıta yoktu. Önce bir halkı ittiler — ve o halk, Roma’nın yüzyıllardır yenemediği halktı.',
+  olaylar: [
+    {
+      yil: '378',
+      ad: 'Edirne',
+      ne: 'Tuna’yı geçen Gotlar Doğu Roma ordusunun karşısına çıkıyor. Ordu bozguna uğruyor ve İmparator Valens muharebe alanında ölüyor — cesedi hiç bulunamıyor.',
+      agirlik: 'Ammianus Marcellinus bunu Cannae’den beri yaşanan en büyük felaket sayar. Roma bir imparatorunu son kez bir muharebede böyle kaybetmişti.',
+    },
+    {
+      yil: '410',
+      ad: 'Roma yağmalanıyor',
+      ne: 'Alarik’in Vizigotları şehre giriyor ve üç gün yağmalıyor.',
+      agirlik: 'Roma’nın yabancı bir düşmanın eline geçmesi yaklaşık sekiz yüz yıldır olmamıştı. Aziz Hieronymus’un tepkisi kısa: bütün dünyayı alan şehir, kendisi alındı.',
+    },
+  ],
+  cevrim:
+    'Yani Hunların ittiği halk, Roma’yı iki kez sarsan halktı. Bu, basınç zincirinin neden bu kadar sert çarptığını açıklıyor: itilenler zaten Roma’nın baş edemediği taraftı.',
+  // Makalenin asıl kancası — Perde 7'ye köprü.
+  ikiTaraf:
+    'Ve 451’de, Catalaunum’da, Gotlar iki tarafta birden savaştı: Vizigotlar kralları I. Theodoric’in komutasında ROMA’nın yanında, Ostrogotlar ise ATİLLA’nın. Roma’yı kırk bir yıl önce yağmalayan halkın torunları, şimdi Roma’yı kurtaran ordunun içindeydi — ve karşılarında kendi akrabaları vardı. “Barbar” kelimesinin neden bir tanım değil bir kulak olduğunu gösteren en temiz örnek bu.',
+  ad: {
+    baslik: 'Bir de adları var',
+    metin:
+      'Gotların adı, onlarla hiç ilgisi olmayan bir yere de yapıştı. Rönesans İtalyanları kuzeyin ortaçağ mimarisini beğenmeyince ona “Got işi” dedi — kastettikleri kabaca “barbar işi”ydi. Üslup 1140’larda Fransa’da doğmuştu ve Gotlarla hiçbir bağı yoktu. Ama ad tuttu, hakaret unutuldu: bugün ona hâlâ Gotik diyoruz.',
+  },
+} as const;
+
 /* ══════════════ Perde 2 · Kağan — bozkırda devlet nasıl işler ══════════════ */
 
 export const KAGAN = {

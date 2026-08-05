@@ -1,13 +1,14 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 import {
   ArticleShell, ArticleHero, ArticleLede, ArticleSection,
   HorizontalTimeline, ArticleQuiz, ArticleBibliography, ArticleFooter,
 } from '@/app/components/article/ArticleBlocks';
 import SourceCompare, { type CompareSource } from '@/app/components/article/SourceCompare';
 import ArticleImage from '@/app/components/article/ArticleImage';
-import { ACCENT, BG, BONE, GARNET, GOLD, IRON, InView, MythNote, SourceNote, Stat, WidgetSkeleton, buyuk, tokenHex, tr } from './ui';
+import { ACCENT, BG, BONE, GARNET, GOLD, IRON, InView, MythNote, SourceNote, Stat, WidgetSkeleton, WordNote, buyuk, tokenHex, tr } from './ui';
 import { ReadingProgress, PerdeNav } from './chrome';
 import {
   BozkirSeridi, KavimlerGocu, KaganlikSemasi, BarbarPanosu, IsimAgaci, KilicIfsa,
@@ -17,7 +18,7 @@ import { HonoriaKarar, ItalyaAnketi, OtagKarari } from './decisions';
 import { CatalaunumPoster } from './posters';
 import { refs } from './refs';
 import {
-  OTAG, GOC, KAGAN, BARBAR, ISIM, BLEDA, BLEDA_SOURCES, NUMBERS,
+  OTAG, GOC, GOTLAR, KAGAN, BARBAR, ISIM, BLEDA, BLEDA_SOURCES, NUMBERS,
   SURLAR, HONORIA, AETIUS, CATALAUNUM, ITALYA, ITALYA_SOURCES,
   OLUM, EFSANE, SONRASI, timeline, quizQs,
 } from './data';
@@ -172,7 +173,44 @@ export default function AtillaClient() {
           {/* GOC.punch buradan KALDIRILDI: zinciri tamamlayan okur o cümleyi
               widget'ın kendi kapanışında zaten alıyor; hemen altında tekrar
               basılınca kazanılmış cümle bedava tekrara dönüşüyordu. */}
-          <p className="leading-relaxed text-slate-300">
+          {/* ── GOTLAR ──
+              Zincirin 2., 3. ve 5. halkası onlar. Okur burada onları "itilen bir
+              halk" olarak görüyor; Roma için ne anlama geldiklerini bilmezse
+              basıncın neden bu kadar sert çarptığını da anlamıyor. */}
+          <h3 className="mt-9 text-xl font-bold" style={{ color: BONE }}>{GOTLAR.baslik}</h3>
+          <p className="mt-3 leading-relaxed text-slate-300">{GOTLAR.giris}</p>
+
+          <div className="my-6 grid gap-3 sm:grid-cols-2">
+            {GOTLAR.olaylar.map((o) => (
+              <div key={o.yil} className="rounded-xl border p-4"
+                style={{ borderColor: `${GARNET}44`, background: `color-mix(in srgb, ${GARNET} 7%, transparent)` }}>
+                <div className="flex items-baseline gap-2">
+                  <span className="font-mono text-sm font-bold" style={{ color: GARNET }}>{o.yil}</span>
+                  <span className="text-sm font-bold" style={{ color: BONE }}>{o.ad}</span>
+                </div>
+                <p className="mt-2 text-[0.86rem] leading-relaxed text-slate-300">{o.ne}</p>
+                <p className="mt-2 border-l-2 pl-3 text-[0.8rem] leading-relaxed text-slate-400" style={{ borderColor: `${GARNET}66` }}>
+                  {o.agirlik}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <p className="leading-relaxed text-slate-300">{GOTLAR.cevrim}</p>
+
+          <div className="my-6 rounded-xl border p-4" style={{ borderColor: `${ACCENT}55`, background: `color-mix(in srgb, ${ACCENT} 8%, transparent)` }}>
+            <p className="leading-relaxed text-slate-200">{GOTLAR.ikiTaraf}</p>
+          </div>
+
+          <WordNote word="Gotik">
+            {GOTLAR.ad.metin} Adların nereden geldiği ve neyi ele verdiği{' '}
+            <Link href="/articles/sanat-akimlari" className="article-ilink" style={{ color: ACCENT }}>
+              sanat akımları dosyasının
+            </Link>{' '}
+            da konusu: “Barok” çarpık inci demek, “İzlenimcilik” bir eleştirmenin alayıydı.
+          </WordNote>
+
+          <p className="mt-6 leading-relaxed text-slate-300">
             Atilla 434’te bu dünyanın içine doğdu ve onu devraldı. Sonraki yirmi yıl,
             bir adamın kurduğu düzenin değil, hazır bulduğu basıncı nasıl kullandığının
             hikâyesidir.

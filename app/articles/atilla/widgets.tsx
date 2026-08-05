@@ -14,15 +14,96 @@ import { ONCEKILER, GOC, KAGAN, BARBAR, ISIM, KILIC, HARAC, SURLAR, CATALAUNUM, 
 
 /* ══════════════ Perde 1 · Bozkır zaman şeridi ══════════════ */
 
+/**
+ * Zaman ekseni ORANTILI — ve bu süs değil, widget'ın tezi.
+ *
+ * Eskiden yedi kayıt eşit yükseklikte satırlar halinde diziliyordu: MÖ 209 ile
+ * 434 arasındaki 640 yıl ile son otuz yıl ekranda AYNI yeri kaplıyordu. Yani
+ * "en az altı yüzyıllık gelenek" iddiası yalnız ipucu metninde vardı, çizimde
+ * yoktu. Şimdi eksen gerçek yıllara göre; arada 520 yıllık boşluk KIRIK EKSEN
+ * olarak işaretli ve 5. yüzyıl kümesinin sıkışması da gerçek — hızlanma orada.
+ */
+const YIL: Record<string, number> = {
+  'MÖ 209': -209, '~MS 313': 313, '~370': 370, '~400-410': 405,
+  '~412-422': 417, '~422-434': 428, '?-öl. ~434 öncesi': 431,
+};
+const KIRIK_SOL = 46, KIRIK_SAG = 104, SAG_UC = 344, Y0 = 313, Y1 = 434;
+/** Yıl → x. MÖ 209 kırığın solunda tek başına; gerisi orantılı. */
+const eksenX = (y: number) => (y < 0 ? KIRIK_SOL : KIRIK_SAG + ((y - Y0) / (Y1 - Y0)) * (SAG_UC - KIRIK_SAG));
+
 export function BozkirSeridi() {
   const [open, setOpen] = useState<number | null>(null);
+  const nokta = ONCEKILER.map((o, i) => ({ i, o, x: eksenX(YIL[o.yil] ?? 400), ust: i % 2 === 0 }));
 
   return (
     <WidgetFrame
       kicker="PERDE 1 · ONDAN ÖNCEKİLER"
       title="Atilla 434’te boş bir sayfaya oturmadı"
-      hint="Devraldığı şey bir ganimet yığını değil, en az altı yüzyıllık bir devlet geleneğiydi. Satırlara dokun."
+      hint="Eksen gerçek yıllara göre çizili: soldaki tek nokta ile sağdaki küme arasında beş yüz yıldan fazla var. Bir noktaya dokun."
     >
+      <svg viewBox="0 0 360 132" className="mb-3 w-full rounded-xl border border-white/10 bg-black/25" role="img"
+        aria-label="MÖ 209'dan 434'e uzanan orantılı zaman ekseni; MÖ 209 ile 313 arasında yaklaşık 520 yıllık bir boşluk kırık eksen olarak işaretli.">
+        <line x1="16" y1="66" x2="352" y2="66" stroke="rgba(255,255,255,0.16)" strokeWidth="1.4" />
+        {/* kırık eksen işareti — boşluk GERÇEK, sıkıştırıldığı belli edilsin */}
+        <g>
+          <path d="M62 58 L70 66 L62 74 M78 58 L86 66 L78 74" fill="none" stroke={IRON} strokeWidth="1.6" />
+          <rect x="56" y="60" width="36" height="12" fill="#0a0706" opacity="0.9" />
+          <path d="M62 58 L70 66 L62 74 M78 58 L86 66 L78 74" fill="none" stroke={IRON} strokeWidth="1.6" />
+          <text x="74" y="88" textAnchor="middle" fontSize="7" fontWeight="800" fill={IRON} fontFamily="system-ui, sans-serif">~520 YIL</text>
+        </g>
+
+        {nokta.map(({ i, o, x, ust }) => {
+          const on = open === i;
+          const ty = ust ? 40 : 100;
+          return (
+            <g key={o.ad} role="button" tabIndex={0} aria-pressed={on} aria-label={`${o.yil} — ${o.ad}`}
+              onClick={() => setOpen(on ? null : i)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(on ? null : i); } }}
+              style={{ cursor: 'pointer' }}>
+              <line x1={x} y1="66" x2={x} y2={ust ? ty + 8 : ty - 12} stroke={on ? ACCENT : 'rgba(255,255,255,0.22)'} strokeWidth="1" />
+              <circle cx={x} cy="66" r={on ? 5 : 3.4} fill={on ? ACCENT : '#0a0706'} stroke={ACCENT} strokeWidth="1.4"
+                style={{ transition: 'r .2s ease, fill .2s ease' }} />
+              <text x={x} y={ty} textAnchor="middle" fontSize="7.5" fontWeight="800"
+                fill={on ? ACCENT : IRON} fontFamily="ui-monospace, monospace"
+                style={{ transition: 'fill .2s ease' }}>{o.yil}</text>
+              <text x={x} y={ust ? ty - 10 : ty + 11} textAnchor="middle" fontSize="8" fontWeight="700"
+                fill={on ? '#fff' : '#a8a29e'} fontFamily="system-ui, sans-serif"
+                style={{ transition: 'fill .2s ease' }}>{o.ad.split(' ')[0]}</text>
+            </g>
+          );
+        })}
+      </svg>
+
+      {/* Seçilen kaydın gövdesi — eksenin altında sabit bir panel */}
+      <div className="mb-3 min-h-[92px] rounded-xl border border-white/10 bg-black/25 p-3.5">
+        {open === null ? (
+          <p className="text-[0.85rem] leading-relaxed text-slate-400">
+            Soldaki tek nokta Mete Han: Asya Hun birliğinin kurulduğu yıl. Sağdaki küme ise
+            Atilla’dan hemen önceki üç kuşak. Aradaki boşluk bir bilgi eksikliği değil —
+            geleneğin ne kadar eski olduğunun ölçüsü.
+          </p>
+        ) : (
+          <div style={{ animation: 'atilla-fade 0.3s ease-out' }}>
+            <div className="flex items-baseline gap-2">
+              <span className="font-mono text-[0.72rem] font-bold" style={{ color: ACCENT }}>{ONCEKILER[open].yil}</span>
+              <span className="text-sm font-bold" style={{ color: BONE }}>{ONCEKILER[open].ad}</span>
+            </div>
+            <p className="mt-1.5 text-[0.85rem] leading-relaxed text-slate-300">{ONCEKILER[open].ne}</p>
+            {ONCEKILER[open].not && (
+              <p className="mt-2 border-l-2 pl-3 text-xs leading-relaxed text-slate-500" style={{ borderColor: `${ACCENT}66` }}>
+                {ONCEKILER[open].not}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Liste görünümü korundu: eksen özet, liste tam metin. */}
+      <details className="group">
+        <summary className="cursor-pointer list-none rounded-lg border border-white/10 px-3 py-2 text-[0.76rem] font-bold text-slate-400 transition hover:bg-white/5">
+          Hepsini liste olarak gör
+        </summary>
+        <div className="mt-2">
       <ol className="relative space-y-1">
         {/* dikey hat */}
         <span aria-hidden className="pointer-events-none absolute bottom-4 left-[4.6rem] top-4 w-px" style={{ background: `linear-gradient(to bottom, transparent, ${ACCENT}55, transparent)` }} />
@@ -57,6 +138,8 @@ export function BozkirSeridi() {
           );
         })}
       </ol>
+        </div>
+      </details>
     </WidgetFrame>
   );
 }
