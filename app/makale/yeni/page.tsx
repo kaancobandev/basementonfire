@@ -10,6 +10,9 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+// Duzenleme-onayi gocundan ONCEKI sutun listesi; yedek yolda kullanilir.
+const TEMEL_KOLONLAR = 'id, slug, title, summary, cover_url, category, doc, sources, status, user_id';
+
 export default async function MakaleYeniPage({ searchParams }: { searchParams: Promise<{ id?: string }> }) {
   const { me } = await getMe();
   if (!me) redirect('/login');
@@ -17,12 +20,18 @@ export default async function MakaleYeniPage({ searchParams }: { searchParams: P
   const { id } = await searchParams;
   let initial: any = null;
   if (id && Number.isFinite(Number(id))) {
-    const { data } = await db
-      .from('user_articles')
-      .select('id, slug, title, summary, cover_url, category, doc, sources, status, user_id, pending_edit, pending_reject_reason')
-      .eq('id', Number(id))
-      .maybeSingle();
-    if (data && data.user_id === me.id) {
+    const oku = (kolonlar: string) =>
+      db.from('user_articles').select(kolonlar).eq('id', Number(id)).maybeSingle();
+
+    let { data, error } = await oku(TEMEL_KOLONLAR + ', pending_edit, pending_reject_reason');
+    // ⚠ DEPLOY SIRASI: duzenleme-onayi gocu henuz calismadiysa pending_*
+    // sutunlari yoktur, sorgu 42703 ile duser ve `initial` null kalirdi —
+    // yani editor DUZENLEME yerine "yeni makale" kipinde acilir, yazar da
+    // farkinda olmadan makalesinin KOPYASINI olustururdu. Sutunsuz surumle
+    // tekrar deneyip bunu engelliyoruz. Goc calistiktan sonra tetiklenmez.
+    if (error) ({ data } = await oku(TEMEL_KOLONLAR));
+
+    if (data && (data as any).user_id === me.id) {
       // pending_edit/pending_reject_reason ham hâlleriyle istemciye GITMEZ:
       // pending_edit koca `doc`u tasir, oldugu gibi gecirilirse editore inen
       // yuk iki katina cikardi. Asagida yalnizca gereken alanlar aktariliyor.
