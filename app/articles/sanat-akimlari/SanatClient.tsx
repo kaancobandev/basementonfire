@@ -101,8 +101,18 @@ export default function SanatClient() {
         <p className="mb-4 leading-relaxed text-slate-300">
           <strong className="text-rose-300">19. yüzyılda fotoğraf</strong> (1839) “benzerlik üretme” işini makineye devretti; resim ne yapacağına yeniden karar vermek zorunda kaldı — Realizm ve İzlenimcilik bu krizin çocuklarıdır. <strong className="text-rose-300">1907–1917</strong> arası, temsilin dört yüzyıllık temeli terk edildi: Kübizm, soyutlama, hazır-nesne. Sonra iki dünya savaşı ve totaliter rejimler <strong className="text-rose-300">merkezi Paris'ten New York'a</strong> taşıdı.
         </p>
-        <p className="leading-relaxed text-slate-300">
+        <p className="mb-4 leading-relaxed text-slate-300">
           1960'larda Pop yüksek/alçak ayrımını çökertti; 1968'den sonra sanat “nesne”den “fikre” kaydı (kavramsal, arazi, beden, feminist sanat). Bugün tek bir merkez yok: <strong className="text-rose-300">biyenal ağı, dekolonizasyon ve yapay zekâ</strong> Duchamp'ın sorusunu yineliyor — yazarlık kimde?
+        </p>
+        <p className="leading-relaxed text-slate-300">
+          Bir de adların kendisi var. <strong className="text-rose-300">“Gotik”</strong> bu listedeki en yanlış ad:
+          üslup 1140'larda Fransa'da, Saint-Denis'te doğdu ve <em className="not-italic text-white">Gotlarla hiçbir
+          ilgisi yok</em>. Kelimeyi Rönesans İtalyanları taktı — Vasari'nin kaleminde “Got işi”, kabaca
+          “barbar işi” demekti; kastettikleri, yedi yüzyıl önce Roma'yı yağmalayan{' '}
+          <Link href="/articles/atilla" className="article-ilink">Gotlardı</Link>. Yani bir üsluba,
+          onunla alakası olmayan bir halkın adı, üstelik hakaret olsun diye, yüzyıllar sonra verildi. Ad tuttu;
+          hakaret unutuldu. Sanat tarihi böyle adlarla dolu: “Barok” çarpık inci, “İzlenimcilik” bir
+          eleştirmenin alayı, “Fovizm” vahşi hayvanlar.
         </p>
         <Story icon="🎨" title="Fotoğraf resmi öldürmedi — özgürleştirdi">
           Fotoğraf gelince “resim bitti” dendi. Tam tersi oldu: benzerlik zorunluluğundan kurtulan resim, ışığı (İzlenimcilik), duyguyu (Ekspresyonizm), yapıyı (Kübizm) ve sonunda saf soyutu keşfetti. Bir teknoloji, bir sanatı yok etmez; ona “senin asıl işin ne?” diye sorar.

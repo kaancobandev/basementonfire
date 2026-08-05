@@ -376,8 +376,30 @@ export const CATALAUNUM = {
     { id: 6, ad: 'Ordugâh', metin: 'Atilla arabalardan kurulu ordugâhına çekiliyor. Jordanes, yenilirse ateşe atılmak üzere eyerlerden bir yığın hazırlattığını yazar.' },
     { id: 7, ad: 'Aetius bırakıyor', metin: 'Aetius takip etmiyor. Çünkü Atilla tümüyle yok olursa Vizigotları dengeleyecek güç de kalmaz. Roma’nın çıkarı, Hunların ZAYIFLAMASI ama YOK OLMAMASI.' },
   ],
+  // ⚠ 2026-08-05 DÜZELTİLDİ. Eski son cümle şuydu ve ÜÇ AYRI HATA taşıyordu:
+  // "Ve ertesi yıl AYNI ordu İtalya'ya giriyor — yenilmiş bir ordunun
+  //  yapamayacağı şey tam olarak budur."
+  //   (a) "Aynı ordu" DEĞİL. Prosper Tiro (§1364) İtalya seferini birebir şöyle
+  //       açar: "redintegratis viribus, quas in Gallia amiserat" — Galya'da
+  //       KAYBETTİĞİ kuvvetleri yeniden tamamlayarak. Marcellinus da aynı fiili
+  //       kullanıyor. Yani bir kış boyunca yeniden kurulmuş bir ordu.
+  //   (b) Atilla ROMA'YA YÜRÜMEDİ. Apeninleri hiç geçmedi; Po ovasında durdu ve
+  //       tek başına Aquileia önünde ~3 ay oyalandı.
+  //   (c) Çıkarım geçersiz: "ertesi yıl sefere çıkabildi" olsa olsa ordunun
+  //       İMHA EDİLMEDİĞİNİ kanıtlar — ki bu zaten ilk cümlede yazıyor —
+  //       yenilgi almadığını değil.
+  // İlk iki cümle KALDI çünkü çağdaş kaynakla birebir örtüşüyor (neutris
+  // cedentibus / bellum nox intempesta diremit).
   sonuc:
-    'Ne imha, ne bozgun. Taktik olarak berabere, stratejik olarak bir duraklama. Ve ertesi yıl aynı ordu İtalya’ya giriyor — yenilmiş bir ordunun yapamayacağı şey tam olarak budur.',
+    'Ne imha, ne bozgun: iki taraf da geri adım atmadı, gece muharebeyi kesti ve Atilla’nın ordugâhı hiç alınamadı. Ama Galya seferi burada bitti — Atilla Ren’in ötesine çekildi ve bir daha Galya’ya girmedi. Ertesi yıl İtalya’ya giren ordu aynı ordu değildi: bir kış boyunca yeniden kuruldu.',
+  // Sonucun kaynak temeli — "kaynaklar belirsiz bırakıyor" izlenimi YANLIŞ olurdu.
+  kaynakTemeli: {
+    baslik: 'Peki kim kazandı?',
+    metin:
+      'Bu soruda kaynaklar sanıldığı kadar sessiz değil. Jordanes’ten ÖNCE ve ondan bağımsız üç kayıt Hunların yenildiğini yazıyor: Galya Kroniği (452 — olaydan bir yıl sonra, olayın geçtiği bölgede), Prosper Tiro (~455, Roma) ve Hydatius (~468, İspanya). Buna karşılık aynı kaynaklar bunun bir imha olmadığını da söylüyor. Maenchen-Helfen’in formülü bu ikisini birden tutuyor: “dar anlamda kararsız, ama Hunlar için kaybedilmiş bir muharebe.”',
+    karsiGorus:
+      'Azınlıkta kalan bir görüş daha var: Hyun Jin Kim muharebeyi Roma zaferi saymaz. Bu tez literatürde tartışılıyor ama eleştiriliyor da (Heinrich Härke, The Classical Review, 2014). Türkçe Vikipedi sonucu “tartışmalı” yazarken büyük ölçüde bu azınlık görüşüne dayanıyor; İngilizce muadili aynı tez için “ihtiyatla yaklaşılmalı” diyor.',
+  },
   // "Sıfat değil sayı" panosu.
   sayi: {
     iddia: 165000,

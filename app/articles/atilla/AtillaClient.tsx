@@ -10,7 +10,6 @@ import ArticleImage from '@/app/components/article/ArticleImage';
 import { ACCENT, BG, BONE, GARNET, GOLD, IRON, InView, MythNote, SourceNote, Stat, WidgetSkeleton, buyuk, tokenHex, tr } from './ui';
 import { ReadingProgress, PerdeNav } from './chrome';
 import {
-  SofraSahnesi,
   BozkirSeridi, KavimlerGocu, KaganlikSemasi, BarbarPanosu, IsimAgaci, KilicIfsa,
   HaracSayaci, SurKesiti, SayiDedektoru, UcTabut, EfsaneKarsilastirici,
 } from './widgets';
@@ -101,21 +100,28 @@ export default function AtillaClient() {
             her şeyi yazıyor, çünkü işi bu.
           </p>
 
-          {/* Sahne artık düz liste değil, kurulan bir sofra. Okurun dokunduğu ilk
-              şey de Perde 1'den buraya, hero'nun hemen ardına çekildi. */}
-          <div className="my-7">
-            <SofraSahnesi />
+          <ul className="mt-5 space-y-2">
+            {OTAG.scene.map((s, i) => (
+              <li key={i} className="flex gap-3 leading-relaxed text-slate-300">
+                <span className="mt-1 font-mono text-xs" style={{ color: ACCENT }}>{String(i + 1).padStart(2, '0')}</span>
+                <span>{s}</span>
+              </li>
+            ))}
+          </ul>
+
+          <p className="mt-5 leading-relaxed text-slate-300">{OTAG.dress}</p>
+
+          <p className="mt-6 text-lg font-semibold leading-relaxed text-slate-100">{OTAG.punch}</p>
+
+          <div className="mt-5 rounded-xl border p-4" style={{ borderColor: `${GARNET}44`, background: `color-mix(in srgb, ${GARNET} 8%, transparent)` }}>
+            <p className="leading-relaxed" style={{ color: BONE }}>{OTAG.thesis}</p>
           </div>
 
-          {/* ÜÇLÜ STAT KALDIRILDI. Üç sebep:
-              (1) "2.100 libre altın" Perde 5'in doruk rakamı; burada bağlamsız
-                  duruyor ve HaracSayaci'nın varış noktasını beş perde önceden
-                  yakıyordu.
-              (2) ui.tsx'teki kendi kuralımızı çiğniyordu: GOLD yalnız haraç ve
-                  miras bağlamında kullanılır ki Perde 5'te altın sayfaya
-                  sızdığında okur bunu HİSSETSİN — altın Perde 0'da giriyordu.
-              (3) "1 tahta kadeh" bir ölçüm değil süstü; "sıfat değil sayı"
-                  kuralının tam tersi. */}
+          {/* NOT: eskiden burada üç Stat kartı vardı (2.100 libre altın · 1 tahta
+              kadeh · 1 görgü tanığı) ve widget'la birlikte kaldırıldı; geri
+              konmadı çünkü "2.100 libre" Perde 5'in doruk rakamı ve burada
+              bağlamsız durup HaracSayaci'nın varış noktasını beş perde önceden
+              yakıyordu. Geri istenirse tek satır. */}
 
           <SourceNote>
             Priskos’un eseri <em>kayıp</em>. Elimizdeki bu sahne, başkalarının onun metninden yaptığı alıntılardan geliyor —
@@ -366,9 +372,26 @@ export default function AtillaClient() {
       {/* ══════════ PERDE 7 — Catalaunum ══════════ */}
       <div id="perde-7" className="scroll-mt-16">
         <ArticleSection kicker={`PERDE 7 · ${CATALAUNUM.yil}`} title="Catalaunum">
+          {/* Aetius'un Hunlar arasında geçen gençliği yalnız savaş animasyonunun
+              EN SONUNDAKİ kutuda duruyordu — yedi fazı bitirmeyen okur hiç
+              görmüyordu. Perdenin girişine alındı: iki komutanın tanışıklığı
+              muharebenin arka planı değil, ön bilgisi. */}
           <p className="leading-relaxed text-slate-300">
             451’de Galya’da karşılaşan iki ordunun komutanları birbirine yabancı değildi.
-            Roma tarafında <strong>{AETIUS.ad}</strong> vardı — {AETIUS.unvan} ve Roma’nın Hunları içeriden tanıyan tek adamı.
+            Roma tarafında <strong>{AETIUS.ad}</strong> vardı — {AETIUS.unvan}.
+          </p>
+
+          <p className="mt-4 leading-relaxed text-slate-300">
+            {AETIUS.gecmis} Yani karşı karşıya gelen iki adam, yıllar önce <strong>aynı otağın
+            içinde</strong> bulunmuştu: biri kağanın yeğeni, öteki Roma’nın oraya gönderdiği rehin.
+            Aetius Hunca konuşabiliyor, onların savaş düzenini biliyor ve kimin kime bağlı
+            olduğunu tanıyordu. {AETIUS.ironi}
+          </p>
+
+          <p className="mt-4 leading-relaxed text-slate-400">
+            Bu, muharebenin nasıl gittiğini açıklamaya yetmez ama neden bu kadar uzun
+            sürdüğünü ve iki tarafın da birbirini neden şaşırtamadığını anlatır: karşılıklı
+            duran iki ordunun komutanları birbirinin hamlelerini önceden okuyabiliyordu.
           </p>
 
           <div className="my-7">
@@ -385,6 +408,19 @@ export default function AtillaClient() {
           <div className="my-7">
             <SayiDedektoru />
           </div>
+
+          {/* Sonucun kaynak temeli. Bu bölüm bilerek eklendi: makale önce
+              "ertesi yıl aynı ordu İtalya'ya giriyor, yenilmiş ordu bunu
+              yapamaz" diyordu ve bu cümle en erken kaynak tarafından doğrudan
+              yalanlanıyor (Prosper: Galya'da KAYBETTİĞİ kuvvetleri yeniden
+              tamamlayarak). Düzeltirken karşı görüş de susturulmadı. */}
+          <MythNote title={CATALAUNUM.kaynakTemeli.baslik}>
+            {CATALAUNUM.kaynakTemeli.metin}
+          </MythNote>
+
+          <p className="mt-4 leading-relaxed text-slate-400">
+            {CATALAUNUM.kaynakTemeli.karsiGorus}
+          </p>
 
           <SourceNote>
             Rakamın kaynağı {CATALAUNUM.sayi.kaynak}. Abartılı ölü sayıları antik ve ortaçağ kroniklerinde
