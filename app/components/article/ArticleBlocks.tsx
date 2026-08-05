@@ -312,6 +312,37 @@ export function HorizontalTimeline({ heading, kicker = 'ZAMAN ÇİZELGESİ', ite
       x: () => -amount(), ease: 'none',
       scrollTrigger: { trigger: tlRef.current!, start: 'top top', end: () => '+=' + amount(), pin: true, scrub: 0.6, invalidateOnRefresh: true },
     });
+
+    // ── ÇİZELGE ERKEN PİNLENİYORDU (mobilde makale metninin üstüne biniyordu) ──
+    // ScrollTrigger pin başlangıcını KURULUM ANINDA hesaplıyor. Çizelgenin
+    // ÜSTÜNDEKİ içerik sonradan büyüyünce (InView ile mount olan widget'lar,
+    // yüklenen görseller, fontlar) o konum bayatlıyor: tetikleyici artık
+    // aşağıda ama ScrollTrigger hâlâ eski kaydırma değerini biliyor → çizelge
+    // yazı bitmeden pinleniyor ve üst üste biniyor.
+    //
+    // ⚠ Makalelerdeki refreshScroll() bunu ÇÖZMÜYOR çünkü o sentetik bir
+    // `resize` olayı gönderiyor ve hemen yukarıdaki tameMobilePin()
+    // (ignoreMobileResize: true) tam da o olayı mobilde yok sayıyor.
+    // Çözüm sentetik olay değil, DOĞRUDAN refresh.
+    let bekle: ReturnType<typeof setTimeout> | null = null;
+    const tazele = () => {
+      if (bekle) clearTimeout(bekle);
+      bekle = setTimeout(() => ScrollTrigger.refresh(), 160);   // yığılan değişiklikleri tek seferde topla
+    };
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(tazele) : null;
+    ro?.observe(document.body);
+    window.addEventListener('load', tazele);
+    // Görseller yüklendikçe belge yüksekliği değişiyor; ResizeObserver bunu
+    // yakalıyor ama geç kalan tek tük yükleme için ikinci bir ağ da atılıyor.
+    const gorseller = Array.from(document.images).filter((i) => !i.complete);
+    gorseller.forEach((i) => i.addEventListener('load', tazele, { once: true }));
+
+    return () => {
+      if (bekle) clearTimeout(bekle);
+      ro?.disconnect();
+      window.removeEventListener('load', tazele);
+      gorseller.forEach((i) => i.removeEventListener('load', tazele));
+    };
   }, { scope: tlRef });
 
   return (

@@ -1025,34 +1025,40 @@ export function EfsaneKarsilastirici() {
         <div className="space-y-1.5">
           {EFSANE.ayniSahne.satirlar.map((s) => {
             const destan = s.gelenek !== null;
-            const etiket = (
-              <span
-                className="w-[5.4rem] shrink-0 font-mono text-[0.56rem] font-bold tracking-[0.12em]"
-                style={{ color: destan ? ACCENT : IRON }}
-              >
-                {destan ? 'DESTAN' : 'ÇAĞDAŞ KAYIT'}
-              </span>
-            );
+            // MOBİL: etiket + ad üstte, metin altta tam genişlik.
+            // Eskiden üçü de aynı satırdaydı ve sabit genişlikler (5,4rem + 8,6rem)
+            // 375 px ekranda metne ~110 px bırakıyordu.
             const govde = (
               <>
-                {etiket}
-                <span className="w-[8.6rem] shrink-0 text-[0.7rem] font-semibold" style={{ color: destan ? BONE : IRON }}>{s.kim}</span>
+                <span className="flex items-baseline gap-2 sm:w-[13.6rem] sm:shrink-0">
+                  <span
+                    className="shrink-0 rounded px-1.5 py-0.5 font-mono text-[0.54rem] font-bold tracking-[0.1em]"
+                    style={{
+                      color: destan ? ACCENT : IRON,
+                      background: `color-mix(in srgb, ${destan ? ACCENT : IRON} 12%, transparent)`,
+                    }}
+                  >
+                    {destan ? 'DESTAN' : 'ÇAĞDAŞ KAYIT'}
+                  </span>
+                  <span className="text-[0.72rem] font-semibold leading-tight" style={{ color: destan ? BONE : IRON }}>{s.kim}</span>
+                </span>
                 <span className="min-w-0 flex-1 text-[0.84rem] leading-snug text-slate-300">{s.ne}</span>
               </>
             );
+            const ortak = 'flex w-full flex-col gap-1.5 rounded-lg px-2 py-2.5 text-left sm:flex-row sm:items-baseline sm:gap-3';
             return destan ? (
               <button
                 key={s.kim}
                 type="button"
                 onClick={() => setSel(s.gelenek as number)}
                 aria-pressed={sel === s.gelenek}
-                className="flex w-full items-baseline gap-3 rounded-lg px-2 py-2 text-left transition hover:bg-white/5"
+                className={`${ortak} transition hover:bg-white/5`}
                 style={sel === s.gelenek ? { background: `${ACCENT}14` } : undefined}
               >
                 {govde}
               </button>
             ) : (
-              <div key={s.kim} className="flex items-baseline gap-3 rounded-lg px-2 py-2">
+              <div key={s.kim} className={ortak}>
                 {govde}
               </div>
             );
