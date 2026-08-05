@@ -274,10 +274,10 @@ export const faqs = [
 ];
 
 export const quizQs = [
-  { text: "Mol temelde nedir?", opts: ['Bir kütle birimi (gram gibi)', 'Bir hacim birimi (litre gibi)', 'Bir sayma birimi — 6,022 × 10²³ tane', 'Bir sıcaklık birimi'], a: 2, exp: "Mol, 'düzine' gibi bir sayma birimidir; sadece temsil ettiği sayı akıl almaz büyüktür." },
-  { text: "36 gram su (M = 18 g/mol) kaç moldür?", opts: ['0,5 mol', '2 mol', '18 mol', '36 mol'], a: 1, exp: "n = m ÷ M = 36 ÷ 18 = 2 mol. Sonra 2 × 6,022×10²³ = 1,2×10²⁴ molekül." },
-  { text: "1 mol hidrojen ile 1 mol altının tanecik sayısı için hangisi doğru?", opts: ['Altında daha çok tane var', 'Hidrojende daha çok tane var', 'İkisinde de aynı sayıda tane var (6,022×10²³), kütleleri farklı', 'Karşılaştırılamaz'], a: 2, exp: "Sayı hep aynıdır; altın atomu daha ağır olduğu için kütlesi (197 g) hidrojeninkinden (1 g) fazladır." },
-  { text: "Periyodik tablodaki 'bağıl atom kütlesi' sayısı ne işe yarar?", opts: ['Atomun boyunu verir', 'Aynı zamanda o elementin gram cinsinden molar kütlesidir', 'Elektron sayısını verir', 'Kaynama noktasıdır'], a: 1, exp: "Karbon 12 → 1 mol karbon 12 gram. Birimler tam da bunu sağlayacak şekilde tanımlanmıştır." },
-  { text: "Normal Koşullar'da 1 mol ideal gaz kaç litre yer kaplar?", opts: ['1 litre', '18 litre', '22,4 litre', 'Gaza göre değişir'], a: 2, exp: "Avogadro yasası: molekülü ne olursa olsun, N.K.'da 1 mol gaz = 22,4 L." },
-  { text: "Tepkimelerdeki mol oranı matematiğinin adı nedir?", opts: ['Termodinamik', 'Stokiyometri', 'Kinetik', 'Elektroliz'], a: 1, exp: "2H₂ + O₂ → 2H₂O denklemi 2:1:2 mol oranını verir; tarif matematiği gibi." },
+  { text: "Mol temelde nedir?", opts: [ 'Bir hacim birimi (litre gibi)', 'Bir sayma birimi — 6,022 × 10²³ tane', 'Bir sıcaklık birimi','Bir kütle birimi (gram gibi)'], a: 1, exp: "Mol, 'düzine' gibi bir sayma birimidir; sadece temsil ettiği sayı akıl almaz büyüktür." },
+  { text: "36 gram su (M = 18 g/mol) kaç moldür?", opts: [ '18 mol', '36 mol','0,5 mol', '2 mol'], a: 3, exp: "n = m ÷ M = 36 ÷ 18 = 2 mol. Sonra 2 × 6,022×10²³ = 1,2×10²⁴ molekül." },
+  { text: "1 mol hidrojen ile 1 mol altının tanecik sayısı için hangisi doğru?", opts: [ 'İkisinde de aynı sayıda tane var (6,022×10²³), kütleleri farklı', 'Karşılaştırılamaz','Altında daha çok tane var', 'Hidrojende daha çok tane var'], a: 0, exp: "Sayı hep aynıdır; altın atomu daha ağır olduğu için kütlesi (197 g) hidrojeninkinden (1 g) fazladır." },
+  { text: "Periyodik tablodaki 'bağıl atom kütlesi' sayısı ne işe yarar?", opts: [ 'Elektron sayısını verir', 'Kaynama noktasıdır','Atomun boyunu verir', 'Aynı zamanda o elementin gram cinsinden molar kütlesidir'], a: 3, exp: "Karbon 12 → 1 mol karbon 12 gram. Birimler tam da bunu sağlayacak şekilde tanımlanmıştır." },
+  { text: "Normal Koşullar'da 1 mol ideal gaz kaç litre yer kaplar?", opts: [ '22,4 litre', 'Gaza göre değişir','1 litre', '18 litre'], a: 0, exp: "Avogadro yasası: molekülü ne olursa olsun, N.K.'da 1 mol gaz = 22,4 L." },
+  { text: "Tepkimelerdeki mol oranı matematiğinin adı nedir?", opts: [ 'Elektroliz','Termodinamik', 'Stokiyometri', 'Kinetik'], a: 2, exp: "2H₂ + O₂ → 2H₂O denklemi 2:1:2 mol oranını verir; tarif matematiği gibi." },
 ];

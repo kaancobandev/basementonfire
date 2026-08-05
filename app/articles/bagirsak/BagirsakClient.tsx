@@ -39,13 +39,13 @@ const numbers = [
 
 const quizQs = [
   { text: 'Bağırsaklara "ikinci beyin" denmesinin sebebi nedir?', opts: ['Kafatasında ikinci bir beyin olması', 'Bağırsak duvarında ~500 milyon nöronluk kendi sinir ağı bulunması', 'İki ayrı bağırsak olması', 'Beyinle aynı şekle sahip olması'], a: 1 },
-  { text: 'Vücuttaki serotoninin yaklaşık ne kadarı bağırsakta üretilir?', opts: ['%5', '%30', '%90', 'hiç'], a: 2 },
-  { text: 'Bağırsak ile beyin arasındaki ana iletişim siniri hangisidir?', opts: ['Optik sinir', 'Vagus siniri', 'Siyatik sinir', 'Koku siniri'], a: 1 },
-  { text: '"İçime doğdu" türü içgüdüsel kararlarda beynin hangi yeteneği rol oynar?', opts: ['Görme keskinliği', 'İnterosepsiyon (iç beden sinyallerini algılama)', 'Denge', 'Kas hafızası'], a: 1 },
-  { text: 'Mikrobiyom–ruh hali ilişkisini gösteren çarpıcı deney hangisidir?', opts: ['Aya canlı göndermek', 'Stresli farelerin bağırsak mikrobunu sağlıklı farelere nakletmek (FMT)', 'Beyin ameliyatı', 'Açlık deneyi'], a: 1 },
-  { text: 'Bağırsak sağlığı için en temel besin grubu hangisidir?', opts: ['Şeker', 'Lif (sebze/meyve/tahıl)', 'Kızartma', 'Beyaz un'], a: 1 },
-  { text: 'Vagus sinirini doğal yolla uyarıp sakinleşmenin bir yolu nedir?', opts: ['Hızlı ve sığ nefes', 'Yavaş, derin nefes (uzun nefes verme)', 'Nefesi uzun süre tutmak', 'Kalkıp koşmak'], a: 1 },
-  { text: 'Açlık hissini tetikleyen, boş midede salgılanan hormon hangisidir?', opts: ['Leptin', 'Ghrelin', 'İnsülin', 'Serotonin'], a: 1 },
+  { text: 'Vücuttaki serotoninin yaklaşık ne kadarı bağırsakta üretilir?', opts: [ 'hiç','%5', '%30', '%90'], a: 3 },
+  { text: 'Bağırsak ile beyin arasındaki ana iletişim siniri hangisidir?', opts: [ 'Siyatik sinir', 'Koku siniri','Optik sinir', 'Vagus siniri'], a: 3 },
+  { text: '"İçime doğdu" türü içgüdüsel kararlarda beynin hangi yeteneği rol oynar?', opts: [ 'Kas hafızası','Görme keskinliği', 'İnterosepsiyon (iç beden sinyallerini algılama)', 'Denge'], a: 2 },
+  { text: 'Mikrobiyom–ruh hali ilişkisini gösteren çarpıcı deney hangisidir?', opts: [ 'Stresli farelerin bağırsak mikrobunu sağlıklı farelere nakletmek (FMT)', 'Beyin ameliyatı', 'Açlık deneyi','Aya canlı göndermek'], a: 0 },
+  { text: 'Bağırsak sağlığı için en temel besin grubu hangisidir?', opts: [ 'Lif (sebze/meyve/tahıl)', 'Kızartma', 'Beyaz un','Şeker'], a: 0 },
+  { text: 'Vagus sinirini doğal yolla uyarıp sakinleşmenin bir yolu nedir?', opts: [ 'Nefesi uzun süre tutmak', 'Kalkıp koşmak','Hızlı ve sığ nefes', 'Yavaş, derin nefes (uzun nefes verme)'], a: 3 },
+  { text: 'Açlık hissini tetikleyen, boş midede salgılanan hormon hangisidir?', opts: [ 'Serotonin','Leptin', 'Ghrelin', 'İnsülin'], a: 2 },
   { text: 'Heyecanlanınca midemizde “kelebek” hissinin sebebi nedir?', opts: ['Midede gerçek kelebek olması', 'Fight-or-flight ile kanın sindirimden kaslara yönelmesi', 'Aşırı açlık', 'Vitamin eksikliği'], a: 1 },
 ];
 

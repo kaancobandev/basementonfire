@@ -105,10 +105,10 @@ const facts = [
 ];
 
 const quizQs = [
-  { text: 'Pirus hangi krallığın kralıydı?', opts: ['Makedonya', 'Epir', 'Sparta', 'Kartaca'], a: 1 },
-  { text: '"Pirus zaferi" ne anlama gelir?', opts: ['Kolay ve ucuz bir zafer', 'Kazanana yenilgi kadar pahalıya patlayan zafer', 'Hile ile kazanılan zafer', 'Savaşsız kazanılan zafer'], a: 1 },
-  { text: 'Romalılar ilk kez hangi savaşta savaş fili gördü?', opts: ['Asculum', 'Beneventum', 'Herakleia', 'Cannae'], a: 2 },
-  { text: 'Pirus kimi idol edinmiş, kime uzaktan akrabaydı?', opts: ['Jül Sezar', 'Büyük İskender', 'Leonidas', 'Hannibal'], a: 1 },
+  { text: 'Pirus hangi krallığın kralıydı?', opts: [ 'Epir', 'Sparta', 'Kartaca','Makedonya'], a: 0 },
+  { text: '"Pirus zaferi" ne anlama gelir?', opts: [ 'Kazanana yenilgi kadar pahalıya patlayan zafer', 'Hile ile kazanılan zafer', 'Savaşsız kazanılan zafer','Kolay ve ucuz bir zafer'], a: 0 },
+  { text: 'Romalılar ilk kez hangi savaşta savaş fili gördü?', opts: [ 'Beneventum', 'Herakleia', 'Cannae','Asculum'], a: 1 },
+  { text: 'Pirus kimi idol edinmiş, kime uzaktan akrabaydı?', opts: [ 'Leonidas', 'Hannibal','Jül Sezar', 'Büyük İskender'], a: 3 },
   { text: 'Pirus nasıl öldü?', opts: ['Savaş meydanında kahramanca', 'Zehirlenerek', 'Argos\'ta bir kiremitle', 'Hastalıktan'], a: 2 },
   { text: 'Cineas diyaloğunun ana fikri nedir?', opts: ['Daha çok fethetmek gerekir', 'Hırsın sonu yoktur; huzur için fethe gerek yok', 'Filler savaşı kazandırır', 'Roma yenilmezdir'], a: 1 },
 ];

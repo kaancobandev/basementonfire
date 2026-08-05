@@ -33,12 +33,12 @@ const history = [
 ];
 
 const quizQs = [
-  { text: 'Takyon nedir?', opts: ['Işıktan yavaş bir parçacık', 'Varsayımsal, hep ışıktan hızlı bir parçacık', 'Bir tür ışık', 'Kara delik çekirdeği'], a: 1 },
-  { text: 'Bir takyonun (varsa) kütlesi nasıl tanımlanır?', opts: ['Sıfır', 'Negatif', 'Sanal (imajiner)', 'Sonsuz'], a: 2 },
-  { text: 'Takyonlar neden nedenselliği (sebep-sonucu) tehdit eder?', opts: ['Çok ağır oldukları için', 'Işıktan hızlı bilgi → kendi geçmişine mesaj göndermek', 'Görünmez oldukları için', 'Kara deliklerden çıktıkları için'], a: 1 },
+  { text: 'Takyon nedir?', opts: [ 'Varsayımsal, hep ışıktan hızlı bir parçacık', 'Bir tür ışık', 'Kara delik çekirdeği','Işıktan yavaş bir parçacık'], a: 0 },
+  { text: 'Bir takyonun (varsa) kütlesi nasıl tanımlanır?', opts: [ 'Sonsuz','Sıfır', 'Negatif', 'Sanal (imajiner)'], a: 3 },
+  { text: 'Takyonlar neden nedenselliği (sebep-sonucu) tehdit eder?', opts: [ 'Kara deliklerden çıktıkları için','Çok ağır oldukları için', 'Işıktan hızlı bilgi → kendi geçmişine mesaj göndermek', 'Görünmez oldukları için'], a: 2 },
   { text: '2011 OPERA "ışıktan hızlı nötrino" sonucunun gerçek sebebi neydi?', opts: ['Gerçek takyonlar', 'Gevşek bir fiber-optik kablo', 'Güneş patlaması', 'Yazılım virüsü'], a: 1 },
-  { text: 'Aşağıdakilerden hangisi ışıktan hızlı olabilir ama kuralı BOZMAZ?', opts: ['Bir elektron', 'Duvardaki bir gölge', 'Bir uzay gemisi', 'Bir foton'], a: 1 },
-  { text: 'Modern fizikte (kuantum alan kuramı) "takyon" çoğunlukla neyi ifade eder?', opts: ['Gerçek ışıktan hızlı parçacık', 'Bir alanın kararsızlığı (negatif kütle-kare)', 'Yeni bir enerji türü', 'Antimadde'], a: 1 },
+  { text: 'Aşağıdakilerden hangisi ışıktan hızlı olabilir ama kuralı BOZMAZ?', opts: [ 'Duvardaki bir gölge', 'Bir uzay gemisi', 'Bir foton','Bir elektron'], a: 0 },
+  { text: 'Modern fizikte (kuantum alan kuramı) "takyon" çoğunlukla neyi ifade eder?', opts: [ 'Yeni bir enerji türü', 'Antimadde','Gerçek ışıktan hızlı parçacık', 'Bir alanın kararsızlığı (negatif kütle-kare)'], a: 3 },
 ];
 
 const refs: BibItem[] = [

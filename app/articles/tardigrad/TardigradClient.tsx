@@ -42,11 +42,11 @@ const facts = [
 
 const quizQs = [
   { text: 'Tardigradların halk arasındaki adı nedir?', opts: ['Deniz yıldızı', 'Su ayısı', 'Toprak solucanı', 'Cam böceği'], a: 1 },
-  { text: 'Kuruyunca girdikleri, metabolizmayı neredeyse durduran hale ne denir?', opts: ['Hibernasyon', 'Tun hali (kriptobiyoz)', 'Metamorfoz', 'Fotosentez'], a: 1 },
-  { text: 'Tardigradlar yaklaşık hangi sıcaklık aralığında hayatta kalabilir?', opts: ['0°C – 40°C', '−272°C – 150°C', '−10°C – 60°C', 'sadece oda sıcaklığı'], a: 1 },
-  { text: 'DNA\'larını radyasyondan koruyan özel proteinin adı nedir?', opts: ['Hemoglobin', 'Dsup', 'Keratin', 'Klorofil'], a: 1 },
-  { text: '2007\'de tardigradlar ilk kez nerede hayatta kaldı?', opts: ['Volkan içinde', 'Doğrudan uzay boşluğunda', 'Güneş\'te', 'Reaktör çekirdeğinde'], a: 1 },
-  { text: 'Tun halinde suyunun ne kadarını kaybederler?', opts: ['%10', '%50', '%95\'ten fazla', 'hiç'], a: 2 },
+  { text: 'Kuruyunca girdikleri, metabolizmayı neredeyse durduran hale ne denir?', opts: [ 'Tun hali (kriptobiyoz)', 'Metamorfoz', 'Fotosentez','Hibernasyon'], a: 0 },
+  { text: 'Tardigradlar yaklaşık hangi sıcaklık aralığında hayatta kalabilir?', opts: [ '−272°C – 150°C', '−10°C – 60°C', 'sadece oda sıcaklığı','0°C – 40°C'], a: 0 },
+  { text: 'DNA\'larını radyasyondan koruyan özel proteinin adı nedir?', opts: [ 'Klorofil','Hemoglobin', 'Dsup', 'Keratin'], a: 2 },
+  { text: '2007\'de tardigradlar ilk kez nerede hayatta kaldı?', opts: [ 'Güneş\'te', 'Reaktör çekirdeğinde','Volkan içinde', 'Doğrudan uzay boşluğunda'], a: 3 },
+  { text: 'Tun halinde suyunun ne kadarını kaybederler?', opts: [ 'hiç','%10', '%50', '%95\'ten fazla'], a: 3 },
 ];
 
 const refs: BibItem[] = [

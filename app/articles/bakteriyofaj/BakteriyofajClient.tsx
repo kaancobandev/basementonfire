@@ -53,13 +53,13 @@ const timeline = [
 ];
 
 const quizQs = [
-  { text: 'Bakteriyofaj nedir?', opts: ['İnsanı enfekte eden bir bakteri', 'Bakterileri enfekte eden bir virüs', 'Bir antibiyotik türü', 'Bir mantar'], a: 1 },
-  { text: '"Faj" adı hangi kökten gelir?', opts: ['Latince "ışık"', 'Yunanca phagein ("yemek")', 'Rusça "küçük"', 'Gürcüce "avcı"'], a: 1 },
-  { text: 'Gezegende tahminen kaç bakteriyofaj vardır?', opts: ['10⁹', '10³¹', '1 milyon', '10⁴'], a: 1 },
-  { text: 'Litik döngünün sonunda bakteriye ne olur?', opts: ['Sağlıklı kalır', 'Lizin enzimiyle patlar ve yüzlerce faj saçılır', 'Daha hızlı çoğalır', 'Antibiyotiğe dönüşür'], a: 1 },
-  { text: 'Lizojenik döngüde faj DNA\'sı ne yapar?', opts: ['Hücreyi hemen patlatır', 'Bakterinin kromozomuna eklenip profaj olarak gizlenir', 'Anında yok olur', 'Antibiyotik üretir'], a: 1 },
-  { text: 'CRISPR aslında doğada neyin parçasıdır?', opts: ['Bir faj silahı', 'Bakterilerin fajlara karşı geliştirdiği bağışıklık sistemi', 'İnsan bağışıklığı', 'Bir antibiyotik'], a: 1 },
-  { text: 'Dünyanın ilk faj enstitüsü nerede kuruldu?', opts: ['Paris', 'Londra', 'Tiflis (Gürcistan)', 'New York'], a: 2 },
+  { text: 'Bakteriyofaj nedir?', opts: [ 'Bakterileri enfekte eden bir virüs', 'Bir antibiyotik türü', 'Bir mantar','İnsanı enfekte eden bir bakteri'], a: 0 },
+  { text: '"Faj" adı hangi kökten gelir?', opts: [ 'Yunanca phagein ("yemek")', 'Rusça "küçük"', 'Gürcüce "avcı"','Latince "ışık"'], a: 0 },
+  { text: 'Gezegende tahminen kaç bakteriyofaj vardır?', opts: [ '1 milyon', '10⁴','10⁹', '10³¹'], a: 3 },
+  { text: 'Litik döngünün sonunda bakteriye ne olur?', opts: [ 'Antibiyotiğe dönüşür','Sağlıklı kalır', 'Lizin enzimiyle patlar ve yüzlerce faj saçılır', 'Daha hızlı çoğalır'], a: 2 },
+  { text: 'Lizojenik döngüde faj DNA\'sı ne yapar?', opts: [ 'Anında yok olur', 'Antibiyotik üretir','Hücreyi hemen patlatır', 'Bakterinin kromozomuna eklenip profaj olarak gizlenir'], a: 3 },
+  { text: 'CRISPR aslında doğada neyin parçasıdır?', opts: [ 'Bir antibiyotik','Bir faj silahı', 'Bakterilerin fajlara karşı geliştirdiği bağışıklık sistemi', 'İnsan bağışıklığı'], a: 2 },
+  { text: 'Dünyanın ilk faj enstitüsü nerede kuruldu?', opts: [ 'Tiflis (Gürcistan)', 'New York','Paris', 'Londra'], a: 0 },
   { text: 'Fajın antibiyotiğe göre temel avantajı nedir?', opts: ['Daha ucuz olması', 'Yalnızca hedef bakteriyi öldürüp mikrobiyomu koruması', 'Hiç direnç oluşturmaması', 'Bitkileri de tedavi etmesi'], a: 1 },
   { text: 'The Lancet\'e göre 2019\'da doğrudan antibiyotik direncine bağlı kaç ölüm gerçekleşti?', opts: ['~10 bin', '~1,27 milyon', '~100', '~50 milyon'], a: 1 },
 ];

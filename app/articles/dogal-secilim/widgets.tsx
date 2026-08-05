@@ -49,12 +49,12 @@ export const timeline = [
 ];
 
 export const quizQs = [
-  { text: 'Doğal seçilimde “en uyumlu birey” kimdir?', opts: ['En güçlü ve en iri olan', 'Ortamına en iyi uyup en çok yavru bırakan', 'En uzun yaşayan', 'En zeki olan'], a: 1, exp: 'Uyum = ortama uygunluk ve üreme başarısı; kas ya da zekâ şart değil.' },
+  { text: 'Doğal seçilimde “en uyumlu birey” kimdir?', opts: [ 'En uzun yaşayan', 'En zeki olan','En güçlü ve en iri olan', 'Ortamına en iyi uyup en çok yavru bırakan'], a: 3, exp: 'Uyum = ortama uygunluk ve üreme başarısı; kas ya da zekâ şart değil.' },
   { text: 'Bir popülasyonda hiç çeşitlilik yoksa ne olur?', opts: ['Seçilim daha hızlı işler', 'Doğal seçilim işleyemez — seçecek bir fark yoktur', 'Mutasyonlar durur', 'Tüm bireyler ölür'], a: 1, exp: 'Seçilim var olan farklar arasından seçer. Fark yoksa süreç durur.' },
-  { text: 'Aslında “evrimleşen” nedir?', opts: ['Tek bir birey, yaşamı boyunca', 'Popülasyon, nesiller boyunca', 'Sadece DNA, anında', 'Ortam, kendi başına'], a: 1, exp: 'Birey yaşamı boyunca evrimleşmez; değişen, popülasyondaki özellik oranıdır.' },
-  { text: 'Antibiyotik direncinin yayılması neyin örneğidir?', opts: ['Bireysel öğrenme', 'Gerçek zamanlı doğal seçilim', 'Genetik sürüklenme', 'Rastgele şans'], a: 1, exp: 'Dirençliler çoğalır, duyarlılar elenir — gözlemlenebilir doğal seçilim.' },
-  { text: 'Mutasyon ile seçilim arasındaki ilişki nedir?', opts: ['İkisi de rastgeledir', 'İkisi de yönlüdür', 'Mutasyon rastgeledir; seçilim rastgele değildir', 'Seçilim rastgeledir; mutasyon yönlüdür'], a: 2, exp: 'Mutasyonlar yönsüz oluşur; hangi varyantın yayılacağını ortam belirler.' },
-  { text: 'Biber güvesinin koyu formu neden çoğaldı?', opts: ['Daha sıcak olduğu için', 'Kurumlu ağaçlarda kuşlardan saklanıp daha çok ürediği için', 'Koyu renk daha hızlı uçtuğu için', 'Tesadüfen'], a: 1, exp: 'Kararmış ağaçlarda koyu güveler saklandı, daha çok üredi.' },
+  { text: 'Aslında “evrimleşen” nedir?', opts: [ 'Ortam, kendi başına','Tek bir birey, yaşamı boyunca', 'Popülasyon, nesiller boyunca', 'Sadece DNA, anında'], a: 2, exp: 'Birey yaşamı boyunca evrimleşmez; değişen, popülasyondaki özellik oranıdır.' },
+  { text: 'Antibiyotik direncinin yayılması neyin örneğidir?', opts: [ 'Gerçek zamanlı doğal seçilim', 'Genetik sürüklenme', 'Rastgele şans','Bireysel öğrenme'], a: 0, exp: 'Dirençliler çoğalır, duyarlılar elenir — gözlemlenebilir doğal seçilim.' },
+  { text: 'Mutasyon ile seçilim arasındaki ilişki nedir?', opts: [ 'Mutasyon rastgeledir; seçilim rastgele değildir', 'Seçilim rastgeledir; mutasyon yönlüdür','İkisi de rastgeledir', 'İkisi de yönlüdür'], a: 0, exp: 'Mutasyonlar yönsüz oluşur; hangi varyantın yayılacağını ortam belirler.' },
+  { text: 'Biber güvesinin koyu formu neden çoğaldı?', opts: [ 'Koyu renk daha hızlı uçtuğu için', 'Tesadüfen','Daha sıcak olduğu için', 'Kurumlu ağaçlarda kuşlardan saklanıp daha çok ürediği için'], a: 3, exp: 'Kararmış ağaçlarda koyu güveler saklandı, daha çok üredi.' },
 ];
 
 // refs yukarıda './refs' düz modülünden re-export edilir.

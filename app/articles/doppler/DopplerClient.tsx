@@ -30,15 +30,15 @@ const tryItYourself = [
 ];
 
 const quizQs = [
-  { text: 'Bir ambulans yanından geçerken aslında değişen nedir?', opts: ['Sirenin gerçek frekansı', 'Sesin sana ulaşma biçimi (senin duyduğun frekans)', 'Havanın sıcaklığı', 'Sirenin ses düzeyi'], a: 1 },
-  { text: 'Kaynak sana yaklaşırken dalgalara ne olur?', opts: ['Gerilir, frekans düşer', 'Sıkışır, frekans yükselir (tizleşir)', 'Hiçbir şey olmaz', 'Tamamen durur'], a: 1 },
+  { text: 'Bir ambulans yanından geçerken aslında değişen nedir?', opts: [ 'Sesin sana ulaşma biçimi (senin duyduğun frekans)', 'Havanın sıcaklığı', 'Sirenin ses düzeyi','Sirenin gerçek frekansı'], a: 0 },
+  { text: 'Kaynak sana yaklaşırken dalgalara ne olur?', opts: [ 'Tamamen durur','Gerilir, frekans düşer', 'Sıkışır, frekans yükselir (tizleşir)', 'Hiçbir şey olmaz'], a: 2 },
   { text: 'Buys Ballot 1845 deneyinde Doppler etkisini neyle kanıtladı?', opts: ['Bir teleskopla', 'Trende kesintisiz nota çalan trompetçilerle', 'Bir diyapazonla', 'Şimşekle'], a: 1 },
   { text: 'Işıkta "maviye kayma" ne anlama gelir?', opts: ['Kaynak bizden uzaklaşıyor', 'Kaynak bize yaklaşıyor (dalga boyu kısalır)', 'Kaynak duruyor', 'Kaynak ısınıyor'], a: 1 },
-  { text: 'Evrenin genişlediği fikri hangi gözlemden doğdu?', opts: ['Ayın evrelerinden', 'Uzak galaksilerin kırmızıya kaymasından (Hubble, 1929)', 'Güneş lekelerinden', 'Meteor yağmurlarından'], a: 1 },
-  { text: 'İlk ötegezegen 51 Pegasi b nasıl bulundu?', opts: ['Doğrudan fotoğrafla', 'Yıldızın Doppler salınımıyla (ışığının ileri-geri kayması)', 'Radyo patlamasıyla', 'Tesadüfen'], a: 1 },
-  { text: 'Polis radarı hızı nasıl ölçer?', opts: ['Lastik izinden', 'Araçtan yansıyan dalganın Doppler kaymasından', 'Motor sesinden', 'Far parlaklığından'], a: 1 },
-  { text: 'Doppler etkisi ile ses patlaması (sonic boom) farkı nedir?', opts: ['İkisi aynıdır', 'Ses patlaması, kaynak ses hızına ulaşıp şok konisi oluşturunca olur; Doppler ise frekansı kaydırır', 'Doppler sadece uçaklarda olur', 'Ses patlaması sessizdir'], a: 1 },
-  { text: 'Ambulans geçerken ses nasıl değişir?', opts: ['Yavaş yavaş kalınlaşır', 'Tizden kalına KESKİN bir basamakla düşer (geçiş anında)', 'Hiç değişmez', 'Önce kalın sonra tiz olur'], a: 1 },
+  { text: 'Evrenin genişlediği fikri hangi gözlemden doğdu?', opts: [ 'Güneş lekelerinden', 'Meteor yağmurlarından','Ayın evrelerinden', 'Uzak galaksilerin kırmızıya kaymasından (Hubble, 1929)'], a: 3 },
+  { text: 'İlk ötegezegen 51 Pegasi b nasıl bulundu?', opts: [ 'Tesadüfen','Doğrudan fotoğrafla', 'Yıldızın Doppler salınımıyla (ışığının ileri-geri kayması)', 'Radyo patlamasıyla'], a: 2 },
+  { text: 'Polis radarı hızı nasıl ölçer?', opts: [ 'Motor sesinden', 'Far parlaklığından','Lastik izinden', 'Araçtan yansıyan dalganın Doppler kaymasından'], a: 3 },
+  { text: 'Doppler etkisi ile ses patlaması (sonic boom) farkı nedir?', opts: [ 'Ses patlaması, kaynak ses hızına ulaşıp şok konisi oluşturunca olur; Doppler ise frekansı kaydırır', 'Doppler sadece uçaklarda olur', 'Ses patlaması sessizdir','İkisi aynıdır'], a: 0 },
+  { text: 'Ambulans geçerken ses nasıl değişir?', opts: [ 'Hiç değişmez', 'Önce kalın sonra tiz olur','Yavaş yavaş kalınlaşır', 'Tizden kalına KESKİN bir basamakla düşer (geçiş anında)'], a: 3 },
 ];
 
 const refs: BibItem[] = [
@@ -64,7 +64,10 @@ function Reveal({ children, className = '' }: { children: ReactNode; className?:
     o.observe(el);
     return () => o.disconnect();
   }, []);
-  return <div ref={ref} className={`transition-all duration-700 ease-out ${shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'} ${className}`}>{children}</div>;
+  // `reveal-blok`: JS çalışmazsa bloğu görünür tutan global kuralın tutamağı
+  // (globals.css, "JS ÇALIŞMAZSA…"). Sınıf olmadan içerik opacity-0'da kalır
+  // ve makale bomboş görünür.
+  return <div ref={ref} className={`reveal-blok transition-all duration-700 ease-out ${shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'} ${className}`}>{children}</div>;
 }
 
 function Frac({ num, den }: { num: ReactNode; den: ReactNode }) {

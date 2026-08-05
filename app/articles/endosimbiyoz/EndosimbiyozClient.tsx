@@ -33,15 +33,15 @@ const everywhere = [
 ];
 
 const quizQs = [
-  { text: 'Hücrelerimizdeki mitokondrinin kökeni nedir?', opts: ['Çekirdeğin bir parçası', 'Bir zamanlar serbest yaşayan bir bakteri', 'Bir virüs', 'Cansız bir kristal'], a: 1 },
-  { text: 'Endosimbiyotik kuramı kanıtlarla savunup kabul ettiren bilim insanı kimdir?', opts: ['Charles Darwin', 'Lynn Margulis', 'Gregor Mendel', 'Louis Pasteur'], a: 1 },
-  { text: 'Aşağıdakilerden hangisi mitokondrinin bakteriyel kökenine kanıt DEĞİLDİR?', opts: ['Halkasal kendi DNA\'sı', '70S bakteriyel ribozomları', 'Düz, kromozomlara paketlenmiş DNA\'sı', 'Çifte zarı'], a: 2 },
+  { text: 'Hücrelerimizdeki mitokondrinin kökeni nedir?', opts: [ 'Bir virüs', 'Cansız bir kristal','Çekirdeğin bir parçası', 'Bir zamanlar serbest yaşayan bir bakteri'], a: 3 },
+  { text: 'Endosimbiyotik kuramı kanıtlarla savunup kabul ettiren bilim insanı kimdir?', opts: [ 'Louis Pasteur','Charles Darwin', 'Lynn Margulis', 'Gregor Mendel'], a: 2 },
+  { text: 'Aşağıdakilerden hangisi mitokondrinin bakteriyel kökenine kanıt DEĞİLDİR?', opts: [ '70S bakteriyel ribozomları', 'Düz, kromozomlara paketlenmiş DNA\'sı', 'Çifte zarı','Halkasal kendi DNA\'sı'], a: 1 },
   { text: 'Mitokondri neden artık hücreden bağımsız yaşayamaz?', opts: ['Çok yaşlandığı için', 'Genlerinin çoğu çekirdeğe taşındığı için (gen transferi)', 'Oksijenden korktuğu için', 'Donduğu için'], a: 1 },
   { text: 'Karmaşık (ökaryotik) hücrenin konağı büyük olasılıkla hangi gruptandı?', opts: ['Mantarlar', 'Virüsler', 'Asgard arkeleri', 'Yeşil algler'], a: 2 },
-  { text: 'Endosimbiyozun karmaşık yaşamı mümkün kılmasının temel nedeni nedir?', opts: ['Hücreyi küçülttüğü için', 'Enerji üretimini iç zarlara taşıyıp enerji bariyerini aştığı için', 'Sıcaklığı düşürdüğü için', 'Renk kattığı için'], a: 1 },
+  { text: 'Endosimbiyozun karmaşık yaşamı mümkün kılmasının temel nedeni nedir?', opts: [ 'Enerji üretimini iç zarlara taşıyıp enerji bariyerini aştığı için', 'Sıcaklığı düşürdüğü için', 'Renk kattığı için','Hücreyi küçülttüğü için'], a: 0 },
   { text: 'Kloroplastın atası hangi bakteri grubudur?', opts: ['Siyanobakteriler', 'Rickettsia', 'Salmonella', 'Spiroketler'], a: 0 },
-  { text: '2024\'te keşfedilen, azot bağlayan dördüncü büyük organel tipinin adı nedir?', opts: ['Kromatofor', 'Nitroplast', 'Lizozom', 'Ribozom'], a: 1 },
-  { text: 'İkincil endosimbiyozda kloroplastın 3-4 zarla çevrili olmasının sebebi nedir?', opts: ['Çok yaşlı olması', 'Bir ökaryotun, içinde zaten kloroplast olan başka bir ökaryotu yutması', 'Radyasyon', 'Tesadüf'], a: 1 },
+  { text: '2024\'te keşfedilen, azot bağlayan dördüncü büyük organel tipinin adı nedir?', opts: [ 'Lizozom', 'Ribozom','Kromatofor', 'Nitroplast'], a: 3 },
+  { text: 'İkincil endosimbiyozda kloroplastın 3-4 zarla çevrili olmasının sebebi nedir?', opts: [ 'Radyasyon', 'Tesadüf','Çok yaşlı olması', 'Bir ökaryotun, içinde zaten kloroplast olan başka bir ökaryotu yutması'], a: 3 },
 ];
 
 const refs: BibItem[] = [

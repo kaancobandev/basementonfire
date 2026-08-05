@@ -76,9 +76,9 @@ const achievements = [
 
 const QUIZ_Q = [
   { q: 'Roma\'nın efsanevi kurucusu hangi hayvan tarafından emzirildiği söylenir?', opts: ['Kartal','Dişi Kurt','Aslan','Boğa'], correct: 1 },
-  { q: '12 Levha Kanunu hangi meydana asıldı?', opts: ['Colosseum','Pantheon','Forum Romanum','Capitoline Tepesi'], correct: 2 },
+  { q: '12 Levha Kanunu hangi meydana asıldı?', opts: ['Capitoline Tepesi','Colosseum','Pantheon','Forum Romanum'], correct: 3 },
   { q: 'Julius Caesar\'ın Rubicon Nehrini geçmesi neyi sembolize ediyordu?', opts: ['Zafer kutlaması','Senatoya katılım','İç savaş başlatmak','Galya\'ya sefer'], correct: 2 },
-  { q: 'Spartaküs hangi sınıfı temsil ediyordu?', opts: ['Patricii','Senato','Köleler ve Gladyatörler','Ordu generalleri'], correct: 2 },
+  { q: 'Spartaküs hangi sınıfı temsil ediyordu?', opts: ['Köleler ve Gladyatörler','Ordu generalleri','Patricii','Senato'], correct: 0 },
 ];
 
 const TIMELINE = [

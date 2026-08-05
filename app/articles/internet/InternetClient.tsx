@@ -113,10 +113,10 @@ const connTypes = [
 ];
 
 const quizQs = [
-  { text: 'Bir alan adını (basementonfire.com) IP adresine çeviren sistem hangisidir?', opts: ['HTTP', 'DNS', 'TCP', 'MAC'], a: 1 },
-  { text: 'OSI modelinde yönlendiriciler (router) hangi katmanda çalışır?', opts: ['Fiziksel (1)', 'Veri Bağı (2)', 'Ağ (3)', 'Taşıma (4)'], a: 2 },
-  { text: 'Hangi protokol hız için güvenilirlikten ödün verir (video/oyun)?', opts: ['TCP', 'UDP', 'HTTPS', 'FTP'], a: 1 },
-  { text: 'HTTPS\'teki "S" neyi sağlar?', opts: ['Daha hızlı yükleme', 'TLS ile şifreleme', 'Daha çok reklam', 'Sıkıştırma'], a: 1 },
+  { text: 'Bir alan adını (basementonfire.com) IP adresine çeviren sistem hangisidir?', opts: [ 'DNS', 'TCP', 'MAC','HTTP'], a: 0 },
+  { text: 'OSI modelinde yönlendiriciler (router) hangi katmanda çalışır?', opts: [ 'Veri Bağı (2)', 'Ağ (3)', 'Taşıma (4)','Fiziksel (1)'], a: 1 },
+  { text: 'Hangi protokol hız için güvenilirlikten ödün verir (video/oyun)?', opts: [ 'UDP', 'HTTPS', 'FTP','TCP'], a: 0 },
+  { text: 'HTTPS\'teki "S" neyi sağlar?', opts: [ 'Daha çok reklam', 'Sıkıştırma','Daha hızlı yükleme', 'TLS ile şifreleme'], a: 3 },
   { text: 'MAC adresi neyi tanımlar?', opts: ['Ağdaki mantıksal konumu', 'Cihazın fiziksel ağ kartını', 'Web sitesini', 'Port numarasını'], a: 1 },
   { text: 'TCP bağlantısı kaç adımlı "el sıkışma" ile kurulur?', opts: ['1', '2', '3', '4'], a: 2 },
 ];

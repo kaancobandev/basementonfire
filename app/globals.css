@@ -262,6 +262,25 @@ h1, h2, h3, .font-display { font-family: var(--font-display), system-ui, sans-se
   }
 }
 
+/* ── JS ÇALIŞMAZSA MAKALE GÖVDESİ GÖRÜNÜR KALSIN ──
+   On makale bölümlerini IntersectionObserver ile açıyor: blok `opacity: 0`
+   başlıyor, görünür alana girince `.visible` ekleniyor. JS hiç çalışmazsa
+   (script hatası, engelleyici, eski tarayıcı) o sınıf hiç eklenmiyor ve
+   MAKALE TAMAMEN BOŞ görünüyordu — dört makalenin haftalarca boş
+   yayınlandığı olayla aynı arıza sınıfı, sadece sebebi farklı.
+
+   `js` sınıfı app/layout.tsx'te ilk boyamadan ÖNCE ekleniyor; yani bu kural
+   yalnızca JS gerçekten yoksa devreye girer, normal akışta hiçbir şeyi
+   değiştirmez (reveal animasyonu aynen çalışır).
+
+   KATMANSIZ olması bilinçli: Tailwind utility'leri @layer içinde olduğundan
+   buradaki kural doppler'ın `opacity-0` utility'sini de ezer. */
+html:not(.js) .reveal,
+html:not(.js) .reveal-blok {
+  opacity: 1;
+  transform: none;
+}
+
 .cap-tag {
   color: var(--color-accent-ink);
   font-weight: 600;

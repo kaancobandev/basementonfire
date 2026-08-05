@@ -84,15 +84,15 @@ const roadmapSteps = [
 const roadmapIcons = ['🖊️', '✍️', '〰️', '🔡', '🔗', '🎨'];
 
 const quizQs = [
-  { text: '"Kaligrafi" kelimesi hangi köklerden gelir?', opts: ['Latince calidus + grafia', 'Yunanca kallos (güzellik) + graphein (yazmak)', 'Arapça hat + hüsn', 'Çince shū + fǎ'], a: 1 },
-  { text: 'Kaligrafi ile tipografi arasındaki temel fark nedir?', opts: ['İkisi aynıdır', 'Tipografi önceden tasarlanmış harf kalıplarını (font) düzenler', 'Kaligrafi sadece bilgisayarda yapılır', 'Tipografi fırçayla yapılır'], a: 1 },
-  { text: 'İslam hattını "göz kararı"ndan çıkarıp matematiksel orana oturtan kişi kimdir?', opts: ['Yâkût el-Musta\'sımî', 'İbn Mukle', 'Şeyh Hamdullah', 'Hâfız Osman'], a: 1 },
-  { text: 'Osmanlı hat ekolünün kurucusu kabul edilen hattat kimdir?', opts: ['Ahmed Karahisârî', 'Mustafa Râkım', 'Şeyh Hamdullah', 'Sâmi Efendi'], a: 2 },
+  { text: '"Kaligrafi" kelimesi hangi köklerden gelir?', opts: [ 'Arapça hat + hüsn', 'Çince shū + fǎ','Latince calidus + grafia', 'Yunanca kallos (güzellik) + graphein (yazmak)'], a: 3 },
+  { text: 'Kaligrafi ile tipografi arasındaki temel fark nedir?', opts: [ 'Tipografi fırçayla yapılır','İkisi aynıdır', 'Tipografi önceden tasarlanmış harf kalıplarını (font) düzenler', 'Kaligrafi sadece bilgisayarda yapılır'], a: 2 },
+  { text: 'İslam hattını "göz kararı"ndan çıkarıp matematiksel orana oturtan kişi kimdir?', opts: [ 'Hâfız Osman','Yâkût el-Musta\'sımî', 'İbn Mukle', 'Şeyh Hamdullah'], a: 2 },
+  { text: 'Osmanlı hat ekolünün kurucusu kabul edilen hattat kimdir?', opts: [ 'Mustafa Râkım', 'Şeyh Hamdullah', 'Sâmi Efendi','Ahmed Karahisârî'], a: 1 },
   { text: 'Doğu Asya kaligrafisinin temel aracı nedir?', opts: ['Geniş uçlu çelik kalem', 'Fırça', 'Esnek sivri uç', 'Kamış kalem'], a: 1 },
-  { text: 'Çin yazısında başlangıç için en uygun, bugünkü matbaa ve dijital yazının temeli olan stil hangisidir?', opts: ['Mühür yazısı (zhuànshū)', 'Bitişik yazı (cǎoshū)', 'Standart / düz yazı (kǎishū)', 'Yürüyen yazı (xíngshū)'], a: 2 },
-  { text: 'Modern (Batı) kaligrafinin babası kabul edilen, geleneği yeniden canlandıran isim kimdir?', opts: ['Ludovico Arrighi', 'Edward Johnston', 'Platt Rogers Spencer', 'Johannes Gutenberg'], a: 1 },
-  { text: 'Sivri esnek uçta "altın kural" nedir?', opts: ['Hep aynı baskı', 'Yukarı çıkarken ince (baskısız), aşağı inerken kalın (baskılı)', 'Yukarı kalın, aşağı ince', 'Baskı hiç değişmez'], a: 1 },
-  { text: 'Geniş uçlu (broad-edge) kalemde ince-kalın farkı neyden gelir?', opts: ['Baskıdan', 'Ucun sabit açısından', 'Mürekkebin renginden', 'Kâğıdın türünden'], a: 1 },
+  { text: 'Çin yazısında başlangıç için en uygun, bugünkü matbaa ve dijital yazının temeli olan stil hangisidir?', opts: [ 'Yürüyen yazı (xíngshū)','Mühür yazısı (zhuànshū)', 'Bitişik yazı (cǎoshū)', 'Standart / düz yazı (kǎishū)'], a: 3 },
+  { text: 'Modern (Batı) kaligrafinin babası kabul edilen, geleneği yeniden canlandıran isim kimdir?', opts: [ 'Edward Johnston', 'Platt Rogers Spencer', 'Johannes Gutenberg','Ludovico Arrighi'], a: 0 },
+  { text: 'Sivri esnek uçta "altın kural" nedir?', opts: [ 'Yukarı çıkarken ince (baskısız), aşağı inerken kalın (baskılı)', 'Yukarı kalın, aşağı ince', 'Baskı hiç değişmez','Hep aynı baskı'], a: 0 },
+  { text: 'Geniş uçlu (broad-edge) kalemde ince-kalın farkı neyden gelir?', opts: [ 'Mürekkebin renginden', 'Kâğıdın türünden','Baskıdan', 'Ucun sabit açısından'], a: 3 },
 ];
 
 const refs: BibItem[] = [

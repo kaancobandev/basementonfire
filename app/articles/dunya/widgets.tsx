@@ -62,12 +62,12 @@ export const timeline = [
 ];
 
 export const quizQs = [
-  { text: "Dünya yaklaşık kaç yaşında?", opts: ["4,54 milyon yıl", "4,54 milyar yıl", "454 milyon yıl", "45,4 milyar yıl"], a: 1, exp: "Yaş, değişmeden kalmış göktaşları radyometrik tarihlenerek ~4,54 milyar yıl bulunur." },
-  { text: "Demir ve nikel neden gezegenin merkezinde toplandı?", opts: ["Manyetik çekim onları çekti", "Gezegen eridi, ağır metaller dibe battı (demir felaketi)", "Volkanlar onları içeri pompaladı", "Hep oradaydılar"], a: 1, exp: "Erimiş kaya okyanusunda yoğun demir/nikel merkeze battı, hafif silikatlar yükseldi — gezegensel farklılaşma." },
-  { text: "İç çekirdek, dış çekirdekten sıcak olmasına rağmen neden KATIDIR?", opts: ["Daha soğuk olduğu için", "Muazzam basınç demir atomlarını katı tutar", "Farklı bir metal olduğu için", "Manyetik alan dondurur"], a: 1, exp: "Sıcaklık eritmek ister ama atmosferin ~3,5 milyon katı basınç katı tutar; basınç kazanır." },
-  { text: "Dünya'nın manyetik alanını ne üretir?", opts: ["Çekirdekteki dev bir çubuk mıknatıs", "Sıvı dış çekirdekteki demirin dönerek akması (jeodinamo)", "Güneş rüzgârı", "Atmosferdeki elektrik"], a: 1, exp: "Elektriği ileten erimiş demirin dönüşü akım üretir; akım alanı, alan akımı besler — jeodinamo." },
+  { text: "Dünya yaklaşık kaç yaşında?", opts: [ "45,4 milyar yıl","4,54 milyon yıl", "4,54 milyar yıl", "454 milyon yıl"], a: 2, exp: "Yaş, değişmeden kalmış göktaşları radyometrik tarihlenerek ~4,54 milyar yıl bulunur." },
+  { text: "Demir ve nikel neden gezegenin merkezinde toplandı?", opts: [ "Hep oradaydılar","Manyetik çekim onları çekti", "Gezegen eridi, ağır metaller dibe battı (demir felaketi)", "Volkanlar onları içeri pompaladı"], a: 2, exp: "Erimiş kaya okyanusunda yoğun demir/nikel merkeze battı, hafif silikatlar yükseldi — gezegensel farklılaşma." },
+  { text: "İç çekirdek, dış çekirdekten sıcak olmasına rağmen neden KATIDIR?", opts: [ "Farklı bir metal olduğu için", "Manyetik alan dondurur","Daha soğuk olduğu için", "Muazzam basınç demir atomlarını katı tutar"], a: 3, exp: "Sıcaklık eritmek ister ama atmosferin ~3,5 milyon katı basınç katı tutar; basınç kazanır." },
+  { text: "Dünya'nın manyetik alanını ne üretir?", opts: [ "Güneş rüzgârı", "Atmosferdeki elektrik","Çekirdekteki dev bir çubuk mıknatıs", "Sıvı dış çekirdekteki demirin dönerek akması (jeodinamo)"], a: 3, exp: "Elektriği ileten erimiş demirin dönüşü akım üretir; akım alanı, alan akımı besler — jeodinamo." },
   { text: "En geniş kabul gören açıklamaya göre Ay nasıl oluştu?", opts: ["Dünya tarafından yakalandı", "Mars büyüklüğünde Theia'nın Dünya'ya çarpmasıyla", "Dünya'yla aynı anda yan yana oluştu", "Bir asteroit kümesinin birleşmesiyle"], a: 1, exp: "Dev Çarpışma Hipotezi: Theia teğet çarptı, saçılan enkaz halkasından Ay birleşti." },
-  { text: "Bilinen gezegenler arasında yalnızca Dünya'da olan özellik hangisidir?", opts: ["Manyetik alan", "Aktif levha tektoniği", "Atmosfer", "Uydu"], a: 1, exp: "Aktif levha tektoniği yalnızca Dünya'da bilinir; karbon–iklim döngüsünü çevirir." },
+  { text: "Bilinen gezegenler arasında yalnızca Dünya'da olan özellik hangisidir?", opts: [ "Aktif levha tektoniği", "Atmosfer", "Uydu","Manyetik alan"], a: 0, exp: "Aktif levha tektoniği yalnızca Dünya'da bilinir; karbon–iklim döngüsünü çevirir." },
 ];
 
 // refs yukarıda './refs' düz modülünden re-export edilir.

@@ -67,12 +67,12 @@ export const timeline = [
 ];
 
 export const quizQs = [
-  { text: "1665–66 “Mucize Yılları”nda Newton'ın YAPMADIĞI şey hangisidir?", opts: ['Kalkülüsü icat etmek', 'Beyaz ışığın renklere ayrıldığını keşfetmek', 'Kütleçekimin ilk adımlarını atmak', 'Buharlı makineyi icat etmek'], a: 3, exp: "Buharlı makine Newton'a ait değildir. Diğer üçünü o olağanüstü 18 ayda başardı." },
-  { text: "F = m·a denklemi neyi söyler?", opts: ['Kuvvet = kütle × ivme', 'Kütle = kuvvet × ivme', 'İvme = kuvvet × kütle', 'Kuvvet = kütle ÷ ivme'], a: 0, exp: "Bir şeyi ne kadar sert itersen o kadar hızlanır; ama ne kadar ağırsa o kadar zor hızlanır." },
-  { text: "Evrensel kütleçekimde iki cisim arası mesafe 2 katına çıkarsa çekim kuvveti ne olur?", opts: ['2 katına çıkar', 'Yarıya iner', 'Dörtte bire iner', 'Değişmez'], a: 2, exp: "Kuvvet mesafenin KARESİYLE azalır (ters-kare): 2× mesafe → 1/4 kuvvet." },
-  { text: "Newton servetini hangi olayda kaybetti?", opts: ['Büyük Londra Yangını', 'Güney Denizi Balonu', 'Kalpazanlık davası', 'Veba salgını'], a: 1, exp: "Balon patlamadan tepe noktasında geri girdi (bir tür FOMO) ve büyük kayıp yaşadı." },
-  { text: "Bugün Newton'ın ARTIK tek başına kullanmadığımız fikri hangisidir?", opts: ['F = m·a', 'Kalkülüs', 'Mutlak (değişmez) uzay ve zaman', 'Yansıtmalı teleskop'], a: 2, exp: "Einstein, uzay ve zamanın gözlemciye göre değiştiğini (göreli olduğunu) gösterdi." },
-  { text: "Görelilik ve kuantum fiziği, Newton'ı...", opts: ['Tamamen çürüttü', "Çürütmez; kapsar (düşük hızda Newton'a indirgenir)", 'Hiç etkilemedi', 'Yalnızca matematikte değiştirdi'], a: 1, exp: "Hız düşük, kütleçekim zayıfken Einstein'ın denklemleri tam tamına Newton'a dönüşür." },
+  { text: "1665–66 “Mucize Yılları”nda Newton'ın YAPMADIĞI şey hangisidir?", opts: [ 'Kütleçekimin ilk adımlarını atmak', 'Buharlı makineyi icat etmek','Kalkülüsü icat etmek', 'Beyaz ışığın renklere ayrıldığını keşfetmek'], a: 1, exp: "Buharlı makine Newton'a ait değildir. Diğer üçünü o olağanüstü 18 ayda başardı." },
+  { text: "F = m·a denklemi neyi söyler?", opts: [ 'İvme = kuvvet × kütle', 'Kuvvet = kütle ÷ ivme','Kuvvet = kütle × ivme', 'Kütle = kuvvet × ivme'], a: 2, exp: "Bir şeyi ne kadar sert itersen o kadar hızlanır; ama ne kadar ağırsa o kadar zor hızlanır." },
+  { text: "Evrensel kütleçekimde iki cisim arası mesafe 2 katına çıkarsa çekim kuvveti ne olur?", opts: [ 'Dörtte bire iner', 'Değişmez','2 katına çıkar', 'Yarıya iner'], a: 0, exp: "Kuvvet mesafenin KARESİYLE azalır (ters-kare): 2× mesafe → 1/4 kuvvet." },
+  { text: "Newton servetini hangi olayda kaybetti?", opts: [ 'Kalpazanlık davası', 'Veba salgını','Büyük Londra Yangını', 'Güney Denizi Balonu'], a: 3, exp: "Balon patlamadan tepe noktasında geri girdi (bir tür FOMO) ve büyük kayıp yaşadı." },
+  { text: "Bugün Newton'ın ARTIK tek başına kullanmadığımız fikri hangisidir?", opts: [ 'Yansıtmalı teleskop','F = m·a', 'Kalkülüs', 'Mutlak (değişmez) uzay ve zaman'], a: 3, exp: "Einstein, uzay ve zamanın gözlemciye göre değiştiğini (göreli olduğunu) gösterdi." },
+  { text: "Görelilik ve kuantum fiziği, Newton'ı...", opts: [ 'Yalnızca matematikte değiştirdi','Tamamen çürüttü', "Çürütmez; kapsar (düşük hızda Newton'a indirgenir)", 'Hiç etkilemedi'], a: 2, exp: "Hız düşük, kütleçekim zayıfken Einstein'ın denklemleri tam tamına Newton'a dönüşür." },
 ];
 
 // refs yukarıda './refs' düz modülünden re-export edilir (page.tsx Server tarafı da onu kullanır).
