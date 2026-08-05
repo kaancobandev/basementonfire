@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import type { Metadata } from 'next';
 import { breadcrumbJsonLd, jsonLdScript } from '@/lib/seo';
 import ArticleRuntime from '@/app/components/ArticleRuntime';
@@ -49,6 +50,47 @@ const breadcrumbLd = breadcrumbJsonLd([
   { name: title },
 ]);
 
+// ── GÖRSELLER GÖVDEYE DAĞITILDI ──
+// Bu makale tek parça HTML string'inden üretiliyor (content.ts), o yüzden
+// gövdeye doğrudan React bileşeni gömülemiyor ve görseller EN SONDA bir
+// galeride toplanmıştı. Ham <img> de çözüm değil: Netlify Image CDN'i baypas
+// edip 8 tam boy webp indirtir.
+//
+// Çözüm: HTML'i ÜST DÜZEY bölüm işaretlerinden (<!-- NEDİR -->, <!-- QUIZ -->…)
+// parçalayıp araya ArticleImage sokmak. Bileşen CDN'den geçmeye ve SSR'da
+// taranmaya devam ediyor, ama artık her görsel düzyazının onu andığı yerde.
+//
+// ⚠ <main> BİLEREK ÇIKARILDI: bölüm 0'da açılıp sonuncuda kapanıyordu, string
+// öylece bölününce her parçada dengesiz etiket kalırdı. JSX tarafında kuruluyor.
+// CSS'te main'e bağlı kural yok (denetlendi). Dokuz parçanın etiket dengesi ve
+// toplam uzunluğun korunduğu ölçülerek doğrulandı.
+const GOVDE = HTML.replace('<main>', '').replace('</main>', '');
+const PARCA = GOVDE.split(/(?=<!-- )/);   // [0] hero+brandbar, [1..8] bölümler
+
+type Gorsel = { src: string; ratio: string; alt: string; caption: string; credit: string };
+const GORSELLER: Record<number, Gorsel[]> = {
+  1: [
+    { src: '/articles/einstein-rosen/einstein-portre.webp', ratio: '1600 / 1980', alt: "Yaşlı bir adamın siyah beyaz portresi: dağınık beyaz saçlar, gür bıyık, doğrudan objektife bakan gözler.", caption: "Albert Einstein. 1935'te Nathan Rosen ile yazdığı makale “köprü”yü ortaya attı — ama amaçları bir geçit tarif etmek değil, parçacıkları uzay-zaman geometrisiyle açıklamaktı.", credit: "Orren Jack Turner · kamu malı" },
+    { src: '/articles/einstein-rosen/schwarzschild-portre.webp', ratio: '1096 / 1498', alt: "Bıyıklı, takım elbiseli bir adamın 20. yüzyıl başı siyah beyaz portresi.", caption: "Karl Schwarzschild: Einstein'ın denklemlerinin ilk tam çözümünü 1916'da, Birinci Dünya Savaşı cephesindeyken buldu. Köprünün matematiği bu çözümden çıktı.", credit: "Kamu malı" },
+  ],
+  2: [
+    { src: '/articles/einstein-rosen/m87-kara-delik.webp', ratio: '1600 / 932', alt: "Siyah zeminde turuncu-sarı, bulanık bir ışık halkası; ortası tamamen karanlık.", caption: "M87'nin merkezindeki kara delik (Event Horizon Telescope, 2019). Solucan deliğinin fotoğrafı yok — ama uzay-zamanın gerçekten büküldüğünün fotoğrafı var.", credit: "Event Horizon Telescope · CC BY 4.0" },
+    { src: '/articles/einstein-rosen/einstein-carmigi.webp', ratio: '1600 / 1545', alt: "Koyu gökyüzünde ortadaki soluk lekenin çevresine haç biçiminde dizilmiş dört parlak nokta.", caption: "Einstein Haçı: tek bir uzak kuazarın, önündeki galaksinin kütleçekimiyle bükülüp dörde katlanmış görüntüsü. Kütle, ışığın yolunu gerçekten eğiyor.", credit: "NASA, ESA, STScI · kamu malı" },
+  ],
+  3: [
+    { src: '/articles/einstein-rosen/kip-thorne.webp', ratio: '1600 / 1067', alt: "Beyaz saçlı, gözlüklü bir adam konuşma yaparken; arkasında sunum perdesi.", caption: "Kip Thorne: 1988'de Michael Morris ile birlikte, bir solucan deliğinin açık tutulabilmesi için gereken “egzotik madde”yi tarif etti — ve aynı makalede zaman makinesi sorununu açtı.", credit: "Victor R. Ruiz · CC BY 2.0" },
+  ],
+  4: [
+    { src: '/articles/einstein-rosen/hawking-portre.webp', ratio: '1600 / 1067', alt: "Tekerlekli sandalyedeki bir adam, ağırlıksız ortamda havada süzülürken gülümsüyor; çevresinde birkaç kişi.", caption: "Stephen Hawking. Kronoloji koruma varsayımı onun: fizik yasaları, zaman döngüsü kuracak her düzeneği daha kurulmadan bozuyor olabilir.", credit: "Jim Campbell/Aero-News Network · CC BY 3.0" },
+  ],
+  6: [
+    { src: '/articles/einstein-rosen/wheeler-portre.webp', ratio: '720 / 900', alt: "Takım elbiseli, gözlüklü bir adamın 1960'lar siyah beyaz portresi.", caption: "John Archibald Wheeler, 1963. “Solucan deliği” adını 1957'de o koydu; 1962'de Robert Fuller ile birlikte klasik köprünün ışık bile geçemeden çöktüğünü kanıtladı.", credit: "GFHund · CC BY 3.0" },
+  ],
+  7: [
+    { src: '/articles/einstein-rosen/nasa-solucan-deligi.webp', ratio: '1200 / 900', alt: "Kavramsal çizim: yıldızlı uzayda huni biçiminde bükülmüş bir tünel ve içinden geçen ışık izleri.", caption: "NASA'nın kavramsal solucan deliği çizimi. Bu bir gözlem değil, bir illüstrasyon — ve makalenin çürüttüğü “yıldız geçidi” imgesinin ta kendisi.", credit: "Les Bossinas, NASA · kamu malı" },
+  ],
+};
+
 export default function Page() {
   return (
     <>
@@ -72,90 +114,23 @@ export default function Page() {
             --ai-mark: rgba(84,214,232,0.28);
           }
         `}</style>
-        <div dangerouslySetInnerHTML={{ __html: HTML }} />
-
-        {/* GÖRSELLER — bu makale tek parça HTML string'inden üretildiği için
-            (content.ts) gövdeye ArticleImage gömülemiyor; ham <img> ise Netlify
-            Image CDN'i baypas edip 8 tam boy webp indirtirdi. Bu yüzden görseller
-            bölüm hâlinde burada: bileşen CDN'den geçiyor, SSR'da taranabiliyor.
-            Konu soyut — solucan deliğinin fotoğrafı yok (makalenin kendi tezi de bu)
-            → fotoğraflanabilir iki şeye bağlandı: fikri kuran insanlar ve
-            uzay-zaman bükülmesinin GERÇEKTEN gözlenmiş kanıtları. */}
-        <section className="erk-gallery">
-          <h2>Fikri kuranlar</h2>
-          <div className="erk-gallery-grid">
-            <ArticleImage narrow
-              className="erk-img"
-              src="/articles/einstein-rosen/einstein-portre.webp"
-              ratio="1600 / 1980"
-              alt="Yaşlı bir adamın siyah beyaz portresi: dağınık beyaz saçlar, gür bıyık, doğrudan objektife bakan gözler."
-              caption="Albert Einstein. 1935'te Nathan Rosen ile yazdığı makale “köprü”yü ortaya attı — ama amaçları bir geçit tarif etmek değil, parçacıkları uzay-zaman geometrisiyle açıklamaktı."
-              credit="Orren Jack Turner · kamu malı"
-            />
-            <ArticleImage narrow
-              className="erk-img"
-              src="/articles/einstein-rosen/schwarzschild-portre.webp"
-              ratio="1096 / 1498"
-              alt="Bıyıklı, takım elbiseli bir adamın 20. yüzyıl başı siyah beyaz portresi."
-              caption="Karl Schwarzschild: Einstein'ın denklemlerinin ilk tam çözümünü 1916'da, Birinci Dünya Savaşı cephesindeyken buldu. Köprünün matematiği bu çözümden çıktı."
-              credit="Kamu malı"
-            />
-            <ArticleImage narrow
-              className="erk-img"
-              src="/articles/einstein-rosen/wheeler-portre.webp"
-              ratio="720 / 900"
-              alt="Takım elbiseli, gözlüklü bir adamın 1960'lar siyah beyaz portresi."
-              caption="John Archibald Wheeler, 1963. “Solucan deliği” adını 1957'de o koydu; 1962'de Robert Fuller ile birlikte klasik köprünün ışık bile geçemeden çöktüğünü kanıtladı."
-              credit="GFHund · CC BY 3.0"
-            />
-            <ArticleImage narrow
-              className="erk-img"
-              src="/articles/einstein-rosen/kip-thorne.webp"
-              ratio="1600 / 1067"
-              alt="Beyaz saçlı, gözlüklü bir adam konuşma yaparken; arkasında sunum perdesi."
-              caption="Kip Thorne: 1988'de Michael Morris ile birlikte, bir solucan deliğinin açık tutulabilmesi için gereken “egzotik madde”yi tarif etti — ve aynı makalede zaman makinesi sorununu açtı."
-              credit="Victor R. Ruiz · CC BY 2.0"
-            />
-            <ArticleImage narrow
-              className="erk-img"
-              src="/articles/einstein-rosen/hawking-portre.webp"
-              ratio="1600 / 1067"
-              alt="Tekerlekli sandalyedeki bir adam, ağırlıksız ortamda havada süzülürken gülümsüyor; çevresinde birkaç kişi."
-              caption="Stephen Hawking. Kronoloji koruma varsayımı onun: fizik yasaları, zaman döngüsü kuracak her düzeneği daha kurulmadan bozuyor olabilir."
-              credit="Jim Campbell/Aero-News Network · CC BY 3.0"
-            />
-          </div>
-
-          <h2>Bükülmenin kanıtı</h2>
-          <div className="erk-gallery-grid">
-            <ArticleImage narrow
-              className="erk-img"
-              src="/articles/einstein-rosen/m87-kara-delik.webp"
-              ratio="1600 / 932"
-              alt="Siyah zeminde turuncu-sarı, bulanık bir ışık halkası; ortası tamamen karanlık."
-              caption="M87'nin merkezindeki kara delik (Event Horizon Telescope, 2019). Solucan deliğinin fotoğrafı yok — ama uzay-zamanın gerçekten büküldüğünün fotoğrafı var."
-              credit="Event Horizon Telescope · CC BY 4.0"
-            />
-            <ArticleImage narrow
-              className="erk-img"
-              src="/articles/einstein-rosen/einstein-carmigi.webp"
-              ratio="1600 / 1545"
-              alt="Koyu gökyüzünde ortadaki soluk lekenin çevresine haç biçiminde dizilmiş dört parlak nokta."
-              caption="Einstein Haçı: tek bir uzak kuazarın, önündeki galaksinin kütleçekimiyle bükülüp dörde katlanmış görüntüsü. Kütle, ışığın yolunu gerçekten eğiyor."
-              credit="NASA, ESA, STScI · kamu malı"
-            />
-            <ArticleImage narrow
-              className="erk-img"
-              src="/articles/einstein-rosen/nasa-solucan-deligi.webp"
-              ratio="1200 / 900"
-              alt="Kavramsal çizim: yıldızlı uzayda huni biçiminde bükülmüş bir tünel ve içinden geçen ışık izleri."
-              caption="NASA'nın kavramsal solucan deliği çizimi. Bu bir gözlem değil, bir illüstrasyon — ve makalenin çürüttüğü “yıldız geçidi” imgesinin ta kendisi."
-              credit="Les Bossinas, NASA · kamu malı"
-            />
-          </div>
-        </section>
-
-        <ArticleBibliography items={refs} accent="#22d3ee" />
+        <div dangerouslySetInnerHTML={{ __html: PARCA[0] }} />
+        <main>
+          {PARCA.slice(1).map((parca, i) => (
+            <Fragment key={i}>
+              <div dangerouslySetInnerHTML={{ __html: parca }} />
+              {GORSELLER[i + 1] && (
+                <div className="erk-gallery">
+                  <div className="erk-gallery-grid">
+                    {GORSELLER[i + 1].map((g) => (
+                      <ArticleImage narrow key={g.src} className="erk-img" {...g} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </Fragment>
+          ))}
+        </main>
       </div>
       <ArticleRuntime js={JS} cdns={CDNS} />
     </>
