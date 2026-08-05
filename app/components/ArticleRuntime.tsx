@@ -20,21 +20,45 @@ export default function ArticleRuntime({ js, cdns = [] }: { js: string; cdns?: s
     const injected: HTMLScriptElement[] = [];
     let stopped = false;
 
-    // requestAnimationFrame: tüm mount boyunca izle, unmount'ta bekleyenleri iptal et
+    // ── SAHİPLİK ── Eskiden rAF "tüm mount boyunca" izleniyordu ve unmount'ta
+    // bekleyen HER kare iptal ediliyordu. Ama rAF global: makale açıkken
+    // UYGULAMANIN KENDİ animasyonları da o listeye giriyordu. Makaleden
+    // çıkıldığında onların bekleyen karesi de iptal ediliyor, kendini yeniden
+    // planlayan bir döngüde tek iptal döngüyü KALICI olarak öldürüyordu —
+    // kullanıcının bildirdiği "tıklama animasyonu dondu" tam olarak buydu.
+    //
+    // Artık sahiplik aktarmalı: yalnız (a) script'in senkron init'inde ve
+    // (b) BİZİM bir callback'imizin içinde açılan kareler izleniyor. Böylece
+    // makalenin kendi döngüsü sonuna kadar takip edilirken uygulamanın kareleri
+    // yamaya hiç uğramıyor.
+    let initAcik = false;   // (a) script senkron çalışıyor
+    let bizimKare = false;  // (b) bizim callback'imizin içindeyiz
     const rafs = new Set<number>();
     const origRaf: typeof requestAnimationFrame = w.requestAnimationFrame.bind(w);
     const origCaf: typeof cancelAnimationFrame = w.cancelAnimationFrame.bind(w);
-    w.requestAnimationFrame = (cb: FrameRequestCallback) => {
-      const id = origRaf((t) => { rafs.delete(id); cb(t); });
+    const izle = (cb: FrameRequestCallback) => {
+      const id = origRaf((t) => {
+        rafs.delete(id);
+        const onceki = bizimKare; bizimKare = true;
+        try { cb(t); } finally { bizimKare = onceki; }
+      });
       rafs.add(id);
       return id;
     };
+    w.requestAnimationFrame = (cb: FrameRequestCallback) =>
+      (initAcik || bizimKare) ? izle(cb) : origRaf(cb);
     w.cancelAnimationFrame = (id: number) => { rafs.delete(id); origCaf(id); };
 
-    // setInterval: izle, unmount'ta temizle (React setInterval kullanmaz, güvenli)
+    // setInterval: aynı sahiplik kuralı. Eskiden "React setInterval kullanmaz,
+    // güvenli" varsayımıyla hepsi izleniyordu; uygulamanın başka bileşenleri
+    // (ya da bir kütüphane) kullanırsa aynı hataya düşerdi.
     const intervals = new Set<any>();
     const origSetInterval = w.setInterval.bind(w);
-    w.setInterval = (...a: any[]) => { const id = origSetInterval(...a); intervals.add(id); return id; };
+    w.setInterval = (...a: any[]) => {
+      const id = origSetInterval(...a);
+      if (initAcik || bizimKare) intervals.add(id);
+      return id;
+    };
 
     // window/document.addEventListener: SADECE script'in senkron init'i sırasında yakala
     // (diğer bileşenlerin dinleyicilerine dokunmamak için sonra geri al)
@@ -74,12 +98,14 @@ export default function ArticleRuntime({ js, cdns = [] }: { js: string; cdns?: s
       // init'i boyunca açık; hemen sonra geri alınıyor, yani başka bileşenlerin
       // dinleyicileri etkilenmiyor.
       const restoreEl = wrapProtoAEL(Element.prototype);
+      initAcik = true;   // bu pencerede açılan rAF/interval BİZİM sayılır
       try {
         const s = document.createElement('script');
         s.textContent = js;
         document.body.appendChild(s); // senkron çalışır
         injected.push(s);
       } finally {
+        initAcik = false;
         restoreWin();
         restoreDoc();
         restoreEl();
