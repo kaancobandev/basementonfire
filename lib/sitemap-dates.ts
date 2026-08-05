@@ -15,7 +15,7 @@ export const MAKALE_TARIH: Record<string, string> = {
   "carthage": "2026-07-21T16:39:36+03:00",
   "ekonomi": "2026-08-03T20:34:03+03:00",
   "enflasyon": "2026-08-03T20:34:03+03:00",
-  "einstein-rosen": "2026-07-29T20:05:23+03:00",
+  "einstein-rosen": "2026-08-05T12:06:04+03:00",
   "arcade": "2026-07-29T20:05:23+03:00",
   "tibbi": "2026-07-29T20:05:23+03:00",
   "internet": "2026-07-29T20:05:23+03:00",
@@ -65,4 +65,4 @@ export const SAYFA_TARIH: Record<string, string> = {
 };
 
 /** Bilinmeyen rota için güvenli geri düşüş: dosyanın üretildiği an. */
-export const URETIM_TARIHI = '2026-08-05T08:26:05.248Z';
+export const URETIM_TARIHI = '2026-08-05T09:06:11.033Z';
