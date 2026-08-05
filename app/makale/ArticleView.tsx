@@ -5,6 +5,7 @@ import { type ArticleBlock, articleGoogleFontsHref } from '@/lib/userArticles';
 import Img from '@/app/components/Img';
 import ArticleEmbed from '@/app/components/ArticleEmbed';
 import AsyncFonts from '@/app/components/AsyncFonts';
+import OwnerEditBar from './OwnerEditBar';
 
 // Kullanıcı makalesinin PAYLAŞILAN görünümü — iki rota kullanır:
 //   /makale/[slug]        → ISR, yalnız onaylı makaleler (herkese açık)
@@ -71,6 +72,10 @@ export default function ArticleView({ a, isOwner = false }: { a: ArticleRow; isO
           {isOwner && <Link href={`/makale/yeni?id=${a.id}`} className="ua-banner-edit">Düzenle</Link>}
         </div>
       )}
+
+      {/* Yayindaki makalede yazarin duzenleme girisi. Sahiplik kapisi
+          istemcide (bkz. OwnerEditBar) — bu rota ISR ve sunucuda auth okumuyor. */}
+      {a.status === 'approved' && <OwnerEditBar articleId={a.id} authorId={a.user_id} />}
 
       <article className="ua-article">
         <header className="ua-head">

@@ -19,10 +19,22 @@ export default async function MakaleYeniPage({ searchParams }: { searchParams: P
   if (id && Number.isFinite(Number(id))) {
     const { data } = await db
       .from('user_articles')
-      .select('id, slug, title, summary, cover_url, category, doc, sources, status, user_id')
+      .select('id, slug, title, summary, cover_url, category, doc, sources, status, user_id, pending_edit, pending_reject_reason')
       .eq('id', Number(id))
       .maybeSingle();
-    if (data && data.user_id === me.id) initial = data; // yalnizca kendi makaleni duzenle
+    if (data && data.user_id === me.id) {
+      // pending_edit/pending_reject_reason ham hâlleriyle istemciye GITMEZ:
+      // pending_edit koca `doc`u tasir, oldugu gibi gecirilirse editore inen
+      // yuk iki katina cikardi. Asagida yalnizca gereken alanlar aktariliyor.
+      const { pending_edit: oneri, pending_reject_reason: redNedeni, ...canli } = data as any;
+      // ⚠ Bekleyen duzenleme VARSA editore o yuklenir, canli surum degil.
+      // Aksi hâlde: yazar duzenler -> onaya duser -> sayfayi tekrar acar ->
+      // ESKI canli metni gorur -> kaydeder -> bekleyen duzenlemesini kendi
+      // eliyle, farkinda olmadan siler. Sessiz veri kaybi.
+      initial = oneri
+        ? { ...canli, ...oneri, id: canli.id, slug: canli.slug, status: canli.status, pendingEdit: true, pendingRejectReason: null }
+        : { ...canli, pendingEdit: false, pendingRejectReason: redNedeni ?? null };
+    }
   }
 
   return <ArticleEditor initial={initial} />;

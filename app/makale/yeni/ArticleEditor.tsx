@@ -20,6 +20,10 @@ type Source = { title: string; authors: string; year: string; source: string; ur
 interface Initial {
   id: number; slug: string; title: string; summary: string; cover_url: string | null;
   category: string | null; doc: ArticleBlock[]; sources: any[]; status: string;
+  /** Yayindaki makalenin bekleyen (onay bekleyen) duzenlemesi yukleniyor. */
+  pendingEdit?: boolean;
+  /** Onceki duzenleme reddedildiyse yoneticinin nedeni. */
+  pendingRejectReason?: string | null;
 }
 
 let cidSeq = 1;
@@ -224,6 +228,15 @@ export default function ArticleEditor({ initial }: { initial: Initial | null }) 
       const data = await res.json().catch(() => ({}));
       if (!res.ok) { setError(data.error ?? 'Bir hata oluştu.'); setSubmitting(false); setProgress(''); return; }
 
+      // YAYINDAKI makalenin duzenlemesi: makale yayindan DUSMEDI, yalnizca
+      // degisiklik onaya girdi. Kullaniciyi "incelemeye gonderildi" diye
+      // korkutmayalim ve onizleme yerine yayindaki sayfaya gonderelim.
+      if (data.pending) {
+        toast('Değişikliklerin onaya gönderildi ✅', { description: 'Makalen yayında kalmaya devam ediyor; onaylanınca yeni hâli geçecek.' });
+        router.push(`/makale/${initial!.slug}`);
+        return;
+      }
+
       toast('Makalen incelemeye gönderildi ✅', { description: 'Onaylanınca yayına girecek.' });
       // Gönderim sonrası makale 'pending' — /makale/[slug] artık yalnız onaylıları
       // sunan ISR rotası (404 verir). Sahip önizlemesi ayrı dinamik rotada.
@@ -248,6 +261,22 @@ export default function ArticleEditor({ initial }: { initial: Initial | null }) 
 
       <div className="ed-wrap">
         {error && <div className="ed-error">{error}</div>}
+
+        {/* Yayindaki bir makaleyi duzenliyorsa: kaydetmenin makaleyi yayindan
+            DUSURMEYECEGINI acikca soyle. Aksi hâlde kullanici kucuk bir
+            duzeltmeyi bile riskli sanip yapmaz. */}
+        {initial?.status === 'approved' && (
+          <div className="ed-notice">
+            <strong>Bu makale yayında.</strong> Kaydettiğinde makalen yayında kalmaya devam eder;
+            değişikliklerin yönetici onayına düşer ve onaylanınca yeni hâli geçer.
+            {initial.pendingEdit && ' Halihazırda onay bekleyen bir düzenlemen var — aşağıda onun üzerinden devam ediyorsun.'}
+          </div>
+        )}
+        {initial?.pendingRejectReason && (
+          <div className="ed-notice ed-notice--warn">
+            <strong>Önceki düzenlemen reddedildi.</strong> Neden: {initial.pendingRejectReason}
+          </div>
+        )}
 
         {/* Kapak */}
         <input ref={coverInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden onChange={(e) => { onCoverPick(e.target.files?.[0]); if (coverInputRef.current) coverInputRef.current.value = ''; }} />
@@ -384,6 +413,9 @@ export default function ArticleEditor({ initial }: { initial: Initial | null }) 
         .ed-main { min-height: 100vh; background: var(--color-bg); }
         .ed-wrap { max-width: 820px; margin: 0 auto; width: 100%; padding: 18px 16px 64px; display: flex; flex-direction: column; gap: 14px; }
         .ed-error { background: #fee2e2; color: #dc2626; padding: 10px 14px; border-radius: 12px; font-size: 0.88rem; }
+        /* Yayindaki makaleyi duzenleme bilgilendirmesi. */
+        .ed-notice { background: rgba(91,46,239,0.10); border: 1px solid rgba(91,46,239,0.30); color: var(--color-text); padding: 10px 14px; border-radius: 12px; font-size: 0.86rem; line-height: 1.5; }
+        .ed-notice--warn { background: rgba(234,179,8,0.12); border-color: rgba(234,179,8,0.38); }
         .ed-cover { width: 100%; aspect-ratio: 16/7; border: 2px dashed var(--color-border); border-radius: 16px; overflow: hidden; background: var(--color-surface); cursor: pointer; display: grid; place-items: center; padding: 0; }
         .ed-cover img { width: 100%; height: 100%; object-fit: cover; }
         .ed-cover-empty { color: var(--color-text-muted); font-weight: 600; font-size: 0.92rem; }

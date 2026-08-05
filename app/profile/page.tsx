@@ -7,6 +7,11 @@ import ProfileClient from './ProfileClient';
 
 export const dynamic = 'force-dynamic';
 
+// Profildeki "makalelerim" sutunlari. ESKI surum, duzenleme-onayi gocu henuz
+// calismadiginda kullanilan yedek yol (asagidaki aciklamaya bak).
+const ARTICLE_COLS_ESKI = 'id, slug, title, status, cover_url, reject_reason';
+const ARTICLE_COLS = `${ARTICLE_COLS_ESKI}, pending_at, pending_reject_reason`;
+
 export default async function ProfilePage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const { me } = await getMe();
   if (!me) redirect('/login');
@@ -31,7 +36,10 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
     db.from('user_progress').select('xp, current_streak, longest_streak, total_correct, total_answered, last_answer_date').eq('user_id', user.id).maybeSingle(),
     db.from('user_badges').select('badge_key, earned_at').eq('user_id', user.id).order('earned_at', { ascending: true }),
     // Kendi makaleleri (her durum). Tablo yoksa hata yutulur -> profil yine acilir.
-    db.from('user_articles').select('id, slug, title, status, cover_url, reject_reason').eq('user_id', user.id).order('created_at', { ascending: false }),
+    // pending_at/pending_reject_reason: yayindaki makaleye onerilip onay bekleyen
+    // duzenleme. Yalnizca VAR MI diye bakiliyor (govdesi cekilmiyor) -> sorgu
+    // agirlasmasin. Sutunlar yoksa asagida sutunsuz surumle tekrar denenir.
+    db.from('user_articles').select(ARTICLE_COLS).eq('user_id', user.id).order('created_at', { ascending: false }),
   ]);
   // Öne çıkanlar — tablo yoksa boş (getHighlights defansif); şerit gizli kalır.
   const highlights = await getHighlights(user.id);
@@ -41,7 +49,26 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
 
   const progress = progressRes && !progressRes.error ? (progressRes.data ?? null) : null;
   const badgeKeys: string[] = (badgesRes && !badgesRes.error ? (badgesRes.data ?? []) : []).map((b: any) => b.badge_key);
-  const myArticles = (articlesRes && !articlesRes.error ? (articlesRes.data ?? []) : []) as Array<{ id: number; slug: string; title: string; status: string; cover_url: string | null; reject_reason: string | null }>;
+  // ⚠ DEPLOY SIRASI TUZAGI: bu sayfa sorgu hatasini YUTAR. Duzenleme-onayi gocu
+  // (sql/features-article-edit-approval.sql) henuz calismadan kod yayina cikarsa
+  // pending_* sutunlari yok -> sorgu 42703 ile duser -> hicbir yerde hata
+  // gorunmeden HER YAZARIN makale listesi profilinden kaybolurdu. Sutunsuz
+  // surumle bir kez daha deneyip bu sessiz gerilemeyi kapatiyoruz. Goc
+  // calistiktan sonra bu yedek yol hic tetiklenmez.
+  // Tip ACIK verilmeli: yedek yol pending_* sutunlari OLMADAN doner, `let`in
+  // cikarimi ise ilk atamadan (genis surum) gelir -> atama tip hatasi verirdi.
+  type ArticleRow = {
+    id: number; slug: string; title: string; status: string;
+    cover_url: string | null; reject_reason: string | null;
+    pending_at?: string | null; pending_reject_reason?: string | null;
+  };
+  let articlesRows: ArticleRow[] = articlesRes && !articlesRes.error ? ((articlesRes.data ?? []) as ArticleRow[]) : [];
+  if (articlesRes?.error) {
+    const { data: eski } = await db.from('user_articles')
+      .select(ARTICLE_COLS_ESKI).eq('user_id', user.id).order('created_at', { ascending: false });
+    articlesRows = (eski ?? []) as ArticleRow[];
+  }
+  const myArticles = articlesRows;
 
   type MediaPostRow = { id: number; media_url: string; media_type: string; caption: string; likes: number; created_at: string; media?: { url: string; type: 'image' | 'video' }[] | null };
   const mediaPosts = (mediaRes.data ?? []) as MediaPostRow[];

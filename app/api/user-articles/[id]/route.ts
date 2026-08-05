@@ -7,8 +7,19 @@ import { normalizeDoc, normalizeSources, clampText, isAllowedMediaUrl } from '@/
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
 
 /**
- * Kendi makaleni duzenle. Her duzenleme makaleyi TEKRAR 'pending' yapar
- * (yeniden inceleme) — yayindaki bir makale duzenlenince onaya geri doner.
+ * Kendi makaleni duzenle. IKI FARKLI YOL var ve ayrimi makalenin YAYINDA olup
+ * olmamasi belirler:
+ *
+ *  • status === 'approved' (YAYINDA)
+ *      Canli alanlara DOKUNULMAZ. Onerilen surum pending_edit'e yazilir,
+ *      makale okunmaya devam eder, admin onaylayinca yeni surum gecer.
+ *      Eskiden burada status 'pending' yapiliyordu: yazim hatasi duzeltmek
+ *      isteyen yazar makalesini yayindan dusuruyordu (404) — duzenlemeyi
+ *      cezalandiran bu davranis kaldirildi.
+ *
+ *  • status === 'pending' | 'rejected' (HENUZ YAYINDA DEGIL)
+ *      Ortada korunacak canli surum yok; duzenleme dogrudan satirin uzerine
+ *      yazilir ve makale (yeniden) inceleme kuyruguna girer.
  */
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { me } = await getMe();
@@ -16,11 +27,19 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const id = Number((await params).id);
   if (!Number.isFinite(id)) return json({ error: 'Geçersiz id' }, 400);
 
-  const { data: existing } = await db.from('user_articles').select('id, user_id, slug, updated_at').eq('id', id).maybeSingle();
+  const { data: existing } = await db.from('user_articles')
+    .select('id, user_id, slug, status, updated_at, pending_at')
+    .eq('id', id).maybeSingle();
   if (!existing) return json({ error: 'Makale bulunamadı' }, 404);
   if (existing.user_id !== me.id) return json({ error: 'Yetkin yok' }, 403);
+
+  const yayinda = existing.status === 'approved';
   // Sik tekrarli (scriptlenmis) buyuk yazimlari engelle — basit debounce.
-  if (existing.updated_at && Date.now() - new Date(existing.updated_at).getTime() < 5000)
+  // Yayindaki makalede canli satirin updated_at'i DEGISMEDIGI icin olcut
+  // pending_at olmali; yoksa ilk duzenlemeden sonraki her kaydetme sonsuza
+  // kadar 429 yerdi (ya da hic korumasiz kalirdi).
+  const sonYazma = yayinda ? existing.pending_at : existing.updated_at;
+  if (sonYazma && Date.now() - new Date(sonYazma).getTime() < 5000)
     return json({ error: 'Çok hızlı düzenliyorsun, birkaç saniye bekle.' }, 429);
 
   let body: any;
@@ -43,6 +62,22 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const sources = normalizeSources(body.sources);
   if (JSON.stringify(doc).length > LIMITS.docBytes) return json({ error: 'Makale çok büyük.' }, 413);
 
+  // ── YAYINDAKI MAKALE: canli surume dokunma, oneriyi yana yaz ──
+  if (yayinda) {
+    const { error } = await db.from('user_articles')
+      .update({
+        pending_edit: { title, summary, cover_url, category, doc, sources },
+        pending_at: new Date().toISOString(),
+        pending_reject_reason: null, // yeni deneme, eski redde ait neden silinir
+      })
+      .eq('id', id);
+    if (error) return json({ error: 'Güncellenemedi.' }, 500);
+    // Bilerek revalidate YOK: canli alanlarin hicbiri degismedi, yayindaki
+    // sayfa aynen gecerli. Onbellegi bosuna dusurmek makaleyi yavaslatirdi.
+    return json({ ok: true, status: 'approved', pending: true });
+  }
+
+  // ── HENUZ YAYINDA DEGIL: dogrudan uzerine yaz ──
   // NOT: published_at KORUNUR (null'lanmaz) -> bir kez yayinlanan makalenin ozgun
   // yayin tarihi duzenlemede kaybolmaz. Duzenleme status'u tekrar 'pending' yapar
   // (yeniden inceleme); onaylaninca moderate route published_at'i (doluysa) korur.
@@ -51,8 +86,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     .eq('id', id);
   if (error) return json({ error: 'Güncellenemedi.' }, 500);
 
-  revalidateTag('feed'); // yayindaydiysa Keşfet'ten dussun (tekrar onaya kadar)
-  // Duzenleme statusu pending'e cevirdi -> ISR'daki yayindaki kopya dusmeli.
+  revalidateTag('feed');
   if (existing.slug) revalidatePath(`/makale/${existing.slug}`);
   return json({ ok: true, status: 'pending' });
 }

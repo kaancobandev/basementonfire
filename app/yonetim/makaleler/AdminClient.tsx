@@ -1,14 +1,100 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import type { DiffRow, FieldChange } from '@/lib/articleDiff';
 
 type Item = { id: number; slug: string; title: string; summary: string; created_at: string; author: string; username: string };
 
-export default function AdminClient({ items: initial }: { items: Item[] }) {
+type Edit = {
+  id: number; slug: string; title: string; yeniTitle: string; pending_at: string;
+  author: string; username: string;
+  alanlar: FieldChange[]; govde: DiffRow[]; kaynak: DiffRow[]; degisenSatir: number;
+};
+
+const RENK = {
+  add: { bg: 'rgba(22,163,74,0.14)', fg: '#4ade80', bar: '#16a34a' },
+  del: { bg: 'rgba(239,68,68,0.14)', fg: '#fca5a5', bar: '#ef4444' },
+};
+
+/* ── fark satiri ──────────────────────────────────────────── */
+
+function Satir({ r }: { r: DiffRow }) {
+  const kutu = (renk: typeof RENK.add, ic: React.ReactNode, isaret: string) => (
+    <div style={{ display: 'flex', gap: 8, padding: '4px 8px', background: renk.bg, borderLeft: `3px solid ${renk.bar}`, borderRadius: 4 }}>
+      <span aria-hidden style={{ color: renk.fg, fontWeight: 800, flexShrink: 0, fontFamily: 'monospace' }}>{isaret}</span>
+      <span style={{ color: 'var(--color-text)', minWidth: 0, wordBreak: 'break-word' }}>{ic}</span>
+    </div>
+  );
+
+  if (r.t === 'same') {
+    return (
+      <div style={{ display: 'flex', gap: 8, padding: '4px 8px', opacity: 0.45 }}>
+        <span aria-hidden style={{ flexShrink: 0, fontFamily: 'monospace' }}>&nbsp;</span>
+        <span style={{ color: 'var(--color-text-muted)', minWidth: 0, wordBreak: 'break-word' }}>{r.text}</span>
+      </div>
+    );
+  }
+  if (r.t === 'add') return kutu(RENK.add, r.text, '+');
+  if (r.t === 'del') return kutu(RENK.del, <s>{r.text}</s>, '−');
+
+  // 'mod' — tek satirda kelime duzeyinde: degisen kelime nerede, hemen gorunur
+  return (
+    <div style={{ display: 'flex', gap: 8, padding: '4px 8px', background: 'rgba(234,179,8,0.10)', borderLeft: '3px solid #eab308', borderRadius: 4 }}>
+      <span aria-hidden style={{ color: '#fbbf24', fontWeight: 800, flexShrink: 0, fontFamily: 'monospace' }}>~</span>
+      <span style={{ color: 'var(--color-text)', minWidth: 0, wordBreak: 'break-word' }}>
+        {r.parts.map((p, i) =>
+          p.s === 'same' ? <span key={i}>{p.text} </span>
+          : p.s === 'add' ? <mark key={i} style={{ background: RENK.add.bg, color: RENK.add.fg, fontWeight: 700, borderRadius: 3, padding: '0 3px' }}>{p.text} </mark>
+          : <s key={i} style={{ background: RENK.del.bg, color: RENK.del.fg, borderRadius: 3, padding: '0 3px' }}>{p.text} </s>,
+        )}
+      </span>
+    </div>
+  );
+}
+
+/**
+ * Fark listesi. Varsayilan olarak YALNIZCA degisen satirlar (+ birer satir
+ * baglam) cizilir: 300 paragrafli bir makalede degismeyen her satiri basmak
+ * degiseni gizlerdi. "Tümünü göster" tam metni acar.
+ */
+function FarkListesi({ rows, hepsi }: { rows: DiffRow[]; hepsi: boolean }) {
+  const gosterilecek = useMemo(() => {
+    if (hepsi) return rows.map((r, i) => ({ r, i }));
+    const tut = new Set<number>();
+    rows.forEach((r, i) => {
+      if (r.t === 'same') return;
+      tut.add(i); tut.add(i - 1); tut.add(i + 1); // birer satir baglam
+    });
+    return rows.map((r, i) => ({ r, i })).filter(({ i }) => tut.has(i));
+  }, [rows, hepsi]);
+
+  if (!rows.length) return null;
+  return (
+    <div style={{ fontSize: '0.86rem', lineHeight: 1.6, display: 'flex', flexDirection: 'column', gap: 2 }}>
+      {gosterilecek.map(({ r, i }, k) => {
+        // Atlanan blok varsa arada oldugunu belli et.
+        const bosluk = k > 0 && i - gosterilecek[k - 1].i > 1;
+        return (
+          <div key={i}>
+            {bosluk && <div style={{ color: 'var(--color-text-muted)', fontFamily: 'monospace', fontSize: '0.75rem', padding: '2px 8px', opacity: 0.6 }}>⋯</div>}
+            <Satir r={r} />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ── ana bilesen ──────────────────────────────────────────── */
+
+export default function AdminClient({ items: initial, edits: initialEdits = [] }: { items: Item[]; edits?: Edit[] }) {
   const [items, setItems] = useState(initial);
-  const [busy, setBusy] = useState<number | null>(null);
+  const [edits, setEdits] = useState(initialEdits);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [acik, setAcik] = useState<number | null>(null);
+  const [tamMetin, setTamMetin] = useState<Set<number>>(new Set());
   // Tarih yereli/saat dilimi server ile client'ta farkli olabilir -> hydration
   // uyusmazligi (React #418). Server'da ISO'nun gun kismini bas, mount sonrasi
   // yerellestir; ilk client render server ile AYNI olsun.
@@ -16,12 +102,12 @@ export default function AdminClient({ items: initial }: { items: Item[] }) {
   useEffect(() => { setMounted(true); }, []);
   const fmt = (iso: string) => (mounted ? new Date(iso).toLocaleString('tr-TR') : iso.slice(0, 10));
 
-  async function moderate(id: number, action: 'approve' | 'reject') {
+  async function cagir(id: number, action: string, anahtar: string) {
     let reason = '';
-    if (action === 'reject') {
+    if (action === 'reject' || action === 'reject_edit') {
       reason = window.prompt('Reddetme nedeni (kullanıcıya gösterilir, isteğe bağlı):') ?? '';
     }
-    setBusy(id);
+    setBusy(anahtar);
     try {
       const res = await fetch(`/api/user-articles/${id}/moderate`, {
         method: 'POST',
@@ -29,31 +115,150 @@ export default function AdminClient({ items: initial }: { items: Item[] }) {
         body: JSON.stringify({ action, reason }),
       });
       if (!res.ok) { const d = await res.json().catch(() => ({})); toast(d.error ?? 'İşlem başarısız'); return; }
-      setItems((prev) => prev.filter((x) => x.id !== id));
-      toast(action === 'approve' ? 'Onaylandı ve yayına girdi ✅' : 'Reddedildi');
+      if (action === 'approve' || action === 'reject') {
+        setItems((p) => p.filter((x) => x.id !== id));
+        toast(action === 'approve' ? 'Onaylandı ve yayına girdi ✅' : 'Reddedildi');
+      } else {
+        setEdits((p) => p.filter((x) => x.id !== id));
+        toast(action === 'approve_edit' ? 'Düzenleme yayına alındı ✅' : 'Düzenleme reddedildi (makale yayında kaldı)');
+      }
     } finally {
       setBusy(null);
     }
   }
 
+  const btn = (bg: string): React.CSSProperties => ({
+    padding: '8px 16px', borderRadius: 10, border: 'none', background: bg,
+    color: '#fff', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer',
+  });
+  const btnDuz: React.CSSProperties = {
+    padding: '8px 16px', borderRadius: 10, border: '1px solid var(--color-border)',
+    color: 'var(--color-text)', textDecoration: 'none', fontWeight: 700, fontSize: '0.85rem',
+    background: 'none', cursor: 'pointer',
+  };
+  const kart: React.CSSProperties = {
+    border: '1px solid var(--color-border)', borderRadius: 14, padding: 16, background: 'var(--color-surface)',
+  };
   return (
     <main className="main-content" style={{ minHeight: '100vh', background: 'var(--color-bg)' }}>
       <div className="feed-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-        <span>Makale Yönetimi · İnceleme Kuyruğu</span>
+        <span>Makale Yönetimi</span>
         <span style={{ display: 'flex', gap: 14 }}>
           <Link href="/yonetim/sikayetler" style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-primary)', textDecoration: 'none' }}>Şikayetler →</Link>
           <Link href="/yonetim/istatistik" style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-primary)', textDecoration: 'none' }}>İstatistik →</Link>
         </span>
       </div>
+
       <div style={{ maxWidth: 820, margin: '0 auto', padding: '18px 16px 64px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {items.length === 0 && (
+
+        {/* ── YAYINDAKI MAKALELERE ONERILEN DUZENLEMELER ──
+            Once cizilir: makale ZATEN yayinda oldugu icin onaylanmamis bir
+            degisiklik bekliyor demek degil — ama yazar cevap bekliyor. */}
+        {edits.length > 0 && (
+          <>
+            <h2 style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--color-text)', margin: '4px 0 0' }}>
+              ✏️ Düzenleme onayı <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>({edits.length})</span>
+            </h2>
+            <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', margin: '0 0 4px' }}>
+              Bu makaleler yayında ve yayında kalmaya devam ediyor. Aşağıdaki değişiklikler yalnızca onaylarsan geçerli olur.
+            </p>
+            {edits.map((e) => {
+              const ack = acik === e.id;
+              const tam = tamMetin.has(e.id);
+              return (
+                <div key={`e${e.id}`} style={{ ...kart, borderColor: 'rgba(234,179,8,0.35)' }}>
+                  <div style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--color-text)' }}>{e.title}</div>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', margin: '4px 0 8px' }}>
+                    <Link href={`/u/${e.username}`} style={{ color: 'var(--color-primary)' }}>{e.author}</Link>
+                    {' · '}{fmt(e.pending_at)}
+                    {' · '}
+                    <span style={{ color: '#fbbf24', fontWeight: 700 }}>
+                      {e.degisenSatir > 0 ? `${e.degisenSatir} satır değişti` : 'gövde aynı'}
+                      {e.alanlar.length > 0 && ` · ${e.alanlar.length} alan`}
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: ack ? 14 : 0 }}>
+                    <button type="button" onClick={() => setAcik(ack ? null : e.id)} style={btnDuz}>
+                      {ack ? '▲ Farkı gizle' : '▼ Farkı gör'}
+                    </button>
+                    <Link href={`/makale/${e.slug}`} target="_blank" style={btnDuz}>👁 Yayındaki</Link>
+                    <button type="button" disabled={busy === `e${e.id}`} onClick={() => cagir(e.id, 'approve_edit', `e${e.id}`)} style={btn('#16a34a')}>✓ Değişikliği yayına al</button>
+                    <button type="button" disabled={busy === `e${e.id}`} onClick={() => cagir(e.id, 'reject_edit', `e${e.id}`)} style={btn('#ef4444')}>✕ Reddet</button>
+                  </div>
+
+                  {ack && (
+                    <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 14 }}>
+                      {e.alanlar.length === 0 && e.degisenSatir === 0 && (
+                        <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', margin: 0 }}>
+                          Görünür bir değişiklik bulunamadı (yalnızca biçimlendirme değişmiş olabilir).
+                        </p>
+                      )}
+
+                      {e.alanlar.length > 0 && (
+                        <div>
+                          <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 }}>Alanlar</div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                            {e.alanlar.map((a) => (
+                              <div key={a.label} style={{ fontSize: '0.86rem' }}>
+                                <div style={{ fontWeight: 700, color: 'var(--color-text)', marginBottom: 2 }}>{a.label}</div>
+                                <div style={{ color: RENK.del.fg, wordBreak: 'break-word' }}>− <s>{a.onceki}</s></div>
+                                <div style={{ color: RENK.add.fg, wordBreak: 'break-word' }}>+ {a.sonraki}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {e.govde.length > 0 && (
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6, gap: 8, flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Gövde</span>
+                            <button
+                              type="button"
+                              onClick={() => setTamMetin((p) => { const n = new Set(p); n.has(e.id) ? n.delete(e.id) : n.add(e.id); return n; })}
+                              style={{ ...btnDuz, padding: '4px 10px', fontSize: '0.75rem' }}
+                            >
+                              {tam ? 'Yalnızca değişenler' : 'Tümünü göster'}
+                            </button>
+                          </div>
+                          <FarkListesi rows={e.govde} hepsi={tam} />
+                        </div>
+                      )}
+
+                      {e.kaynak.some((r) => r.t !== 'same') && (
+                        <div>
+                          <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 }}>Kaynakça</div>
+                          <FarkListesi rows={e.kaynak} hepsi={tam} />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </>
+        )}
+
+        {/* ── ILK YAYIN KUYRUGU ── */}
+        {edits.length > 0 && (
+          <h2 style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--color-text)', margin: '18px 0 0' }}>
+            📥 İnceleme kuyruğu <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>({items.length})</span>
+          </h2>
+        )}
+
+        {items.length === 0 && edits.length === 0 && (
           <div style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 48 }}>
             <p style={{ fontWeight: 700, margin: '0 0 6px' }}>İncelenecek makale yok 🎉</p>
-            <p style={{ fontSize: '0.85rem', margin: 0 }}>Yeni gönderiler burada görünecek.</p>
+            <p style={{ fontSize: '0.85rem', margin: 0 }}>Yeni gönderiler ve düzenlemeler burada görünecek.</p>
           </div>
         )}
+        {items.length === 0 && edits.length > 0 && (
+          <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', margin: 0 }}>Yeni gönderi yok.</p>
+        )}
+
         {items.map((a) => (
-          <div key={a.id} style={{ border: '1px solid var(--color-border)', borderRadius: 14, padding: 16, background: 'var(--color-surface)' }}>
+          <div key={a.id} style={kart}>
             <div style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--color-text)' }}>{a.title}</div>
             <div style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', margin: '4px 0 8px' }}>
               <Link href={`/u/${a.username}`} style={{ color: 'var(--color-primary)' }}>{a.author}</Link>
@@ -63,9 +268,9 @@ export default function AdminClient({ items: initial }: { items: Item[] }) {
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {/* Kuyruktakiler 'pending' — ana rota (ISR, yalnız onaylılar) 404
                   verir; admin önizlemesi dinamik önizleme rotasından. */}
-              <Link href={`/makale/onizleme/${a.id}`} target="_blank" style={{ padding: '8px 16px', borderRadius: 10, border: '1px solid var(--color-border)', color: 'var(--color-text)', textDecoration: 'none', fontWeight: 700, fontSize: '0.85rem' }}>👁 Önizle</Link>
-              <button type="button" disabled={busy === a.id} onClick={() => moderate(a.id, 'approve')} style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: '#16a34a', color: '#fff', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer' }}>✓ Onayla</button>
-              <button type="button" disabled={busy === a.id} onClick={() => moderate(a.id, 'reject')} style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: '#ef4444', color: '#fff', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer' }}>✕ Reddet</button>
+              <Link href={`/makale/onizleme/${a.id}`} target="_blank" style={btnDuz}>👁 Önizle</Link>
+              <button type="button" disabled={busy === `a${a.id}`} onClick={() => cagir(a.id, 'approve', `a${a.id}`)} style={btn('#16a34a')}>✓ Onayla</button>
+              <button type="button" disabled={busy === `a${a.id}`} onClick={() => cagir(a.id, 'reject', `a${a.id}`)} style={btn('#ef4444')}>✕ Reddet</button>
             </div>
           </div>
         ))}

@@ -26,7 +26,13 @@ const AVATAR_MAX = 10 * 1024 * 1024; // 10 MB (GIF dahil)
 const GiphyPicker = dynamic(() => import('@/app/components/GiphyPicker'), { ssr: false });
 
 interface MediaPost { id: number; media_url: string; media_type: string; caption: string; likes: number; created_at: string; media?: { url: string; type: 'image' | 'video' }[] | null; }
-interface MyArticle { id: number; slug: string; title: string; status: string; cover_url: string | null; reject_reason: string | null; }
+interface MyArticle {
+  id: number; slug: string; title: string; status: string; cover_url: string | null; reject_reason: string | null;
+  /** Dolu ise yayindaki makaleye onerilmis, onay bekleyen bir duzenleme var. */
+  pending_at?: string | null;
+  /** Son duzenleme reddedildiyse yoneticinin nedeni. */
+  pending_reject_reason?: string | null;
+}
 
 interface Props {
   user: DbUser;
@@ -359,6 +365,11 @@ export default function ProfileClient({ user, bg, age, followersCount, following
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.title}</div>
                   <span style={{ fontSize: '0.72rem', fontWeight: 800, color: badge.c }}>● {badge.t}</span>
+                  {/* Yayindaki makalenin bekleyen duzenlemesi: makale yayinda
+                      KALDIGI icin rozet 'Yayında' olarak durur; onay bekleyen
+                      degisiklik ayri satirda soylenir. */}
+                  {a.pending_at && <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#ca8a04', marginLeft: 8 }}>✏️ Düzenlemen onayda</span>}
+                  {!a.pending_at && a.pending_reject_reason && <div style={{ fontSize: '0.74rem', color: '#ef4444' }}>Düzenleme reddedildi: {a.pending_reject_reason}</div>}
                   {a.status === 'rejected' && a.reject_reason && <div style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)' }}>Neden: {a.reject_reason}</div>}
                 </div>
                 {/* Onaylı → herkese açık ISR rotası; incelemede/reddedilmiş →
