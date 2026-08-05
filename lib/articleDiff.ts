@@ -50,26 +50,47 @@ export function htmlToText(html: string): string {
     .trim();
 }
 
-/** doc jsonb -> karsilastirilabilir satir dizisi (bos satirlar atilir). */
-export function docToLines(doc: unknown): string[] {
+/**
+ * Karsilastirma birimi: okunabilir metin + o metni ureten ham HTML.
+ *
+ * HTML'i de tasimak SART. Metin diff'i etiketleri attigi icin YALNIZCA
+ * bicim degisen bir blok (or. iki kelimenin rengi degistirilmis) "hic
+ * degismemis" gorunur — gercek bir vakada tam olarak bu yasandi. Ham HTML
+ * yaninda durdugu icin bicim degisimi ayrica yakalanabiliyor.
+ */
+export type Blok = { text: string; html: string };
+
+/** Anlamsiz bosluk farklari bicim degisimi sayilmasin. */
+const htmlNormal = (h: string) =>
+  String(h ?? '').replace(/>\s+</g, '><').replace(/\s+/g, ' ').trim();
+
+/** doc jsonb -> karsilastirilabilir blok dizisi (bos satirlar atilir). */
+export function docToBloklar(doc: unknown): Blok[] {
   if (!Array.isArray(doc)) return [];
-  const out: string[] = [];
+  const out: Blok[] = [];
   for (const b of doc as ArticleBlock[]) {
     if (!b || typeof b !== 'object') continue;
     if (b.type === 'text') {
       const t = htmlToText(b.html);
-      if (t) out.push(t);
+      if (t) out.push({ text: t, html: b.html });
     } else if (b.type === 'image') {
       // Gorselin KENDISI de degisebilir -> adres satirin parcasi olmali.
       const alt = [b.alt, b.caption].filter(Boolean).join(' · ');
-      out.push(`🖼 ${alt || 'görsel'} → ${b.url}`);
+      out.push({ text: `🖼 ${alt || 'görsel'} → ${b.url}`, html: '' });
     } else if (b.type === 'embed') {
       const e = b as any;
-      out.push(`▶ gömme (${e.provider ?? 'medya'}) → ${e.url ?? e.src ?? ''}`);
+      // Gomme bloklarinda HTML/CSS/JS de degisebilir; imza olarak hepsi.
+      out.push({
+        text: `▶ gömme (${e.provider ?? 'medya'}) → ${e.url ?? e.src ?? ''}`,
+        html: [e.html, e.css, e.js].filter(Boolean).join('\n'),
+      });
     }
   }
   return out;
 }
+
+/** Yalnizca metin gereken yerler icin (kaynakca vb.). */
+export const docToLines = (doc: unknown): string[] => docToBloklar(doc).map((b) => b.text);
 
 /** Kaynakcayi tek satirlik karsilastirilabilir bicime indirger. */
 export function sourcesToLines(sources: unknown): string[] {
@@ -82,7 +103,9 @@ export function sourcesToLines(sources: unknown): string[] {
 
 /* ── LCS ──────────────────────────────────────────────────── */
 
-type Op = { k: 'same' | 'add' | 'del'; v: string };
+// i/j: satirin A ve B dizilerindeki indeksi. 'same' ciftlerinde ikisi de dolu
+// olur — bicim (HTML) karsilastirmasi bu eslesmeye dayaniyor.
+type Op = { k: 'same' | 'add' | 'del'; v: string; i?: number; j?: number };
 
 /**
  * Iki dizinin en uzun ortak alt dizisinden ekleme/silme listesi uretir.
@@ -103,12 +126,12 @@ function lcsOps(a: string[], b: string[]): Op[] {
   const ops: Op[] = [];
   let i = 0, j = 0;
   while (i < n && j < m) {
-    if (a[i] === b[j]) { ops.push({ k: 'same', v: a[i] }); i++; j++; }
-    else if (dp[at(i + 1, j)] >= dp[at(i, j + 1)]) { ops.push({ k: 'del', v: a[i] }); i++; }
-    else { ops.push({ k: 'add', v: b[j] }); j++; }
+    if (a[i] === b[j]) { ops.push({ k: 'same', v: a[i], i, j }); i++; j++; }
+    else if (dp[at(i + 1, j)] >= dp[at(i, j + 1)]) { ops.push({ k: 'del', v: a[i], i }); i++; }
+    else { ops.push({ k: 'add', v: b[j], j }); j++; }
   }
-  while (i < n) { ops.push({ k: 'del', v: a[i] }); i++; }
-  while (j < m) { ops.push({ k: 'add', v: b[j] }); j++; }
+  while (i < n) { ops.push({ k: 'del', v: a[i], i }); i++; }
+  while (j < m) { ops.push({ k: 'add', v: b[j], j }); j++; }
   return ops;
 }
 
@@ -156,7 +179,11 @@ export type DiffRow =
  * degisti" ayni sekilde gorunmesin diye.
  */
 export function diffLines(oncekiler: string[], sonrakiler: string[]): DiffRow[] {
-  const ops = lcsOps(oncekiler, sonrakiler);
+  return opsToRows(lcsOps(oncekiler, sonrakiler));
+}
+
+/** LCS ciktisini gosterilebilir satirlara cevirir (bkz. diffLines). */
+function opsToRows(ops: Op[]): DiffRow[] {
   const rows: DiffRow[] = [];
   for (let i = 0; i < ops.length; i++) {
     const op = ops[i];
@@ -175,6 +202,32 @@ export function diffLines(oncekiler: string[], sonrakiler: string[]): DiffRow[] 
     rows.push({ t: 'add', text: op.v });
   }
   return rows;
+}
+
+/**
+ * Metni AYNI kalan ama HTML'i degisen bloklar — yani yalnizca BICIM degisimi:
+ * renk, kalinlik, hizalama, baglanti bicimi...
+ *
+ * Neden ayri: metin diff'i etiketleri attigi icin boyle bir degisiklik
+ * "hicbir sey degismemis" gorunur. Gercek vakada yazar iki kelimenin rengini
+ * degistirdi ve panel "gövde aynı" dedi — dogru ama ise yaramaz bir cevap.
+ *
+ * Gosterim metinle degil, iki surumun RENDER EDILMIS hâliyle yapilmali:
+ * "span style=color" farkini okumak kimsenin isi degil, rengi gormek yeter.
+ */
+export type BicimFarki = { sira: number; eskiHtml: string; yeniHtml: string; metin: string };
+
+function bicimFarklari(a: Blok[], b: Blok[], ops: Op[]): BicimFarki[] {
+  const out: BicimFarki[] = [];
+  for (const op of ops) {
+    if (op.k !== 'same' || op.i === undefined || op.j === undefined) continue;
+    const eski = a[op.i]?.html ?? '';
+    const yeni = b[op.j]?.html ?? '';
+    if (!eski && !yeni) continue;                        // gorsel blogu: HTML yok
+    if (htmlNormal(eski) === htmlNormal(yeni)) continue; // gercekten ayni
+    out.push({ sira: out.length + 1, eskiHtml: eski, yeniHtml: yeni, metin: op.v });
+  }
+  return out;
 }
 
 /** Fark satirlarinda gercek degisiklik var mi. */
@@ -208,11 +261,17 @@ export function makaleFarki(
   canli: { title: string; summary: string; category: string | null; cover_url: string | null; doc: unknown; sources: unknown },
   duzenleme: PendingEdit,
 ) {
-  const govde = diffLines(docToLines(canli.doc), docToLines(duzenleme.doc));
+  const aBlok = docToBloklar(canli.doc);
+  const bBlok = docToBloklar(duzenleme.doc);
+  // LCS bir kez calisir; hem metin farki hem bicim farki ayni eslesmeden okunur.
+  const ops = lcsOps(aBlok.map((x) => x.text), bBlok.map((x) => x.text));
+  const govde = opsToRows(ops);
+  const bicim = bicimFarklari(aBlok, bBlok, ops);
   const kaynak = diffLines(sourcesToLines(canli.sources), sourcesToLines(duzenleme.sources));
   return {
     alanlar: diffFields(canli, duzenleme),
     govde,
+    bicim,
     kaynak,
     degisenSatir: farkSayisi(govde) + farkSayisi(kaynak),
   };

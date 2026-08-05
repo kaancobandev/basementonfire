@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { db, getMe, isAdmin } from '@/lib/supabase/server';
 import { makaleFarki, type PendingEdit } from '@/lib/articleDiff';
+import { sanitizeArticleHtml } from '@/lib/articleSanitize';
 import AdminClient from './AdminClient';
 
 export const dynamic = 'force-dynamic';
@@ -63,6 +64,14 @@ export default async function MakaleYonetimPage() {
       author: ad(a),
       username: a.users?.username ?? '',
       ...fark,
+      // Bicim farki RENDER EDILEREK gosteriliyor (renk degisimini okumak degil
+      // GORMEK gerekir), o yuzden makalenin kendisiyle ayni sanitize kapisindan
+      // gecmeli — panel, onaylanmamis kullanici HTML'ini ham basmaz.
+      bicim: fark.bicim.map((b) => ({
+        ...b,
+        eskiHtml: sanitizeArticleHtml(b.eskiHtml),
+        yeniHtml: sanitizeArticleHtml(b.yeniHtml),
+      })),
     };
   });
 

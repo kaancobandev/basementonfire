@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import type { DiffRow, FieldChange } from '@/lib/articleDiff';
+import type { BicimFarki, DiffRow, FieldChange } from '@/lib/articleDiff';
 
 type Item = { id: number; slug: string; title: string; summary: string; created_at: string; author: string; username: string };
 
@@ -11,6 +11,8 @@ type Edit = {
   id: number; slug: string; title: string; yeniTitle: string; pending_at: string;
   author: string; username: string;
   alanlar: FieldChange[]; govde: DiffRow[]; kaynak: DiffRow[]; degisenSatir: number;
+  /** Metni ayni kalip yalnizca bicimi degisen bloklar (renk, kalinlik...). */
+  bicim: BicimFarki[];
 };
 
 const RENK = {
@@ -173,8 +175,14 @@ export default function AdminClient({ items: initial, edits: initialEdits = [] }
                     {' · '}{fmt(e.pending_at)}
                     {' · '}
                     <span style={{ color: '#fbbf24', fontWeight: 700 }}>
-                      {e.degisenSatir > 0 ? `${e.degisenSatir} satır değişti` : 'gövde aynı'}
-                      {e.alanlar.length > 0 && ` · ${e.alanlar.length} alan`}
+                      {[
+                        e.degisenSatir > 0 && `${e.degisenSatir} satır değişti`,
+                        // Bicim degisimi ayrica sayilmali: metin ayni kaldigi
+                        // icin satir sayisina GIRMEZ ve eskiden "gövde aynı"
+                        // diye raporlaniyordu — dogru ama yaniltici.
+                        e.bicim.length > 0 && `${e.bicim.length} blokta biçim değişti`,
+                        e.alanlar.length > 0 && `${e.alanlar.length} alan`,
+                      ].filter(Boolean).join(' · ') || 'değişiklik saptanmadı'}
                     </span>
                   </div>
 
@@ -189,10 +197,44 @@ export default function AdminClient({ items: initial, edits: initialEdits = [] }
 
                   {ack && (
                     <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 14 }}>
-                      {e.alanlar.length === 0 && e.degisenSatir === 0 && (
+                      {e.alanlar.length === 0 && e.degisenSatir === 0 && e.bicim.length === 0 && (
                         <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', margin: 0 }}>
-                          Görünür bir değişiklik bulunamadı (yalnızca biçimlendirme değişmiş olabilir).
+                          Görünür bir değişiklik bulunamadı — metin, biçim, görseller ve kaynakça aynı.
                         </p>
+                      )}
+
+                      {/* ── BICIM ──
+                          Metin harfi harfine ayni, degisen yalnizca gorunum
+                          (renk/kalinlik/hizalama). Etiketi yazıyla anlatmak
+                          ise yaramaz; iki surumu RENDER EDIP yan yana koyuyoruz
+                          ki yonetici degisikligi dogrudan gorsun. */}
+                      {e.bicim.length > 0 && (
+                        <div>
+                          <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 }}>
+                            Biçim ({e.bicim.length})
+                          </div>
+                          <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', margin: '0 0 8px' }}>
+                            Bu bloklarda yazının kendisi değişmedi, yalnızca görünümü değişti.
+                          </p>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                            {e.bicim.map((b) => (
+                              <div key={b.sira} style={{ border: '1px solid var(--color-border)', borderRadius: 10, overflow: 'hidden' }}>
+                                <div style={{ padding: '6px 10px', background: RENK.del.bg, color: RENK.del.fg, fontSize: '0.72rem', fontWeight: 800 }}>ÖNCE (yayındaki)</div>
+                                <div className="ym-bicim" style={{ padding: '10px 12px' }} dangerouslySetInnerHTML={{ __html: b.eskiHtml }} />
+                                <div style={{ padding: '6px 10px', background: RENK.add.bg, color: RENK.add.fg, fontSize: '0.72rem', fontWeight: 800, borderTop: '1px solid var(--color-border)' }}>SONRA (önerilen)</div>
+                                <div className="ym-bicim" style={{ padding: '10px 12px' }} dangerouslySetInnerHTML={{ __html: b.yeniHtml }} />
+                              </div>
+                            ))}
+                          </div>
+                          <style>{`
+                            /* Makale HTML'i panelde de okunakli dursun; kendi
+                               font-size'ini panelin uzerine yikmasin. */
+                            .ym-bicim { font-size: 0.88rem; line-height: 1.6; color: var(--color-text); overflow-wrap: break-word; }
+                            .ym-bicim > *:first-child { margin-top: 0; }
+                            .ym-bicim > *:last-child { margin-bottom: 0; }
+                            .ym-bicim img { max-width: 100%; height: auto; }
+                          `}</style>
+                        </div>
                       )}
 
                       {e.alanlar.length > 0 && (
