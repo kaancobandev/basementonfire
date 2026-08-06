@@ -12,6 +12,13 @@ const refs: BibItem[] = [
   { title: 'Wormholes in spacetime and their use for interstellar travel', authors: 'M. Morris & K. Thorne', year: '1988', source: 'American Journal of Physics 56, 395' },
   { title: 'Black Holes and Time Warps', authors: 'Kip S. Thorne', year: '1994', source: 'W. W. Norton' },
   { title: 'Wormhole', source: 'Wikipedia', url: 'https://en.wikipedia.org/wiki/Wormhole' },
+
+  { title: 'Einstein, A. & Rosen, N. — "The Particle Problem in the General Theory of Relativity", Phys. Rev. 48, 73 (1935)', url: 'https://journals.aps.org/pr/abstract/10.1103/PhysRev.48.73' },
+  { title: 'APS Physics — "The Birth of Wormholes" (Einstein–Rosen köprüsünün hikâyesi)', url: 'https://physics.aps.org/story/v15/st11' },
+  { title: 'Misner, C. & Wheeler, J. — Annals of Physics 2, 525 (1957) ("wormhole" teriminin kaynağı)', url: 'https://doi.org/10.1016/0003-4916(57)90049-0' },
+  { title: 'Morris, M. & Thorne, K. — "Wormholes in spacetime and their use for interstellar travel", Am. J. Phys. 56, 395 (1988)', url: 'https://doi.org/10.1119/1.15620' },
+  { title: 'Morris, Thorne & Yurtsever — "Wormholes, Time Machines, and the Weak Energy Condition", Phys. Rev. Lett. 61, 1446 (1988)', url: 'https://doi.org/10.1103/PhysRevLett.61.1446' },
+  { title: 'Maldacena, J. & Susskind, L. — "Cool horizons for entangled black holes" (ER = EPR), 2013', url: 'https://arxiv.org/abs/1306.0533' },
 ];
 
 const title = 'Einstein–Rosen Köprüsü';
@@ -131,6 +138,9 @@ export default function Page() {
             </Fragment>
           ))}
         </main>
+        {/* Kaynakça: eskiden gövdenin içinde, "Açmak için tıkla" ile KAPALI
+            duruyordu. Artık diğer makalelerdeki ortak bileşen — hep açık. */}
+        <ArticleBibliography items={refs} accent="#54d6e8" />
       </div>
       <ArticleRuntime js={JS} cdns={CDNS} />
     </>

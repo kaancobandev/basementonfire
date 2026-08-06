@@ -13,6 +13,12 @@ const refs: BibItem[] = [
   { title: 'Replay: The History of Video Games', authors: 'Tristan Donovan', year: '2010', source: 'Yellow Ant' },
   { title: 'Video Game History', source: 'The Strong National Museum of Play', url: 'https://www.museumofplay.org/' },
   { title: 'Arcade video game', source: 'Wikipedia', url: 'https://en.wikipedia.org/wiki/Arcade_video_game' },
+
+  { title: 'Brookhaven National Laboratory — "The First Video Game?" (Tennis for Two, 1958)', url: 'https://www.bnl.gov/about/history/firstvideo.php' },
+  { title: 'Wikipedia — Tennis for Two (Higinbotham, osiloskop)', url: 'https://en.wikipedia.org/wiki/Tennis_for_Two' },
+  { title: 'Wikipedia — Pac-Man (Namco, 1980, Toru Iwatani)', url: 'https://en.wikipedia.org/wiki/Pac-Man' },
+  { title: 'Wikipedia — Donkey Kong (Nintendo, 1981, Mario\'nun doğuşu)', url: 'https://en.wikipedia.org/wiki/Donkey_Kong_(1981_video_game)' },
+  { title: 'Golden age of arcade video games (Pong 1972, Space Invaders 1978, Asteroids 1979)', url: 'https://en.wikipedia.org/wiki/Golden_age_of_arcade_video_games' },
 ];
 
 const title = 'Arcade — Oyun Salonunun Tarihi';

@@ -12,6 +12,25 @@ const refs: BibItem[] = [
   { title: 'MedlinePlus Tıbbi Ansiklopedi', source: 'ABD Ulusal Tıp Kütüphanesi (NIH)', url: 'https://medlineplus.gov/encyclopedia.html' },
   { title: 'Human disease', source: 'Encyclopædia Britannica', url: 'https://www.britannica.com/science/human-disease' },
   { title: 'Scientific American — Health', source: 'Scientific American', url: 'https://www.scientificamerican.com/health/' },
+
+  { title: 'FamilySearch — Medicine in History: What Medical Advancements Have Happened in Your Lifetime?', url: 'https://www.familysearch.org/en/blog/medicine-in-history' },
+  { title: 'Worldwide Cancer Research — 7 Incredible Medical Breakthroughs That Changed the World', url: 'https://www.worldwidecancerresearch.org/cancer-and-research-information/understanding-discovery-research/7-incredible-medical-breakthroughs-that-changed-the-world/' },
+  { title: 'Reddit r/medicine — Favorite Obscure Medical Facts (konu kaynağı)', url: 'https://www.reddit.com/r/medicine/comments/16tb6i6/what_are_some_of_your_favorite_obscure_medical/' },
+  { title: 'PLOS One (2009), Kobayashi, Kikuchi & Okamura — İnsan biyolüminesansı (vaka 01)', url: 'https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0006256' },
+  { title: 'ABD Gıda ve İlaç Dairesi (FDA) — Grapefruit Juice and Some Drugs Don\'t Mix (vaka 06)', url: 'https://www.fda.gov/consumers/consumer-updates/grapefruit-juice-and-some-drugs-dont-mix' },
+  { title: 'London Museum — John Snow: Cholera & the Broad Street Pump (vaka 10)', url: 'https://www.londonmuseum.org.uk/collections/london-stories/john-snow-cholera-broad-street-pump/' },
+  { title: 'Scientific American — Why Dying People Often Experience a Burst of Lucidity (vaka 11)', url: 'https://www.scientificamerican.com/article/why-dying-people-often-experience-a-burst-of-lucidity/' },
+  { title: 'ABD Ulusal Yaşlanma Enstitüsü (NIH / NIA) — Paradoksal (terminal) lucidity araştırması (vaka 11)', url: 'https://www.nia.nih.gov/news/study-caregivers-finds-brief-bouts-lucidity-are-common-among-people-dementia' },
+  { title: 'Britannica — Barry J. Marshall (vaka 16)', url: 'https://www.britannica.com/biography/Barry-J-Marshall' },
+  { title: 'Science History Institute — Ignaz Semmelweis (vaka 17)', url: 'https://www.sciencehistory.org/education/scientific-biographies/ignaz-semmelweis/' },
+  { title: 'McGill OSS — Phineas Gage, Neuroscience and Count Dracula (vaka 18)', url: 'https://www.mcgill.ca/oss/article/history/phineas-gage-neuroscience-and-count-dracula' },
+  { title: 'Harvard Health — The Real Power of Placebos (vaka 19)', url: 'https://www.health.harvard.edu/staying-healthy/the-real-power-of-placebos' },
+  { title: 'NobelPrize.org — Karl Landsteiner, 1930 (vaka 20)', url: 'https://www.nobelprize.org/prizes/medicine/1930/landsteiner/facts/' },
+  { title: 'Duke Health — Appendix Isn\'t Useless: A Safe House for Bacteria (vaka 21)', url: 'https://corporate.dukehealth.org/news/appendix-isnt-useless-all-its-safe-house-bacteria' },
+  { title: 'PBS NewsHour — The Excruciating Final Hours of President George Washington (vaka 22)', url: 'https://www.pbs.org/newshour/health/dec-14-1799-excruciating-final-hours-president-george-washington' },
+  { title: 'PLOS Biology — Sender, Fuchs & Milo (2016), İnsan ve bakteri hücre sayıları (vaka 23)', url: 'https://journals.plos.org/plosbiology/article?id=10.1371/journal.pbio.1002533' },
+  { title: 'Scientific American — Why Can\'t a Person Tickle Himself? (vaka 24)', url: 'https://www.scientificamerican.com/article/why-cant-a-person-tickle/' },
+  { title: 'PMC / NIH — V. S. Ramachandran ve hayalet uzuv araştırması (vaka 25)', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC4904333/' },
 ];
 
 // 2026-07-16: 15 → 25. Makale 25 olgu içeriyor, başlık 15 diyordu — yani sitenin
