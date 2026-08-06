@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, type ReactNode } from 'react';
 import Link from 'next/link';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
+import { ArticleQuiz } from '@/app/components/article/ArticleBlocks';
 import ArticleImage from '@/app/components/article/ArticleImage';
 
 /* ════════════════════════ VERİ ════════════════════════ */
@@ -29,17 +30,6 @@ const tryItYourself = [
   'Hemzemin geçitte geçen bir trenin düdüğüne ya da uzaktan geçen bir ambulansa kulak ver.',
 ];
 
-const quizQs = [
-  { text: 'Bir ambulans yanından geçerken aslında değişen nedir?', opts: [ 'Sesin sana ulaşma biçimi (senin duyduğun frekans)', 'Havanın sıcaklığı', 'Sirenin ses düzeyi','Sirenin gerçek frekansı'], a: 0 },
-  { text: 'Kaynak sana yaklaşırken dalgalara ne olur?', opts: [ 'Tamamen durur','Gerilir, frekans düşer', 'Sıkışır, frekans yükselir (tizleşir)', 'Hiçbir şey olmaz'], a: 2 },
-  { text: 'Buys Ballot 1845 deneyinde Doppler etkisini neyle kanıtladı?', opts: ['Bir teleskopla', 'Trende kesintisiz nota çalan trompetçilerle', 'Bir diyapazonla', 'Şimşekle'], a: 1 },
-  { text: 'Işıkta "maviye kayma" ne anlama gelir?', opts: ['Kaynak bizden uzaklaşıyor', 'Kaynak bize yaklaşıyor (dalga boyu kısalır)', 'Kaynak duruyor', 'Kaynak ısınıyor'], a: 1 },
-  { text: 'Evrenin genişlediği fikri hangi gözlemden doğdu?', opts: [ 'Güneş lekelerinden', 'Meteor yağmurlarından','Ayın evrelerinden', 'Uzak galaksilerin kırmızıya kaymasından (Hubble, 1929)'], a: 3 },
-  { text: 'İlk ötegezegen 51 Pegasi b nasıl bulundu?', opts: [ 'Tesadüfen','Doğrudan fotoğrafla', 'Yıldızın Doppler salınımıyla (ışığının ileri-geri kayması)', 'Radyo patlamasıyla'], a: 2 },
-  { text: 'Polis radarı hızı nasıl ölçer?', opts: [ 'Motor sesinden', 'Far parlaklığından','Lastik izinden', 'Araçtan yansıyan dalganın Doppler kaymasından'], a: 3 },
-  { text: 'Doppler etkisi ile ses patlaması (sonic boom) farkı nedir?', opts: [ 'Ses patlaması, kaynak ses hızına ulaşıp şok konisi oluşturunca olur; Doppler ise frekansı kaydırır', 'Doppler sadece uçaklarda olur', 'Ses patlaması sessizdir','İkisi aynıdır'], a: 0 },
-  { text: 'Ambulans geçerken ses nasıl değişir?', opts: [ 'Hiç değişmez', 'Önce kalın sonra tiz olur','Yavaş yavaş kalınlaşır', 'Tizden kalına KESKİN bir basamakla düşer (geçiş anında)'], a: 3 },
-];
 
 const refs: BibItem[] = [
   { title: 'Über das farbige Licht der Doppelsterne und einiger anderer Gestirne des Himmels', authors: 'Christian Doppler', year: '1842', source: 'Kraliyet Bohemya Bilimler Cemiyeti, Prag' },
@@ -185,18 +175,7 @@ function SpectrumShift() {
 /* ════════════════════════ ANA BİLEŞEN ════════════════════════ */
 
 export default function DopplerClient() {
-  const [quizQ, setQuizQ] = useState(0);
-  const [score, setScore] = useState(0);
-  const [answered, setAnswered] = useState<Record<number, number>>({});
-  const [done, setDone] = useState(false);
 
-  function answerQ(sel: number) {
-    if (answered[quizQ] !== undefined) return;
-    if (sel === quizQs[quizQ].a) setScore(s => s + 1);
-    setAnswered(prev => ({ ...prev, [quizQ]: sel }));
-    setTimeout(() => { if (quizQ + 1 < quizQs.length) setQuizQ(q => q + 1); else setDone(true); }, 900);
-  }
-  function restartQuiz() { setQuizQ(0); setScore(0); setAnswered({}); setDone(false); }
 
   return (
     <main className="main-content">
@@ -511,39 +490,7 @@ export default function DopplerClient() {
           <section className="mx-auto max-w-3xl border-t border-white/10 px-6 py-10">
             <div className="mb-2 text-sm font-bold tracking-widest text-sky-400">★</div>
             <h2 className="mb-4 text-2xl font-bold text-slate-50 sm:text-3xl">Mini Quiz</h2>
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 sm:p-6">
-              {!done ? (
-                <>
-                  <div className="mb-3 flex justify-between text-xs text-slate-500"><span>Soru {quizQ + 1} / {quizQs.length}</span><span className="font-semibold text-sky-400">Puan: {score}</span></div>
-                  <h3 className="mb-4 text-lg font-semibold text-slate-100">{quizQs[quizQ].text}</h3>
-                  <div className="grid gap-2.5">
-                    {quizQs[quizQ].opts.map((o, oi) => {
-                      const sel = answered[quizQ]; const isAns = sel !== undefined; const correct = quizQs[quizQ].a;
-                      let cls = 'border-white/10 bg-white/[0.02] hover:border-sky-500/40 hover:bg-sky-500/[0.06]';
-                      let badge = 'bg-sky-500/15 text-sky-300';
-                      if (isAns) {
-                        if (oi === correct) { cls = 'border-emerald-500/50 bg-emerald-500/10'; badge = 'bg-emerald-500 text-emerald-950'; }
-                        else if (oi === sel) { cls = 'border-rose-500/50 bg-rose-500/10'; badge = 'bg-rose-500 text-white'; }
-                        else { cls = 'border-white/10 bg-white/[0.02] opacity-50'; }
-                      }
-                      return (
-                        <button key={oi} onClick={() => answerQ(oi)} disabled={isAns} className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-left text-sm text-slate-200 transition ${cls} ${isAns ? 'cursor-default' : 'cursor-pointer'}`}>
-                          <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-md text-xs font-bold ${badge}`}>{String.fromCharCode(65 + oi)}</span>
-                          {o}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </>
-              ) : (
-                <div className="py-4 text-center">
-                  <div className="text-5xl">{score >= 8 ? '🏆' : score >= 5 ? '📡' : '📖'}</div>
-                  <h3 className="mt-2 text-2xl font-bold text-sky-400">{score} / {quizQs.length} doğru</h3>
-                  <p className="mb-4 text-slate-400">{score >= 8 ? 'Dalgaları sen yönetiyorsun!' : score >= 5 ? 'Güzel — frekansın yerinde.' : 'Yukarı kaydırıp bir kez daha dinle.'}</p>
-                  <button onClick={restartQuiz} className="rounded-full bg-gradient-to-r from-sky-500 to-sky-400 px-6 py-2.5 font-semibold text-sky-950 transition hover:brightness-110">↺ Tekrar dene</button>
-                </div>
-              )}
-            </div>
+            <ArticleQuiz accent="#38bdf8" bg="#070b16" />
           </section>
         </Reveal>
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, type ReactNode, type CSSProperties } from 'react';
+import { ArticleQuiz } from '@/app/components/article/ArticleBlocks';
 import Link from 'next/link';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
 import ArticleImage from '@/app/components/article/ArticleImage';
@@ -111,15 +112,7 @@ const connTypes = [
   { name: 'Mobil', icon: '📡', speed: '10 Mbps–1 Gbps', d: '4G/5G baz istasyonları üzerinden kablosuz geniş bant.' },
   { name: 'Uydu', icon: '🛰️', speed: '25–250 Mbps', d: 'Yörüngedeki uydularla; kırsalda erişim sağlar, gecikmesi yüksek olabilir.' },
 ];
-
-const quizQs = [
-  { text: 'Bir alan adını (basementonfire.com) IP adresine çeviren sistem hangisidir?', opts: [ 'DNS', 'TCP', 'MAC','HTTP'], a: 0 },
-  { text: 'OSI modelinde yönlendiriciler (router) hangi katmanda çalışır?', opts: [ 'Veri Bağı (2)', 'Ağ (3)', 'Taşıma (4)','Fiziksel (1)'], a: 1 },
-  { text: 'Hangi protokol hız için güvenilirlikten ödün verir (video/oyun)?', opts: [ 'UDP', 'HTTPS', 'FTP','TCP'], a: 0 },
-  { text: 'HTTPS\'teki "S" neyi sağlar?', opts: [ 'Daha çok reklam', 'Sıkıştırma','Daha hızlı yükleme', 'TLS ile şifreleme'], a: 3 },
-  { text: 'MAC adresi neyi tanımlar?', opts: ['Ağdaki mantıksal konumu', 'Cihazın fiziksel ağ kartını', 'Web sitesini', 'Port numarasını'], a: 1 },
-  { text: 'TCP bağlantısı kaç adımlı "el sıkışma" ile kurulur?', opts: ['1', '2', '3', '4'], a: 2 },
-];
+
 
 /* ════════════════════════ YARDIMCI: STEPPER ════════════════════════ */
 
@@ -153,11 +146,6 @@ export default function InternetClient() {
   const [osiOpen, setOsiOpen] = useState<number | null>(4);
 
   // Quiz
-  const [quizQ, setQuizQ] = useState(0);
-  const [score, setScore] = useState(0);
-  const [answered, setAnswered] = useState<Record<number, number>>({});
-  const [done, setDone] = useState(false);
-
   useEffect(() => {
     const obs = new IntersectionObserver((entries) => {
       entries.forEach((e) => { if (e.isIntersecting) (e.target as HTMLElement).classList.add('visible'); });
@@ -166,17 +154,8 @@ export default function InternetClient() {
     return () => obs.disconnect();
   }, []);
 
-  function answerQ(sel: number) {
-    if (answered[quizQ] !== undefined) return;
-    const isRight = sel === quizQs[quizQ].a;
-    if (isRight) setScore((s) => s + 1);
-    setAnswered((prev) => ({ ...prev, [quizQ]: sel }));
-    setTimeout(() => {
-      if (quizQ + 1 < quizQs.length) setQuizQ((q) => q + 1);
-      else setDone(true);
-    }, 900);
-  }
-  function restartQuiz() { setQuizQ(0); setScore(0); setAnswered({}); setDone(false); }
+
+
 
   return (
     <main className="main-content net-page">
@@ -859,42 +838,7 @@ export default function InternetClient() {
       <section className="net-section reveal">
         <div className="net-kicker">16 — Bilgini Test Et</div>
         <h2 className="net-h2">Mini Quiz</h2>
-        <div className="net-quiz">
-          {!done ? (
-            <>
-              <div className="net-quiz-top">
-                <span className="net-quiz-prog">Soru {quizQ + 1} / {quizQs.length}</span>
-                <span className="net-quiz-score">Puan: {score}</span>
-              </div>
-              <h3 className="net-quiz-q">{quizQs[quizQ].text}</h3>
-              <div className="net-quiz-opts">
-                {quizQs[quizQ].opts.map((o, oi) => {
-                  const sel = answered[quizQ];
-                  const isAnswered = sel !== undefined;
-                  const correct = quizQs[quizQ].a;
-                  let cls = 'net-opt';
-                  if (isAnswered) {
-                    if (oi === correct) cls += ' correct';
-                    else if (oi === sel) cls += ' wrong';
-                    else cls += ' dim';
-                  }
-                  return (
-                    <button key={oi} className={cls} onClick={() => answerQ(oi)} disabled={isAnswered}>
-                      <span className="net-opt-letter">{String.fromCharCode(65 + oi)}</span>{o}
-                    </button>
-                  );
-                })}
-              </div>
-            </>
-          ) : (
-            <div className="net-quiz-result">
-              <div className="net-quiz-emoji">{score >= 5 ? '🏆' : score >= 3 ? '🎉' : '📚'}</div>
-              <h3 className="net-quiz-rtitle">{score} / {quizQs.length} doğru</h3>
-              <p className="net-quiz-rdesc">{score >= 5 ? 'Ağ uzmanısın! Paketler senden kaçamaz.' : score >= 3 ? 'İyi iş! Temelleri sağlam kavradın.' : 'Fena değil — yukarı kaydırıp bir kez daha gözden geçir.'}</p>
-              <button className="net-ctrl-btn net-ctrl-primary" style={{ background: '#38bdf8', borderColor: '#38bdf8' }} onClick={restartQuiz}>↺ Tekrar dene</button>
-            </div>
-          )}
-        </div>
+        <ArticleQuiz accent="#38bdf8" bg="#070b16" />
       </section>
 
       {/* ── Footer ── */}

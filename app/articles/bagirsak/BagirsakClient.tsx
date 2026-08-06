@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
+import { ArticleQuiz } from '@/app/components/article/ArticleBlocks';
 import Link from 'next/link';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
 import ArticleImage from '@/app/components/article/ArticleImage';
@@ -36,18 +37,7 @@ const numbers = [
   { v: '~30–40 m²', l: 'iç yüzey alanı', s: 'eskiden "tenis kortu" denirdi; güncel ölçüm yarım badminton kortu kadar' },
   { v: '~1000+', l: 'farklı mikrop türü', s: 'her insanda kendine özgü bir karışım' },
 ];
-
-const quizQs = [
-  { text: 'Bağırsaklara "ikinci beyin" denmesinin sebebi nedir?', opts: ['Kafatasında ikinci bir beyin olması', 'Bağırsak duvarında ~500 milyon nöronluk kendi sinir ağı bulunması', 'İki ayrı bağırsak olması', 'Beyinle aynı şekle sahip olması'], a: 1 },
-  { text: 'Vücuttaki serotoninin yaklaşık ne kadarı bağırsakta üretilir?', opts: [ 'hiç','%5', '%30', '%90'], a: 3 },
-  { text: 'Bağırsak ile beyin arasındaki ana iletişim siniri hangisidir?', opts: [ 'Siyatik sinir', 'Koku siniri','Optik sinir', 'Vagus siniri'], a: 3 },
-  { text: '"İçime doğdu" türü içgüdüsel kararlarda beynin hangi yeteneği rol oynar?', opts: [ 'Kas hafızası','Görme keskinliği', 'İnterosepsiyon (iç beden sinyallerini algılama)', 'Denge'], a: 2 },
-  { text: 'Mikrobiyom–ruh hali ilişkisini gösteren çarpıcı deney hangisidir?', opts: [ 'Stresli farelerin bağırsak mikrobunu sağlıklı farelere nakletmek (FMT)', 'Beyin ameliyatı', 'Açlık deneyi','Aya canlı göndermek'], a: 0 },
-  { text: 'Bağırsak sağlığı için en temel besin grubu hangisidir?', opts: [ 'Lif (sebze/meyve/tahıl)', 'Kızartma', 'Beyaz un','Şeker'], a: 0 },
-  { text: 'Vagus sinirini doğal yolla uyarıp sakinleşmenin bir yolu nedir?', opts: [ 'Nefesi uzun süre tutmak', 'Kalkıp koşmak','Hızlı ve sığ nefes', 'Yavaş, derin nefes (uzun nefes verme)'], a: 3 },
-  { text: 'Açlık hissini tetikleyen, boş midede salgılanan hormon hangisidir?', opts: [ 'Serotonin','Leptin', 'Ghrelin', 'İnsülin'], a: 2 },
-  { text: 'Heyecanlanınca midemizde “kelebek” hissinin sebebi nedir?', opts: ['Midede gerçek kelebek olması', 'Fight-or-flight ile kanın sindirimden kaslara yönelmesi', 'Aşırı açlık', 'Vitamin eksikliği'], a: 1 },
-];
+
 
 const refs: BibItem[] = [
   { title: 'The Second Brain', authors: 'Michael D. Gershon', year: '1998', source: 'HarperCollins' },
@@ -91,11 +81,6 @@ function Stepper({ steps, children }: { steps: { t: string; d: string }[]; child
 /* ════════════════════════ ANA BİLEŞEN ════════════════════════ */
 
 export default function BagirsakClient() {
-  const [quizQ, setQuizQ] = useState(0);
-  const [score, setScore] = useState(0);
-  const [answered, setAnswered] = useState<Record<number, number>>({});
-  const [done, setDone] = useState(false);
-
   useEffect(() => {
     const obs = new IntersectionObserver((entries) => {
       entries.forEach((e) => { if (e.isIntersecting) (e.target as HTMLElement).classList.add('visible'); });
@@ -104,13 +89,8 @@ export default function BagirsakClient() {
     return () => obs.disconnect();
   }, []);
 
-  function answerQ(sel: number) {
-    if (answered[quizQ] !== undefined) return;
-    if (sel === quizQs[quizQ].a) setScore((s) => s + 1);
-    setAnswered((prev) => ({ ...prev, [quizQ]: sel }));
-    setTimeout(() => { if (quizQ + 1 < quizQs.length) setQuizQ((q) => q + 1); else setDone(true); }, 900);
-  }
-  function restartQuiz() { setQuizQ(0); setScore(0); setAnswered({}); setDone(false); }
+
+
 
   return (
     <main className="main-content gut-page">
@@ -490,28 +470,7 @@ export default function BagirsakClient() {
       <section className="gut-section reveal">
         <div className="gut-num">XIV</div>
         <h2 className="gut-h2">Mini Quiz</h2>
-        <div className="gut-quiz">
-          {!done ? (
-            <>
-              <div className="gut-quiz-top"><span>Soru {quizQ + 1} / {quizQs.length}</span><span className="gut-quiz-score">Puan: {score}</span></div>
-              <h3 className="gut-quiz-q">{quizQs[quizQ].text}</h3>
-              <div className="gut-quiz-opts">
-                {quizQs[quizQ].opts.map((o, oi) => {
-                  const sel = answered[quizQ]; const isAns = sel !== undefined; const correct = quizQs[quizQ].a;
-                  let cls = 'gut-opt'; if (isAns) { if (oi === correct) cls += ' correct'; else if (oi === sel) cls += ' wrong'; else cls += ' dim'; }
-                  return (<button key={oi} className={cls} onClick={() => answerQ(oi)} disabled={isAns}><span className="gut-opt-letter">{String.fromCharCode(65 + oi)}</span>{o}</button>);
-                })}
-              </div>
-            </>
-          ) : (
-            <div className="gut-quiz-result">
-              <div className="gut-quiz-emoji">{score >= 8 ? '🏆' : score >= 5 ? '🧠' : '📖'}</div>
-              <h3 className="gut-quiz-rtitle">{score} / {quizQs.length} doğru</h3>
-              <p className="gut-quiz-rdesc">{score >= 8 ? 'İkinci beynine kulak veriyorsun!' : score >= 5 ? 'Güzel — sezgilerin sağlam.' : 'Yukarı kaydırıp bir kez daha sindir.'}</p>
-              <button className="gut-ctrl-btn gut-ctrl-primary" onClick={restartQuiz}>↺ Tekrar dene</button>
-            </div>
-          )}
-        </div>
+        <ArticleQuiz accent="#2563eb" bg="#ffffff" />
       </section>
 
       <ArticleBibliography items={refs} accent="#2563eb" />

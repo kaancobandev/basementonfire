@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, type ReactNode } from 'react';
+import { ArticleQuiz } from '@/app/components/article/ArticleBlocks';
 import Link from 'next/link';
 import ArticleBibliography from '@/app/components/ArticleBibliography';
 import ArticleImage from '@/app/components/article/ArticleImage';
 import {
   BouncingHero, MassWeightScale, ForceLab, MotionSim, MomentumCollision, EnergyRamp,
-  glossary, units, quizQs, refs, C,
+  glossary, units, refs, C,
 } from './widgets';
 
 /* ---- açık tema yapı taşları ---- */
@@ -24,42 +25,6 @@ function Tip({ color = C.blue, children }: { color?: string; children: ReactNode
 }
 
 /* ---- açık tema quiz ---- */
-function Quiz({ questions }: { questions: { text: string; opts: string[]; a: number; exp: string }[] }) {
-  const [qi, setQi] = useState(0);
-  const [pick, setPick] = useState<number | null>(null);
-  const [score, setScore] = useState(0);
-  const [done, setDone] = useState(false);
-  const q = questions[qi];
-  const choose = (i: number) => { if (pick !== null) return; setPick(i); if (i === q.a) setScore((s) => s + 1); };
-  const next = () => { if (qi + 1 >= questions.length) { setDone(true); return; } setQi(qi + 1); setPick(null); };
-  const restart = () => { setQi(0); setPick(null); setScore(0); setDone(false); };
-  if (done) return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
-      <div className="text-4xl">{score >= questions.length - 1 ? '🎉' : score >= questions.length / 2 ? '👏' : '💪'}</div>
-      <p className="mt-2 text-lg font-black text-slate-900">{score} / {questions.length} doğru</p>
-      <button onClick={restart} className="mt-4 rounded-full px-5 py-2 text-sm font-bold text-white" style={{ background: C.blue }}>↺ Tekrar dene</button>
-    </div>
-  );
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="mb-1 text-xs font-semibold text-slate-400">Soru {qi + 1} / {questions.length}</div>
-      <p className="mb-4 font-bold text-slate-900">{q.text}</p>
-      <div className="space-y-2">
-        {q.opts.map((o, i) => {
-          const correct = pick !== null && i === q.a; const wrong = pick === i && i !== q.a;
-          return (
-            <button key={i} onClick={() => choose(i)} disabled={pick !== null} className="block w-full rounded-xl border-2 px-4 py-3 text-left text-sm transition"
-              style={{ borderColor: correct ? C.green : wrong ? C.red : '#e2e8f0', background: correct ? '#f0fdf4' : wrong ? '#fef2f2' : '#fff', color: '#0f172a' }}>
-              {o} {correct && '✓'} {wrong && '✗'}
-            </button>
-          );
-        })}
-      </div>
-      {pick !== null && <div className="mt-3 rounded-xl bg-slate-50 p-3 text-sm text-slate-600">{q.exp}</div>}
-      {pick !== null && <div className="mt-4 text-right"><button onClick={next} className="rounded-full px-5 py-2 text-sm font-bold text-white" style={{ background: C.blue }}>{qi + 1 >= questions.length ? 'Bitir' : 'Sonraki →'}</button></div>}
-    </div>
-  );
-}
 
 /* ---- interaktif sözlük (aramalı) ---- */
 function Glossary() {
@@ -282,7 +247,7 @@ export default function FizikClient() {
 
         {/* Quiz */}
         <Section color={C.green} kicker="Mini test" title="Ne kadar anladın?">
-          <Quiz questions={quizQs} />
+          <ArticleQuiz accent="#16a34a" bg="#ffffff" />
         </Section>
 
         {/* Kapanış */}

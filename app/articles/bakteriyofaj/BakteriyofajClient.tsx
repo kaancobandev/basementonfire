@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
+import { ArticleQuiz } from '@/app/components/article/ArticleBlocks';
 import Link from 'next/link';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
 import ArticleImage from '@/app/components/article/ArticleImage';
@@ -51,18 +52,7 @@ const timeline = [
   { y: 'Soğuk Savaş', t: "Demir Perde'nin ardında", d: `Antibiyotiğe erişimi kısıtlı Sovyet bloku faj araştırmasını sürdürür. Gürcistan, Rusya ve Polonya'da faj terapisi rutin tıp olur; askerler çantasında yara enfeksiyonu için faj solüsyonu taşır.` },
   { y: 'Bugün', t: 'Yeniden keşif', d: `Demir Perde yıkılınca Batı, on yıllardır görmezden geldiği tedavinin dünyanın öbür ucunda sessizce gelişmeye devam ettiğini şaşkınlıkla görür — tam da antibiyotiklerin sonu görünmeye başlarken.` },
 ];
-
-const quizQs = [
-  { text: 'Bakteriyofaj nedir?', opts: [ 'Bakterileri enfekte eden bir virüs', 'Bir antibiyotik türü', 'Bir mantar','İnsanı enfekte eden bir bakteri'], a: 0 },
-  { text: '"Faj" adı hangi kökten gelir?', opts: [ 'Yunanca phagein ("yemek")', 'Rusça "küçük"', 'Gürcüce "avcı"','Latince "ışık"'], a: 0 },
-  { text: 'Gezegende tahminen kaç bakteriyofaj vardır?', opts: [ '1 milyon', '10⁴','10⁹', '10³¹'], a: 3 },
-  { text: 'Litik döngünün sonunda bakteriye ne olur?', opts: [ 'Antibiyotiğe dönüşür','Sağlıklı kalır', 'Lizin enzimiyle patlar ve yüzlerce faj saçılır', 'Daha hızlı çoğalır'], a: 2 },
-  { text: 'Lizojenik döngüde faj DNA\'sı ne yapar?', opts: [ 'Anında yok olur', 'Antibiyotik üretir','Hücreyi hemen patlatır', 'Bakterinin kromozomuna eklenip profaj olarak gizlenir'], a: 3 },
-  { text: 'CRISPR aslında doğada neyin parçasıdır?', opts: [ 'Bir antibiyotik','Bir faj silahı', 'Bakterilerin fajlara karşı geliştirdiği bağışıklık sistemi', 'İnsan bağışıklığı'], a: 2 },
-  { text: 'Dünyanın ilk faj enstitüsü nerede kuruldu?', opts: [ 'Tiflis (Gürcistan)', 'New York','Paris', 'Londra'], a: 0 },
-  { text: 'Fajın antibiyotiğe göre temel avantajı nedir?', opts: ['Daha ucuz olması', 'Yalnızca hedef bakteriyi öldürüp mikrobiyomu koruması', 'Hiç direnç oluşturmaması', 'Bitkileri de tedavi etmesi'], a: 1 },
-  { text: 'The Lancet\'e göre 2019\'da doğrudan antibiyotik direncine bağlı kaç ölüm gerçekleşti?', opts: ['~10 bin', '~1,27 milyon', '~100', '~50 milyon'], a: 1 },
-];
+
 
 const refs: BibItem[] = [
   { title: 'Global burden of bacterial antimicrobial resistance in 2019: a systematic analysis', authors: 'Antimicrobial Resistance Collaborators', year: '2022', source: 'The Lancet 399, 629', url: 'https://www.thelancet.com/journals/lancet/article/PIIS0140-6736(21)02724-0/fulltext' },
@@ -106,11 +96,6 @@ function Stepper({ steps, children }: { steps: { t: string; d: string }[]; child
 
 export default function BakteriyofajClient() {
   const [cycle, setCycle] = useState<'litik' | 'lizojenik'>('litik');
-  const [quizQ, setQuizQ] = useState(0);
-  const [score, setScore] = useState(0);
-  const [answered, setAnswered] = useState<Record<number, number>>({});
-  const [done, setDone] = useState(false);
-
   useEffect(() => {
     const obs = new IntersectionObserver((entries) => {
       entries.forEach((e) => { if (e.isIntersecting) (e.target as HTMLElement).classList.add('visible'); });
@@ -119,13 +104,8 @@ export default function BakteriyofajClient() {
     return () => obs.disconnect();
   }, []);
 
-  function answerQ(sel: number) {
-    if (answered[quizQ] !== undefined) return;
-    if (sel === quizQs[quizQ].a) setScore((s) => s + 1);
-    setAnswered((prev) => ({ ...prev, [quizQ]: sel }));
-    setTimeout(() => { if (quizQ + 1 < quizQs.length) setQuizQ((q) => q + 1); else setDone(true); }, 900);
-  }
-  function restartQuiz() { setQuizQ(0); setScore(0); setAnswered({}); setDone(false); }
+
+
 
   return (
     <main className="main-content phg-page">
@@ -552,28 +532,7 @@ export default function BakteriyofajClient() {
       <section className="phg-section reveal">
         <div className="phg-num">XIII</div>
         <h2 className="phg-h2">Mini Quiz</h2>
-        <div className="phg-quiz">
-          {!done ? (
-            <>
-              <div className="phg-quiz-top"><span>Soru {quizQ + 1} / {quizQs.length}</span><span className="phg-quiz-score">Puan: {score}</span></div>
-              <h3 className="phg-quiz-q">{quizQs[quizQ].text}</h3>
-              <div className="phg-quiz-opts">
-                {quizQs[quizQ].opts.map((o, oi) => {
-                  const sel = answered[quizQ]; const isAns = sel !== undefined; const correct = quizQs[quizQ].a;
-                  let cls = 'phg-opt'; if (isAns) { if (oi === correct) cls += ' correct'; else if (oi === sel) cls += ' wrong'; else cls += ' dim'; }
-                  return (<button key={oi} className={cls} onClick={() => answerQ(oi)} disabled={isAns}><span className="phg-opt-letter">{String.fromCharCode(65 + oi)}</span>{o}</button>);
-                })}
-              </div>
-            </>
-          ) : (
-            <div className="phg-quiz-result">
-              <div className="phg-quiz-emoji">{score >= 8 ? '🏆' : score >= 5 ? '🧬' : '📖'}</div>
-              <h3 className="phg-quiz-rtitle">{score} / {quizQs.length} doğru</h3>
-              <p className="phg-quiz-rdesc">{score >= 8 ? 'Görünmez avcıların gerçek uzmanısın!' : score >= 5 ? 'Sağlam — fajların dilini çözüyorsun.' : 'Yukarı kaydırıp bir kez daha keşfet.'}</p>
-              <button className="phg-ctrl-btn phg-ctrl-primary" onClick={restartQuiz}>↺ Tekrar dene</button>
-            </div>
-          )}
-        </div>
+        <ArticleQuiz accent="#4ade80" bg="#070f0d" />
       </section>
 
       <ArticleBibliography items={refs} accent="#4ade80" />

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type ReactNode, type CSSProperties } from 'react';
+import { ArticleQuiz } from '@/app/components/article/ArticleBlocks';
 import Link from 'next/link';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
 import ArticleImage from '@/app/components/article/ArticleImage';
@@ -39,15 +40,7 @@ const facts = [
   { icon: '🌍', t: 'Her yerdeler', d: '1300\'den fazla tür var; bahçendeki yosunda, çatı oluğunda, kutup buzunda, okyanus dibinde — kelimenin tam anlamıyla her yerde yaşarlar.' },
   { icon: '🧬', t: 'Kısmen "yabancı"', d: 'Bazı türlerin genomunun bir bölümü bakteri ve diğer canlılardan yatay gen transferiyle gelmiş olabilir — adeta yaşayan bir kolaj.' },
 ];
-
-const quizQs = [
-  { text: 'Tardigradların halk arasındaki adı nedir?', opts: ['Deniz yıldızı', 'Su ayısı', 'Toprak solucanı', 'Cam böceği'], a: 1 },
-  { text: 'Kuruyunca girdikleri, metabolizmayı neredeyse durduran hale ne denir?', opts: [ 'Tun hali (kriptobiyoz)', 'Metamorfoz', 'Fotosentez','Hibernasyon'], a: 0 },
-  { text: 'Tardigradlar yaklaşık hangi sıcaklık aralığında hayatta kalabilir?', opts: [ '−272°C – 150°C', '−10°C – 60°C', 'sadece oda sıcaklığı','0°C – 40°C'], a: 0 },
-  { text: 'DNA\'larını radyasyondan koruyan özel proteinin adı nedir?', opts: [ 'Klorofil','Hemoglobin', 'Dsup', 'Keratin'], a: 2 },
-  { text: '2007\'de tardigradlar ilk kez nerede hayatta kaldı?', opts: [ 'Güneş\'te', 'Reaktör çekirdeğinde','Volkan içinde', 'Doğrudan uzay boşluğunda'], a: 3 },
-  { text: 'Tun halinde suyunun ne kadarını kaybederler?', opts: [ 'hiç','%10', '%50', '%95\'ten fazla'], a: 3 },
-];
+
 
 const refs: BibItem[] = [
   { title: 'Tardigrade', source: 'Wikipedia', url: 'https://en.wikipedia.org/wiki/Tardigrade' },
@@ -308,11 +301,6 @@ function TardigradeGame() {
 
 export default function TardigradClient() {
   const [openCond, setOpenCond] = useState<string | null>('vacuum');
-  const [quizQ, setQuizQ] = useState(0);
-  const [score, setScore] = useState(0);
-  const [answered, setAnswered] = useState<Record<number, number>>({});
-  const [done, setDone] = useState(false);
-
   useEffect(() => {
     const obs = new IntersectionObserver((entries) => {
       entries.forEach((e) => { if (e.isIntersecting) (e.target as HTMLElement).classList.add('visible'); });
@@ -321,13 +309,8 @@ export default function TardigradClient() {
     return () => obs.disconnect();
   }, []);
 
-  function answerQ(sel: number) {
-    if (answered[quizQ] !== undefined) return;
-    if (sel === quizQs[quizQ].a) setScore((s) => s + 1);
-    setAnswered((prev) => ({ ...prev, [quizQ]: sel }));
-    setTimeout(() => { if (quizQ + 1 < quizQs.length) setQuizQ((q) => q + 1); else setDone(true); }, 900);
-  }
-  function restartQuiz() { setQuizQ(0); setScore(0); setAnswered({}); setDone(false); }
+
+
 
   return (
     <main className="main-content trd-page">
@@ -594,28 +577,7 @@ export default function TardigradClient() {
       <section className="trd-section reveal">
         <div className="trd-kicker">09 — Sınav</div>
         <h2 className="trd-h2">Mini Quiz</h2>
-        <div className="trd-quiz">
-          {!done ? (
-            <>
-              <div className="trd-quiz-top"><span>Soru {quizQ + 1} / {quizQs.length}</span><span className="trd-quiz-score">Puan: {score}</span></div>
-              <h3 className="trd-quiz-q">{quizQs[quizQ].text}</h3>
-              <div className="trd-quiz-opts">
-                {quizQs[quizQ].opts.map((o, oi) => {
-                  const sel = answered[quizQ]; const isAns = sel !== undefined; const correct = quizQs[quizQ].a;
-                  let cls = 'trd-opt'; if (isAns) { if (oi === correct) cls += ' correct'; else if (oi === sel) cls += ' wrong'; else cls += ' dim'; }
-                  return (<button key={oi} className={cls} onClick={() => answerQ(oi)} disabled={isAns}><span className="trd-opt-letter">{String.fromCharCode(65 + oi)}</span>{o}</button>);
-                })}
-              </div>
-            </>
-          ) : (
-            <div className="trd-quiz-result">
-              <div className="trd-quiz-emoji">{score >= 5 ? '🏆' : score >= 3 ? '🐻' : '📖'}</div>
-              <h3 className="trd-quiz-rtitle">{score} / {quizQs.length} doğru</h3>
-              <p className="trd-quiz-rdesc">{score >= 5 ? 'Gerçek bir su ayısı uzmanısın!' : score >= 3 ? 'Güzel! Tun halinde sağlamsın.' : 'Yukarı kaydırıp bir kez daha kuru.'}</p>
-              <button className="trd-ctrl-btn trd-ctrl-primary" style={{ background: '#4ade80', borderColor: '#4ade80' }} onClick={restartQuiz}>↺ Tekrar dene</button>
-            </div>
-          )}
-        </div>
+        <ArticleQuiz accent="#4ade80" bg="#0a1512" />
       </section>
 
       <ArticleBibliography items={refs} accent="#4ade80" />

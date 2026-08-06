@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
+import { ArticleQuiz } from '@/app/components/article/ArticleBlocks';
 import Link from 'next/link';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
 import ArticleImage from '@/app/components/article/ArticleImage';
@@ -31,18 +32,7 @@ const everywhere = [
   ['🐌', 'Elysia salyangozu', `Bazı deniz salyangozları yedikleri alglerden kloroplastları çalıp kendi hücrelerinde tutar ve haftalarca güneşle beslenir — buna "kleptoplasti" denir.`],
   ['🦎', 'Benekli semender', `Yumurtalarının içinde algler yaşar — bir omurgalıda bilinen ender hücre-içi simbiyoz örneklerinden biri.`],
 ];
-
-const quizQs = [
-  { text: 'Hücrelerimizdeki mitokondrinin kökeni nedir?', opts: [ 'Bir virüs', 'Cansız bir kristal','Çekirdeğin bir parçası', 'Bir zamanlar serbest yaşayan bir bakteri'], a: 3 },
-  { text: 'Endosimbiyotik kuramı kanıtlarla savunup kabul ettiren bilim insanı kimdir?', opts: [ 'Louis Pasteur','Charles Darwin', 'Lynn Margulis', 'Gregor Mendel'], a: 2 },
-  { text: 'Aşağıdakilerden hangisi mitokondrinin bakteriyel kökenine kanıt DEĞİLDİR?', opts: [ '70S bakteriyel ribozomları', 'Düz, kromozomlara paketlenmiş DNA\'sı', 'Çifte zarı','Halkasal kendi DNA\'sı'], a: 1 },
-  { text: 'Mitokondri neden artık hücreden bağımsız yaşayamaz?', opts: ['Çok yaşlandığı için', 'Genlerinin çoğu çekirdeğe taşındığı için (gen transferi)', 'Oksijenden korktuğu için', 'Donduğu için'], a: 1 },
-  { text: 'Karmaşık (ökaryotik) hücrenin konağı büyük olasılıkla hangi gruptandı?', opts: ['Mantarlar', 'Virüsler', 'Asgard arkeleri', 'Yeşil algler'], a: 2 },
-  { text: 'Endosimbiyozun karmaşık yaşamı mümkün kılmasının temel nedeni nedir?', opts: [ 'Enerji üretimini iç zarlara taşıyıp enerji bariyerini aştığı için', 'Sıcaklığı düşürdüğü için', 'Renk kattığı için','Hücreyi küçülttüğü için'], a: 0 },
-  { text: 'Kloroplastın atası hangi bakteri grubudur?', opts: ['Siyanobakteriler', 'Rickettsia', 'Salmonella', 'Spiroketler'], a: 0 },
-  { text: '2024\'te keşfedilen, azot bağlayan dördüncü büyük organel tipinin adı nedir?', opts: [ 'Lizozom', 'Ribozom','Kromatofor', 'Nitroplast'], a: 3 },
-  { text: 'İkincil endosimbiyozda kloroplastın 3-4 zarla çevrili olmasının sebebi nedir?', opts: [ 'Radyasyon', 'Tesadüf','Çok yaşlı olması', 'Bir ökaryotun, içinde zaten kloroplast olan başka bir ökaryotu yutması'], a: 3 },
-];
+
 
 const refs: BibItem[] = [
   { title: 'On the origin of mitosing cells', authors: 'Lynn Sagan (Margulis)', year: '1967', source: 'Journal of Theoretical Biology 14, 255' },
@@ -86,11 +76,6 @@ function Stepper({ steps, children }: { steps: { t: string; d: string }[]; child
 
 export default function EndosimbiyozClient() {
   const [nest, setNest] = useState<'birincil' | 'ikincil'>('birincil');
-  const [quizQ, setQuizQ] = useState(0);
-  const [score, setScore] = useState(0);
-  const [answered, setAnswered] = useState<Record<number, number>>({});
-  const [done, setDone] = useState(false);
-
   useEffect(() => {
     const obs = new IntersectionObserver((entries) => {
       entries.forEach((e) => { if (e.isIntersecting) (e.target as HTMLElement).classList.add('visible'); });
@@ -99,13 +84,8 @@ export default function EndosimbiyozClient() {
     return () => obs.disconnect();
   }, []);
 
-  function answerQ(sel: number) {
-    if (answered[quizQ] !== undefined) return;
-    if (sel === quizQs[quizQ].a) setScore((s) => s + 1);
-    setAnswered((prev) => ({ ...prev, [quizQ]: sel }));
-    setTimeout(() => { if (quizQ + 1 < quizQs.length) setQuizQ((q) => q + 1); else setDone(true); }, 900);
-  }
-  function restartQuiz() { setQuizQ(0); setScore(0); setAnswered({}); setDone(false); }
+
+
 
   return (
     <main className="main-content endo-page">
@@ -552,28 +532,7 @@ export default function EndosimbiyozClient() {
       <section className="endo-section reveal">
         <div className="endo-num">XII</div>
         <h2 className="endo-h2">Mini Quiz</h2>
-        <div className="endo-quiz">
-          {!done ? (
-            <>
-              <div className="endo-quiz-top"><span>Soru {quizQ + 1} / {quizQs.length}</span><span className="endo-quiz-score">Puan: {score}</span></div>
-              <h3 className="endo-quiz-q">{quizQs[quizQ].text}</h3>
-              <div className="endo-quiz-opts">
-                {quizQs[quizQ].opts.map((o, oi) => {
-                  const sel = answered[quizQ]; const isAns = sel !== undefined; const correct = quizQs[quizQ].a;
-                  let cls = 'endo-opt'; if (isAns) { if (oi === correct) cls += ' correct'; else if (oi === sel) cls += ' wrong'; else cls += ' dim'; }
-                  return (<button key={oi} className={cls} onClick={() => answerQ(oi)} disabled={isAns}><span className="endo-opt-letter">{String.fromCharCode(65 + oi)}</span>{o}</button>);
-                })}
-              </div>
-            </>
-          ) : (
-            <div className="endo-quiz-result">
-              <div className="endo-quiz-emoji">{score >= 8 ? '🏆' : score >= 5 ? '🧬' : '📖'}</div>
-              <h3 className="endo-quiz-rtitle">{score} / {quizQs.length} doğru</h3>
-              <p className="endo-quiz-rdesc">{score >= 8 ? 'İçindeki kadim bakteriyi tam anlamışsın!' : score >= 5 ? 'Güzel — birleşmenin mantığını çözüyorsun.' : 'Yukarı kaydırıp bir kez daha sindir.'}</p>
-              <button className="endo-ctrl-btn endo-ctrl-primary" onClick={restartQuiz}>↺ Tekrar dene</button>
-            </div>
-          )}
-        </div>
+        <ArticleQuiz accent="#f4b740" bg="#0c0a14" />
       </section>
 
       <ArticleBibliography items={refs} accent="#f4b740" />

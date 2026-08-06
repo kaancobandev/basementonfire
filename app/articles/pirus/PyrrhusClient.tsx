@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, type ReactNode, type CSSProperties } from 'react';
+import { ArticleQuiz } from '@/app/components/article/ArticleBlocks';
 import Link from 'next/link';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
 import ArticleImage from '@/app/components/article/ArticleImage';
@@ -103,15 +104,7 @@ const facts = [
   { icon: '🦶', t: 'Şifalı ayak parmağı', d: 'Söylenceye göre sağ ayağının baş parmağı dalak hastalıklarını iyileştirir, cenaze ateşinde bile kül olmaz, sapasağlam kalırdı.' },
   { icon: '🧱', t: 'Bir kiremitle son', d: 'Çağın en korkulan savaşçısı, Argos sokaklarında çatıdan bir kiremit fırlatan yaşlı bir kadın yüzünden can verdi.' },
 ];
-
-const quizQs = [
-  { text: 'Pirus hangi krallığın kralıydı?', opts: [ 'Epir', 'Sparta', 'Kartaca','Makedonya'], a: 0 },
-  { text: '"Pirus zaferi" ne anlama gelir?', opts: [ 'Kazanana yenilgi kadar pahalıya patlayan zafer', 'Hile ile kazanılan zafer', 'Savaşsız kazanılan zafer','Kolay ve ucuz bir zafer'], a: 0 },
-  { text: 'Romalılar ilk kez hangi savaşta savaş fili gördü?', opts: [ 'Beneventum', 'Herakleia', 'Cannae','Asculum'], a: 1 },
-  { text: 'Pirus kimi idol edinmiş, kime uzaktan akrabaydı?', opts: [ 'Leonidas', 'Hannibal','Jül Sezar', 'Büyük İskender'], a: 3 },
-  { text: 'Pirus nasıl öldü?', opts: ['Savaş meydanında kahramanca', 'Zehirlenerek', 'Argos\'ta bir kiremitle', 'Hastalıktan'], a: 2 },
-  { text: 'Cineas diyaloğunun ana fikri nedir?', opts: ['Daha çok fethetmek gerekir', 'Hırsın sonu yoktur; huzur için fethe gerek yok', 'Filler savaşı kazandırır', 'Roma yenilmezdir'], a: 1 },
-];
+
 
 /* ════════════════════════ YARDIMCI: STEPPER ════════════════════════ */
 
@@ -143,12 +136,6 @@ function Stepper({ steps, accent, children }: { steps: { t: string; d: string; w
 
 export default function PyrrhusClient() {
   const [openBattle, setOpenBattle] = useState<string | null>('heraclea');
-
-  const [quizQ, setQuizQ] = useState(0);
-  const [score, setScore] = useState(0);
-  const [answered, setAnswered] = useState<Record<number, number>>({});
-  const [done, setDone] = useState(false);
-
   useEffect(() => {
     const obs = new IntersectionObserver((entries) => {
       entries.forEach((e) => { if (e.isIntersecting) (e.target as HTMLElement).classList.add('visible'); });
@@ -157,16 +144,8 @@ export default function PyrrhusClient() {
     return () => obs.disconnect();
   }, []);
 
-  function answerQ(sel: number) {
-    if (answered[quizQ] !== undefined) return;
-    if (sel === quizQs[quizQ].a) setScore((s) => s + 1);
-    setAnswered((prev) => ({ ...prev, [quizQ]: sel }));
-    setTimeout(() => {
-      if (quizQ + 1 < quizQs.length) setQuizQ((q) => q + 1);
-      else setDone(true);
-    }, 900);
-  }
-  function restartQuiz() { setQuizQ(0); setScore(0); setAnswered({}); setDone(false); }
+
+
 
   // Pirus zaferi sayacı: her zaferden sonra azalan ordu gücü
   const strength = [
@@ -545,38 +524,7 @@ export default function PyrrhusClient() {
       <section className="pyr-section reveal">
         <div className="pyr-kicker">X — Sınav Meydanı</div>
         <h2 className="pyr-h2">Mini Quiz</h2>
-        <div className="pyr-quiz">
-          {!done ? (
-            <>
-              <div className="pyr-quiz-top">
-                <span>Soru {quizQ + 1} / {quizQs.length}</span>
-                <span className="pyr-quiz-score">Puan: {score}</span>
-              </div>
-              <h3 className="pyr-quiz-q">{quizQs[quizQ].text}</h3>
-              <div className="pyr-quiz-opts">
-                {quizQs[quizQ].opts.map((o, oi) => {
-                  const sel = answered[quizQ];
-                  const isAns = sel !== undefined;
-                  const correct = quizQs[quizQ].a;
-                  let cls = 'pyr-opt';
-                  if (isAns) { if (oi === correct) cls += ' correct'; else if (oi === sel) cls += ' wrong'; else cls += ' dim'; }
-                  return (
-                    <button key={oi} className={cls} onClick={() => answerQ(oi)} disabled={isAns}>
-                      <span className="pyr-opt-letter">{String.fromCharCode(65 + oi)}</span>{o}
-                    </button>
-                  );
-                })}
-              </div>
-            </>
-          ) : (
-            <div className="pyr-quiz-result">
-              <div className="pyr-quiz-emoji">{score >= 5 ? '👑' : score >= 3 ? '🦅' : '📜'}</div>
-              <h3 className="pyr-quiz-rtitle">{score} / {quizQs.length} doğru</h3>
-              <p className="pyr-quiz-rdesc">{score >= 5 ? 'Bir Epir kralı kadar bilgesin! Kineas seninle gurur duyardı.' : score >= 3 ? 'Sağlam bir komutan! Birkaç savaş daha kazanırsın.' : 'Pirus gibi — yukarı kaydırıp bir kez daha kuşan!'}</p>
-              <button className="pyr-ctrl-btn pyr-ctrl-primary" style={{ background: '#e0b34a', borderColor: '#e0b34a' }} onClick={restartQuiz}>↺ Tekrar dene</button>
-            </div>
-          )}
-        </div>
+        <ArticleQuiz accent="#e0b34a" bg="#130d07" />
       </section>
 
       {/* ── Footer ── */}

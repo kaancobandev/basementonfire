@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
+import { ArticleQuiz } from '@/app/components/article/ArticleBlocks';
 import ArticleImage from '@/app/components/article/ArticleImage';
 
 const refs: BibItem[] = [
@@ -74,12 +75,6 @@ const achievements = [
   { icon: '⚖️', title: 'Hukuk',         desc: '12 Levha\'dan Corpus Juris Civilis\'e uzanan Roma hukuku, modern Batı hukuk sistemlerinin temelini oluşturdu.' },
 ];
 
-const QUIZ_Q = [
-  { q: 'Roma\'nın efsanevi kurucusu hangi hayvan tarafından emzirildiği söylenir?', opts: ['Kartal','Dişi Kurt','Aslan','Boğa'], correct: 1 },
-  { q: '12 Levha Kanunu hangi meydana asıldı?', opts: ['Capitoline Tepesi','Colosseum','Pantheon','Forum Romanum'], correct: 3 },
-  { q: 'Julius Caesar\'ın Rubicon Nehrini geçmesi neyi sembolize ediyordu?', opts: ['Zafer kutlaması','Senatoya katılım','İç savaş başlatmak','Galya\'ya sefer'], correct: 2 },
-  { q: 'Spartaküs hangi sınıfı temsil ediyordu?', opts: ['Köleler ve Gladyatörler','Ordu generalleri','Patricii','Senato'], correct: 0 },
-];
 
 const TIMELINE = [
   { year: 'MÖ 753', event: 'Roma\'nın Kuruluşu',      icon: '🏛️' },
@@ -94,10 +89,7 @@ const TIMELINE = [
 
 export default function RomePage() {
   const [openTablet, setOpenTablet] = useState<string | null>(null);
-  const [quizQ, setQuizQ] = useState(0);
-  const [quizScore, setQuizScore] = useState(0);
-  const [answered, setAnswered] = useState<Record<number, number>>({});
-  const [quizDone, setQuizDone] = useState(false);
+
   const [counts, setCounts] = useState({ y: 0, l: 0, r: 0, t: 0 });
   const statsRef = useRef<HTMLDivElement>(null);
   const countStarted = useRef(false);
@@ -120,27 +112,7 @@ export default function RomePage() {
     obs.observe(el); return () => obs.disconnect();
   }, []);
 
-  function answerQuiz(qi: number, selected: number) {
-    if (answered[qi] !== undefined) return;
-    const correct = QUIZ_Q[qi].correct;
-    const isRight = selected === correct;
-    setAnswered(prev => ({ ...prev, [qi]: selected }));
-    if (isRight) setQuizScore(s => s + 1);
-    setTimeout(() => {
-      if (qi + 1 < QUIZ_Q.length) setQuizQ(qi + 1);
-      else setQuizDone(true);
-    }, 850);
-  }
 
-  function restartQuiz() { setQuizQ(0); setQuizScore(0); setAnswered({}); setQuizDone(false); }
-
-  const quizResult = [
-    { icon: '😅', title: 'İyi Denemeydi!', desc: 'Biraz daha çalış ve tekrar dene.' },
-    { icon: '🏛️', title: 'Fena Değil!', desc: `${QUIZ_Q.length} sorudan ${quizScore} tanesini bildin.` },
-    { icon: '🦅', title: 'Cumhuriyet Senatorü!', desc: `${QUIZ_Q.length} sorudan ${quizScore} tanesini bildin. Harika!` },
-    { icon: '👑', title: 'İmparator Adayı!', desc: 'Tebrikler, Roma tarihini avucunun içi gibi biliyorsun!' },
-    { icon: '👑', title: 'İmparator Adayı!', desc: 'Mükemmel! Senato seni onaylıyor.' },
-  ][quizScore];
 
   return (
     <main className="main-content ro-page">
@@ -455,47 +427,7 @@ export default function RomePage() {
             <div style={{ marginTop: 48 }}>
               <h3 className="ro-h3" style={{ textAlign: 'center' }}>⚔️ Forum Romanum Testi</h3>
               <p style={{ textAlign: 'center', fontSize: '0.88rem', color: '#9a8c70', marginBottom: 28 }}>Roma bilgini sına</p>
-              <div className="ro-quiz">
-                {!quizDone ? (
-                  <>
-                    <div className="ro-quiz-progress">
-                      <span className="ro-quiz-counter">SORU {quizQ + 1} / {QUIZ_Q.length}</span>
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        {QUIZ_Q.map((_, i) => {
-                          const ans = answered[i];
-                          const color = ans === undefined ? 'rgba(197,160,40,0.2)' : ans === QUIZ_Q[i].correct ? '#22c55e' : '#ef4444';
-                          return <div key={i} style={{ width: 10, height: 10, borderRadius: '50%', background: i === quizQ && ans === undefined ? '#c5a028' : color, transition: 'background 0.3s' }} />;
-                        })}
-                      </div>
-                    </div>
-                    <p className="ro-quiz-q">{QUIZ_Q[quizQ].q}</p>
-                    <div className="ro-quiz-opts">
-                      {QUIZ_Q[quizQ].opts.map((opt, oi) => {
-                        const ans = answered[quizQ];
-                        const correct = QUIZ_Q[quizQ].correct;
-                        let bg = 'rgba(255,255,255,0.03)', border = 'rgba(197,160,40,0.2)', color = '#e8dfc8';
-                        if (ans !== undefined) {
-                          if (oi === correct) { bg = 'rgba(34,197,94,0.15)'; border = '#22c55e'; color = '#86efac'; }
-                          else if (oi === ans) { bg = 'rgba(239,68,68,0.15)'; border = '#ef4444'; color = '#fca5a5'; }
-                        }
-                        return (
-                          <button key={oi} disabled={ans !== undefined} onClick={() => answerQuiz(quizQ, oi)}
-                            style={{ width: '100%', textAlign: 'left', padding: '13px 16px', border: `1px solid ${border}`, borderRadius: 10, background: bg, color, cursor: ans !== undefined ? 'default' : 'pointer', fontSize: '0.88rem', fontFamily: 'inherit', lineHeight: 1.4, transition: 'all 0.15s' }}>
-                            {opt}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </>
-                ) : (
-                  <div style={{ textAlign: 'center', padding: '8px 0' }}>
-                    <div style={{ fontSize: '3.5rem', marginBottom: 12 }}>{quizResult.icon}</div>
-                    <h4 style={{ fontSize: '1.3rem', fontWeight: 700, color: '#c5a028', marginBottom: 8 }}>{quizResult.title}</h4>
-                    <p style={{ fontSize: '0.9rem', color: '#9a8c70', marginBottom: 20, lineHeight: 1.6 }}>{quizResult.desc}</p>
-                    <button onClick={restartQuiz} className="ro-btn">Tekrar Dene</button>
-                  </div>
-                )}
-              </div>
+              <ArticleQuiz accent="#c5a028" bg="#0f0c08" />
             </div>
         </section>
 

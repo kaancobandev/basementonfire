@@ -397,11 +397,3 @@ export const units = [
   ['Güç', 'watt (W)', '1 W = 1 J/s'],
 ];
 
-export const quizQs = [
-  { text: "Kütle ile ağırlık arasındaki temel fark nedir?", opts: [ 'Kütle madde miktarıdır (hep aynı), ağırlık yerçekimi kuvvetidir (gezegene göre değişir)', 'Ağırlık her yerde aynıdır', 'Kütlenin birimi newton','Aynı şeydir'], a: 0, exp: "Kütlen Ay'da da aynıdır; ama daha az çekildiğin için ağırlığın azalır." },
-  { text: "F = m·a neyi söyler?", opts: [ 'Kütle = kuvvet × ivme', 'İvme = kuvvet × kütle','Kuvvet = kütle bölü ivme', 'Kuvvet = kütle × ivme'], a: 3, exp: "Aynı kuvvet, daha büyük kütleye daha küçük ivme verir." },
-  { text: "1 Newton nedir?", opts: [ '1 joule enerji', '1 metre yol','1 kg kütle', "1 kg'ı 1 m/s² ivmelendiren kuvvet"], a: 3, exp: "Newton kuvvetin birimidir: 1 N = 1 kg·m/s². Bir elma ~1 N ağırlığındadır." },
-  { text: "Hız ile sürat farkı nedir?", opts: [ 'Hız sadece arabalar için','Fark yoktur', 'Hız yön içerir (vektör), sürat yalnızca büyüklüktür (skaler)', 'Sürat daha hızlıdır'], a: 2, exp: "'Kuzeye 20 m/s' hız; '20 m/s' sürattir." },
-  { text: "Çarpışmada momentum ne olur?", opts: ['Yok olur', 'Korunur — toplam momentum önce ve sonra aynıdır', 'İkiye katlanır', 'Sadece hızlı cisimde kalır'], a: 1, exp: "Momentum = kütle × hız; kapalı sistemde toplamı sabittir." },
-  { text: "Yukarıdaki top aşağı inerken enerjisine ne olur?", opts: [ 'Potansiyel enerji kinetik enerjiye dönüşür; toplam sabit kalır', 'İkiye katlanır', 'Isıya dönüşüp biter','Yok olur'], a: 0, exp: "Enerji yoktan var olmaz; yalnızca biçim değiştirir (enerjinin korunumu)." },
-];

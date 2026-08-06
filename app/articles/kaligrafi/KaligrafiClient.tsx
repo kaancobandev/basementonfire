@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
+import { ArticleQuiz } from '@/app/components/article/ArticleBlocks';
 import Link from 'next/link';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
 import ArticleImage from '@/app/components/article/ArticleImage';
@@ -82,18 +83,7 @@ const roadmapSteps = [
   { t: 'Kompozisyon & stil', d: `Temeller oturunca büyük harfler, süslemeler (flourishing) ve kendi tarzın gelir.` },
 ];
 const roadmapIcons = ['🖊️', '✍️', '〰️', '🔡', '🔗', '🎨'];
-
-const quizQs = [
-  { text: '"Kaligrafi" kelimesi hangi köklerden gelir?', opts: [ 'Arapça hat + hüsn', 'Çince shū + fǎ','Latince calidus + grafia', 'Yunanca kallos (güzellik) + graphein (yazmak)'], a: 3 },
-  { text: 'Kaligrafi ile tipografi arasındaki temel fark nedir?', opts: [ 'Tipografi fırçayla yapılır','İkisi aynıdır', 'Tipografi önceden tasarlanmış harf kalıplarını (font) düzenler', 'Kaligrafi sadece bilgisayarda yapılır'], a: 2 },
-  { text: 'İslam hattını "göz kararı"ndan çıkarıp matematiksel orana oturtan kişi kimdir?', opts: [ 'Hâfız Osman','Yâkût el-Musta\'sımî', 'İbn Mukle', 'Şeyh Hamdullah'], a: 2 },
-  { text: 'Osmanlı hat ekolünün kurucusu kabul edilen hattat kimdir?', opts: [ 'Mustafa Râkım', 'Şeyh Hamdullah', 'Sâmi Efendi','Ahmed Karahisârî'], a: 1 },
-  { text: 'Doğu Asya kaligrafisinin temel aracı nedir?', opts: ['Geniş uçlu çelik kalem', 'Fırça', 'Esnek sivri uç', 'Kamış kalem'], a: 1 },
-  { text: 'Çin yazısında başlangıç için en uygun, bugünkü matbaa ve dijital yazının temeli olan stil hangisidir?', opts: [ 'Yürüyen yazı (xíngshū)','Mühür yazısı (zhuànshū)', 'Bitişik yazı (cǎoshū)', 'Standart / düz yazı (kǎishū)'], a: 3 },
-  { text: 'Modern (Batı) kaligrafinin babası kabul edilen, geleneği yeniden canlandıran isim kimdir?', opts: [ 'Edward Johnston', 'Platt Rogers Spencer', 'Johannes Gutenberg','Ludovico Arrighi'], a: 0 },
-  { text: 'Sivri esnek uçta "altın kural" nedir?', opts: [ 'Yukarı çıkarken ince (baskısız), aşağı inerken kalın (baskılı)', 'Yukarı kalın, aşağı ince', 'Baskı hiç değişmez','Hep aynı baskı'], a: 0 },
-  { text: 'Geniş uçlu (broad-edge) kalemde ince-kalın farkı neyden gelir?', opts: [ 'Mürekkebin renginden', 'Kâğıdın türünden','Baskıdan', 'Ucun sabit açısından'], a: 3 },
-];
+
 
 const refs: BibItem[] = [
   { title: 'Writing & Illuminating, & Lettering', authors: 'Edward Johnston', year: '1906', source: 'Batı kaligrafisinin klasik el kitabı' },
@@ -135,11 +125,6 @@ function Stepper({ steps, children }: { steps: { t: string; d: string }[]; child
 
 export default function KaligrafiClient() {
   const [tool, setTool] = useState<'genis' | 'sivri'>('genis');
-  const [quizQ, setQuizQ] = useState(0);
-  const [score, setScore] = useState(0);
-  const [answered, setAnswered] = useState<Record<number, number>>({});
-  const [done, setDone] = useState(false);
-
   useEffect(() => {
     const obs = new IntersectionObserver((entries) => {
       entries.forEach((e) => { if (e.isIntersecting) (e.target as HTMLElement).classList.add('visible'); });
@@ -148,13 +133,8 @@ export default function KaligrafiClient() {
     return () => obs.disconnect();
   }, []);
 
-  function answerQ(sel: number) {
-    if (answered[quizQ] !== undefined) return;
-    if (sel === quizQs[quizQ].a) setScore((s) => s + 1);
-    setAnswered((prev) => ({ ...prev, [quizQ]: sel }));
-    setTimeout(() => { if (quizQ + 1 < quizQs.length) setQuizQ((q) => q + 1); else setDone(true); }, 900);
-  }
-  function restartQuiz() { setQuizQ(0); setScore(0); setAnswered({}); setDone(false); }
+
+
 
   return (
     <main className="main-content cal-page">
@@ -532,28 +512,7 @@ export default function KaligrafiClient() {
       <section className="cal-section reveal">
         <div className="cal-num">XI</div>
         <h2 className="cal-h2">Mini Quiz</h2>
-        <div className="cal-quiz">
-          {!done ? (
-            <>
-              <div className="cal-quiz-top"><span>Soru {quizQ + 1} / {quizQs.length}</span><span className="cal-quiz-score">Puan: {score}</span></div>
-              <h3 className="cal-quiz-q">{quizQs[quizQ].text}</h3>
-              <div className="cal-quiz-opts">
-                {quizQs[quizQ].opts.map((o, oi) => {
-                  const sel = answered[quizQ]; const isAns = sel !== undefined; const correct = quizQs[quizQ].a;
-                  let cls = 'cal-opt'; if (isAns) { if (oi === correct) cls += ' correct'; else if (oi === sel) cls += ' wrong'; else cls += ' dim'; }
-                  return (<button key={oi} className={cls} onClick={() => answerQ(oi)} disabled={isAns}><span className="cal-opt-letter">{String.fromCharCode(65 + oi)}</span>{o}</button>);
-                })}
-              </div>
-            </>
-          ) : (
-            <div className="cal-quiz-result">
-              <div className="cal-quiz-emoji">{score >= 8 ? '🏆' : score >= 5 ? '✒️' : '📖'}</div>
-              <h3 className="cal-quiz-rtitle">{score} / {quizQs.length} doğru</h3>
-              <p className="cal-quiz-rdesc">{score >= 8 ? 'Kalemin de zevkin de yerinde!' : score >= 5 ? 'Güzel — güzel yazının dilini çözüyorsun.' : 'Yukarı kaydırıp bir kez daha sindir.'}</p>
-              <button className="cal-ctrl-btn cal-ctrl-primary" onClick={restartQuiz}>↺ Tekrar dene</button>
-            </div>
-          )}
-        </div>
+        <ArticleQuiz accent="#a87d2c" bg="#f5efe3" />
       </section>
 
       <ArticleBibliography items={refs} accent="#a87d2c" />
