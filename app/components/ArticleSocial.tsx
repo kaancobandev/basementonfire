@@ -3,7 +3,6 @@
 import { usePathname } from 'next/navigation';
 import { isArticleSlug } from '@/lib/articles';
 import RelatedArticles from './RelatedArticles';
-import ArticleQuiz from './ArticleQuiz';
 import ArticleDiscussion from './ArticleDiscussion';
 
 /**
@@ -22,9 +21,9 @@ export default function ArticleSocial() {
   return (
     <div className="article-social">
       <RelatedArticles slug={slug} />
-      {/* Fikir 3 (2026-07-19): makale sonu mini-quiz → XP. Sorusu olmayan
-          makalede kendini gizler (makaleler statik kalır). */}
-      <ArticleQuiz slug={slug} />
+      {/* ⚠ QUIZ BURADA DEĞİL. Sitede TEK quiz var ve makalenin GÖVDESİNDE,
+          Kaynakça'dan önce duruyor (ArticleBlocks > ArticleQuiz). Burada da
+          render edilince aynı sorular sayfada iki kez çıkıyordu. */}
       <ArticleDiscussion slug={slug} />
     </div>
   );
