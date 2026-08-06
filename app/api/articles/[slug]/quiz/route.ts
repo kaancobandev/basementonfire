@@ -21,7 +21,9 @@ const getQuizQuestions = unstable_cache(
       .eq('article_slug', slug)
       .eq('active', true)
       .order('id', { ascending: true })
-      .limit(3);
+      // Sinir YOK: makalelerin quiz'i 4-9 soru. Eskiden .limit(3) vardi ve
+      // gövdedeki mini quiz'i buraya tasiyinca sorularin ucte ikisi kaybolurdu.
+      .limit(12);
     if (error) return null;
     return (data ?? []) as { id: number; question: string; options: string[] }[];
   },
@@ -77,8 +79,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   const { slug } = await params;
   if (!isArticleSlug(slug)) return json({ error: 'Bilinmeyen makale' }, 404);
 
+  // ⚠ Anonim okuyucu da cevaplayabilir: dogru/yanlisi ogrenir ama kaydedilmez
+  // ve XP almaz. Neden POST'a baglandi — dogru cevap GET'te BILEREK
+  // sizdirilmiyor; anonim kullanici POST edemezse dogru cevabi hicbir zaman
+  // ogrenemez ve quiz onun icin calismaz. Bu yol acilinca cevap yine yalnizca
+  // kullanici bir sik sectikten SONRA sunucudan geliyor.
   const { me } = await getMe();
-  if (!me) return json({ error: 'Giriş gerekli' }, 401);
 
   let body: { questionId?: number; selectedIndex?: number };
   try { body = await req.json(); } catch { return json({ error: 'Geçersiz istek' }, 400); }
@@ -100,6 +106,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     if (selectedIndex >= optsLen) return json({ error: 'Geçersiz seçim' }, 400);
 
     const isCorrect = selectedIndex === q.correct_index;
+
+    // Giris yoksa: sonucu don, hicbir sey yazma, XP verme.
+    if (!me) {
+      return json({ correctIndex: q.correct_index, explanation: q.explanation ?? null, xpGained: 0, anonim: true });
+    }
 
     // (user_id, question_id) PK → ikinci cevap 23505: tekrar XP verilmez.
     const { error: insErr } = await db.from('article_quiz_answers').insert({
