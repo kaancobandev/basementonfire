@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode, type CSSProperties } from 'react';
 import Link from 'next/link';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
+import { ArticleQuiz } from '@/app/components/article/ArticleBlocks';
 import ArticleImage from '@/app/components/article/ArticleImage';
 
 /* ════════════════════════ VERİ ════════════════════════ */
@@ -32,14 +33,6 @@ const history = [
   { t: 'OPERA telaşı', y: '2011', d: 'Nötrinoların ışıktan 60 nanosaniye hızlı göründüğü ölçüm dünyayı sarsar — ama suçlu gevşek bir fiber-optik kablo çıkar. Hata düzeltilir, ışık limiti yerinde kalır.' },
 ];
 
-const quizQs = [
-  { text: 'Takyon nedir?', opts: [ 'Varsayımsal, hep ışıktan hızlı bir parçacık', 'Bir tür ışık', 'Kara delik çekirdeği','Işıktan yavaş bir parçacık'], a: 0 },
-  { text: 'Bir takyonun (varsa) kütlesi nasıl tanımlanır?', opts: [ 'Sonsuz','Sıfır', 'Negatif', 'Sanal (imajiner)'], a: 3 },
-  { text: 'Takyonlar neden nedenselliği (sebep-sonucu) tehdit eder?', opts: [ 'Kara deliklerden çıktıkları için','Çok ağır oldukları için', 'Işıktan hızlı bilgi → kendi geçmişine mesaj göndermek', 'Görünmez oldukları için'], a: 2 },
-  { text: '2011 OPERA "ışıktan hızlı nötrino" sonucunun gerçek sebebi neydi?', opts: ['Gerçek takyonlar', 'Gevşek bir fiber-optik kablo', 'Güneş patlaması', 'Yazılım virüsü'], a: 1 },
-  { text: 'Aşağıdakilerden hangisi ışıktan hızlı olabilir ama kuralı BOZMAZ?', opts: [ 'Duvardaki bir gölge', 'Bir uzay gemisi', 'Bir foton','Bir elektron'], a: 0 },
-  { text: 'Modern fizikte (kuantum alan kuramı) "takyon" çoğunlukla neyi ifade eder?', opts: [ 'Yeni bir enerji türü', 'Antimadde','Gerçek ışıktan hızlı parçacık', 'Bir alanın kararsızlığı (negatif kütle-kare)'], a: 3 },
-];
 
 const refs: BibItem[] = [
   { title: 'Possibility of Faster-Than-Light Particles', authors: 'Gerald Feinberg', year: '1967', source: 'Physical Review 159 (5), 1089' },
@@ -85,11 +78,6 @@ export default function TakyonClient() {
   const [speed, setSpeed] = useState(50); // % ışık hızı
   const [openFtl, setOpenFtl] = useState<string | null>('shadow');
 
-  const [quizQ, setQuizQ] = useState(0);
-  const [score, setScore] = useState(0);
-  const [answered, setAnswered] = useState<Record<number, number>>({});
-  const [done, setDone] = useState(false);
-
   useEffect(() => {
     const obs = new IntersectionObserver((entries) => {
       entries.forEach((e) => { if (e.isIntersecting) (e.target as HTMLElement).classList.add('visible'); });
@@ -98,16 +86,6 @@ export default function TakyonClient() {
     return () => obs.disconnect();
   }, []);
 
-  function answerQ(sel: number) {
-    if (answered[quizQ] !== undefined) return;
-    if (sel === quizQs[quizQ].a) setScore((s) => s + 1);
-    setAnswered((prev) => ({ ...prev, [quizQ]: sel }));
-    setTimeout(() => {
-      if (quizQ + 1 < quizQs.length) setQuizQ((q) => q + 1);
-      else setDone(true);
-    }, 900);
-  }
-  function restartQuiz() { setQuizQ(0); setScore(0); setAnswered({}); setDone(false); }
 
   // Lorentz faktörü (enerji ~ gamma): hız arttıkça patlar
   const v = speed / 100;
@@ -513,42 +491,14 @@ export default function TakyonClient() {
         </p>
       </section>
 
-      {/* ── 13. QUIZ ── */}
+      {/* ── 13. QUIZ ──
+          Sorular quiz_questions tablosundan gelir ve doğru cevap +5 XP
+          kazandırır (eskiden burada gövdeye gömülü, hiçbir yere yazmayan
+          bir kopya vardı). Kaynakça'dan ÖNCE duruyor. */}
       <section className="tky-section reveal">
         <div className="tky-kicker">13 — Sınav</div>
         <h2 className="tky-h2">Mini Quiz</h2>
-        <div className="tky-quiz">
-          {!done ? (
-            <>
-              <div className="tky-quiz-top">
-                <span>Soru {quizQ + 1} / {quizQs.length}</span>
-                <span className="tky-quiz-score">Puan: {score}</span>
-              </div>
-              <h3 className="tky-quiz-q">{quizQs[quizQ].text}</h3>
-              <div className="tky-quiz-opts">
-                {quizQs[quizQ].opts.map((o, oi) => {
-                  const sel = answered[quizQ];
-                  const isAns = sel !== undefined;
-                  const correct = quizQs[quizQ].a;
-                  let cls = 'tky-opt';
-                  if (isAns) { if (oi === correct) cls += ' correct'; else if (oi === sel) cls += ' wrong'; else cls += ' dim'; }
-                  return (
-                    <button key={oi} className={cls} onClick={() => answerQ(oi)} disabled={isAns}>
-                      <span className="tky-opt-letter">{String.fromCharCode(65 + oi)}</span>{o}
-                    </button>
-                  );
-                })}
-              </div>
-            </>
-          ) : (
-            <div className="tky-quiz-result">
-              <div className="tky-quiz-emoji">{score >= 5 ? '🌌' : score >= 3 ? '⚡' : '📖'}</div>
-              <h3 className="tky-quiz-rtitle">{score} / {quizQs.length} doğru</h3>
-              <p className="tky-quiz-rdesc">{score >= 5 ? 'Işık bariyerini zihninde aştın! Gerçek bir takyon avcısısın.' : score >= 3 ? 'Sağlam bir görelilik sezgisi! Birkaç tekrar yeter.' : 'Sorun değil — yukarı kaydırıp bariyere tekrar yaklaş.'}</p>
-              <button className="tky-ctrl-btn tky-ctrl-primary" style={{ background: '#22d3ee', borderColor: '#22d3ee' }} onClick={restartQuiz}>↺ Tekrar dene</button>
-            </div>
-          )}
-        </div>
+        <ArticleQuiz accent="#22d3ee" bg="#0a0712" />
       </section>
 
       {/* ── Kaynakça ── */}
