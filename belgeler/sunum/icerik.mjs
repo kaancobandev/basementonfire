@@ -9,7 +9,7 @@ export const TR = {
       rozet: 'Teknopark İstanbul BTM · Ön Kuluçka',
       baslik: ['Türkçe bilgi,', 'okunmak yerine', 'deneyimlensin.'],
       vurgu: 2,
-      alt: 'Bilim ve tarih konularını tarayıcıda çalıştırılabilir simülasyonlara çeviren, kaynakçalı Türkçe yayın platformu.',
+      alt: 'Basementonfire; Türkçe bilim ve tarih okurunun, anlatılanı okuyup da deneyememe sorununu, her makaleyi tarayıcıda çalışan bir simülasyona dönüştürerek çözer.',
       meta: [['ÜRÜN', 'basementonfire.com · yayında'], ['KURUCU', 'Kaan Çoban'],
              ['AŞAMA', 'Çalışan ürün, şirketleşme öncesi'], ['TARİH', 'Temmuz 2026']] },
 
@@ -35,8 +35,8 @@ export const TR = {
       govde: 'Okuyucu kilosunu giriyor, ekranda canlı bir sayaç dönüyor. Kaydırıcı oynadıkça sayı değişiyor. Okuyucu «radyoaktivite her yerdedir» cümlesini okumuyor — kendi vücudundaki sayıyı görüyor.',
       not: '{MAKALE} makalenin her birinde bunun gibi bir modül var: kuşatma simülasyonu, çift yarık deneyi, momentum çarpışması, mol hesaplayıcı.' },
 
-    { tip: 'table', etiket: 'AR-GE · 1', baslik: 'Tahmin etmiyoruz, ölçüyoruz.',
-      alt: 'Bir fizik simülasyonunu ucuz bir telefonda akıcı çalıştırmak, içerik üretmekten zor bir problem. Sektör standardı cihaz modeline göre kalite listesi tutmaktır. Biz cihazın kendi kare süresini ölçüyoruz.',
+    { tip: 'table', etiket: 'AR-GE · 1', baslik: 'Tahmin etmez, ölçer.',
+      alt: 'Bir fizik simülasyonunu ucuz bir telefonda akıcı çalıştırmak, içerik üretmekten zor bir problem. Sektör standardı cihaz modeline göre kalite listesi tutmaktır. Basementonfire bunun yerine cihazın kendi kare süresini ölçer.',
       basliklar: ['Eşik', 'Değer', 'Ne olur'],
       satirlar: [
         ['Isınma penceresi', 'ilk 60 kare', 'Sayılmaz — hidrasyon ve görsel çözme her cihazda yavaştır'],
@@ -60,7 +60,7 @@ export const TR = {
       maddeler: [
         ['Oyunda', 'Kullanıcı kurulum yapmış, ayarlar menüsü var, donanım hedefi belli, kalite kaydırıcısını kendisi çekebiliyor.'],
         ['Makalede', 'Okuyucu bir kez geliyor, hiçbir şey ayarlamıyor, takılırsa geri dönmüyor. Çözüm otomatik, anlık ve ikinci şansı olmayan bir çözüm olmak zorunda.'],
-        ['Son kademe farkı', 'Kaliteyi düşürmekle kalmıyoruz; animasyonu son karesinde donduruyoruz. Bozulma değil, kasıtlı görünen bir son durum. Oyunda donmuş kare başarısızlıktır, makalede kabul edilebilir bir bitiştir.'],
+        ['Son kademe farkı', 'Kalite düşürmekle kalınmaz; animasyon son karesinde dondurulur. Bozulma değil, kasıtlı görünen bir son durum. Oyunda donmuş kare başarısızlıktır, makalede kabul edilebilir bir bitiştir.'],
       ] },
 
     { tip: 'quadrant', etiket: 'REKABET', baslik: 'Kimse üç ekseni birden tutmuyor.',
@@ -125,7 +125,7 @@ export const TR = {
       alt: 'Bir yayınevi klasik bir eseri interaktif hâle getirmek istediğinde üç kurgu mümkün. En cazip görünen, en son yapılabilecek olan.',
       basliklar: ['', 'Model', 'Emeği kim harcıyor', 'Ne zaman'],
       satirlar: [
-        ['A', 'Proje işi — tek kitabın interaktif sürümü', 'Biz', 'Şimdi'],
+        ['A', 'Proje işi — tek kitabın interaktif sürümü', 'Basementonfire', 'Şimdi'],
         ['B', 'Araç lisansı — yazım aracı kiralanır', 'Yayınevi', 'Sonra'],
         ['C', 'Platform/abonelik — katalog erişimi', 'Karma', 'En son'],
       ],
@@ -177,15 +177,15 @@ export const TR = {
       ],
       not: 'Altı ay sonra ölçülebilecek üç şey: pilot sayısı, ücretli dönüşüm sayısı, tamamlanmış sipariş içerik sayısı.' },
 
-    { tip: 'bullets', etiket: 'EKİP VE RİSK', baslik: 'En büyük risk tek kişi olmam.',
-      alt: 'Bunu bir zayıflık olarak saklamıyoruz; birinci yılın ilk hedefi bu riski kapatmak.',
+    { tip: 'bullets', etiket: 'EKİP VE RİSK', baslik: 'En büyük risk, girişimin tek kişiye bağımlı olması.',
+      alt: 'Bu risk saklanmıyor; birinci yılın ilk hedefi onu kapatmaktır.',
       maddeler: [
         ['Bugün', 'Kod, içerik, tasarım ve satış tek kişide. Ürün bu koşulda dış sermaye olmadan yayına çıktı.'],
         ['Birinci yıl', 'İçerik ya da satış tarafında bir kişi. BTM’den ilk beklenti bu.'],
         ['Sonrası', 'Motor ve içerik üretiminin ayrı yürüyebilmesi için küçük bir çekirdek ekip.'],
       ] },
 
-    { tip: 'bullets', etiket: 'TALEP', baslik: 'BTM’den beklentimiz.',
+    { tip: 'bullets', etiket: 'TALEP', baslik: 'BTM’den beklenenler.',
       maddeler: [
         ['Ar-Ge personeli istihdamını mümkün kılan yapı', 'Proje bugün tek kişiye bağımlı; en büyük riski bu.'],
         ['Akademik hakemlik bağlantısı', 'İçeriğin bilimsel denetimi hem kaliteyi hem kurumsal satışı güçlendiriyor.'],
@@ -208,7 +208,7 @@ export const EN = {
       rozet: 'Teknopark İstanbul BTM · Pre-incubation',
       baslik: ['Knowledge in Turkish,', 'run rather than', 'read.'],
       vurgu: 2,
-      alt: 'A Turkish publishing platform that turns science and history into simulations you can run in the browser, with sources cited.',
+      alt: 'Basementonfire solves the Turkish science and history reader’s inability to try what they read, by turning every article into a simulation that runs in the browser, with sources cited.',
       meta: [['PRODUCT', 'basementonfire.com · live'], ['FOUNDER', 'Kaan Çoban'],
              ['STAGE', 'Working product, pre-incorporation'], ['DATE', 'July 2026']] },
 
@@ -234,8 +234,8 @@ export const EN = {
       govde: 'The reader enters their weight and a live counter starts. Move the slider and the number changes. The reader does not read the sentence “radioactivity is everywhere” — they see the number inside their own body.',
       not: 'Each of the {MAKALE} articles carries a module like this: a siege simulation, the double-slit experiment, momentum collision, a mole calculator.' },
 
-    { tip: 'table', etiket: 'R&D · 1', baslik: 'We measure rather than predict.',
-      alt: 'Running a physics simulation smoothly on a cheap phone is harder than producing the content. The industry standard is a quality list keyed to device models. We measure the device’s own frame time instead.',
+    { tip: 'table', etiket: 'R&D · 1', baslik: 'It measures rather than predicts.',
+      alt: 'Running a physics simulation smoothly on a cheap phone is harder than producing the content. The industry standard is a quality list keyed to device models. Basementonfire measures the device’s own frame time instead.',
       basliklar: ['Threshold', 'Value', 'Effect'],
       satirlar: [
         ['Warm-up window', 'first 60 frames', 'Discarded — hydration and image decoding are slow on every device'],
@@ -259,7 +259,7 @@ export const EN = {
       maddeler: [
         ['In a game', 'The user has installed it, there is a settings menu, the hardware target is known, and they can move the quality slider themselves.'],
         ['In an article', 'The reader arrives once, configures nothing, and does not come back if it stutters. The solution has to be automatic, immediate, and get no second chance.'],
-        ['The final stage', 'We do not only lower quality; we freeze the animation on its last frame. Not a failure state but a deliberate-looking one. In a game a frozen frame is failure; in an article it is an acceptable ending.'],
+        ['The final stage', 'Quality is not merely lowered; the animation is frozen on its last frame. Not a failure state but a deliberate-looking one. In a game a frozen frame is failure; in an article it is an acceptable ending.'],
       ] },
 
     { tip: 'quadrant', etiket: 'COMPETITION', baslik: 'Nobody holds all three axes.',
@@ -324,7 +324,7 @@ export const EN = {
       alt: 'When a publisher wants a classic work made interactive, three structures are possible. The most attractive one is the last one that can be built.',
       basliklar: ['', 'Model', 'Who does the work', 'When'],
       satirlar: [
-        ['A', 'Project work — interactive edition of one book', 'Us', 'Now'],
+        ['A', 'Project work — interactive edition of one book', 'Basementonfire', 'Now'],
         ['B', 'Tool licence — the authoring tool is rented', 'The publisher', 'Next'],
         ['C', 'Platform/subscription — catalogue access', 'Mixed', 'Last'],
       ],
@@ -377,14 +377,14 @@ export const EN = {
       not: 'Three things measurable in six months: pilot count, paid conversions, completed commissions.' },
 
     { tip: 'bullets', etiket: 'TEAM AND RISK', baslik: 'The biggest risk is that I am one person.',
-      alt: 'We do not hide this as a weakness; closing it is the first goal of year one.',
+      alt: 'The risk is not hidden; closing it is the first goal of year one.',
       maddeler: [
         ['Today', 'Code, content, design and sales sit with one person. The product reached launch under that constraint without outside capital.'],
         ['Year one', 'One person on content or sales. This is the first thing expected from BTM.'],
         ['After', 'A small core team so engine work and content production can run in parallel.'],
       ] },
 
-    { tip: 'bullets', etiket: 'THE ASK', baslik: 'What we need from BTM.',
+    { tip: 'bullets', etiket: 'THE ASK', baslik: 'What the venture needs from BTM.',
       maddeler: [
         ['A structure that makes an R&D hire possible', 'The project depends on one person today; that is its largest risk.'],
         ['Academic review connections', 'Scientific review of the content strengthens both quality and institutional sales.'],
