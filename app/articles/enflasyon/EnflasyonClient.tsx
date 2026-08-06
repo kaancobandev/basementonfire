@@ -12,6 +12,7 @@
 
 import Link from 'next/link';
 import ArticleBibliography from '@/app/components/ArticleBibliography';
+import { ArticleQuiz } from '@/app/components/article/ArticleBlocks';
 import ArticleImage from '@/app/components/article/ArticleImage';
 import { SepetKatki, KisiselEnflasyon, AlimGucu } from './widgets';
 import { refs } from './refs';
@@ -441,6 +442,11 @@ export default function EnflasyonClient() {
           </p>
         </div>
       </section>
+
+      {/* Quiz — Kaynakça'dan ÖNCE. Bu makalenin quiz_questions tablosunda hiç
+          sorusu yoktu (site genelinde tek eksik), sql/quiz-questions-enflasyon.sql
+          ile eklendi. */}
+      <ArticleQuiz accent={ACCENT} bg="#0d1119" />
 
       <ArticleBibliography items={refs} accent={ACCENT} />
 

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
+import { ArticleQuiz } from '@/app/components/article/ArticleBlocks';
 import ArticleImage from '@/app/components/article/ArticleImage';
 
 const refs: BibItem[] = [
@@ -241,6 +242,11 @@ export default function GreecePage() {
           />
         </div>
       </section>
+
+      {/* Quiz — Kaynakça'dan ÖNCE. Sorular quiz_questions tablosunda zaten
+          vardı ama bileşen bu sayfada hiç render edilmiyordu, yani makale
+          quizsiz görünüyordu. */}
+      <ArticleQuiz accent="#7ec8e3" bg="#070d14" />
 
       <ArticleBibliography items={refs} accent="#7ec8e3" />
 

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
+import { ArticleQuiz } from '@/app/components/article/ArticleBlocks';
 import ArticleImage from '@/app/components/article/ArticleImage';
 
 const refs: BibItem[] = [
@@ -261,6 +262,11 @@ export default function CarthagePage() {
       </div>
 
       {/* Footer */}
+      {/* Quiz — Kaynakça'dan ÖNCE. Sorular quiz_questions tablosunda zaten
+          vardı ama bileşen bu sayfada hiç render edilmiyordu, yani makale
+          quizsiz görünüyordu. */}
+      <ArticleQuiz accent="#c5a059" bg="#0b0906" />
+
       <ArticleBibliography items={refs} accent="#c5a059" />
 
       <footer className="ca-footer">

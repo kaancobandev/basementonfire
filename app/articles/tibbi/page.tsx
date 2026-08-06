@@ -4,6 +4,7 @@ import { breadcrumbJsonLd, jsonLdScript } from '@/lib/seo';
 import ArticleRuntime from '@/app/components/ArticleRuntime';
 import AsyncFonts from '@/app/components/AsyncFonts';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
+import { ArticleQuiz } from '@/app/components/article/ArticleBlocks';
 import ArticleImage from '@/app/components/article/ArticleImage';
 import { CSS, HTML, JS } from './content';
 
@@ -214,6 +215,11 @@ export default function Page() {
           </section>
           <div dangerouslySetInnerHTML={{ __html: SON }} />
         </div>
+        {/* Quiz — Kaynakça'dan ÖNCE. Sorular quiz_questions tablosunda zaten
+            vardı ama bileşen bu sayfada hiç render edilmiyordu, yani makale
+            quizsiz görünüyordu. */}
+        <ArticleQuiz accent="#ec5a13" bg="#0c0705" />
+
         <ArticleBibliography items={refs} accent="#ec5a13" />
       </main>
       <ArticleRuntime js={JS} cdns={CDNS} />

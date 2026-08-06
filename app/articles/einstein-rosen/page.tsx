@@ -4,6 +4,7 @@ import { breadcrumbJsonLd, jsonLdScript } from '@/lib/seo';
 import ArticleRuntime from '@/app/components/ArticleRuntime';
 import AsyncFonts from '@/app/components/AsyncFonts';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
+import { ArticleQuiz } from '@/app/components/article/ArticleBlocks';
 import ArticleImage from '@/app/components/article/ArticleImage';
 import { CSS, HTML, JS } from './content';
 
@@ -140,6 +141,11 @@ export default function Page() {
         </main>
         {/* Kaynakça: eskiden gövdenin içinde, "Açmak için tıkla" ile KAPALI
             duruyordu. Artık diğer makalelerdeki ortak bileşen — hep açık. */}
+        {/* Quiz — Kaynakça'dan ÖNCE. Sorular quiz_questions tablosunda zaten
+            vardı ama bileşen bu sayfada hiç render edilmiyordu, yani makale
+            quizsiz görünüyordu. */}
+        <ArticleQuiz accent="#54d6e8" bg="#060a14" />
+
         <ArticleBibliography items={refs} accent="#54d6e8" />
       </div>
       <ArticleRuntime js={JS} cdns={CDNS} />

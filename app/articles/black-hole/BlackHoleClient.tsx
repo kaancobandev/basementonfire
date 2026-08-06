@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import ArticleBibliography, { type BibItem } from '@/app/components/ArticleBibliography';
+import { ArticleQuiz } from '@/app/components/article/ArticleBlocks';
 import ArticleImage from '@/app/components/article/ArticleImage';
 
 const refs: BibItem[] = [
@@ -363,6 +364,11 @@ export default function BlackHolePage() {
             <span style={{ color: '#ff4500', fontWeight: 700, marginLeft: 6 }}>Kaan Çoban</span>
           </div>
         </section>
+
+        {/* Quiz — Kaynakça'dan ÖNCE. Sorular quiz_questions tablosunda zaten
+            vardı ama bileşen bu sayfada hiç render edilmiyordu, yani makale
+            quizsiz görünüyordu. */}
+        <ArticleQuiz accent="#ff4500" bg="#050505" />
 
         <ArticleBibliography items={refs} accent="#ff4500" />
       </div>
