@@ -12,7 +12,7 @@
 //     <ArticleSection kicker="..." title="...">...</ArticleSection>
 //     <CardGrid items={[{icon,title,text}]} />
 //     <HorizontalTimeline heading="..." items={[{year,title,text}]} />
-//     <ArticleQuiz questions={[{text,opts,a,exp}]} />
+//     <ArticleQuiz />   (sorular quiz_questions tablosundan, slug yoldan)
 //     <ArticleBibliography items={refs} accent="#34d399" />
 //     <ArticleFooter tagline="..." />
 //   </ArticleShell>
@@ -410,77 +410,146 @@ export type QuizQuestion = { text: string; opts: string[]; a: number; exp?: stri
  * açılır — ayrıca bir şey yapmak gerekmez.
  */
 const QUIZ_DAGILIM_ESIGI = 5;
-export function ArticleQuiz({ questions }: { questions: QuizQuestion[] }) {
-  const accent = useAccent();
-  const bg = useBg();
+/**
+ * `accent`/`bg`: şablonu kullanmayan makaleler (takyon, doppler…) kendi
+ * paletlerini verir. Verilmezse ThemeCtx'ten gelir — şablonlu 15 makalede
+ * çağrı tek satır kalır.
+ */
+export function ArticleQuiz({ accent: accentProp, bg: bgProp }: { accent?: string; bg?: string } = {}) {
+  // ⚠ Hook'lar KOŞULSUZ çağrılır. `accentProp ?? useAccent()` yazmak
+  // useContext'i prop varken hiç çağırmaz → hook sırası değişir, React kırılır.
+  const ctxAccent = useAccent();
+  const ctxBg = useBg();
+  const accent = accentProp ?? ctxAccent;
+  const bg = bgProp ?? ctxBg;
   const pathname = usePathname();
   const [qi, setQi] = useState(0);
   const [score, setScore] = useState(0);
   const [pick, setPick] = useState<number | null>(null);
   const [done, setDone] = useState(false);
-  const q = questions[qi];
-  const answered = pick !== null;
+  const [busy, setBusy] = useState(false);
 
-  // Slug YOLDAN türetilir → 14 makalenin hiçbirinde çağrı değişmedi.
-  // Yalnız /articles/<slug> eşleşir; başka bir yerde render edilirse kayıt yapılmaz.
+  // Slug YOLDAN türetilir → çağrı yerlerinde tek satır (<ArticleQuiz />).
   const slug = /^\/articles\/([^/]+)\/?$/.exec(pathname ?? '')?.[1] ?? null;
 
-  /** Soru sırası → okur dağılımı. Yalnız cevaplandıktan SONRA doldurulur. */
+  /* ── Sorular VERİTABANINDAN ──
+     Eskiden `questions` prop'uyla gövdeden geliyordu ve hiçbir yere
+     yazılmıyordu: article_quiz_answers gönderildiği günden beri 0'daydı.
+     Artık quiz_questions tek kaynak; doğru cevaplar burada DEĞİL, yalnızca
+     kullanıcı bir şık seçtikten sonra sunucudan geliyor (GET onları
+     sızdırmıyor). Sorular DOM'a girmeden fetch yok — IntersectionObserver
+     ile görünüre yaklaşınca yükleniyor, makale sayfası hafif kalıyor. */
+  type Soru = { id: number; question: string; options: string[] };
+  const [sorular, setSorular] = useState<Soru[] | null>(null);
+  const [girisli, setGirisli] = useState(false);
+  const [yok, setYok] = useState(false);
+  const kokRef = useRef<HTMLDivElement>(null);
+  const [gorunur, setGorunur] = useState(false);
+
+  useEffect(() => {
+    const el = kokRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (e) => { if (e[0].isIntersecting) { setGorunur(true); io.disconnect(); } },
+      { rootMargin: '400px' },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!gorunur || !slug) return;
+    let yasiyor = true;
+    (async () => {
+      try {
+        const r = await fetch(`/api/articles/${slug}/quiz`);
+        const d = await r.json();
+        if (!yasiyor) return;
+        if (!d.available || !d.questions?.length) { setYok(true); return; }
+        setSorular(d.questions);
+        setGirisli(!!d.loggedIn);
+      } catch { if (yasiyor) setYok(true); }
+    })();
+    return () => { yasiyor = false; };
+  }, [gorunur, slug]);
+
+  /** Cevaplanan soruların sunucudan dönen sonucu (soru sırası → sonuç). */
+  type Sonuc = { correctIndex: number; explanation: string | null; xpGained: number };
+  const [sonuclar, setSonuclar] = useState<Record<number, Sonuc>>({});
   const [dagilim, setDagilim] = useState<Record<number, number[]>>({});
 
+  const questions = sorular ?? [];
+  const q = questions[qi];
+  const answered = pick !== null;
+  const sonuc = sonuclar[qi];
+  const toplamXp = Object.values(sonuclar).reduce((a, s) => a + s.xpGained, 0);
+
   /**
-   * Ateşle-unut kayıt. Quiz'i ASLA bloklamaz:
-   *  · answer() await ETMEZ → cevap anında görünür, ağ beklenmez
-   *  · catch boş → çevrimdışı/engelli istekte kullanıcı hiçbir şey fark etmez
-   *  · keepalive → cevaptan hemen sonra sayfadan çıkılsa da istek tamamlanır
-   * Tekrar çözmede (restart) ikinci kayıt DB'deki PK ile reddedilir (23505),
-   * rota bunu hata saymaz → sayım şişmez, dağılım da aynı kalır.
-   *
-   * Yanıt aynı zamanda DAĞILIMI taşır (rota oy sonrası sayımı döndürüyor) →
-   * ayrı bir GET gerekmez, tek istekle hem yazılır hem okunur.
+   * Cevap dağılımı — anket ucu. Quiz'i ASLA bloklamaz (ateşle-unut, keepalive).
+   * XP kaydından AYRI tutuluyor: dağılım anonim okuru da sayar, XP saymaz.
    */
-  async function record(index: number, sel: number, opts: number) {
+  async function dagilimKaydet(index: number, sel: number, opts: number) {
     if (!slug) return;
     try {
       const r = await fetch(`/api/article-poll/${articleQuizPollKey(slug, index)}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ choice: String(sel) }),
-        keepalive: true,
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ choice: String(sel) }), keepalive: true,
       });
       const d = await r.json();
       if (!d?.available || !d.counts) return;
-      // SAYIMI BU SORUNUN ŞIKLARIYLA SINIRLA: rota sabit bir '0'..'5' kümesi
-      // üzerinden sayıyor (sunucu şık sayısını bilemiyor). 4 şıklı bir soruda
-      // 5. ve 6. kutuları toplama katarsak yüzdeler küçülür.
       const say = Array.from({ length: opts }, (_, i) => Number(d.counts[String(i)] ?? 0));
       if (say.reduce((a, b) => a + b, 0) >= QUIZ_DAGILIM_ESIGI) setDagilim(s => ({ ...s, [index]: say }));
     } catch { /* sessiz */ }
   }
 
-  function answer(sel: number) {
-    if (answered) return;
+  async function answer(sel: number) {
+    if (answered || busy || !q) return;
+    setBusy(true);
     setPick(sel);
-    if (sel === q.a) setScore(s => s + 1);
-    void record(qi, sel, q.opts.length);
+    void dagilimKaydet(qi, sel, q.options.length);
+    try {
+      // Doğru cevap YALNIZCA burada öğrenilir. Giriş yoksa da çalışır:
+      // sonuç döner ama kaydedilmez ve XP verilmez (rota tarafında).
+      const r = await fetch(`/api/articles/${slug}/quiz`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ questionId: q.id, selectedIndex: sel }),
+      });
+      const d = await r.json();
+      if (typeof d.correctIndex !== 'number') { setPick(null); setBusy(false); return; }
+      setSonuclar(s => ({ ...s, [qi]: { correctIndex: d.correctIndex, explanation: d.explanation ?? null, xpGained: d.xpGained ?? 0 } }));
+      if (sel === d.correctIndex) setScore(s => s + 1);
+    } catch {
+      setPick(null); // ağ hatasında soruyu kilitli bırakma
+    } finally {
+      setBusy(false);
+    }
   }
   function next() { if (qi + 1 < questions.length) { setQi(n => n + 1); setPick(null); } else setDone(true); }
-  function restart() { setQi(0); setScore(0); setPick(null); setDone(false); }
+  // Tekrar dene YALNIZCA görünümü sıfırlar; cevaplar sunucuda kayıtlı kalır ve
+  // aynı soru ikinci kez XP vermez (PK 23505 → rota alreadyAnswered döner).
+  function restart() { setQi(0); setScore(0); setPick(null); setDone(false); setSonuclar({}); }
+
+  if (yok) return null;
+  if (!sorular) return <div ref={kokRef} className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 text-sm text-slate-500 sm:p-6">Quiz yükleniyor…</div>;
+  if (!q) return null;
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur sm:p-6">
+    <div ref={kokRef} className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur sm:p-6">
       {!done ? (
         <>
           <div className="mb-4">
-            <div className="mb-1.5 flex items-center justify-between text-xs text-slate-500"><span>Soru {qi + 1} / {questions.length}</span><span className="font-mono" style={{ color: accent }}>{score} doğru</span></div>
+            <div className="mb-1.5 flex items-center justify-between text-xs text-slate-500">
+              <span>Soru {qi + 1} / {questions.length}</span>
+              <span className="font-mono" style={{ color: accent }}>{score} doğru{girisli && toplamXp > 0 ? ` · +${toplamXp} XP` : ''}</span>
+            </div>
             <div className="h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full transition-all duration-500" style={{ width: `${((qi + (answered ? 1 : 0)) / questions.length) * 100}%`, background: accent }} /></div>
           </div>
-          <p className="mb-5 text-lg font-semibold text-slate-100">{q.text}</p>
+          <p className="mb-5 text-lg font-semibold text-slate-100">{q.question}</p>
           {/* Dağılım YALNIZ cevap verildikten sonra gösterilir (`answered`) —
               önce gösterilse okurun seçimini yönlendirir ve ölçüm bozulur. */}
           <div className="space-y-2.5">
-            {q.opts.map((opt, i) => {
-              const correct = i === q.a;
+            {q.options.map((opt, i) => {
+              const correct = sonuc ? i === sonuc.correctIndex : false;
               const say = answered ? dagilim[qi] : undefined;
               const toplam = say ? say.reduce((a, b) => a + b, 0) : 0;
               const yuzde = say && toplam > 0 ? Math.round((say[i] / toplam) * 100) : null;
@@ -492,7 +561,7 @@ export function ArticleQuiz({ questions }: { questions: QuizQuestion[] }) {
               // karşılaştırmak, %50 opaklıkta yüzdeler okunmuyordu.
               else if (answered) cls = `border-white/10 bg-white/5 ${yuzde !== null ? 'opacity-75' : 'opacity-50'}`;
               return (
-                <button key={i} onClick={() => answer(i)} disabled={answered} className={`${base} ${cls}`} style={st}>
+                <button key={i} onClick={() => answer(i)} disabled={answered || busy} className={`${base} ${cls}`} style={st}>
                   <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full border border-current text-xs font-bold">{String.fromCharCode(65 + i)}</span>
                   <span>{opt}</span>
                   <span className="ml-auto flex shrink-0 items-center gap-2">
@@ -519,9 +588,18 @@ export function ArticleQuiz({ questions }: { questions: QuizQuestion[] }) {
               {dagilim[qi].reduce((a, b) => a + b, 0).toLocaleString('tr-TR')} okur cevapladı
             </p>
           )}
-          {answered && (
+          {answered && sonuc && (
             <div className="mt-4">
-              {q.exp && <div className="rounded-xl border p-4 text-sm leading-relaxed text-slate-200" style={{ borderColor: pick === q.a ? `color-mix(in srgb, ${accent} 30%, transparent)` : 'rgba(251,191,36,0.3)', background: pick === q.a ? `color-mix(in srgb, ${accent} 6%, transparent)` : 'rgba(251,191,36,0.06)' }}><span className="font-bold">{pick === q.a ? 'Doğru! ' : 'Doğru cevap: ' + q.opts[q.a] + '. '}</span>{q.exp}</div>}
+              {(sonuc.explanation || pick !== sonuc.correctIndex) && (
+                <div className="rounded-xl border p-4 text-sm leading-relaxed text-slate-200" style={{ borderColor: pick === sonuc.correctIndex ? `color-mix(in srgb, ${accent} 30%, transparent)` : 'rgba(251,191,36,0.3)', background: pick === sonuc.correctIndex ? `color-mix(in srgb, ${accent} 6%, transparent)` : 'rgba(251,191,36,0.06)' }}>
+                  <span className="font-bold">
+                    {pick === sonuc.correctIndex
+                      ? `Doğru! ${sonuc.xpGained > 0 ? `+${sonuc.xpGained} XP ` : ''}`
+                      : `Doğru cevap: ${q.options[sonuc.correctIndex]}. `}
+                  </span>
+                  {sonuc.explanation}
+                </div>
+              )}
               <button onClick={next} className="mt-3 w-full rounded-xl px-4 py-3 text-sm font-bold" style={{ background: accent, color: bg }}>{qi + 1 < questions.length ? 'Sonraki soru →' : 'Sonucu gör 🎉'}</button>
             </div>
           )}
@@ -531,6 +609,14 @@ export function ArticleQuiz({ questions }: { questions: QuizQuestion[] }) {
           <div className="mb-2 text-5xl">{score === questions.length ? '🏆' : score >= questions.length / 2 ? '🌿' : '🌱'}</div>
           <p className="mb-1 text-2xl font-bold text-slate-100">{score} / {questions.length}</p>
           <p className="mb-5 text-slate-400">{score === questions.length ? 'Kusursuz!' : score >= questions.length / 2 ? 'Güzel iş!' : 'Bir kez daha dene.'}</p>
+          {/* Giriş yapmamış okur quizi çözebiliyor ama XP alamıyor — kaydolmak
+              için doğal an burası, cevaplarını gördükten sonra. */}
+          {!girisli && (
+            <p className="mx-auto mb-4 max-w-sm text-sm text-slate-400">
+              <a href="/login" className="font-bold" style={{ color: accent }}>Giriş yap</a>, her doğru cevap +5 XP kazandırsın.
+            </p>
+          )}
+          {girisli && toplamXp > 0 && <p className="mb-4 text-sm font-bold" style={{ color: accent }}>+{toplamXp} XP kazandın</p>}
           <button onClick={restart} className="rounded-full px-6 py-2.5 text-sm font-bold" style={{ background: accent, color: bg }}>↻ Tekrar dene</button>
         </div>
       )}

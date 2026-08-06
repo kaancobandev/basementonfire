@@ -454,7 +454,7 @@ export default function RadyoaktiviteClient() {
       <HorizontalTimeline heading="Bir kazadan bir gezegen motoruna" items={timeline} />
 
       <ArticleSection kicker="MİNİ TEST" title="Anladın mı? Zar atalım">
-        <ArticleQuiz questions={quizQs} />
+        <ArticleQuiz />
       </ArticleSection>
 
       <div className="relative z-10">

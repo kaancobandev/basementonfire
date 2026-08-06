@@ -297,7 +297,7 @@ gaz hacmi (V)  = mol (n) × 22,4 L        (Normal Koşullar)`}</Formula>
 
       {/* Quiz */}
       <ArticleSection kicker="MİNİ TEST" title="Ne kadar anladın?">
-        <ArticleQuiz questions={quizQs} />
+        <ArticleQuiz />
       </ArticleSection>
 
       {/* Özet */}

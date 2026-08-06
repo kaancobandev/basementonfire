@@ -217,7 +217,7 @@ export default function KuantumClient() {
 
       {/* Quiz */}
       <ArticleSection kicker="MİNİ TEST" title="Ne kadar anladın?">
-        <ArticleQuiz questions={quizQs} />
+        <ArticleQuiz />
       </ArticleSection>
 
       {/* Finale */}

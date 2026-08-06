@@ -256,7 +256,7 @@ export default function NewtonClient() {
       <HorizontalTimeline heading="Bir dâhinin yaşamı" items={timeline} />
 
       <ArticleSection kicker="MİNİ TEST" title="Newton'ı ne kadar tanıyorsun?">
-        <ArticleQuiz questions={quizQs} />
+        <ArticleQuiz />
       </ArticleSection>
 
       <ArticleSection center title="Sonuç">

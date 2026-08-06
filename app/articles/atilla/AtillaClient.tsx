@@ -668,7 +668,7 @@ export default function AtillaClient() {
           ALTINDA boyanıyor — DOM'da var, rengi doğru, sadece görünmüyor.
           Fatih/kanuni/sezar hep sarmalıyor; burada unutulmuştu. */}
       <div className="relative z-10">
-        <ArticleQuiz questions={quizQs} />
+        <ArticleQuiz />
         <ArticleBibliography items={refs} accent={ACCENT} />
       </div>
 

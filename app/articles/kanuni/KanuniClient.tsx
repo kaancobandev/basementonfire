@@ -376,7 +376,7 @@ export default function KanuniClient() {
       </div>
 
       <ArticleSection kicker="MİNİ TEST" title="Sıfat mı, sayı mı? Bakalım.">
-        <ArticleQuiz questions={[...quizQs]} />
+        <ArticleQuiz />
       </ArticleSection>
 
       <div className="relative z-10 mx-auto max-w-3xl px-6">

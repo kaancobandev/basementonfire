@@ -183,7 +183,7 @@ export default function SanatClient() {
 
       {/* Quiz */}
       <ArticleSection kicker="MİNİ TEST" title="Ne kadar yakaladın?">
-        <ArticleQuiz questions={quizQs} />
+        <ArticleQuiz />
       </ArticleSection>
 
       {/* Özet */}

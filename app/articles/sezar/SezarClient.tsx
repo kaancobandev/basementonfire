@@ -410,7 +410,7 @@ export default function SezarClient() {
       </ArticleSection>
 
       <ArticleSection kicker="MİNİ TEST" title="Anladın mı? Bakalım.">
-        <ArticleQuiz questions={quizQs} />
+        <ArticleQuiz />
       </ArticleSection>
 
       <div className="relative z-10 mx-auto max-w-3xl px-6">

@@ -306,7 +306,7 @@ export default function BilgisayarClient() {
 
       {/* Quiz */}
       <ArticleSection kicker="MİNİ TEST" title="Ne kadar anladın?">
-        <ArticleQuiz questions={quizQs} />
+        <ArticleQuiz />
       </ArticleSection>
 
       {/* Özet */}

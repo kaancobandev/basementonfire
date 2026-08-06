@@ -182,7 +182,7 @@ export default function DogalSecilimClient() {
 
       {/* Mini test */}
       <ArticleSection kicker="MİNİ TEST" title="Anladın mı? Hadi bakalım">
-        <ArticleQuiz questions={quizQs} />
+        <ArticleQuiz />
       </ArticleSection>
 
       <div className="relative z-10">

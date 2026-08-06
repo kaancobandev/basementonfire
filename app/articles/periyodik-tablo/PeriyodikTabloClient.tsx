@@ -285,7 +285,7 @@ export default function PeriyodikTabloClient() {
             Atilla'da aynı hata canlıda yakalandı: sarmalayıcısız Kaynakça,
             ArticleShell'in opak .art-ambient katmanının altında kalıyor. */}
         <div className="relative z-10">
-          <ArticleQuiz questions={quizQs} />
+          <ArticleQuiz />
           <ArticleBibliography items={refs} accent={ACCENT} />
         </div>
 

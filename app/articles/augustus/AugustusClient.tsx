@@ -432,7 +432,7 @@ export default function AugustusClient() {
       </ArticleSection>
 
       <ArticleSection kicker="MİNİ TEST" title="Kandırıldın mı? Bakalım.">
-        <ArticleQuiz questions={quizQs} />
+        <ArticleQuiz />
       </ArticleSection>
 
       <div className="relative z-10 mx-auto max-w-3xl px-6">

@@ -271,7 +271,7 @@ export default function DunyaClient() {
 
       {/* Mini test */}
       <ArticleSection kicker="MİNİ TEST" title="Ne kadar anladın?">
-        <ArticleQuiz questions={quizQs} />
+        <ArticleQuiz />
       </ArticleSection>
 
       {/* Sonuç */}
