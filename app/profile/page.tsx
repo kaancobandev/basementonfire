@@ -25,7 +25,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
   // Alan seçimi (select('*') yerine yalnızca kullanılan kolonlar) → daha küçük
   // satırlar, daha hızlı transfer. Limit yok: ızgara sayısı (.length) doğru kalsın
   // (mevcut ölçekte gönderi sayısı küçük; ileride sayfalama gerekirse ayrı count+limit).
-  const [followersRes, followingRes, mediaRes, bookmarksRes, repostsRes, progressRes, badgesRes, articlesRes] = await Promise.all([
+  const [followersRes, followingRes, mediaRes, bookmarksRes, repostsRes, progressRes, badgesRes, articlesRes, okumaRes] = await Promise.all([
     db.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', user.id),
     db.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', user.id),
     db.from('quick_facts').select('id, media_url, media_type, caption, likes, created_at, media').eq('user_id', user.id).order('created_at', { ascending: false }),
@@ -40,6 +40,12 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
     // duzenleme. Yalnizca VAR MI diye bakiliyor (govdesi cekilmiyor) -> sorgu
     // agirlasmasin. Sutunlar yoksa asagida sutunsuz surumle tekrar denenir.
     db.from('user_articles').select(ARTICLE_COLS).eq('user_id', user.id).order('created_at', { ascending: false }),
+    // Okuma listesi SAYISI. Makale kaydetmek gonderi kaydetmekten AYRI bir
+    // koleksiyon (article_saves vs bookmarks) ve "Kaydedilenler" sekmesi
+    // yalnizca gonderileri gosteriyordu — kullanici makalesini orada arayip
+    // bulamiyordu. Sekmeye kopru koyabilmek icin sayiyi buradan aliyoruz.
+    // head:true -> yalniz sayi doner, satir tasinmaz.
+    db.from('article_saves').select('article_slug', { count: 'exact', head: true }).eq('user_id', user.id),
   ]);
   // Öne çıkanlar — tablo yoksa boş (getHighlights defansif); şerit gizli kalır.
   const highlights = await getHighlights(user.id);
@@ -96,6 +102,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
       followingCount={followingRes.count ?? 0}
       mediaPosts={mediaPosts}
       savedPosts={savedPosts}
+      savedArticleCount={okumaRes?.error ? 0 : (okumaRes?.count ?? 0)}
       repostedPosts={repostedPosts}
       myArticles={myArticles}
       isAdmin={isAdmin(user as any)}

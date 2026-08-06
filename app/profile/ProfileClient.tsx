@@ -42,6 +42,8 @@ interface Props {
   followingCount: number;
   mediaPosts: MediaPost[];
   savedPosts: MediaPost[];
+  /** Okuma listesindeki makale sayısı (article_saves) — sekmedeki köprü için. */
+  savedArticleCount: number;
   repostedPosts: MediaPost[];
   myArticles: MyArticle[];
   isAdmin?: boolean;
@@ -53,7 +55,7 @@ interface Props {
 
 const GENDER_LABEL: Record<string, string> = { erkek: 'Erkek', kadin: 'Kadın', diger: 'Diğer' };
 
-export default function ProfileClient({ user, bg, age, followersCount, followingCount, mediaPosts, savedPosts, repostedPosts, myArticles, isAdmin, progress, badgeKeys, highlights, error }: Props) {
+export default function ProfileClient({ user, bg, age, followersCount, followingCount, mediaPosts, savedPosts, savedArticleCount, repostedPosts, myArticles, isAdmin, progress, badgeKeys, highlights, error }: Props) {
   const isMobile = useIsMobile();
   const [tab, setTab] = useState<'posts' | 'saved' | 'reposts' | 'articles'>('posts');
   const [followModal, setFollowModal] = useState<'followers' | 'following' | null>(null);
@@ -294,12 +296,40 @@ export default function ProfileClient({ user, bg, age, followersCount, following
         )
       )}
 
+      {/* ── OKUMA LİSTESİ KÖPRÜSÜ ──
+          Makale kaydetmek ile gönderi kaydetmek AYRI koleksiyonlar
+          (article_saves vs bookmarks). Bu sekme yalnızca gönderileri
+          gösteriyor; makalesini burada arayan kullanıcı boş ekran görüp
+          "kaydetme çalışmıyor" sanıyordu. Köprü her iki durumda da çizilir:
+          liste doluysa sayıyla, boşsa nereye kaydedildiğini anlatarak. */}
+      {tab === 'saved' && (
+        <Link
+          href="/okuma-listesi"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 10, margin: '12px 12px 0', padding: '12px 14px',
+            border: '1px solid var(--color-border)', borderRadius: 12, background: 'var(--color-surface)',
+            color: 'var(--color-text)', textDecoration: 'none',
+          }}
+        >
+          <span style={{ fontSize: '1.25rem' }} aria-hidden>📚</span>
+          <span style={{ flex: 1, minWidth: 0 }}>
+            <span style={{ display: 'block', fontWeight: 700, fontSize: '0.9rem' }}>Okuma listen</span>
+            <span style={{ display: 'block', fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+              {savedArticleCount > 0
+                ? `Kaydettiğin ${savedArticleCount} makale burada`
+                : 'Kaydettiğin makaleler burada toplanır'}
+            </span>
+          </span>
+          <span aria-hidden style={{ color: 'var(--color-primary)', fontWeight: 700 }}>→</span>
+        </Link>
+      )}
+
       {tab === 'saved' && (
         savedPosts.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '80px 20px', color: 'var(--color-text-muted)' }}>
+          <div style={{ textAlign: 'center', padding: '48px 20px 80px', color: 'var(--color-text-muted)' }}>
             <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>🔖</div>
             <p style={{ fontWeight: 700, marginBottom: 4 }}>Kaydedilen gönderi yok</p>
-            <p style={{ fontSize: '0.85rem' }}>Beğendiğin gönderileri kaydet</p>
+            <p style={{ fontSize: '0.85rem' }}>Beğendiğin gönderileri kaydet — makaleler yukarıdaki okuma listende</p>
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 3, padding: 3 }}>
