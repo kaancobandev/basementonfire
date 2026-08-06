@@ -44,13 +44,17 @@ export async function GET() {
   // GÖRÜLMEMİŞ (story_views) id'leri kitle filtresinden ÖNCEKİ ham listeden alınır.
   // Fazlası ZARARSIZ: viewer_id=me.id koşulu yalnız kullanıcının KENDİ "gördüm"
   // kayıtlarını döndürür; görünmeyen hikâye filtrelenmiş storyMap'e zaten girmez.
-  const [canSeeStory, fr, pr, rr, dl, suggestedUsers, seenRes] = await Promise.all([
+  const [canSeeStory, fr, pr, rr, dl, bm, suggestedUsers, seenRes] = await Promise.all([
     audiencePredicate(me.id),
     facts.length ? db.from('fact_likes').select('fact_id').eq('user_id', me.id).in('fact_id', facts.map((f) => f.id)) : Promise.resolve({ data: [] as any[] }),
     posts.length ? db.from('post_likes').select('post_id').eq('user_id', me.id).in('post_id', posts.map((p) => p.id)) : Promise.resolve({ data: [] as any[] }),
     facts.length ? db.from('fact_reposts').select('fact_id').eq('user_id', me.id).in('fact_id', facts.map((f) => f.id)) : Promise.resolve({ data: [] as any[] }),
     // dyk_likes tablosu yoksa error döner, data null kalır → boş liste (defansif).
     dykIds.length ? db.from('dyk_likes').select('dyk_id').eq('user_id', me.id).in('dyk_id', dykIds) : Promise.resolve({ data: [] as any[] }),
+    // Kaydedilenler — akıştaki kartın yer imi ikonu dolu mu boş mu çizilecek.
+    // Bu olmadan zaten kayıtlı bir gönderi akışta kaydedilmemiş görünür ve
+    // kullanıcı ikona basınca kaydı KALDIRIR.
+    facts.length ? db.from('bookmarks').select('post_id').eq('user_id', me.id).in('post_id', facts.map((f) => f.id)) : Promise.resolve({ data: [] as any[] }),
     getSuggestedUsers(me.id),
     allStoryIds.length ? db.from('story_views').select('story_id').eq('viewer_id', me.id).in('story_id', allStoryIds) : Promise.resolve({ data: [] as any[] }),
   ]);
@@ -76,6 +80,7 @@ export async function GET() {
       likedPostIds: ((pr as any).data ?? []).map((r: any) => r.post_id),
       repostedFactIds: ((rr as any).data ?? []).map((r: any) => r.fact_id),
       likedDykIds: ((dl as any).data ?? []).map((r: any) => r.dyk_id),
+      bookmarkedFactIds: ((bm as any).data ?? []).map((r: any) => r.post_id),
       suggestedUsers,
       ownStoryUser,
       otherStoryUsers,

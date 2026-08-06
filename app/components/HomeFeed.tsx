@@ -16,6 +16,7 @@ import Caption from './Caption';
 import Logo from './Logo';
 import TimeAgo from './TimeAgo';
 import DailyQuestion from './DailyQuestion';
+import CollectionPicker from './CollectionPicker';
 import DidYouKnowCard from './DidYouKnowCard';
 import PostPoll from './PostPoll';
 import FeedComposer from './FeedComposer';
@@ -116,6 +117,11 @@ export default function HomeFeed({
   const [factLikes, setFactLikes] = useState<Record<number, number>>({});
   const [repostedFacts, setRepostedFacts] = useState<Set<number>>(new Set(repostedFactIds));
   const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set(likedPostIds));
+  // Kaydedilenler + koleksiyon sayfası. Akıştaki kartın eylem sırası, gönderi
+  // detayıyla (/p/[id]) AYNI olmalı — Instagram'da olduğu gibi bir gönderiye
+  // nereden bakarsan bak yapabileceklerin değişmez.
+  const [bookmarkedFacts, setBookmarkedFacts] = useState<Set<number>>(new Set());
+  const [pickerFor, setPickerFor] = useState<number | null>(null);
   const [postLikes, setPostLikes] = useState<Record<number, number>>({});
   const [followedUsers, setFollowedUsers] = useState<Set<string>>(new Set());
 
@@ -155,6 +161,7 @@ export default function HomeFeed({
         setLikedFacts(prev => (prev.size ? prev : new Set<number>(d.likedFactIds ?? [])));
         setLikedPosts(prev => (prev.size ? prev : new Set<number>(d.likedPostIds ?? [])));
         setRepostedFacts(prev => (prev.size ? prev : new Set<number>(d.repostedFactIds ?? [])));
+        setBookmarkedFacts(prev => (prev.size ? prev : new Set<number>(d.bookmarkedFactIds ?? [])));
       })
       .catch(() => { /* fail-safe: kabuk kalır */ });
     return () => { alive = false; };
@@ -559,6 +566,26 @@ export default function HomeFeed({
   }
 
   // Repost (yalnızca quick_facts) — optimistik, hata/401'de geri alır
+  /** Kaydet/kaldır — /p/[id] ile birebir aynı uç ve aynı iyimser güncelleme. */
+  async function toggleBookmark(id: number) {
+    if (!currentUser) { window.location.href = '/login'; return; }
+    const vardi = bookmarkedFacts.has(id);
+    setBookmarkedFacts(prev => { const n = new Set(prev); vardi ? n.delete(id) : n.add(id); return n; });
+    try {
+      const res = await fetch(`/api/quick-facts/${id}/bookmark`, { method: 'POST' });
+      if (res.status === 401) { window.location.href = '/login'; return; }
+      const d = await res.json();
+      if (!res.ok || typeof d.bookmarked === 'undefined') throw new Error();
+      setBookmarkedFacts(prev => { const n = new Set(prev); d.bookmarked ? n.add(id) : n.delete(id); return n; });
+      // Koleksiyon sayfasını KENDİLİĞİNDEN açmıyoruz; koleksiyon kullanmayan
+      // biri için her kayıtta modal açmak sürtünme olurdu (detay sayfasıyla
+      // aynı davranış).
+      if (d.bookmarked) toast.success('Kaydedildi', { action: { label: 'Koleksiyona ekle', onClick: () => setPickerFor(id) } });
+    } catch {
+      setBookmarkedFacts(prev => { const n = new Set(prev); vardi ? n.add(id) : n.delete(id); return n; });
+    }
+  }
+
   async function toggleRepost(id: number) {
     if (!currentUser) { window.location.href = '/login'; return; }
     const was = repostedFacts.has(id);
@@ -881,6 +908,7 @@ export default function HomeFeed({
                 const liked = likedFacts.has(item.id);
                 const likes = factLikes[item.id] ?? item.likes;
                 const reposted = repostedFacts.has(item.id);
+                const saved = bookmarkedFacts.has(item.id);
                 return (
                   <m.article
                     key={`fact-${item.id}`}
@@ -939,6 +967,33 @@ export default function HomeFeed({
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m17 1 4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="m7 23-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
                       </m.button>
+                      {/* KAYDET — akıştaki karta eklendi. Eskiden yalnız gönderi
+                          detayında (/p/[id]) vardı; aynı gönderinin akışta
+                          kaydedilememesi, nereden baktığına göre değişen bir
+                          eylem kümesi demekti. Sıra ve ikon detay sayfasıyla
+                          birebir aynı. */}
+                      <m.button
+                        onClick={() => toggleBookmark(item.id)}
+                        whileTap={{ scale: 0.80 }}
+                        aria-label={saved ? 'Kaydı kaldır' : 'Kaydet'}
+                        title={saved ? 'Kaydı kaldır' : 'Kaydet'}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '6px 8px', borderRadius: '9999px', color: saved ? 'var(--color-accent-ink)' : 'var(--color-text)', marginLeft: 'auto', transition: 'color 0.15s' }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill={saved ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                      </m.button>
+                      {/* Kayıtlıyken koleksiyon SONRADAN da seçilebilmeli: yer
+                          imine basmak kaydı kaldırır, o yüzden ayrı düğme. */}
+                      {saved && (
+                        <button
+                          type="button"
+                          onClick={() => setPickerFor(item.id)}
+                          aria-label="Koleksiyona ekle"
+                          title="Koleksiyona ekle"
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '6px 4px', color: 'var(--color-text-muted)' }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
+                        </button>
+                      )}
                     </div>
                     <div style={{ padding: '2px 14px 4px' }}>
                       <span className="tnum" style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-text)' }}>{likes} beğeni</span>
@@ -1333,6 +1388,12 @@ export default function HomeFeed({
       )}
 
       {closeMgrOpen && <CloseFriendsModal onClose={() => setCloseMgrOpen(false)} />}
+
+      {/* Koleksiyon seçici — akıştaki kartlar için TEK örnek. Her kartın kendi
+          örneğini basmak, ekranda onlarca kapalı modal demek olurdu. */}
+      {pickerFor !== null && (
+        <CollectionPicker postId={pickerFor} open onClose={() => setPickerFor(null)} />
+      )}
 
       {/* Hikâye kırpıcısı — zIndex 600: oluşturma modalı ve görüntüleyici 500'de.
           Varsayılan 300 ile açsaydık modalın ALTINDA kalır, kullanıcı "dosya
