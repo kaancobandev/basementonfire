@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { basHarf } from '@/lib/turkce';
 import Link from 'next/link';
 
 export type RecentRow = {
@@ -36,7 +37,7 @@ export default function RecentList({ rows }: { rows: RecentRow[] }) {
         <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 4px', borderTop: '1px solid var(--color-border)' }}>
           {r.avatar
             ? <img src={r.avatar} alt="" width={34} height={34} style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
-            : <div aria-hidden style={{ width: 34, height: 34, borderRadius: '50%', flexShrink: 0, background: 'var(--color-primary-soft)', color: 'var(--color-primary)', display: 'grid', placeItems: 'center', fontWeight: 800 }}>{(r.display_name || r.username || '?').charAt(0).toUpperCase()}</div>}
+            : <div aria-hidden style={{ width: 34, height: 34, borderRadius: '50%', flexShrink: 0, background: 'var(--color-primary-soft)', color: 'var(--color-primary)', display: 'grid', placeItems: 'center', fontWeight: 800 }}>{basHarf(r.display_name || r.username || '?')}</div>}
           <div style={{ minWidth: 0, flex: 1 }}>
             <div style={{ fontWeight: 700, color: 'var(--color-text)', fontSize: '0.92rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {r.username

@@ -15,6 +15,7 @@
 // ─────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useRef, useState } from 'react';
+import { buyuk } from '@/lib/turkce';
 import { ACCENT, BG, GOLD, CORAL, COBALT, MARBLE, ASH, WidgetFrame, rnd, clamp, useReducedMotion, refreshScroll } from './ui';
 import { MOHAC, MOHAC_SIM } from './data';
 
@@ -249,7 +250,7 @@ export default function MohacSim() {
   return (
     <WidgetFrame
       hero
-      kicker={`SAVAŞ SİMÜLASYONU · ${MOHAC.date.toUpperCase()}`}
+      kicker={`SAVAŞ SİMÜLASYONU · ${buyuk(MOHAC.date)}`}
       title="Sen Macar tarafındasın. Avrupa’nın en iyi ağır süvarisi senin elinde."
       hint="Üç karar vereceksin. Sonra hepsinin nereye çıktığını göreceksin."
       footnote={MOHAC.dispute}

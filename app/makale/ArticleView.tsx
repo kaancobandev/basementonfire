@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { basHarf } from '@/lib/turkce';
 import { breadcrumbJsonLd, jsonLdScript } from '@/lib/seo';
 import { sanitizeArticleHtml } from '@/lib/articleSanitize';
 import { type ArticleBlock, articleGoogleFontsHref } from '@/lib/userArticles';
@@ -87,7 +88,7 @@ export default function ArticleView({ a, isOwner = false }: { a: ArticleRow; isO
               <span className="ua-author-av">
                 {author.avatar && author.avatar !== '/avatars/default.png'
                   ? <Img src={author.avatar} alt="" fixedWidth={64} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
-                  : authorName[0]?.toUpperCase()}
+                  : basHarf(authorName)}
               </span>
               <span>
                 <span className="ua-author-name">{authorName}</span>

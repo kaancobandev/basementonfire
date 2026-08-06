@@ -5,6 +5,7 @@
 // mekanizmayı kendi eliyle kurmaya davet eder (IKEA etkisi + üretken başarısızlık).
 
 import { useEffect, useState } from 'react';
+import { buyuk } from '@/lib/turkce';
 import { ProofShare, type ProofSpec } from '@/app/components/article/ProofCard';
 import {
   ACCENT, BG, GOLD, CRIMSON, MARBLE, WATER, ASH,
@@ -406,7 +407,7 @@ export function PoisonJury() {
           const c = stanceColor(e.stance);
           return (
             <div key={e.key} className="rounded-xl border p-3.5" style={{ borderColor: `color-mix(in srgb, ${c} 30%, transparent)`, background: `color-mix(in srgb, ${c} 6%, transparent)` }}>
-              <div className="mb-1 text-[0.6rem] font-bold tracking-[0.15em]" style={{ color: c }}>{e.title.toUpperCase()}</div>
+              <div className="mb-1 text-[0.6rem] font-bold tracking-[0.15em]" style={{ color: c }}>{buyuk(e.title)}</div>
               <p className="text-xs leading-relaxed text-slate-300">{e.text}</p>
             </div>
           );

@@ -6,6 +6,7 @@
 // yerde (Perde 5, Perde 8) mekanizmayı çalıştıran KENDİSİ olur.
 
 import { useEffect, useState } from 'react';
+import { buyuk } from '@/lib/turkce';
 import { ProofShare, type ProofSpec } from '@/app/components/article/ProofCard';
 import {
   ACCENT, BG, GOLD, CORAL, COBALT, MARBLE, ASH,
@@ -61,7 +62,7 @@ export function VenetianCrown() {
   return (
     <WidgetFrame
       hero
-      kicker={`VENEDİK · ${CROWN.year} · SİPARİŞ: ${CROWN.buyer.toUpperCase()}`}
+      kicker={`VENEDİK · ${CROWN.year} · SİPARİŞ: ${buyuk(CROWN.buyer)}`}
       title="Sayfanın başındaki taç. Kaç katlı olduğuna dikkat ettin mi?"
       hint="Taçlara sırayla dokun."
       footnote={<>Kaynak · Gülru Necipoğlu, <em>The Art Bulletin</em> (1989); miğfer {CROWN.city}’te kuyumcu {CROWN.maker} tarafından yapıldı.</>}
@@ -359,7 +360,7 @@ export function Cadir() {
   return (
     <WidgetFrame
       hero
-      kicker={`KARAR DÜĞÜMÜ · ${MUSTAFA.date.toUpperCase()}`}
+      kicker={`KARAR DÜĞÜMÜ · ${buyuk(MUSTAFA.date)}`}
       title="Sen Şehzade Mustafa’sın. Otağa çağrıldın."
       hint="Bir seçim yap. Sonra üç kapının da nereye çıktığını gör."
     >

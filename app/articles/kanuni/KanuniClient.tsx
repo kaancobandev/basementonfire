@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { buyuk } from '@/lib/turkce';
 import dynamic from 'next/dynamic';
 import {
   ArticleShell, ArticleHero, ArticleLede, ArticleSection, HorizontalTimeline, ArticleQuiz, ArticleBibliography, ArticleFooter,
@@ -79,7 +80,7 @@ export default function KanuniClient() {
 
       {/* ══════════ PERDE 0 — Cold open: kırk iki gün ══════════ */}
       <div id="perde-0" className="scroll-mt-16">
-        <ArticleSection kicker={`PERDE 0 · COLD OPEN · ${ZIGETVAR.date.toUpperCase()}`} title="Kırk iki gün">
+        <ArticleSection kicker={`PERDE 0 · COLD OPEN · ${buyuk(ZIGETVAR.date)}`} title="Kırk iki gün">
           <p className="leading-relaxed text-slate-300">
             {ZIGETVAR.opening} {ZIGETVAR.place} önlerinde bir kuşatma sürüyor ve otağdaki adam {ZIGETVAR.age} yaşında.
             Vezir-i âzam Sokollu Mehmed Paşa, ölümü ordudan saklamaya karar veriyor. Sebebi basit: yeni padişah orduya ulaşmadan haber yayılırsa sefer dağılır.
@@ -200,7 +201,7 @@ export default function KanuniClient() {
 
       {/* ══════════ PERDE 3 — Mohaç ══════════ */}
       <div id="perde-3" className="scroll-mt-16">
-        <ArticleSection kicker={`PERDE 3 · ${MOHAC.date.toUpperCase()}`} title="İki saatte biten krallık">
+        <ArticleSection kicker={`PERDE 3 · ${buyuk(MOHAC.date)}`} title="İki saatte biten krallık">
           <p className="leading-relaxed text-slate-300">{MOHAC.intro}</p>
           <p className="mt-4 leading-relaxed text-slate-300">
             Ordu {MOHAC.departure}’da İstanbul’dan çıktı. Muharebe {MOHAC.date}’da oldu. Arada {tr(MOHAC.marchDays)} gün var —
@@ -270,7 +271,7 @@ export default function KanuniClient() {
 
       {/* ══════════ PERDE 5 — Makbul → Maktul ══════════ */}
       <div id="perde-5" className="scroll-mt-16">
-        <ArticleSection kicker={`PERDE 5 · ${IBRAHIM.date.toUpperCase()}`} title="Makbul’den Maktul’e">
+        <ArticleSection kicker={`PERDE 5 · ${buyuk(IBRAHIM.date)}`} title="Makbul’den Maktul’e">
           <p className="leading-relaxed text-slate-300">{IBRAHIM.intro}</p>
           <p className="mt-4 leading-relaxed text-slate-300">{IBRAHIM.night}</p>
           <p className="mt-4 text-lg font-semibold leading-relaxed text-slate-100">{IBRAHIM.name}</p>
@@ -293,7 +294,7 @@ export default function KanuniClient() {
 
       {/* ══════════ PERDE 6 — Otağ ══════════ */}
       <div id="perde-6" className="scroll-mt-16">
-        <ArticleSection kicker={`PERDE 6 · ${MUSTAFA.date.toUpperCase()} · ${MUSTAFA.place.toUpperCase()}`} title="Otağ">
+        <ArticleSection kicker={`PERDE 6 · ${buyuk(MUSTAFA.date)} · ${buyuk(MUSTAFA.place)}`} title="Otağ">
           <p className="leading-relaxed text-slate-300">{MUSTAFA.intro}</p>
 
           <div className="mt-8">
@@ -307,7 +308,7 @@ export default function KanuniClient() {
 
       {/* ══════════ PERDE 7 — Kanunun kendisi (seri kilidi) ══════════ */}
       <div id="perde-7" className="scroll-mt-16">
-        <ArticleSection kicker={`PERDE 7 · ${BAYEZID.date.toUpperCase()} · ${BAYEZID.place.toUpperCase()}`} title="Kanunun kendisi">
+        <ArticleSection kicker={`PERDE 7 · ${buyuk(BAYEZID.date)} · ${buyuk(BAYEZID.place)}`} title="Kanunun kendisi">
           <p className="leading-relaxed text-slate-300">{BAYEZID.text}</p>
           <p className="mt-4 leading-relaxed text-slate-300">{KARDES.intro}</p>
           <p className="mt-4 leading-relaxed text-slate-300">

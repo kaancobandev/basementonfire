@@ -14,6 +14,7 @@
 // eklenmez, Netlify cache tuzağına girilmez ([[netlify-cache-and-grid-gotchas]]).
 
 import { ARTICLE_MAP } from './articles';
+import { buyuk } from './turkce';
 import { questionFor } from './questions';
 import { gradientFor } from './article-gradients';
 
@@ -113,7 +114,7 @@ export function slidesFor(slug: string, photoSrcs: string[] = []): Slide[] {
 export function coverText(slug: string): { kicker: string; title: string; question: string } {
   const a = ARTICLE_MAP[slug];
   return {
-    kicker: (a?.category ?? 'BASEMENTONFIRE').toUpperCase(),
+    kicker: buyuk(a?.category ?? 'Basementonfire'),
     title: a?.title ?? 'Basementonfire',
     // Soru yoksa desc'e düş (OG kartıyla aynı kural).
     question: questionFor(slug) ?? a?.desc ?? '',

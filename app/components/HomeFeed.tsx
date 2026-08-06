@@ -1,6 +1,7 @@
 'use client';
 
 import Img from '@/app/components/Img';
+import { basHarf } from '@/lib/turkce';
 import MediaCarousel from '@/app/components/MediaCarousel';
 import { factMediaList } from '@/lib/types';
 import { avatarSrc } from '@/lib/avatar';
@@ -769,7 +770,7 @@ export default function HomeFeed({
                 {currentUser.avatar
                   ? <Img src={currentUser.avatar} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', border: '2px solid white' }} />
                   : <div style={{ width: '100%', height: '100%', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '1.25rem', color: '#fff', background: storyAvatarBg(currentUser.username), border: '2px solid white' }}>
-                  {currentUser.display_name[0].toUpperCase()}
+                  {basHarf(currentUser.display_name)}
                 </div>}
                 {!ownStoryUser && (
                   <span style={{ position: 'absolute', bottom: -1, right: -1, width: 20, height: 20, borderRadius: '50%', background: 'var(--color-primary)', color: '#fff', fontSize: '1rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid white', lineHeight: 1 }}>+</span>
@@ -790,7 +791,7 @@ export default function HomeFeed({
               <div style={{ width: 60, height: 60, borderRadius: '50%', padding: '2.5px', background: u.stories.every(st => st.seen) ? 'var(--color-border)' : 'var(--gradient-story)', transition: 'transform 0.15s' }}>
                 {u.avatar
                   ? <Img src={u.avatar} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', border: '2px solid white' }} />
-                  : <div style={{ width: '100%', height: '100%', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '1.25rem', color: '#fff', background: storyAvatarBg(u.username), border: '2px solid white' }}>{u.displayName[0].toUpperCase()}</div>
+                  : <div style={{ width: '100%', height: '100%', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '1.25rem', color: '#fff', background: storyAvatarBg(u.username), border: '2px solid white' }}>{basHarf(u.displayName)}</div>
                 }
               </div>
               <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', maxWidth: 64, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'center' }}>{u.username}</span>
@@ -1120,7 +1121,7 @@ export default function HomeFeed({
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div style={{ width: 34, height: 34, borderRadius: '50%', flexShrink: 0, background: '#555', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.9rem', color: '#fff', overflow: 'hidden' }}>
-                  {currentSvUser.avatar ? <Img src={currentSvUser.avatar} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : currentSvUser.displayName[0].toUpperCase()}
+                  {currentSvUser.avatar ? <Img src={currentSvUser.avatar} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : basHarf(currentSvUser.displayName)}
                 </div>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#fff' }}>{currentSvUser.displayName}</div>
