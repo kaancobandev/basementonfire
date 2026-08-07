@@ -131,3 +131,13 @@
   for = "/landing/*"
   [headers.values]
     Cache-Control = "public, max-age=604800"
+
+# Site maskotu: motor (pet-engine.js) + sprite sayfaları. Dosya adları SABİT
+# (bilerek — hash'li Next parçası olsaydı bayat HTML'de 404 olurdu), sürüm
+# kırıcı lib/pets.ts'teki PET_VERSION'dan gelen ?v= sorgusu. Bu yüzden
+# immutable DEĞİL, /brand ve /landing gibi 7 gün: maskotu değiştirdiğinde
+# PET_VERSION'ı artırman yeter, artırmayı unutursan da bir hafta sonra düzelir.
+[[headers]]
+  for = "/pets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"

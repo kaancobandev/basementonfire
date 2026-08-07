@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { isPetOn, setPetOn, PETS } from '@/lib/pets';
 
 interface Props {
   user: { username: string; dm_privacy: string; comment_privacy: string; is_private: boolean; };
@@ -12,6 +13,10 @@ export default function SettingsClient({ user }: Props) {
   const [silOnay, setSilOnay] = useState('');
   const [silAcik, setSilAcik] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  // Maskot varsayılan AÇIK. İlk render'da true veriliyor ki sunucu HTML'i ile
+  // istemcinin ilk boyaması aynı olsun (hidrasyon uyarısı yok); gerçek tercih
+  // aşağıdaki efektte localStorage'dan okunuyor — tema ile birebir aynı desen.
+  const [petOn, setPetOnState] = useState(true);
   const [isPrivate, setIsPrivate] = useState(user.is_private);
   const [dmPrivacy, setDmPrivacy] = useState(user.dm_privacy);
   const [commentPrivacy, setCommentPrivacy] = useState(user.comment_privacy);
@@ -24,6 +29,7 @@ export default function SettingsClient({ user }: Props) {
       const t = localStorage.getItem('theme');
       setTheme((t === 'dark' ? 'dark' : 'light'));
     } catch {}
+    setPetOnState(isPetOn());
   }, []);
 
   function toggleTheme() {
@@ -31,6 +37,15 @@ export default function SettingsClient({ user }: Props) {
     setTheme(next);
     document.documentElement.setAttribute('data-theme', next === 'dark' ? 'dark' : '');
     try { localStorage.setItem('theme', next); } catch {}
+  }
+
+  // Maskot anahtarı. setPetOn hem localStorage'a yazar hem `pet:change` yayınlar
+  // → açık sekmedeki panda ANINDA gelir/gider, sayfa yenilemeye gerek yok
+  // (bkz. app/components/SitePet.tsx).
+  function togglePet() {
+    const next = !petOn;
+    setPetOnState(next);
+    setPetOn(next);
   }
 
   async function savePrivacy() {
@@ -73,12 +88,23 @@ export default function SettingsClient({ user }: Props) {
         <section>
           <h2 style={{ fontSize: '1rem', fontWeight: 700, margin: '0 0 16px', color: 'var(--color-text)' }}>Görünüm</h2>
           <div style={{ background: 'var(--color-bg)', borderRadius: 16, border: '1px solid var(--color-border)', overflow: 'hidden' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid var(--color-border)' }}>
               <div>
                 <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>Karanlık Mod</div>
                 <div style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', marginTop: 2 }}>Koyu tema kullan</div>
               </div>
               <Toggle checked={theme === 'dark'} onChange={toggleTheme} label="Karanlık mod" />
+            </div>
+            {/* Maskot — varsayılan açık. Açıklama PETS'ten okunuyor: yeni hayvan
+                eklendiğinde bu metni elle güncellemek gerekmesin. */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', gap: 16 }}>
+              <div>
+                <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>Maskot</div>
+                <div style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', marginTop: 2 }}>
+                  {PETS[0].ad} sayfanın alt kenarında dolaşsın
+                </div>
+              </div>
+              <Toggle checked={petOn} onChange={togglePet} label="Maskot" />
             </div>
           </div>
         </section>

@@ -97,6 +97,37 @@
    klavye açınca tam olarak bu oluyordu. */
 :root.kb-open { --nav-space: 0px; }
 
+/* ── Site maskotu (kızıl panda) — YERLEŞİM TOKENLARI ──
+   Maskot public/pets/pet-engine.js içinde yaşıyor ve nerede duracağını BURADAN
+   okuyor (motorun kendi CSS'i bu iki değişkeni geri düşüşlü kullanır, böylece
+   dosya tek başına da çalışır). Maskotun kendi z-index'i 30: içeriğin üstünde,
+   nav/dock (100), MediaDock (120), sheet (200), çerez banner'ı (1000) ALTINDA.
+
+   --pet-bottom → maskotun bastığı çizgi.
+     Telefonda cam dock'un ÜSTÜ: dock 58px + güvenli alan boyunca ekranı
+     kapatıyor, 0 bırakılırsa maskotun bacakları dock'un arkasında kaybolur.
+     --nav-space üzerinden bağlandığı için klavye açılınca (:root.kb-open →
+     0px) maskot da kendiliğinden gerçek dibe iner — dock zaten gizleniyor.
+     Tablet/masaüstünde dock yok, yalnız güvenli alan kadar yukarıda durur
+     (viewport-fit=cover açık, bkz. app/layout.tsx).
+
+   --pet-left → maskotun yürüyebileceği şeridin sol kenarı.
+     Kenar çubuğu sticky ve z-index 100, yani maskotun ÜSTÜNDE. Şerit 0'dan
+     başlasaydı maskot sola yürüyüp çubuğun arkasına girer ve kaybolurdu;
+     içerik sütununun kenarından başlatılıyor. Kırılım noktaları kenar çubuğu
+     kurallarıyla (1200px / 699px) birebir aynı olmak ZORUNDA. */
+:root {
+  --pet-bottom: env(safe-area-inset-bottom, 0px);
+  --pet-left: var(--sidebar-width);
+}
+@media (max-width: 1200px) { :root { --pet-left: var(--sidebar-width-sm); } }
+@media (max-width: 699px) {
+  :root {
+    --pet-left: 0px;                    /* kenar çubuğu display:none */
+    --pet-bottom: var(--nav-space);     /* cam dock'un üstü */
+  }
+}
+
 * { box-sizing: border-box; }
 
 /* ── Küçük butonlar için görünmez dokunma alanı (hitSlop) — layout kaymadan

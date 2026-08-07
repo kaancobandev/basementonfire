@@ -24,6 +24,7 @@ import CookieConsent from './components/CookieConsent';
 import SignupEvent from './components/SignupEvent';
 import PageviewBeacon from './components/PageviewBeacon';
 import WebVitalsBeacon from './components/WebVitalsBeacon';
+import SitePet from './components/SitePet';
 
 // Google Analytics (GA4) ID — CookieConsent'e geçilir. GA YALNIZCA hem
 // NEXT_PUBLIC_GA_ID tanımlıysa hem de ziyaretçi çerez onayı verdiyse yüklenir
@@ -211,6 +212,12 @@ export default function RootLayout({ children, modal }: { children: React.ReactN
         <CookieConsent gaId={GA_ID} />
         {/* Kayıt başarısında (?signup=1) `sign_up` GA4/Ads dönüşümünü gönderir. */}
         <SignupEvent />
+        {/* Site maskotu (kızıl panda). Varsayılan AÇIK, ayarlardan kapatılabilir.
+            AppShell'in DIŞINDA ve ondan BAĞIMSIZ: kabuğun render yolunda çıkan
+            bir sorun maskotu düşürmesin. Kendisi null döner, sunucu HTML'ine
+            hiçbir şey basmaz; motoru sayfa yüklendikten SONRA boşta zamanda
+            indirir (bkz. SitePet.tsx — üç bağımsız tetikleyici). */}
+        <SitePet />
       </body>
     </html>
   );
