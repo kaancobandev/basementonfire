@@ -169,7 +169,10 @@ export default function HomeFeed({
 
   useEffect(() => {
     if (!navUser) return;
-    if (feedPersonal !== undefined) return;  // AppShell hallettiyse (veya çıkışlıysa) çekme
+    // ⚠ `!== undefined` DEĞİL: nav-state kişisel katı üretirken hata alırsa
+    // `feed: null` döner (fail-safe). O hâlde AppShell "halletmiş" sayılmamalı,
+    // yedek uca düşmeliyiz — yoksa kullanıcı beğenilerini hiç göremezdi.
+    if (feedPersonal) return;
     let alive = true;
     fetch('/api/feed/personal')
       .then(r => r.json())
