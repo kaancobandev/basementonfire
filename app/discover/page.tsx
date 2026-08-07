@@ -43,11 +43,19 @@ export const revalidate = 3600;
 // ve tags:['feed'] sayesinde yeni içerik yayınlanınca ikisi birden tazelenir.
 const getDiscoverContent = unstable_cache(
   async () => {
-    const [{ data: users, error: usersErr }, { data: mediaRaw, error: mediaErr }, { data: uaRaw, error: uaErr }] = await Promise.all([
+    // ⚠ Gündem sorgusu da BURADA: aşağıdaki `Promise.all`'ın sonucuna hiçbir
+    // bağımlılığı yok, yalnız dışarıda kaldığı için sıraya giriyordu ve yeniden
+    // üretime kendi turunu ekliyordu. İçeri alındı — bedava paralellik.
+    const [{ data: users, error: usersErr }, { data: mediaRaw, error: mediaErr }, { data: uaRaw, error: uaErr }, { data: recentFacts }] = await Promise.all([
       // Silinmiş hesaplar (anonim künye) keşifte ÇIKMAZ.
       db.from('users').select('id, username, display_name, bio, avatar').eq('is_deleted', false).order('created_at', { ascending: false }).limit(20),
       db.from('quick_facts').select('id, media_url, media_type, caption, likes, users!quick_facts_user_id_fkey(username, display_name, is_private)').order('created_at', { ascending: false }).limit(24),
       db.from('user_articles').select('id, slug, title, summary, cover_url, category, users!user_articles_user_id_fkey(username, display_name)').eq('status', 'approved').order('published_at', { ascending: false }).limit(12),
+      // Gündem örneklemi — limit(500), yukarıdaki limit(24) ile AYNI ŞEY DEĞİL.
+      db.from('quick_facts')
+        .select('id, users!quick_facts_user_id_fkey(is_private)')
+        .order('created_at', { ascending: false })
+        .limit(500),
     ]);
     logIfError('discover users', usersErr);
     logIfError('discover quick_facts', mediaErr);
@@ -64,11 +72,6 @@ const getDiscoverContent = unstable_cache(
     // yüzeyde elle is_private filtresi). Tablolar yoksa/boşsa blok sessizce gizlenir.
     let trending: { tag: string; count: number }[] = [];
     try {
-      const { data: recentFacts } = await db
-        .from('quick_facts')
-        .select('id, users!quick_facts_user_id_fkey(is_private)')
-        .order('created_at', { ascending: false })
-        .limit(500);
       const publicIds = ((recentFacts ?? []) as any[]).filter((r) => !r.users?.is_private).map((r) => r.id);
       if (publicIds.length) {
         const { data: ph } = await db.from('post_hashtags').select('hashtag_id').in('post_id', publicIds);

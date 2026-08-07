@@ -52,7 +52,12 @@ export const getHomeContent = unstable_cache(
       // tablosu stories↔users arasında ikinci bir ilişki yolu açtığından PostgREST
       // gömmeyi belirsiz sayıp hata veriyor; sonuç sessizce BOŞ hikâye şeridi olur.
       db.from('stories')
-        .select('id, media_url, media_type, created_at, user_id, music_track_id, music_start_sec, link_url, link_label, poll_question, poll_options, poll_correct, audience, caption, music:music_tracks(id, title, artist, src), users!stories_user_id_fkey(id, username, display_name, avatar, is_private)')
+        .select('id, media_url, media_type, created_at, expires_at, user_id, music_track_id, music_start_sec, link_url, link_label, poll_question, poll_options, poll_correct, audience, caption, music:music_tracks(id, title, artist, src), users!stories_user_id_fkey(id, username, display_name, avatar, is_private)')
+        // ⚠ Bu zaman damgası unstable_cache'in İÇİNDE donuyor: girdi üretildiği
+        // anki `now` ile karşılaştırılıyor, sonraki 1 saat boyunca aynı kalıyor.
+        // Yani bu filtre KABA bir ön eleme; kesin süre kontrolü cache DIŞINDA,
+        // buildStoryUsers içinde yapılıyor (aksi hâlde süresi dolmuş hikâye
+        // bir saate kadar şeritte kalırdı).
         .gt('expires_at', new Date().toISOString())
         .order('created_at', { ascending: false })
         // Büyüme sigortası: şerit zaten en yeni hikâyeleri gösterir; 24 saatte 100+
@@ -72,7 +77,12 @@ export const getHomeContent = unstable_cache(
     let storiesFinal = storiesRaw;
     if (storiesErr && /music_track_id|music_start_sec|music_tracks|link_url|link_label|poll_question|poll_options|poll_correct|audience|caption/i.test(storiesErr.message)) {
       const { data: sade } = await db.from('stories')
-        .select('id, media_url, media_type, created_at, user_id, users!stories_user_id_fkey(id, username, display_name, avatar, is_private)')
+        .select('id, media_url, media_type, created_at, expires_at, user_id, users!stories_user_id_fkey(id, username, display_name, avatar, is_private)')
+        // ⚠ Bu zaman damgası unstable_cache'in İÇİNDE donuyor: girdi üretildiği
+        // anki `now` ile karşılaştırılıyor, sonraki 1 saat boyunca aynı kalıyor.
+        // Yani bu filtre KABA bir ön eleme; kesin süre kontrolü cache DIŞINDA,
+        // buildStoryUsers içinde yapılıyor (aksi hâlde süresi dolmuş hikâye
+        // bir saate kadar şeritte kalırdı).
         .gt('expires_at', new Date().toISOString())
         .order('created_at', { ascending: false })
         .limit(100);
@@ -225,7 +235,13 @@ export function buildStoryUsers(
   canSee: (ownerId: number, audience: string | null | undefined, isPrivate?: boolean) => boolean,
 ): Map<number, StoryUser> {
   const storyMap = new Map<number, StoryUser>();
-  for (const s of (storiesRaw ?? []).filter((s: any) => canSee(s.user_id, s.audience, s.users?.is_private))) {
+  // Süre kontrolü BURADA yapılır, sorguda değil: sorgudaki `expires_at` filtresi
+  // unstable_cache içinde donmuş bir `now` kullanıyor. Bu satır istek anında
+  // çalıştığı için süresi dolmuş hikâye şeride hiç girmez.
+  const simdi = Date.now();
+  for (const s of (storiesRaw ?? [])
+    .filter((s: any) => !s.expires_at || new Date(s.expires_at).getTime() > simdi)
+    .filter((s: any) => canSee(s.user_id, s.audience, s.users?.is_private))) {
     const u = s.users;
     const uid: number = s.user_id;
     if (!storyMap.has(uid)) storyMap.set(uid, { userId: uid, username: u.username, displayName: u.display_name, avatar: u.avatar ?? null, stories: [] });

@@ -51,10 +51,12 @@ const ACCEPT_ENCODING = 'gzip, br';
 // Yeni MAKALE eklenince ise otomatik kapsanır (lib/articles.ts → sitemap → burası).
 const ALLOW = [
   /^\/$/,                          // landing (statik)
-  // /feed 2026-07-28'de ISR'a çevrildi (eskiden force-dynamic + no-store idi).
-  // Artık cache'lenebiliyor → süpürge onu da ısıtıyor ve girişli kullanıcının
-  // açılışı (`/` → 307 → /feed) soğuk Lambda beklemiyor. Aşağıdaki "uyandırma"
-  // isteği bu yüzden KALDIRILDI: sayfa artık normal bir cache girdisi.
+  // ⚠ 2026-08-07 DÜZELTME: buradaki eski yorum "süpürge /feed'i ısıtıyor" diyordu.
+  // YANLIŞTI ve bu regex bugüne kadar HİÇ EŞLEŞMEDİ. Sebep: aşağıdaki liste
+  // yalnızca sitemap'ten kuruluyor (bkz. runWarm), /feed ise sitemap'te YOK ve
+  // olamaz da — `app/feed/page.tsx` robots:{index:false}. Yani izin listesinde
+  // olması tek başına yetmiyor; URL listeye hiç girmiyordu.
+  // Çözüm: EK_YOLLAR ile listeye elle ekleniyor (aşağıda).
   /^\/feed$/,
   /^\/articles\/[a-z0-9-]+$/,      // 32 makale (statik) — asıl kazanç burada
   /^\/discover$/,                  // ISR 60 sn — kısmi fayda, bkz. not
@@ -99,6 +101,12 @@ export async function runWarm(trigger: string): Promise<{ status: number; body: 
   const t0 = Date.now();
 
   // ── Süpürülecek liste: sitemap (tek kaynak, yeni makaleyi kendi getirir) + filtre
+  //
+  // EK_YOLLAR: sitemap'te BULUNMAYAN ama ısıtılması gereken sayfalar. /feed
+  // noindex olduğu için sitemap'e giremez (bkz. sitemap sağlık kuralı) — oysa
+  // girişli açılışın indiği ilk sayfa orası. Sitemap'e eklemek YANLIŞ çözüm
+  // olurdu; liste burada tamamlanıyor.
+  const EK_YOLLAR = ['/feed'];
   let urls: string[] = [];
   try {
     const r = await fetch(`${SITE}/sitemap.xml`, { headers: { 'user-agent': UA } });
@@ -107,8 +115,9 @@ export async function runWarm(trigger: string): Promise<{ status: number; body: 
     const allowed = all.filter(cacheable);
     // Kullanıcı makalelerine ayrı tavan; kalanlar HARD_CAP'e kadar.
     const makale = allowed.filter(isMakale).slice(0, MAKALE_CAP);
-    urls = [...allowed.filter((u) => !isMakale(u)), ...makale].slice(0, HARD_CAP);
-    console.log(`${tag} sitemap: ${all.length} url -> cache'lenebilir: ${urls.length} (makale: ${makale.length})`);
+    const ek = EK_YOLLAR.map((y) => `${SITE}${y}`).filter((u) => !allowed.includes(u));
+    urls = [...ek, ...allowed.filter((u) => !isMakale(u)), ...makale].slice(0, HARD_CAP);
+    console.log(`${tag} sitemap: ${all.length} url -> cache'lenebilir: ${urls.length} (makale: ${makale.length}, sitemap disi: ${ek.length})`);
   } catch (e) {
     console.error(`${tag} sitemap alinamadi:`, e);
     return { status: 500, body: { error: 'sitemap error' } };
