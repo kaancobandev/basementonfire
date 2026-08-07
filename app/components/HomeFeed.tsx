@@ -6,7 +6,7 @@ import MediaCarousel from '@/app/components/MediaCarousel';
 import { factMediaList } from '@/lib/types';
 import { avatarSrc } from '@/lib/avatar';
 import { cdnUrl } from '@/lib/img';
-import { useNavUser } from '@/app/components/NavUserContext';
+import { useNavUser, useFeedPersonal } from '@/app/components/NavUserContext';
 
 import { useState, useRef, useEffect, useCallback, Fragment } from 'react';
 import Link from 'next/link';
@@ -142,27 +142,38 @@ export default function HomeFeed({
   // FAIL-SAFE: istek patlarsa kabuk olduğu gibi kalır (public akış + public
   // hikâyeler). Kullanıcı beğenilerini vurgulanmamış görür ama sayfa çalışır.
   const navUser = useNavUser();
+  // AppShell /feed'e doğrudan girildiyse bu yükü nav-state ile AYNI turda aldı.
+  // undefined = bu turda gelmedi (istemci tarafı gezinme) → kendimiz çekeriz.
+  const feedPersonal = useFeedPersonal();
+
+  /** Gelen kişisel yükü state'e yaz. İki kaynak da (context / fetch) burayı kullanır. */
+  const uygula = useCallback((d: any) => {
+    if (!d?.user) return;
+    setCurrentUser(d.user);
+    setCanMatch(!!d.canMatch);
+    setLikedDykIds(d.likedDykIds ?? []);
+    setSuggestedUsers(d.suggestedUsers ?? []);
+    setOwnStoryUser(d.ownStoryUser ?? null);
+    setOtherStoryUsers(d.otherStoryUsers ?? []);
+    // Beğeni kümelerinde YALNIZ DOKUNULMAMIŞSA sunucu doğrusunu uygula.
+    // Kullanıcı yanıt gelmeden bir şeyi beğendiyse (dar pencere) onun
+    // eylemini geri almak, eksik vurgudan daha kötü bir hata olurdu.
+    setLikedFacts(prev => (prev.size ? prev : new Set<number>(d.likedFactIds ?? [])));
+    setLikedPosts(prev => (prev.size ? prev : new Set<number>(d.likedPostIds ?? [])));
+    setRepostedFacts(prev => (prev.size ? prev : new Set<number>(d.repostedFactIds ?? [])));
+    setBookmarkedFacts(prev => (prev.size ? prev : new Set<number>(d.bookmarkedFactIds ?? [])));
+  }, []);
+
+  // Hazır geldiyse ikinci istek YOK.
+  useEffect(() => { if (feedPersonal) uygula(feedPersonal); }, [feedPersonal, uygula]);
+
   useEffect(() => {
     if (!navUser) return;
+    if (feedPersonal !== undefined) return;  // AppShell hallettiyse (veya çıkışlıysa) çekme
     let alive = true;
     fetch('/api/feed/personal')
       .then(r => r.json())
-      .then(d => {
-        if (!alive || !d?.user) return;
-        setCurrentUser(d.user);
-        setCanMatch(!!d.canMatch);
-        setLikedDykIds(d.likedDykIds ?? []);
-        setSuggestedUsers(d.suggestedUsers ?? []);
-        setOwnStoryUser(d.ownStoryUser ?? null);
-        setOtherStoryUsers(d.otherStoryUsers ?? []);
-        // Beğeni kümelerinde YALNIZ DOKUNULMAMIŞSA sunucu doğrusunu uygula.
-        // Kullanıcı yanıt gelmeden bir şeyi beğendiyse (dar pencere) onun
-        // eylemini geri almak, eksik vurgudan daha kötü bir hata olurdu.
-        setLikedFacts(prev => (prev.size ? prev : new Set<number>(d.likedFactIds ?? [])));
-        setLikedPosts(prev => (prev.size ? prev : new Set<number>(d.likedPostIds ?? [])));
-        setRepostedFacts(prev => (prev.size ? prev : new Set<number>(d.repostedFactIds ?? [])));
-        setBookmarkedFacts(prev => (prev.size ? prev : new Set<number>(d.bookmarkedFactIds ?? [])));
-      })
+      .then(d => { if (alive) uygula(d); })
       .catch(() => { /* fail-safe: kabuk kalır */ });
     return () => { alive = false; };
   }, [navUser?.id]);

@@ -1,5 +1,6 @@
 import { NextResponse, after } from 'next/server';
 import { db, getMe, logIfError } from '@/lib/supabase/server';
+import { buildFeedPersonal } from '@/lib/feedPersonal';
 
 // Nav (üst/yan menü) için kişiye özel durum: kullanıcı + okunmamış bildirim/mesaj
 // sayaçları + realtime abonelik anahtarları. ESKİDEN bu iş root layout'ta SSR'da
@@ -8,11 +9,27 @@ import { db, getMe, logIfError } from '@/lib/supabase/server';
 // düşer). force-dynamic + no-store: kişiye özel, asla cache'lenmez.
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(req: Request) {
   const { me } = await getMe();
   if (!me) {
     return NextResponse.json({ user: null }, { headers: { 'Cache-Control': 'private, no-store' } });
   }
+
+  // ── ?feed=1 — akışın kişisel katını AYNI turda ver ──
+  // Ölçüm (07.08.2026, canlı, girişli hesap): istemci bu iki ucu ZİNCİRLEME
+  // atıyordu. nav-state 968→3160 ms bitiyor, /api/feed/personal ancak 3181 ms'de
+  // başlıyordu — çünkü kapısı `useNavUser()` idi ve o context nav-state cevabıyla
+  // doluyordu. Kişisel veri 4,6 saniyede yerleşiyordu.
+  //
+  // ⚠ `await` BURADA YOK, bilerek: promise'i başlatıp aşağıdaki nav sorgularıyla
+  // PARALEL koşturuyoruz, yanıtı kurarken bekliyoruz. Burada await edilirse
+  // zincir uca taşınmış olurdu, hiçbir şey kazanılmazdı.
+  const feedIstendi = new URL(req.url).searchParams.get('feed') === '1';
+  const feedIsi = feedIstendi
+    // Fail-safe: kişisel kat patlarsa nav ÇALIŞMAYA DEVAM ETSİN. Aksi hâlde
+    // akıştaki bir sorgu hatası menüyü ve bildirimleri de düşürürdü.
+    ? buildFeedPersonal(me).catch((e) => { logIfError('nav-state feed', e); return null; })
+    : null;
 
   // "Şu an online" için son görülme (≤2dk'da bir, ateşle-unut — yanıtı bekletmez).
   if ('last_seen_at' in me) {
@@ -59,6 +76,9 @@ export async function GET() {
       unreadMsgCount,
       myId: me.id,
       convIds,
+      // Yalnız ?feed=1 istendiğinde dolu. İstemci bunu görürse ikinci isteği
+      // HİÇ atmaz (bkz. AppShell + HomeFeed).
+      ...(feedIsi ? { feed: await feedIsi } : {}),
     },
     { headers: { 'Cache-Control': 'private, no-store' } },
   );

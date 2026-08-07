@@ -15,3 +15,16 @@ export const NavUserProvider = NavUserContext.Provider;
 export function useNavUser(): NavUser {
   return useContext(NavUserContext);
 }
+
+// ── Akışın kişisel katı ──
+// AppShell `/api/nav-state?feed=1` ile kimlikle AYNI turda çekerse buraya koyar;
+// HomeFeed onu görürse kendi isteğini HİÇ atmaz. Görmezse (ör. istemci tarafı
+// gezinmeyle /feed'e gelindi, AppShell yeniden fetch etmedi) kendisi çeker.
+// undefined = "bu turda gelmedi, sen çek", null = çıkışlı.
+const FeedPersonalContext = createContext<any>(undefined);
+
+export const FeedPersonalProvider = FeedPersonalContext.Provider;
+
+export function useFeedPersonal(): any {
+  return useContext(FeedPersonalContext);
+}

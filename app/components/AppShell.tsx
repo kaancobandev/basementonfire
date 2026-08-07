@@ -7,7 +7,7 @@ import dynamic from 'next/dynamic';
 import { Toaster, toast } from 'sonner';
 import Logo from './Logo';
 import DesktopCreateMenu from './DesktopCreateMenu';
-import { NavUserProvider } from './NavUserContext';
+import { NavUserProvider, FeedPersonalProvider } from './NavUserContext';
 
 const RealtimeProvider = dynamic(() => import('./RealtimeProvider'), { ssr: false });
 // Mobil paylaş-sheet'i (framer-motion) ayrı parça olarak yüklenir → framer-motion ANA bundle'dan çıkar.
@@ -70,6 +70,10 @@ export default function AppShell({ children }: AppShellProps) {
   const [notifCount, setNotifCount] = useState(0);
   const [msgCount, setMsgCount] = useState(0);
 
+  // Akışın kişisel katı — YALNIZ doğrudan /feed açılışında bu turda gelir.
+  // undefined kalırsa HomeFeed kendi isteğini atar (istemci tarafı gezinme yolu).
+  const [feedPersonal, setFeedPersonal] = useState<any>(undefined);
+
   useEffect(() => {
     // Anonim bekçe: inline auth-hint (layout.tsx) çereze bakıp data-auth'u ilk
     // boyamadan önce basıyor. Oturum çerezi yoksa /api/nav-state'in cevabı
@@ -81,11 +85,21 @@ export default function AppShell({ children }: AppShellProps) {
       return;
     }
     let alive = true;
-    fetch('/api/nav-state', { credentials: 'same-origin' })
+    // ?feed=1 — akış açılışında kimlik ve kişisel kat TEK turda gelsin.
+    // Eskiden HomeFeed bunu ayrı bir istekle ve ancak bu cevap geldikten SONRA
+    // çekiyordu (ölçüldü: 968→3160 ms, sonra 3181→4644 ms). Bayrak yalnız
+    // gerekli yolda basılıyor; diğer sayfalar akış sorgularının bedelini ödemez.
+    // pathname BAĞIMLILIĞA EKLENMEDİ (eslint-disable aşağıda): efekt mount'ta
+    // bir kez koşar, gezinmede tekrarlanmaz. Bayrak yalnız ilk açılış yolunu
+    // belirler; sonradan /feed'e gidilirse HomeFeed kendi isteğini atar.
+    const feedGerek = pathname === '/feed' || pathname === '/';
+    fetch(`/api/nav-state${feedGerek ? '?feed=1' : ''}`, { credentials: 'same-origin' })
       .then(r => r.json())
       .then((d: { user?: { id: number; username: string; display_name: string } | null; unreadCount?: number; unreadMsgCount?: number; myId?: number | null; convIds?: number[] }) => {
         if (!alive) return;
         setUser(d.user ?? null);
+        // `feed` alanı yoksa undefined kalır → HomeFeed kendi çeker (geri düşüş).
+        if ('feed' in d) setFeedPersonal((d as any).feed ?? null);
         setNotifCount(d.unreadCount ?? 0);
         setMsgCount(d.unreadMsgCount ?? 0);
         setMyId(d.myId ?? null);
@@ -177,10 +191,11 @@ export default function AppShell({ children }: AppShellProps) {
   function closeSheet() { setSheetOpen(false); }
 
   const isAuthPage = pathname === '/login' || pathname === '/register' || pathname === '/forgot-password' || pathname === '/reset-password';
-  if (isAuthPage) return <NavUserProvider value={user}>{children}</NavUserProvider>;
+  if (isAuthPage) return <NavUserProvider value={user}><FeedPersonalProvider value={feedPersonal}>{children}</FeedPersonalProvider></NavUserProvider>;
 
   return (
     <NavUserProvider value={user}>
+    <FeedPersonalProvider value={feedPersonal}>
       {/* Tıklama efekti yalnız giriş yapmış kullanıcıda (user truthy). user
           undefined (bilinmiyor) / null (çıkış) → mount olmaz, GSAP inmez. */}
       {user && <MouseEffects />}
@@ -382,6 +397,7 @@ export default function AppShell({ children }: AppShellProps) {
           onMsg={handleMsg}
         />
       )}
+    </FeedPersonalProvider>
     </NavUserProvider>
   );
 }
