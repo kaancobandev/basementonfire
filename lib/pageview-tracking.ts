@@ -3,9 +3,25 @@ import { db, logIfError } from '@/lib/supabase/server';
 import { readGeoFromHeaders, clientIp, type HeaderGetter } from '@/lib/geo';
 
 // Botlari say(ma)mak icin: gercek tarayici UA'lari bunlarin hicbirini icermez.
-// (Zaten botlar JS calistirmaz -> beacon gondermez; bu ekstra guvence.)
 // (lib/perf-tracking.ts de ayni listeyi kullanir -> tek kaynak.)
-export const BOT_RE = /bot|crawl|spider|slurp|mediapartners|bingpreview|facebookexternalhit|whatsapp|telegram|slackbot|discordbot|embedly|redditbot|applebot|petalbot|yandex|baidu|semrush|ahrefs|mj12|dotbot|headless|lighthouse|python-requests|curl\/|wget|axios|go-http-client|node-fetch/i;
+//
+// "Zaten botlar JS calistirmaz" varsayimi ARTIK GECERLI DEGIL, iki sebeple:
+//
+// 1. YAPAY ZEKA ARACLARI GERCEK TARAYICI SURUYOR. 2026-08-09'da bu sitede bir
+//    performans denetimi kosuldu; ajanlar canli sayfalari gercek bir Chromium'da
+//    acti ve beacon'lar normal calisti. Olculen sonuc: o gun 94 goruntuleme /
+//    21 tekil -- 10 gunun EN YUKSEGI, ve saat kirilimi denetimin kostugu
+//    10:00-13:00 UTC bandinda yigiliyordu (normal gunler 26-85 / 8-20).
+//    Yani analiz aracimiz olctugu sayiyi bozuyordu.
+//    `navigator.webdriver` bu ise YARAMAZ -- olculdu, `false` donuyor.
+//    Tek guvenilir imza UA: "Claude/1.26832.0 ... Electron/42.7.0 ... MSIX".
+//    UA sunucuda okunur, istemcinin isbirligine gerek yok.
+// 2. Yeni nesil AI tarayicilari/crawler'lari da "bot" kelimesini tasimiyor
+//    (chatgpt-user, perplexity-user, claude-user, GoogleOther ...).
+//
+// ⚠ `?notrack` (localStorage) bu isi COZMEZ: her yeni otomasyon sekmesi/profili
+// isareti tasimaz. Cihaz isareti insan gelistirici icin, UA kapisi araclar icin.
+export const BOT_RE = /bot|crawl|spider|slurp|mediapartners|bingpreview|facebookexternalhit|whatsapp|telegram|slackbot|discordbot|embedly|redditbot|applebot|petalbot|yandex|baidu|semrush|ahrefs|mj12|dotbot|headless|lighthouse|python-requests|curl\/|wget|axios|go-http-client|node-fetch|claude\/|claude-user|electron\/|chatgpt-user|oai-searchbot|perplexity-user|googleother|google-inspectiontool|externalagent|cohere|cachewarmer/i;
 
 // Cerezsiz sayfa goruntuleme kaydi. /api/hit route'undan cagrilir (istemci
 // beacon'i tetikler) -> sayfa goruntuleme basina TAM BIR KEZ, render yolundan
