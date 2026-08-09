@@ -39,7 +39,12 @@
     idle:  { file: 'panda-idle.png',  w: 48, h: 47, frames: 4 },
     walk:  { file: 'panda-walk.png',  w: 48, h: 47, frames: 4 },
     sit:   { file: 'panda-sit.png',   w: 48, h: 47, frames: 4 },
-    climb: { file: 'panda-climb.png', w: 33, h: 48, frames: 4 },
+    // Tırmanma karesi ötekilerden DAR ve YÜKSEK — poz dikey ve duvara yapışık.
+    // 40x58 (sürüm 12); önceden 33x48 idi ve karakter ızgaraya sığsın diye
+    // küçültülmüştü, yani panda tırmanırken minicik oluyordu. Yükseklik farkı
+    // sorun değil: sprite'ın kutusu `bottom:0`da çakılı, fazla yükseklik
+    // YUKARI doğru büyür, ayaklar aynı zemin çizgisinde kalır.
+    climb: { file: 'panda-climb.png', w: 40, h: 58, frames: 4 },
     swipe: { file: 'panda-swipe.png', w: 48, h: 47, frames: 4 },
     drop:  { file: 'panda-drop.png',  w: 48, h: 47, frames: 4 }
   };
