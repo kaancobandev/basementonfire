@@ -63,7 +63,7 @@ type Perf = {
   soguk: { adet: number; toplam: number; ornekler: { path: string; ttfb_ms: number; lcp_ms: number | null; created_at: string }[] } | null;
   // sql/fix-web-vitals-olcum.sql ile geldi. Eski RPC hala kosuyorsa undefined
   // kalir ve ilgili bloklar cizilmez — panel kirilmaz.
-  kirlilik?: { ham_30: number; gizli: number; ekip: number; imkansiz_boya: number; temiz: number } | null;
+  kirlilik?: { ham_30: number; ekip_elendi: number; boya_gecersiz: number; boya_hic_yok: number; ttfb_sayilan: number; boya_sayilan: number } | null;
   protokoller?: { ad: string; n: number; ttfb_p75: number | null }[];
 };
 
@@ -339,28 +339,32 @@ export default async function GirisIstatistikPage() {
             </div>
           ) : !perfDormant && (
             <>
-              {/* Aletin kendi sağlığı. 2026-08-09 denetimi: örneklerin %8'i gizli
-                  sekmede yüklenmişti (fcp > load, fiziksel olarak imkânsız) ve
-                  tek başlarına p75'i ~500 ms şişiriyorlardı. Ne kadarının
-                  atıldığını GÖRMEDEN temizlenmiş sayılara güvenilmez. */}
+              {/* Aletin kendi sağlığı. Ne kadarının neden sayılmadığını GÖRMEDEN
+                  temizlenmiş sayılara güvenilmez.
+                  ⚠ Gizli sekme satırı ATILMIYOR, yalnız BOYA sütunları geçersiz
+                  sayılıyor: kontrollü deneyde gizli sekme responseStart'ı 131,5 ms
+                  verdi (sıfır şişme), yalnız fcp/lcp raporlanmadı. Onları TTFB'den
+                  elemek hızlı örnekleri atmak olurdu — ölçüldü, p75 2503→2970. */}
               {perf.kirlilik && (
-                <Section title="Ölçüm sağlığı — hangi satırlar sayılmadı">
+                <Section title="Ölçüm sağlığı — hangi satır hangi metriğe girdi">
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 18, fontSize: '0.82rem' }}>
                     <span>Ham: <b>{perf.kirlilik.ham_30.toLocaleString('tr-TR')}</b></span>
-                    <span style={{ color: 'var(--color-text-muted)' }}>
-                      Gizli sekme: <b>{perf.kirlilik.gizli.toLocaleString('tr-TR')}</b>
+                    <span style={{ color: 'var(--color-text-muted)' }} title="?notrack ile işaretli cihaz — tüm metriklerden elenir">
+                      Ekip (elendi): <b>{perf.kirlilik.ekip_elendi.toLocaleString('tr-TR')}</b>
                     </span>
-                    <span style={{ color: 'var(--color-text-muted)' }}>
-                      Ekip (?notrack): <b>{perf.kirlilik.ekip.toLocaleString('tr-TR')}</b>
+                    <span style={{ color: 'var(--color-text-muted)' }} title="Gizli sekme ya da fcp > load + 200 — yalnız boya sütunları geçersiz, TTFB'si sayılır">
+                      Boyaması geçersiz: <b>{perf.kirlilik.boya_gecersiz.toLocaleString('tr-TR')}</b>
                     </span>
-                    <span style={{ color: 'var(--color-text-muted)' }} title="fcp > load + 200 ms — 2026-08-09 öncesi satırları kurtaran geriye dönük filtre">
-                      İmkânsız boyama: <b>{perf.kirlilik.imkansiz_boya.toLocaleString('tr-TR')}</b>
+                    <span style={{ color: 'var(--color-text-muted)' }} title="fcp ve lcp ikisi de boş — muhtemelen gizli sekme, ama eski tarayıcı da olabilir">
+                      Boyaması hiç yok: <b>{perf.kirlilik.boya_hic_yok.toLocaleString('tr-TR')}</b>
                     </span>
-                    <span>Temiz: <b style={{ color: 'var(--color-success)' }}>{perf.kirlilik.temiz.toLocaleString('tr-TR')}</b></span>
+                    <span>TTFB'ye giren: <b style={{ color: 'var(--color-success)' }}>{perf.kirlilik.ttfb_sayilan.toLocaleString('tr-TR')}</b></span>
+                    <span>LCP'ye giren: <b style={{ color: 'var(--color-success)' }}>{perf.kirlilik.boya_sayilan.toLocaleString('tr-TR')}</b></span>
                   </div>
                   <p style={{ margin: '8px 0 0', fontSize: '0.74rem', color: 'var(--color-text-muted)' }}>
-                    Aşağıdaki tüm rakamlar <b>yalnız temiz satırlardan</b>. ⚠ Yol (sayfa) ataması
-                    2026-08-09'a kadar hatalıydı — o tarihten önceki <b>sayfa bazlı</b> kırılıma güvenme.
+                    ⚠ Yol (sayfa) ataması <b>2026-08-09'a kadar hatalıydı</b> — o tarihten önceki
+                    sayfa bazlı kırılıma güvenme. TTFB, sunucu payı değil: yönlendirme + DNS + TCP +
+                    TLS + sunucu <b>toplamı</b>. Origin payı ayrıca ölçüldü, 105-180 ms.
                   </p>
                 </Section>
               )}
