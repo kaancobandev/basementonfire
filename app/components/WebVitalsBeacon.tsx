@@ -26,9 +26,38 @@ export default function WebVitalsBeacon() {
     if (typeof window === 'undefined' || !('PerformanceObserver' in window)) return;
     if (location.pathname.startsWith('/yonetim')) return;
 
+    // YOL, GONDERIM ANINDA DEGIL SIMDI OKUNUR. Bu efekt hidrasyondan hemen
+    // sonra, yani OLCULEN dokuman hala ekrandayken calisir. Gonderim ise
+    // pagehide'da ya da 20 sn sonra olur; o ana kadar kullanici yumusak
+    // gezinmeyle bambaska bir sayfada olabilir. Eskiden location.pathname
+    // gonderim aninda okunuyordu -> sureler A sayfasinin, yol B sayfasinin
+    // yaziliyordu. (Olculdu: 531 page_view / 207 perf satiri = satir basina
+    // 2,57 sayfa goruntuleme, yani atif hatasi yaygindi.) Bagimlilik dizisi
+    // bos oldugu icin bu deger tum yasam boyu sabit kalir -- istenen de bu.
+    const yol = location.pathname;
+
     let lcp = 0;
     let cls = 0;
     let inp = 0;
+
+    // BOYAMA GECERLILIGI. Spec geregi sayfa gizliyken boya zamanlamasi ya hic
+    // raporlanmaz ya da gorunur olundugu ana kayar. Arka planda acilan sekme,
+    // onizleme bolmesi ve prerender bu yuzden 10+ saniyelik SAHTE LCP uretir.
+    // Olculdu: 186 ornegin 14'unde fcp > load + 200 ms (fiziksel olarak
+    // imkansiz) ve o 14 satirin LCP p75'i 10.784 ms -- panelin p75'ini tek
+    // baslarina ~500 ms sisiriyorlardi.
+    //
+    // Satiri ATMIYORUZ, ISARETLIYORUZ: kirliligin ne kadar oldugunu olcmek de
+    // degerli, ayrica esik degisirse gecmis yeniden yorumlanabilir.
+    //
+    // ⚠ Bu efekt HIDRASYONDAN SONRA kosuyor, yani sayfa coktan boyanmis
+    // olabilir. "Su an gizli -> ornek kirli" demek, boyamayi gorup HEMEN
+    // sekme degistiren gercek kullanicinin GECERLI olcumunu atardi. O yuzden
+    // zaten bir boyama kaydi varsa damgayi boyamadan SONRAYA koyuyoruz.
+    let ilkGizlenme = Infinity;
+    if (document.visibilityState === 'hidden') {
+      ilkGizlenme = performance.getEntriesByName('first-contentful-paint')[0] ? performance.now() : 0;
+    }
     // CLS'in resmi tanimi: 5 sn'lik / 1 sn araliklı "oturum penceresi"nin en
     // buyugu -- duz toplam degil. Duz toplam uzun sayfalarda sisirir.
     let pencereDeger = 0;
@@ -79,8 +108,25 @@ export default function WebVitalsBeacon() {
       const conn = (navigator as any).connection?.effectiveType;
       const yuvarla = (v: number | undefined) => (v && v > 0 ? Math.round(v) : null);
 
+      // Sayfa, RAPORLANAN boyamadan ONCE gizlendiyse bu satirin boya
+      // metrikleri guvenilmez. Hic boyama olmadiysa (ikisi de Infinity degil,
+      // boyamaAni Infinity) da guvenilmez -- olculecek bir sey yok demektir.
+      const boyamaAni = fcp?.startTime ?? (lcp || Infinity);
+      const gizli = ilkGizlenme < boyamaAni;
+
+      // Gelistirici/ekip trafigi. Cihazi BIR KEZ ?notrack=1 ile acmak
+      // localStorage'a 'ga-disabled' yaziyor (CookieConsent.tsx:61) -- ayni
+      // isareti burada da okuyoruz, ikinci bir mekanizma uydurmuyoruz.
+      // Cerezsizlik korunur: localStorage o cihaza ozel, sunucuya gitmiyor.
+      // NEDEN: perf-tracking.ts yalniz localhost'u eliyordu; PROD'da kendi
+      // gezinmemiz p75'e giriyordu. Olculdu: "reload p75 = 576 ms" diye
+      // guvendigimiz taban cizgisinin 17 orneginin 14'u masaustu ve ayni yola
+      // 3 dakika icinde tekrarlardi -- gercek kullanici degil, bizdik.
+      let ekip = false;
+      try { ekip = localStorage.getItem('ga-disabled') === 'true'; } catch { /* private mode */ }
+
       const govde = JSON.stringify({
-        p: location.pathname,
+        p: yol,
         ttfb: yuvarla(nav.responseStart),
         fcp: yuvarla(fcp?.startTime),
         lcp: yuvarla(lcp),
@@ -92,6 +138,13 @@ export default function WebVitalsBeacon() {
         // gercekten dar ekranda mi acmis, onu soyler.
         dev: window.matchMedia('(max-width: 768px)').matches ? 'mobil' : 'masaustu',
         conn: typeof conn === 'string' ? conn : null,
+        giz: gizli,
+        ekip,
+        // Baglanti protokolu (h2 / h3 / http/1.1). TTFB'nin ~2,5 sn'lik
+        // aciklanamayan kalemini kovalarken h3'un yayginligini bilmemiz
+        // gerekiyor; yerel curl derlemesi h2/h3 desteklemedigi icin bunu
+        // olcebilecek tek yer yine ziyaretcinin tarayicisi.
+        prt: typeof nav.nextHopProtocol === 'string' ? nav.nextHopProtocol : null,
       });
 
       try {
@@ -109,15 +162,27 @@ export default function WebVitalsBeacon() {
       }
     };
 
-    const gizlenince = () => { if (document.visibilityState === 'hidden') gonder(); };
+    // SIRA ONEMLI: once gizlenme anini damgala, sonra gonder. gonder() bu
+    // damgayi boyama aniyla karsilastiriyor; damgalamadan gondersek sayfa
+    // gizliyken bile "gorunurdu" diye yazardik. Boyama zaten olduysa damga
+    // boyamadan SONRA dustugu icin satir temiz isaretlenir -- istenen bu.
+    const damgala = () => {
+      if (document.visibilityState === 'hidden' && ilkGizlenme === Infinity) {
+        ilkGizlenme = performance.now();
+      }
+    };
+    const gizlenince = () => { damgala(); if (document.visibilityState === 'hidden') gonder(); };
     document.addEventListener('visibilitychange', gizlenince);
-    addEventListener('pagehide', gonder);
+    // pagehide = sayfa gorunurlukten cikiyor; visibilitychange atesLENMEDEN
+    // dogrudan buraya dusen tarayicilar icin damgayi burada da at.
+    const sayfaGizleniyor = () => { damgala(); gonder(); };
+    addEventListener('pagehide', sayfaGizleniyor);
     const zamanlayici = window.setTimeout(gonder, GONDER_GECIKME_MS);
 
     return () => {
       clearTimeout(zamanlayici);
       document.removeEventListener('visibilitychange', gizlenince);
-      removeEventListener('pagehide', gonder);
+      removeEventListener('pagehide', sayfaGizleniyor);
       gozlemciler.forEach((po) => { try { po.disconnect(); } catch { /* yoksay */ } });
     };
     // Bos bagimlilik: BILEREK tek atim. Istemci gezinmesinde yeniden kurulmaz.

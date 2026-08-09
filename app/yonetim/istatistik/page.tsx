@@ -56,11 +56,15 @@ type Perf = {
   metrikler: PerfMetric[];
   lcp_dagilim: { iyi: number; orta: number; kotu: number } | null;
   cls_p75: number | null;
-  cihazlar: { cihaz: string; n: number; lcp_p75: number | null; ttfb_p75: number | null }[];
+  cihazlar: { cihaz: string; n: number; lcp_p75: number | null; ttfb_p75: number | null; lcp_ttfb_p75?: number | null }[];
   baglantilar: { tur: string; n: number; lcp_p75: number | null }[];
-  sayfalar: { path: string; n: number; lcp_p75: number | null; ttfb_p75: number | null; ttfb_max: number | null }[];
-  gunluk: { day: string; n: number; lcp_p75: number | null }[];
+  sayfalar: { path: string; n: number; lcp_p75: number | null; ttfb_p75: number | null; ttfb_max: number | null; lcp_ttfb_p75?: number | null }[];
+  gunluk: { day: string; n: number; lcp_p75: number | null; lcp_ttfb_p75?: number | null }[];
   soguk: { adet: number; toplam: number; ornekler: { path: string; ttfb_ms: number; lcp_ms: number | null; created_at: string }[] } | null;
+  // sql/fix-web-vitals-olcum.sql ile geldi. Eski RPC hala kosuyorsa undefined
+  // kalir ve ilgili bloklar cizilmez — panel kirilmaz.
+  kirlilik?: { ham_30: number; gizli: number; ekip: number; imkansiz_boya: number; temiz: number } | null;
+  protokoller?: { ad: string; n: number; ttfb_p75: number | null }[];
 };
 
 function StatCard({ label, value, accent }: { label: string; value: number; accent?: boolean }) {
@@ -335,6 +339,32 @@ export default async function GirisIstatistikPage() {
             </div>
           ) : !perfDormant && (
             <>
+              {/* Aletin kendi sağlığı. 2026-08-09 denetimi: örneklerin %8'i gizli
+                  sekmede yüklenmişti (fcp > load, fiziksel olarak imkânsız) ve
+                  tek başlarına p75'i ~500 ms şişiriyorlardı. Ne kadarının
+                  atıldığını GÖRMEDEN temizlenmiş sayılara güvenilmez. */}
+              {perf.kirlilik && (
+                <Section title="Ölçüm sağlığı — hangi satırlar sayılmadı">
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 18, fontSize: '0.82rem' }}>
+                    <span>Ham: <b>{perf.kirlilik.ham_30.toLocaleString('tr-TR')}</b></span>
+                    <span style={{ color: 'var(--color-text-muted)' }}>
+                      Gizli sekme: <b>{perf.kirlilik.gizli.toLocaleString('tr-TR')}</b>
+                    </span>
+                    <span style={{ color: 'var(--color-text-muted)' }}>
+                      Ekip (?notrack): <b>{perf.kirlilik.ekip.toLocaleString('tr-TR')}</b>
+                    </span>
+                    <span style={{ color: 'var(--color-text-muted)' }} title="fcp > load + 200 ms — 2026-08-09 öncesi satırları kurtaran geriye dönük filtre">
+                      İmkânsız boyama: <b>{perf.kirlilik.imkansiz_boya.toLocaleString('tr-TR')}</b>
+                    </span>
+                    <span>Temiz: <b style={{ color: 'var(--color-success)' }}>{perf.kirlilik.temiz.toLocaleString('tr-TR')}</b></span>
+                  </div>
+                  <p style={{ margin: '8px 0 0', fontSize: '0.74rem', color: 'var(--color-text-muted)' }}>
+                    Aşağıdaki tüm rakamlar <b>yalnız temiz satırlardan</b>. ⚠ Yol (sayfa) ataması
+                    2026-08-09'a kadar hatalıydı — o tarihten önceki <b>sayfa bazlı</b> kırılıma güvenme.
+                  </p>
+                </Section>
+              )}
+
               {perf.lcp_dagilim && (
                 <Section title="Sayfayı ne kadar hızlı gördüler? (LCP dağılımı)">
                   <LcpDagilim d={perf.lcp_dagilim} />
@@ -355,7 +385,11 @@ export default async function GirisIstatistikPage() {
                     </thead>
                     <tbody>
                       {perf.metrikler.map((m) => (
-                        <tr key={m.ad} style={{ borderTop: '1px solid var(--color-border)' }}>
+                        // "− TTFB" satırları = ilk bayttan sonrası, yani KODUN etkilediği
+                        // tek pencere. LCP p75 ağ varyansıyla zıpladığı için bu trafikte
+                        // 400 ms'lik bir iyileşmeyi görmesi ~90 gün sürer; bu iki satır
+                        // aynı işi ~10 günde gösterir. Doğrulama metriği bunlar.
+                        <tr key={m.ad} style={{ borderTop: '1px solid var(--color-border)', background: m.ad.includes('− TTFB') ? 'var(--color-surface-2, rgba(127,127,127,0.06))' : undefined }}>
                           <td style={{ padding: '7px 0' }}>
                             <div style={{ fontWeight: 800, color: 'var(--color-text)' }}>{m.ad}</div>
                             <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>{m.aciklama}</div>
@@ -393,7 +427,10 @@ export default async function GirisIstatistikPage() {
                           {c.cihaz === 'mobil' ? '📱 Telefon' : c.cihaz === 'masaustu' ? '🖥️ Masaüstü' : '❔ Bilinmiyor'} · {c.n.toLocaleString('tr-TR')} açılış
                         </div>
                         <div style={{ fontSize: '1.35rem', fontWeight: 900, marginTop: 4, color: perfRenk(c.lcp_p75, 2500, 4000) }}>{ms(c.lcp_p75)}</div>
-                        <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>p75 LCP · sunucu {ms(c.ttfb_p75)}</div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>
+                          p75 LCP · sunucu {ms(c.ttfb_p75)}
+                          {c.lcp_ttfb_p75 != null && <> · <b title="ilk bayttan sonrası — kodun etkilediği pencere">bizim payımız {ms(c.lcp_ttfb_p75)}</b></>}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -403,6 +440,18 @@ export default async function GirisIstatistikPage() {
                     <span style={{ fontWeight: 700 }}>Bağlantı:</span>
                     {perf.baglantilar.map((b) => (
                       <span key={b.tur}>{b.tur} → <b style={{ color: perfRenk(b.lcp_p75, 2500, 4000) }}>{ms(b.lcp_p75)}</b> ({b.n})</span>
+                    ))}
+                  </div>
+                )}
+                {/* Protokol dağılımı. h3 (QUIC) yaygınsa soğuk bağlantı maliyeti
+                    için yapacak bir şey yok demektir; h2'de takılıysak el sıkışma
+                    turlarını kısacak somut bir kaldıraç var. Yerel curl derlemesi
+                    h2/h3 desteklemediği için bunu ölçebilecek tek yer tarayıcı. */}
+                {perf.protokoller && perf.protokoller.length > 0 && (
+                  <div style={{ marginTop: 8, display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+                    <span style={{ fontWeight: 700 }}>Protokol:</span>
+                    {perf.protokoller.map((p) => (
+                      <span key={p.ad}>{p.ad} → <b style={{ color: perfRenk(p.ttfb_p75, 800, 1800) }}>{ms(p.ttfb_p75)}</b> ({p.n})</span>
                     ))}
                   </div>
                 )}

@@ -11,6 +11,7 @@ import { BOT_RE } from '@/lib/pageview-tracking';
 export type PerfBody = {
   p?: unknown; ttfb?: unknown; fcp?: unknown; lcp?: unknown; load?: unknown;
   inp?: unknown; cls?: unknown; nav?: unknown; dev?: unknown; conn?: unknown;
+  giz?: unknown; ekip?: unknown; prt?: unknown;
 };
 
 // Tarayicidan gelen sayilara GUVENME: govde istemciden, yani disaridan geliyor.
@@ -27,6 +28,11 @@ const secenek = (v: unknown, izin: readonly string[]): string | null =>
 const NAV_TURLERI = ['navigate', 'reload', 'back_forward', 'prerender'] as const;
 const CIHAZLAR = ['mobil', 'masaustu'] as const;
 const BAGLANTILAR = ['slow-2g', '2g', '3g', '4g'] as const;
+// nextHopProtocol ALPN kimligi dondurur. Beyaz liste: govde istemciden geliyor,
+// serbest metin sutunu kardinaliteyi patlatabilir.
+const PROTOKOLLER = ['h3', 'h3-29', 'h2', 'http/1.1', 'http/1.0', ''] as const;
+
+const bayrak = (v: unknown): boolean => v === true;
 
 export async function recordPerf(h: HeaderGetter, body: PerfBody): Promise<void> {
   try {
@@ -51,7 +57,7 @@ export async function recordPerf(h: HeaderGetter, body: PerfBody): Promise<void>
     const clsHam = typeof body.cls === 'number' ? body.cls : NaN;
     const geo = readGeoFromHeaders(h);
 
-    const { error } = await db.from('perf_samples').insert({
+    const temel = {
       path,
       ttfb_ms,
       fcp_ms: sure(body.fcp),
@@ -63,7 +69,30 @@ export async function recordPerf(h: HeaderGetter, body: PerfBody): Promise<void>
       device: secenek(body.dev, CIHAZLAR),
       conn: secenek(body.conn, BAGLANTILAR),
       country_code: geo.country_code,
+    };
+
+    const { error } = await db.from('perf_samples').insert({
+      ...temel,
+      // Kirlilik isaretleri. Satir SILINMIYOR, yalniz isaretleniyor: panel
+      // bunlari yuzdeliklerden disliyor ama kirliligin BUYUKLUGUNU olcebilmek
+      // (ve esik degisirse gecmisi yeniden yorumlayabilmek) icin veri duruyor.
+      gizli: bayrak(body.giz),
+      ekip: bayrak(body.ekip),
+      proto: secenek(body.prt, PROTOKOLLER),
     });
+
+    // YEDEK YOL — sql/fix-web-vitals-olcum.sql henuz kosulmadiysa.
+    // O dosya gizli/ekip/proto sutunlarini ekliyor; yoksa PostgREST insert'i
+    // TAMAMEN reddeder ve olcum hatti sessizce olur. Deploy, SQL'den once
+    // inerse veri kaybetmeyelim diye sutunsuz bir kez daha deniyoruz.
+    // Kod (uykuda sema) tespiti 42P01 DEGIL: PostgREST bilinmeyen sutuna
+    // PGRST204, Postgres ise 42703 doner — ikisini de yakala.
+    if (error && (error.code === 'PGRST204' || error.code === '42703')) {
+      const { error: yedekHata } = await db.from('perf_samples').insert(temel);
+      logIfError('recordPerf insert (yedek, isaretsiz)', yedekHata);
+      if (!yedekHata) console.warn('[recordPerf] gizli/ekip/proto sutunlari YOK — sql/fix-web-vitals-olcum.sql calistirilmali');
+      return;
+    }
     // Tablo (SQL) henuz yoksa sessizce loglanir, hicbir seyi bozmaz.
     logIfError('recordPerf insert', error);
   } catch (e) {
