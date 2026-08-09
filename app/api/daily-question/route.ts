@@ -2,6 +2,7 @@ import { db, getMe } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { unstable_cache } from 'next/cache';
 import { earnedBadgeKeys, levelFromXp, BADGE_MAP } from '@/lib/badges';
+import { ARTICLE_MAP } from '@/lib/articles';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
 
@@ -53,7 +54,16 @@ export async function GET() {
     const [q, { me }] = await Promise.all([pickTodayQuestion(), getMe()]);
     if (!q) return json({ available: false });
     const { date } = istanbulDayParts();
-    const publicQ = { id: q.id, question: q.question, options: q.options, article_slug: q.article_slug };
+    // Sorunun HANGI makaleden geldigini de gonder. Kullanici bildirdi: baglamsiz
+    // soru cevaplanamiyor ("gozlem/olcum ne demek?" — hangi makalenin sozlugunde?).
+    // Baslik SUNUCUDA cozuluyor: ARTICLE_MAP istemciye gitseydi 36 makalelik
+    // kayit defteri (uzun desc'leriyle) paketi sisirirdi; burada bedeli sifir.
+    const meta = q.article_slug ? ARTICLE_MAP[q.article_slug] : undefined;
+    const publicQ = {
+      id: q.id, question: q.question, options: q.options, article_slug: q.article_slug,
+      article_title: meta?.title ?? null,
+      article_emoji: meta?.emoji ?? null,
+    };
 
     if (!me) return json({ available: true, date, loggedIn: false, answered: false, question: publicQ });
 

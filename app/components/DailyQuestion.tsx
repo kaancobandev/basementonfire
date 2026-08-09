@@ -9,9 +9,44 @@ type Q = {
   question: string;
   options: string[];
   article_slug: string | null;
+  article_title?: string | null;
+  article_emoji?: string | null;
   correct_index?: number;
   explanation?: string | null;
 };
+
+// Sorunun geldigi makale. Kullanici bildirdi: baglam olmadan soru
+// cevaplanamiyor ("Buradaki gozlem/olcum ne demektir?" — hangi konunun
+// sozlugunde?). Yazi BASLIK SATIRINA KOYULMADI: 360px telefonda o satirda
+// 🧠 + "Gunun Sorusu" + 🔥/⭐ rozetleri ~202px yiyor, ~112px kaliyor; en uzun
+// baslik "Bagirsaklar — Ikinci Beyin" tek basina ~170px. Tasar, satir sarar,
+// kartin yuksekligi degisir ve iskeletle uyusmayip CLS'i geri getirirdi.
+// Burada tam kart genisligi (~314px) var.
+//
+// ⚠ LINK DEGIL, DUZ METIN: link olsaydi cevaplamadan makaleye gidip cevabi
+// bulmak icin kisayol olurdu. Mevcut tasarim "Konuyu oku →" bagini bilerek
+// cevap SONRASINA sakliyor; o desen korunuyor.
+//
+// ⚠ YUKSEKLIK SABIT (16 + 8 = 24px) ve iskelette birebir ayrilir. Degistirirsen
+// asagidaki iskeleti de degistir, yoksa kart inince feed asagi kayar.
+const KAYNAK_SATIR_YUKSEK = 16;
+const KAYNAK_SATIR_BOSLUK = 8;
+
+function KaynakSatiri({ q }: { q: Q }) {
+  if (!q.article_title) return null;
+  return (
+    <p style={{
+      margin: `0 0 ${KAYNAK_SATIR_BOSLUK}px`, display: 'flex', alignItems: 'center', gap: 5,
+      fontSize: '0.75rem', lineHeight: `${KAYNAK_SATIR_YUKSEK}px`, fontWeight: 700,
+      color: 'var(--color-text-muted)',
+      // Beklenmedik uzunlukta bir baslik satiri sardirmasin: yukseklik sabit kalmali.
+      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+    }}>
+      {q.article_emoji && <span aria-hidden style={{ fontSize: '0.85rem', flexShrink: 0 }}>{q.article_emoji}</span>}
+      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{q.article_title}</span>
+    </p>
+  );
+}
 type Progress = {
   xp: number; current_streak: number; longest_streak: number;
   total_correct: number; total_answered: number;
@@ -129,6 +164,10 @@ export default function DailyQuestion() {
             <span style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--color-text)' }}>Günün Sorusu</span>
           </div>
           <div style={{ padding: '14px 16px 16px' }}>
+            {/* Kaynak satirinin yeri — KaynakSatiri ile birebir ayni yukseklik.
+                307 aktif sorunun 307'sinde de article_slug dolu (olculdu), yani
+                bu satir pratikte HER ZAMAN cizilir; yeri kosulsuz ayrilir. */}
+            <div style={{ height: KAYNAK_SATIR_YUKSEK, width: '45%', borderRadius: 5, background: 'var(--color-border)', opacity: 0.4, marginBottom: KAYNAK_SATIR_BOSLUK }} />
             <div style={{ height: 21, width: '75%', borderRadius: 6, background: 'var(--color-border)', opacity: 0.5, marginBottom: 14 }} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {[0, 1, 2, 3].map((i) => (
@@ -156,6 +195,7 @@ export default function DailyQuestion() {
         </div>
 
         <div style={{ padding: '14px 16px 16px' }}>
+          <KaynakSatiri q={q} />
           <p style={{ margin: '0 0 14px', fontSize: '0.96rem', fontWeight: 700, lineHeight: 1.45, color: 'var(--color-text)' }}>{q.question}</p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
