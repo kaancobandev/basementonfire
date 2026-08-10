@@ -31,7 +31,20 @@
 // derler.
 // ════════════════════════════════════════════════════════════════════════
 
-export default async () => undefined;
+export default async (req: Request) => {
+  // TEŞHİS PROBU. Bu fonksiyon geçirgen olduğu için dışarıdan GÖRÜNMEZ —
+  // deploy edilmiş mi, yoksa hiç mi yüklenmemiş, ayırt edilemiyordu. Özel bir
+  // başlıkla çağrılırsa kendini tanıtır; normal trafik bu başlığı taşımaz,
+  // dolayısıyla davranış değişmez. (2026-08-10: kural uygulanmıyor gibi
+  // görünüyordu ve fonksiyonun canlı olup olmadığı bilinmiyordu.)
+  if (req.headers.get('x-rl-probe') === '1') {
+    return new Response('edge-fn-alive', {
+      status: 200,
+      headers: { 'x-rl-probe': 'ok', 'content-type': 'text/plain' },
+    });
+  }
+  return undefined;
+};
 
 export const config = {
   path: '/api/upload',
