@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { celebrate } from '@/lib/confetti';
 import { uploadToStorage, measureMediaDims } from '@/lib/upload';
+import { useCooldown, cooldownLabel } from '@/lib/useCooldown';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 import dynamic from 'next/dynamic';
 
@@ -41,6 +42,8 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
   // anında doldurup kullanıcıyı yanıltıyordu).
   const [uploadProgress, setUploadProgress] = useState<{ done: number; total: number; pct: number } | null>(null);
   const [uploadError, setUploadError] = useState('');
+  // 429 sonrası geri sayım — düğme bu süre boyunca kilitli (bkz. lib/useCooldown.ts)
+  const cooldown = useCooldown();
   const nextMediaId = useRef(1);
 
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -149,13 +152,15 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
       // ayrıştırıcının hatasını görüyordu: `Unexpected token 'e', "edge funct"…`.
       // GonderiForm'daki ikizi zaten korumalıydı, burası değildi.
       const data = await res.json().catch(() => ({} as { error?: string }));
+      if (res.status === 429) {
+        // Retry-After'ı sayaca çevir → düğme o süre boyunca kilitli kalır.
+        // Sebebi kozmetik değil: dosyalar bu noktada Storage'a ÇOKTAN yüklendi,
+        // yani her boş deneme bir yüklemeyi çöpe atıyor.
+        const sn = cooldown.startFrom(res);
+        throw new Error(`Çok sık paylaşıyorsun. ${cooldownLabel(sn)} sonra tekrar dene.`);
+      }
       if (!res.ok) {
-        throw new Error(
-          data.error ??
-            (res.status === 429
-              ? 'Çok sık paylaşıyorsun, biraz bekle.'
-              : `Paylaşılamadı (${res.status}). Birazdan tekrar dene.`),
-        );
+        throw new Error(data.error ?? `Paylaşılamadı (${res.status}). Birazdan tekrar dene.`);
       }
       celebrate();
       setUploadOpen(false);
@@ -395,14 +400,19 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
                 <div style={{ textAlign: 'right', fontSize: '0.78rem', color: caption.length > 9900 ? '#ef4444' : 'var(--color-text-muted)', marginTop: 4 }}>{caption.length} / 10000</div>
               </div>
 
-              <button type="submit" disabled={uploading || (items.length === 0 && audioItems.length === 0)} className="post-btn" style={{ marginTop: 16, width: '100%', opacity: (items.length || audioItems.length) ? 1 : 0.6 }}>
-                {uploading
-                  ? (uploadProgress
-                      ? (uploadProgress.total > 1
-                          ? `Yükleniyor ${uploadProgress.done}/${uploadProgress.total} · %${uploadProgress.pct}`
-                          : `Yükleniyor · %${uploadProgress.pct}`)
-                      : 'Yükleniyor...')
-                  : 'Paylaş'}
+              {/* cooldown.left > 0 → hız freni yedi; süre dolana kadar kilitli.
+                  Dosyalar /api/upload çağrılmadan ÖNCE yüklendiği için, boşa
+                  denemeye izin vermek her seferinde bir yüklemeyi çöpe atardı. */}
+              <button type="submit" disabled={uploading || cooldown.left > 0 || (items.length === 0 && audioItems.length === 0)} className="post-btn" style={{ marginTop: 16, width: '100%', opacity: (cooldown.left === 0 && (items.length || audioItems.length)) ? 1 : 0.6 }}>
+                {cooldown.left > 0
+                  ? `Biraz yavaşla · ${cooldownLabel(cooldown.left)}`
+                  : uploading
+                    ? (uploadProgress
+                        ? (uploadProgress.total > 1
+                            ? `Yükleniyor ${uploadProgress.done}/${uploadProgress.total} · %${uploadProgress.pct}`
+                            : `Yükleniyor · %${uploadProgress.pct}`)
+                        : 'Yükleniyor...')
+                    : 'Paylaş'}
               </button>
 
               {/* İlerleme çubuğu — 250 MB'lık video dakikalarca sürebiliyor,

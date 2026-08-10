@@ -51,10 +51,15 @@ export type Rule = {
 export const RATE_LIMITS = {
   // Medyalı paylaşım (/akis + /gonderi-olustur → /api/upload). ASIL PAYLAŞIM
   // UCU BURASI; `post` aşağıda, akıştaki satır içi metin bestecisidir.
-  // Devraldığı bir sayım YOK — bu uçta hiç fren yoktu, sayılar bu yüzden yeni:
-  // 10'luk patlama (bir oturumda albüm paylaşmak) + saatte 30 sürdürülebilir.
-  // Tek gönderi 20 medya taşıyabildiği için bu, insan kullanımında bol gelir.
-  upload: { capacity: 10, refillPerSec: 30 / 3600 },
+  // Devraldığı bir sayım YOK — bu uçta hiç fren yoktu, sayılar bu yüzden yeni.
+  //
+  // 10'luk patlama (bir oturumda albüm paylaşmak meşru) + saatte 10
+  // sürdürülebilir = teorik günde 240. Kıyas için: Instagram günde 100,
+  // Facebook 25, TikTok ~15. Bu sitenin TÜM ZAMANLAR toplamı 12 medyalı
+  // gönderi, en yoğun günü 4 (2026-08-10'da ölçüldü) — yani tavan, gerçek
+  // kullanımın ~60 katı. İlk sürüm saatte 30'du; ölçüm karşısında gereksiz
+  // gevşek kaldığı için indirildi.
+  upload: { capacity: 10, refillPerSec: 10 / 3600 },
   post: { capacity: 5, refillPerSec: 5 / 60 },        // dakikada 5 gönderi
   comment: { capacity: 8, refillPerSec: 8 / 60 },     // dakikada 8 yorum
   dyk: { capacity: 10, refillPerSec: 10 / 3600 },     // saatte 10 bilgi kartı

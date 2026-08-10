@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { uploadToStorage, measureMediaDims } from '@/lib/upload';
+import { useCooldown, cooldownLabel } from '@/lib/useCooldown';
 import { VideoThumb } from '@/app/components/FeedVideo';
 import dynamic from 'next/dynamic';
 
@@ -30,6 +31,8 @@ export default function GonderiForm() {
   // çakılırdı; bayt bazlı yüzde gerçekte nerede olunduğunu gösterir.
   const [progress, setProgress] = useState<{ done: number; total: number; pct: number } | null>(null);
   const [error, setError] = useState('');
+  // 429 sonrası geri sayım — düğme kilitli (AkisClient ile aynı, bkz. lib/useCooldown.ts)
+  const cooldown = useCooldown();
   const [dragOver, setDragOver] = useState(false);
   const [shake, setShake] = useState(false);
 
@@ -120,6 +123,13 @@ export default function GonderiForm() {
         return;
       }
       const data = await res.json().catch(() => ({}));
+      if (res.status === 429) {
+        // Hız freni: düğmeyi süre dolana kadar kilitle. Dosyalar bu noktada
+        // Storage'a çoktan yüklendi, boş deneme her seferinde birini çöpe atar.
+        const sn = cooldown.startFrom(res);
+        setError(`Çok sık paylaşıyorsun. ${cooldownLabel(sn)} sonra tekrar dene.`);
+        return;
+      }
       setError(data.error ?? 'Bir hata oluştu.');
     } catch (err: any) {
       setError(err?.message ?? 'Bağlantı hatası. Tekrar dene.');
@@ -319,18 +329,20 @@ export default function GonderiForm() {
           {/* Paylaş butonu */}
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || cooldown.left > 0}
             style={{
               width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               background: 'var(--gradient-brand)', color: '#fff',
               fontWeight: 700, fontSize: '1rem', padding: 14, border: 'none', borderRadius: 14,
-              cursor: submitting ? 'not-allowed' : 'pointer',
-              transition: 'opacity 0.15s, transform 0.15s', opacity: submitting ? 0.7 : 1, fontFamily: 'inherit',
+              cursor: (submitting || cooldown.left > 0) ? 'not-allowed' : 'pointer',
+              transition: 'opacity 0.15s, transform 0.15s', opacity: (submitting || cooldown.left > 0) ? 0.7 : 1, fontFamily: 'inherit',
             }}
             onMouseOver={e => { if (!submitting) (e.currentTarget as HTMLButtonElement).style.opacity = '0.9'; }}
             onMouseOut={e => { (e.currentTarget as HTMLButtonElement).style.opacity = submitting ? '0.7' : '1'; }}
           >
-            {submitting ? (
+            {cooldown.left > 0 ? (
+              <>Biraz yavaşla · {cooldownLabel(cooldown.left)}</>
+            ) : submitting ? (
               <>
                 <div style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
                 {progress
