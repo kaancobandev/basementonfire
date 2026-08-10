@@ -32,28 +32,30 @@ export type Rule = {
 };
 
 /**
- * Kural kayıt defteri. Yeni bir uç eklemek = buraya bir satır.
+ * Kural kayıt defteri. Yeni bir uç eklemek = buraya bir satır + route'ta bir
+ * `limit()` çağrısı. Sayılar, yerini aldıkları eski sayım frenleriyle AYNI
+ * sürdürülebilir hızı verir — bu geçiş davranış değiştirmedi.
  *
- * ⚠ ŞU AN YALNIZ 'post' BAĞLI. Aşağıdaki dördü, kendi route'ları bu kapıya
- * taşınınca devreye girer — tanımlı olmaları "çalışıyor" demek DEĞİL:
- *   comment      app/api/articles/[slug]/comments/route.ts   (bugün: 60 sn'de 8)
- *   gameScore    app/api/game-scores/route.ts                (bugün: 1 saatte 10)
- *   dyk          app/api/did-you-know/route.ts
- *   articleEdit  app/api/user-articles/[id]/route.ts
- * (user-articles/route.ts'teki `pendingPerUser` BURAYA TAŞINMAZ: o bir hız
- * limiti değil, iş kuralı — "aynı anda en fazla N makalen incelemede olabilir".
- * Aynı 429'u döndüğü için karıştırılmaya müsait.)
+ * ADI `RATE_LIMITS`, `LIMITS` DEĞİL: `lib/userArticles.ts` zaten `LIMITS` diye
+ * bir sabit dışa veriyor (başlık/özet karakter tavanları) ve iki dosyayı aynı
+ * route'a import eden biri sessiz bir çakışmaya düşerdi.
+ *
+ * BURAYA TAŞINMAYAN İKİ FREN — ikisi de aynı 429'u döndüğü için karıştırılmaya
+ * müsait, ikisi de hız limiti DEĞİL:
+ *  · user-articles/route.ts `pendingPerUser` — iş kuralı ("aynı anda en fazla
+ *    N makalen incelemede olabilir"), zamanla ilgisi yok.
+ *  · user-articles/[id]/route.ts 5 saniyelik debounce — ölçütü satırın KENDİ
+ *    updated_at/pending_at'i ve o satır zaten okunmuş durumda, yani fren
+ *    BEDAVA. Kovaya çevirmek her düzenlemeye bir ağ turu (~450 ms) eklerdi.
  */
-export const LIMITS = {
-  // Eski davranışla aynı sürdürülebilir hız: dakikada 5 gönderi.
-  post: { capacity: 5, refillPerSec: 5 / 60 },
-  comment: { capacity: 8, refillPerSec: 8 / 60 },
-  gameScore: { capacity: 10, refillPerSec: 10 / 3600 },
-  dyk: { capacity: 5, refillPerSec: 5 / 60 },
-  articleEdit: { capacity: 6, refillPerSec: 6 / 60 },
+export const RATE_LIMITS = {
+  post: { capacity: 5, refillPerSec: 5 / 60 },        // dakikada 5 gönderi
+  comment: { capacity: 8, refillPerSec: 8 / 60 },     // dakikada 8 yorum
+  dyk: { capacity: 10, refillPerSec: 10 / 3600 },     // saatte 10 bilgi kartı
+  gameScore: { capacity: 10, refillPerSec: 10 / 3600 }, // saatte 10 skor
 } satisfies Record<string, Rule>;
 
-export type RuleName = keyof typeof LIMITS;
+export type RuleName = keyof typeof RATE_LIMITS;
 
 export type Verdict = {
   ok: boolean;
@@ -99,8 +101,17 @@ export async function limit(
   h: HeaderGetter,
   userId?: number | string | null,
 ): Promise<Verdict> {
-  const rule: Rule = LIMITS[name];
-  const key = `${name}:${identify(h, userId)}`;
+  return limitKey(name, identify(h, userId));
+}
+
+/**
+ * Kimliği kendin verdiğin sürüm. Kullanıcı/IP dışında bir şeye göre saymak
+ * gerektiğinde (ör. game-scores rumuza göre sayar) bunu çağır.
+ * `identity` serbest metin: anahtar `<kural>:<identity>` olur.
+ */
+export async function limitKey(name: RuleName, identity: string): Promise<Verdict> {
+  const rule: Rule = RATE_LIMITS[name];
+  const key = `${name}:${identity}`;
   try {
     const { data, error } = await db.rpc('consume_token', {
       p_key: key,
@@ -134,7 +145,7 @@ export async function limit(
  * geri çekilemez, körlemesine daha sert vurur.
  */
 export function tooMany(message: string, v: Verdict, name: RuleName): NextResponse {
-  const rule: Rule = LIMITS[name];
+  const rule: Rule = RATE_LIMITS[name];
   return NextResponse.json(
     { error: message },
     {

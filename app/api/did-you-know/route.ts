@@ -1,6 +1,7 @@
 import { db, getMe } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { revalidateTag } from 'next/cache';
+import { limit, tooMany } from '@/lib/rateLimit';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
 
@@ -27,14 +28,12 @@ export async function POST(req: Request) {
   const rawImg = (body.imageUrl ?? '').trim();
   const imageUrl = /^https?:\/\//i.test(rawImg) ? rawImg.slice(0, 500) : null;
 
-  // Hafif spam korumasi: bilgi kartlari HERKESIN feed'ine serpistirildigi icin
-  // akis postlarindan daha gorunur. Son 1 saatte 10+ kart -> reddet (flood engeli).
-  const hourAgo = new Date(Date.now() - 3600 * 1000).toISOString();
-  const { count: recentCount } = await db
-    .from('did_you_know').select('id', { count: 'exact', head: true })
-    .eq('user_id', me.id).gt('created_at', hourAgo);
-  if ((recentCount ?? 0) >= 10) {
-    return json({ error: 'Çok fazla bilgi kartı paylaştın, biraz sonra tekrar dene.' }, 429);
+  // Spam freni → lib/rateLimit.ts (token bucket). Hiz eskisiyle AYNI: saatte 10.
+  // Bilgi kartlari HERKESIN feed'ine serpistirildigi icin akis postlarindan daha
+  // gorunur; tavan bu yuzden gonderiden daha sikidir.
+  const gate = await limit('dyk', req.headers, me.id);
+  if (!gate.ok) {
+    return tooMany('Çok fazla bilgi kartı paylaştın, biraz sonra tekrar dene.', gate, 'dyk');
   }
 
   const { data, error } = await db.from('did_you_know').insert({

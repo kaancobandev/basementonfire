@@ -1,6 +1,7 @@
 import { db, getMe } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { revalidateTag, unstable_cache } from 'next/cache';
+import { limitKey, tooMany } from '@/lib/rateLimit';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
 
@@ -52,12 +53,17 @@ export async function POST(req: Request) {
   const name = rawName.replace(/[^\p{L}\p{N}_ .-]/gu, '').slice(0, 20).trim();
   if (name.length < 2) return json({ error: 'Rumuz en az 2 karakter olmalı' }, 400);
 
-  // Hafif flood freni: aynı isimden son 1 saatte 10+ kayıt → 429.
-  const hourAgo = new Date(Date.now() - 3600 * 1000).toISOString();
-  const { count: recent } = await db
-    .from('game_scores').select('id', { count: 'exact', head: true })
-    .eq('player_name', name).gt('created_at', hourAgo);
-  if ((recent ?? 0) >= 10) return json({ error: 'Çok sık skor gönderiyorsun, biraz bekle.' }, 429);
+  // Flood freni → lib/rateLimit.ts (token bucket). Hız eskisiyle AYNI: saatte 10.
+  //
+  // Kova KULLANICI/IP'ye değil RUMUZA bağlanıyor (limitKey), çünkü eski sayım da
+  // player_name'e bakıyordu ve bu uç anonim oynayana açık. Girişlide rumuz zaten
+  // kullanıcı adıdır (yukarıda zorlanıyor), yani orada user-keying ile aynı şey.
+  //
+  // BİLİNEN AÇIK, TAŞINDI (kapatılmadı): rumuz saldırganın seçtiği bir değer,
+  // yenisini yazan yeni kova açar. IP'ye bağlamak bunu kapatırdı ama aynı ağdaki
+  // ikinci oyuncuyu da cezalandırırdı — leaderboard'un değeri o takasa değmiyor.
+  const gate = await limitKey('gameScore', `name:${name}`);
+  if (!gate.ok) return tooMany('Çok sık skor gönderiyorsun, biraz bekle.', gate, 'gameScore');
 
   const { error } = await db.from('game_scores').insert({ game_key: game, player_name: name, score });
   if (error) return json({ available: false, error: 'Skor tablosu henüz hazır değil.' }, 503);

@@ -2,6 +2,7 @@ import { db, getMe } from '@/lib/supabase/server';
 import { NextResponse, after } from 'next/server';
 import { isArticleSlug } from '@/lib/articles';
 import { notifyMentions } from '@/lib/mentions';
+import { limit, tooMany } from '@/lib/rateLimit';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
 
@@ -20,12 +21,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   if (!content) return json({ error: 'Boş yorum' }, 400);
   if (content.length > 500) return json({ error: 'En fazla 500 karakter' }, 400);
 
-  // Hafif spam korumasi: son 60sn'de 8+ yorum -> 429.
-  const minuteAgo = new Date(Date.now() - 60 * 1000).toISOString();
-  const { count: recent } = await db
-    .from('article_comments').select('id', { count: 'exact', head: true })
-    .eq('user_id', me.id).gt('created_at', minuteAgo);
-  if ((recent ?? 0) >= 8) return json({ error: 'Çok hızlı yorum yapıyorsun, biraz bekle.' }, 429);
+  // Spam freni → lib/rateLimit.ts (token bucket). Hız eskisiyle AYNI: dakikada 8.
+  const gate = await limit('comment', req.headers, me.id);
+  if (!gate.ok) return tooMany('Çok hızlı yorum yapıyorsun, biraz bekle.', gate, 'comment');
 
   const { data, error } = await db
     .from('article_comments')
