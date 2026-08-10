@@ -32,6 +32,10 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# ...ama ŞABLON commit'lenir, yoksa repoyu klonlayan hangi degiskenlerin
+# gerektigini hic goremez. Icinde YALNIZCA yer tutucu olmali; gercek deger
+# .env.local'e yazilir ve o yukaridaki kuralla yok sayilmaya devam eder.
+!.env.local.example
 
 # vercel
 .vercel
