@@ -143,18 +143,36 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ media, caption }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Yükleme başarısız');
+      // YANIT HER ZAMAN JSON DEĞİL. Netlify'ın edge katmanı (ör. deploy anında
+      // fonksiyonlar takas edilirken) düz metin hata döndürebiliyor; korumasız
+      // res.json() orada patlıyor ve kullanıcı, sunucunun ne dediğini değil
+      // ayrıştırıcının hatasını görüyordu: `Unexpected token 'e', "edge funct"…`.
+      // GonderiForm'daki ikizi zaten korumalıydı, burası değildi.
+      const data = await res.json().catch(() => ({} as { error?: string }));
+      if (!res.ok) {
+        throw new Error(
+          data.error ??
+            (res.status === 429
+              ? 'Çok sık paylaşıyorsun, biraz bekle.'
+              : `Paylaşılamadı (${res.status}). Birazdan tekrar dene.`),
+        );
+      }
       celebrate();
       setUploadOpen(false);
       clearFile();
       setCaption('');
-      // Reload feed
-      const feedRes = await fetch('/api/feed?limit=12');
-      const feedData = await feedRes.json();
-      setPosts(feedData.posts);
-      setNextCursor(feedData.nextCursor);
-      setHasMore(feedData.hasMore);
+      // Akışı tazele. Gönderi ARTIK KAYDEDİLDİ: bu adım hata verirse kullanıcıya
+      // "paylaşılamadı" demek yanlış olur (eskiden öyle oluyordu — tazeleme
+      // hatası yukarıdaki catch'e düşüp başarılı paylaşımı başarısız gösteriyordu).
+      try {
+        const feedRes = await fetch('/api/feed?limit=12');
+        const feedData = await feedRes.json();
+        setPosts(feedData.posts);
+        setNextCursor(feedData.nextCursor);
+        setHasMore(feedData.hasMore);
+      } catch {
+        /* akış tazelenemedi; gönderi yerinde, sonraki yüklemede görünecek */
+      }
     } catch (err: any) {
       setUploadError(err.message);
     } finally {

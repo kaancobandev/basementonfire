@@ -49,6 +49,12 @@ export type Rule = {
  *    BEDAVA. Kovaya çevirmek her düzenlemeye bir ağ turu (~450 ms) eklerdi.
  */
 export const RATE_LIMITS = {
+  // Medyalı paylaşım (/akis + /gonderi-olustur → /api/upload). ASIL PAYLAŞIM
+  // UCU BURASI; `post` aşağıda, akıştaki satır içi metin bestecisidir.
+  // Devraldığı bir sayım YOK — bu uçta hiç fren yoktu, sayılar bu yüzden yeni:
+  // 10'luk patlama (bir oturumda albüm paylaşmak) + saatte 30 sürdürülebilir.
+  // Tek gönderi 20 medya taşıyabildiği için bu, insan kullanımında bol gelir.
+  upload: { capacity: 10, refillPerSec: 30 / 3600 },
   post: { capacity: 5, refillPerSec: 5 / 60 },        // dakikada 5 gönderi
   comment: { capacity: 8, refillPerSec: 8 / 60 },     // dakikada 8 yorum
   dyk: { capacity: 10, refillPerSec: 10 / 3600 },     // saatte 10 bilgi kartı

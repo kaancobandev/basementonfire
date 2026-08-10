@@ -4,6 +4,7 @@ import { revalidateTag } from 'next/cache';
 import { submitToIndexNow, postUrl, profileUrl, isLiveRequest } from '@/lib/indexnow';
 import { parseHashtags } from '@/lib/caption';
 import { notifyMentions } from '@/lib/mentions';
+import { limit, tooMany } from '@/lib/rateLimit';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
 const MAX_MEDIA = 20;
@@ -55,6 +56,19 @@ export async function POST(req: Request) {
   // Tüm yollar bu kullanıcıya ait olmalı (imza route'u "{me.id}/..." üretir)
   if (items.some(it => !it.path.startsWith(`${me.id}/`))) {
     return json({ error: 'Geçersiz dosya yolu.' }, 400);
+  }
+
+  // Hız freni → lib/rateLimit.ts. Bu uçta EskİDEN HİÇ FREN YOKTU; sayılar bir
+  // sayımdan devralınmadı, yeni (bkz. RATE_LIMITS.upload). Doğrulamadan SONRA
+  // duruyor ki geçersiz gövde token yakmasın.
+  //
+  // Dosyalar bu noktada Storage'a ÇOKTAN yüklenmiş durumda (bu route yalnız
+  // kaydı oluşturur). Reddedersek yüklenen dosyalar orada öksüz kalır — aşağıda
+  // DB hatasında yapıldığı gibi temizliyoruz, yoksa fren depoyu şişirirdi.
+  const gate = await limit('upload', req.headers, me.id);
+  if (!gate.ok) {
+    await db.storage.from('media').remove(items.map(it => it.path));
+    return tooMany('Çok sık paylaşıyorsun, biraz bekle.', gate, 'upload');
   }
 
   const media = items.map(it => ({
