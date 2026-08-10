@@ -311,7 +311,14 @@ export default async function GirisIstatistikPage() {
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 {t.top_pages.map((p) => (
                   <div key={p.path} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderTop: '1px solid var(--color-border)' }}>
-                    <Link href={p.path} target="_blank" style={{ flex: 1, minWidth: 0, fontSize: '0.85rem', color: 'var(--color-primary)', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.path}</Link>
+                    {/* prefetch KAPALI. Yollar VERIDEN geliyor, koddan degil —
+                        aralarinda artik var olmayan bir yol bulunabiliyor ve Next
+                        onu her acilista <Link> gorup on-yukluyor, konsola 404
+                        dokuyordu (2026-08-10, /kitap). Ustelik target="_blank"
+                        oldugu icin prefetch YOL VAR OLSA DA bosa: yeni sekme tam
+                        sayfa yukler, on-yuklenen RSC yuku hic kullanilmaz.
+                        Panel 30 sn'de bir yenilendigi icin bu israf tekrarliyordu. */}
+                    <Link href={p.path} target="_blank" prefetch={false} style={{ flex: 1, minWidth: 0, fontSize: '0.85rem', color: 'var(--color-primary)', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.path}</Link>
                     <div style={{ flexShrink: 0, fontSize: '0.82rem', color: 'var(--color-text)', fontWeight: 700 }}>{p.views.toLocaleString('tr-TR')} <span style={{ color: 'var(--color-text-muted)', fontWeight: 400 }}>görüntüleme · {p.uniques.toLocaleString('tr-TR')} kişi</span></div>
                   </div>
                 ))}
@@ -494,7 +501,9 @@ export default async function GirisIstatistikPage() {
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
                     {perf.sayfalar.map((p) => (
                       <div key={p.path} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderTop: '1px solid var(--color-border)' }}>
-                        <Link href={p.path} target="_blank" style={{ flex: 1, minWidth: 0, fontSize: '0.85rem', color: 'var(--color-primary)', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.path}</Link>
+                        {/* prefetch KAPALI — yukaridaki "en cok gezilen sayfalar"
+                            listesiyle ayni gerekce: yol veriden geliyor, hedef yeni sekme. */}
+                        <Link href={p.path} target="_blank" prefetch={false} style={{ flex: 1, minWidth: 0, fontSize: '0.85rem', color: 'var(--color-primary)', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.path}</Link>
                         <span style={{ flexShrink: 0, fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{p.n.toLocaleString('tr-TR')} açılış</span>
                         <span style={{ flexShrink: 0, width: 76, textAlign: 'right', fontSize: '0.85rem', fontWeight: 800, color: perfRenk(p.lcp_p75, 2500, 4000) }} title="p75 LCP">{ms(p.lcp_p75)}</span>
                         <span style={{ flexShrink: 0, width: 68, textAlign: 'right', fontSize: '0.78rem', color: perfRenk(p.ttfb_p75, 800, 1800) }} title={`p75 sunucu · en kötü ${ms(p.ttfb_max)}`}>{ms(p.ttfb_p75)}</span>

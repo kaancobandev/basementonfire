@@ -33,6 +33,14 @@ export default function PageviewBeacon() {
     try { ekip = localStorage.getItem('ga-disabled') === 'true'; } catch { /* private mode */ }
     if (ekip) { lastPath = pathname; return; }
 
+    // 404 SAYILMAZ. not-found.tsx kendini `data-notfound` ile isaretler; o
+    // sayfa da layout icinde render edildigi icin beacon eskiden onu normal
+    // bir goruntuleme sanip yaziyordu. Sonucu somuttu: olmayan /kitap yolu
+    // 30 gunde 32 goruntuleme toplayip panelin "en cok gezilen sayfalar"
+    // listesine 16. sirada girmisti, panel de onu <Link> olarak basip her
+    // acilista prefetch etmeye calisiyor, konsola 404 dokuyordu.
+    if (document.querySelector('[data-notfound]')) { lastPath = pathname; return; }
+
     lastPath = pathname;
     try {
       fetch('/api/hit', {

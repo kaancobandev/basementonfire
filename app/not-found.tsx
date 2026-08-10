@@ -8,7 +8,13 @@ import Link from 'next/link';
 // Hover efekti bu yüzden inline onMouseOver yerine CSS ile yazıldı.
 export default function NotFound() {
   return (
-    <main className="main-content nf-wrap">
+    // data-notfound: PageviewBeacon bunu DOM'da arar ve 404'u sayfa
+    // goruntulemesi olarak SAYMAZ. Efekt sirasina degil DOM varligina
+    // dayanir — cocuk agac, layout'taki beacon'in efektinden once commit
+    // edilir, dolayisiyla isaret her zaman yerindedir.
+    // NEDEN: 404'ler sayiliyordu ve panele "en cok gezilen sayfa" olarak
+    // giriyordu (2026-08-10: /kitap 30 gunde 32 goruntuleme, rota yok).
+    <main className="main-content nf-wrap" data-notfound="1">
       {/* Astro app'tekinin aynısı */}
       <img
         src="https://media3.giphy.com/media/1EmBoG0IL50VIJLWTs/giphy.gif"
