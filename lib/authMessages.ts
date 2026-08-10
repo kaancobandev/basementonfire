@@ -33,6 +33,7 @@ export const AUTH_MESSAGES: Record<string, string> = {
   ad_alinmis:      'Bu kullanıcı adı zaten alınmış. Başka birini dene.',
   kosullar:        'Devam etmek için Kullanım Koşulları ve Gizlilik Politikasını kabul etmelisin.',
   gecersiz_dogum:  'Geçerli bir doğum tarihi gir.',
+  gecersiz_cinsiyet: 'Lütfen cinsiyet seç.',
   yas_kucuk:       `Kayıt için en az ${MIN_AGE} yaşında olmalısın.`,
 
   // Şifre sıfırlama

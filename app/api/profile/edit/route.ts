@@ -1,5 +1,6 @@
 import { db, getMe } from '@/lib/supabase/server';
 import { MIN_AGE, ageFromBirthdate, isAllowedBirthdateEdit } from '@/lib/age';
+import { isGender } from '@/lib/types';
 import { NextResponse } from 'next/server';
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -85,7 +86,12 @@ export async function POST(req: Request) {
   update.bio = bio;
   update.location = location || null;
   update.website = websiteNorm || null;
-  update.gender = gender;
+  // Sozluge karsi dogrula. ESKIDEN DOGRULAMA YOKTU: istemci `gender=zzz`
+  // gonderip kolona serbest metin yazabiliyordu ve lib/types.ts'teki birlesim
+  // tipi bir vaatten ibaretti. Taninmayan deger sessizce '' olur ("belirtmek
+  // istemiyorum") — kaydi reddetmek, tek bozuk alan yuzunden tum profil
+  // duzenlemesini dusurmek olurdu. Burada '' GECERLI (kayittan farki bu).
+  update.gender = isGender(gender) ? gender : '';
   update.interests = interests;
 
   // --- Doğum tarihi: düzenlenebilir, ama YALNIZCA GENÇLEŞME yönünde ---

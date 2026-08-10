@@ -1,6 +1,7 @@
 import { createAuthClientForResponse, db, logIfError } from '@/lib/supabase/server';
 import { recordLogin } from '@/lib/login-tracking';
 import { MIN_AGE, ageFromBirthdate } from '@/lib/age';
+import { isGender } from '@/lib/types';
 import { authCodeFromError } from '@/lib/authMessages';
 import { PENDING_EMAIL_COOKIE, PENDING_EMAIL_COOKIE_OPTIONS } from '@/lib/pendingEmail';
 import { NextResponse, type NextRequest } from 'next/server';
@@ -14,6 +15,7 @@ export async function POST(req: NextRequest) {
   const password  =  form.get('password')  as string;
   const username  = (form.get('username')  as string)?.trim();
   const birthdate = (form.get('birthdate') as string)?.trim();
+  const gender    = (form.get('gender')    as string)?.trim() ?? '';
   const terms     =  form.get('terms');
 
   if (!email || !password || !username || !birthdate)
@@ -47,6 +49,13 @@ export async function POST(req: NextRequest) {
   if (!terms)
     return fail(req, 'kosullar');
 
+  // CİNSİYET — kayıtta ZORUNLU (2026-08-10, kullanıcı kararı). Boş kabul
+  // EDİLMEZ: `''` sözlükte "belirtmek istemiyorum" demek ve o yalnızca profil
+  // düzenlemede geçerli. Serbest metin de kabul edilmez — istemcideki <select>
+  // atlanabilir, asıl kapı burası (bkz. lib/types.ts GENDERS).
+  if (!gender || !isGender(gender) || gender === '')
+    return fail(req, 'gecersiz_cinsiyet');
+
   // YAŞ KAPISI — istemciye güvenilmez, sunucuda yeniden hesaplanır.
   const age = ageFromBirthdate(birthdate);
   if (age === null)
@@ -72,7 +81,7 @@ export async function POST(req: NextRequest) {
     email,
     password,
     options: {
-      data: { username: uname, birthdate },
+      data: { username: uname, birthdate, gender },
       emailRedirectTo: `${siteUrl}/auth/confirm`,
     },
   });
@@ -89,18 +98,19 @@ export async function POST(req: NextRequest) {
     // Yaş + onay kaydını users satırına yaz (kanıt/ispat). Hata olursa kaydı BOZMA, sadece logla.
     const { error: upErr } = await db
       .from('users')
-      .update({ birthdate, terms_accepted_at: new Date().toISOString() })
+      .update({ birthdate, gender, terms_accepted_at: new Date().toISOString() })
       .eq('auth_id', data.user.id);
 
     if (upErr) {
       // sql/features-age-gate.sql henüz çalıştırılmadıysa terms_accepted_at kolonu yoktur ve
       // update KOMPLE düşer → birthdate de yazılmaz. O yüzden en azından birthdate'i tek başına yaz.
-      logIfError('register: birthdate+terms update', upErr);
+      // (gender kolonu users'ta zaten var, yedeğe onu da alıyoruz.)
+      logIfError('register: birthdate+gender+terms update', upErr);
       const { error: bdErr } = await db
         .from('users')
-        .update({ birthdate })
+        .update({ birthdate, gender })
         .eq('auth_id', data.user.id);
-      logIfError('register: birthdate-only fallback', bdErr);
+      logIfError('register: birthdate+gender fallback', bdErr);
     }
 
     // Ilk kayit girisini de kaydet (method='register').

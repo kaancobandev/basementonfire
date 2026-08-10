@@ -48,9 +48,26 @@ export type DbUser = {
   birthdate: string | null;
   location: string | null;
   website: string | null;
-  gender: '' | 'erkek' | 'kadin' | 'diger';
+  gender: Gender;
   interests: string[];
 };
+
+/**
+ * Cinsiyet sozlugu — TEK KAYNAK. Kayit formu, profil formu ve iki API route'u
+ * bunu kullanir; secenek eklemek isteyen YALNIZ burayi degistirir.
+ *
+ * `''` = "Belirtmek istemiyorum" (profil formunda acikca oyle yazar). Kayitta
+ * secilemez, cunku alan orada zorunlu; kullanici sonradan profilden bosaltabilir.
+ *
+ * ⚠ 2026-08-10'da bulundu: api/profile/edit gelen degeri HIC DOGRULAMADAN
+ * yaziyordu, yani buradaki birlesim tipi bir VAAT'ti, garanti degil — istemci
+ * `gender=zzz` gonderip DB'ye serbest metin sokabiliyordu. Iki route da artik
+ * bu listeye karsi dogruluyor.
+ */
+export const GENDERS = ['erkek', 'kadin', 'diger'] as const;
+export type Gender = '' | (typeof GENDERS)[number];
+export const isGender = (v: unknown): v is Gender =>
+  v === '' || (typeof v === 'string' && (GENDERS as readonly string[]).includes(v));
 
 // "Bunu biliyor muydun?" bilgi kartlari (did_you_know tablosu). Feed'e
 // kind:'dyk' olarak serpistirilir; mevcut fact/post ayrimina ucuncu tur eklenir.

@@ -40,6 +40,28 @@ export default function RegisterForm() {
         </p>
       </div>
 
+      {/* Cinsiyet — ZORUNLU (kullanıcı kararı). Seçenekler lib/types.ts'teki
+          GENDERS sözlüğünden gelir; profil formundaki select ile birebir aynı
+          değerler, yoksa aynı kolona iki farklı kelime dağarcığı yazılırdı.
+          İlk <option> boş VE disabled: tarayıcının `required` doğrulaması
+          ancak böyle tetiklenir, yoksa ilk seçenek "seçilmiş" sayılır. */}
+      <div>
+        <label style={labelStyle} htmlFor="reg-gender">Cinsiyet</label>
+        <select id="reg-gender" name="gender" required defaultValue=""
+          style={inputStyle}
+          onFocus={e => (e.target.style.borderColor = 'var(--color-primary)')}
+          onBlur={e => (e.target.style.borderColor = 'var(--color-border)')}
+        >
+          <option value="" disabled>Seç</option>
+          <option value="kadin">Kadın</option>
+          <option value="erkek">Erkek</option>
+          <option value="diger">Diğer</option>
+        </select>
+        <p style={{ margin: '5px 0 0', fontSize: '0.76rem', color: 'var(--color-text-muted)', lineHeight: 1.45 }}>
+          Profilinde gösterilir; dilediğin zaman ayarlardan değiştirebilir ya da kaldırabilirsin.
+        </p>
+      </div>
+
       {/* Koşul + gizlilik onayı */}
       <label style={{ display: 'flex', alignItems: 'flex-start', gap: 9, fontSize: '0.82rem', lineHeight: 1.5, color: 'var(--color-text)', cursor: 'pointer' }}>
         <input type="checkbox" name="terms" value="1" required
