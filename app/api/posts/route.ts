@@ -3,6 +3,7 @@ import { NextResponse, after } from 'next/server';
 import { revalidateTag } from 'next/cache';
 import { notifyMentions } from '@/lib/mentions';
 import { normalizePollOptions } from '@/lib/polls';
+import { limit, tooMany } from '@/lib/rateLimit';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
 
@@ -51,13 +52,18 @@ export async function POST(req: Request) {
     return isJson ? json({ error: 'En fazla 500 karakter' }, 400) : NextResponse.redirect(new URL('/feed', req.url), { status: 303 });
   }
 
-  // Hafif flood freni: son 60sn'de 5+ gönderi → 429.
-  const minuteAgo = new Date(Date.now() - 60 * 1000).toISOString();
-  const { count: recent } = await db
-    .from('posts').select('id', { count: 'exact', head: true })
-    .eq('user_id', me.id).gt('created_at', minuteAgo);
-  if ((recent ?? 0) >= 5) {
-    return isJson ? json({ error: 'Çok hızlı paylaşıyorsun, biraz bekle.' }, 429) : NextResponse.redirect(new URL('/feed', req.url), { status: 303 });
+  // Flood freni → lib/rateLimit.ts (token bucket). Sürdürülebilir hız eskisiyle
+  // AYNI: dakikada 5 gönderi. Doğrulamadan SONRA duruyor — boş/uzun gönderi
+  // denemesi token yakmasın.
+  //
+  // Eski sayım freninden bir davranış farkı var: o, VAR OLAN satırları sayardı
+  // (insert başarısızsa kota harcanmazdı, gönderi silinince kota geri gelirdi).
+  // Kova ise DENEMEDE harcar. Kasıtlı: fren, işin maliyetini değil isteği ölçer.
+  const gate = await limit('post', req.headers, me.id);
+  if (!gate.ok) {
+    return isJson
+      ? tooMany('Çok hızlı paylaşıyorsun, biraz bekle.', gate, 'post')
+      : NextResponse.redirect(new URL('/feed', req.url), { status: 303 });
   }
 
   const { data: newPost, error } = await db
