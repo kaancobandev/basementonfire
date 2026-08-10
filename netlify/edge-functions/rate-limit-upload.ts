@@ -15,6 +15,25 @@
 // iki edge fonksiyonunun sırası dokümante DEĞİL — geçirgen tasarım bu yüzden:
 // sıra ne olursa olsun davranış değişmiyor.
 //
+// ⚠⚠ BU KURALIN UYGULANDIĞI DOĞRULANAMADI (2026-08-10). BURAYA GÜVENME.
+//
+// Kanıtlanan: kural Netlify'a KAYDEDİLDİ (deploy log, post-processing:
+// "Processed 1 programmatic custom rate limiting rules", ID
+// 6a79e2fe0fbd4c000864b7fe, hedef ^/api/upload/?$, 20/60sn, ip+domain) ve bu
+// fonksiyon CANLI (aşağıdaki prob 200 "edge-fn-alive" dönüyor).
+//
+// Kanıtlanamayan: kuralın eşikte KESTİĞİ. Beş ayrı ölçümde tek 429 üretilemedi
+// — 30 ardışık istek (×2), 30 paralel istek (×2, ~1-2 sn içinde), 15 paralel.
+// Hepsi 401 döndü. "Kaydedildi" ile "uygulanıyor" AYNI ŞEY DEĞİL; bir ara
+// görülen 25/25 429 muhtemelen ~100 hızlı istekten sonra devreye giren platform
+// kötüye kullanım korumasıydı (yanıtı kuralınkinden ayırt edilemiyor: ikisi de
+// Server: Netlify, boş gövde, Retry-After YOK).
+//
+// GERÇEK KORUMA lib/rateLimit.ts'teki token bucket — o üretimde doğrulandı.
+// Burası en iyi ihtimalle ikinci katman, en kötü ihtimalle ölü kod. Neden
+// uygulanmadığını çözmenin yolu yukarıdaki kural ID'siyle Netlify desteğine
+// sormak; çözülürse bu blok ve prob silinmeli.
+//
 // SAYILAR — kenar limiti uygulama limitinden BİLEREK GEVŞEK:
 //   · Kenar IP başına sayar. Ortak ağdaki (okul, kafe, operatör NAT) ikinci
 //     kullanıcı da aynı kovaya düşer, o yüzden politika burada uygulanamaz.
