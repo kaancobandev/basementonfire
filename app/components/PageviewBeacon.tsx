@@ -18,6 +18,21 @@ export default function PageviewBeacon() {
   useEffect(() => {
     if (!pathname || pathname === lastPath) return;
     if (pathname.startsWith('/yonetim') || pathname.startsWith('/api')) return;
+
+    // EKIP CIHAZI HARIC. Cihazi bir kez ?notrack=1 ile acmak localStorage'a
+    // 'ga-disabled' yaziyor (CookieConsent.tsx) — ayni isareti WebVitalsBeacon
+    // da okuyor; ucuncu bir mekanizma yok.
+    //
+    // 2026-08-10'da bulundu: bu kapi BURADA YOKTU. Isaret GA'yi ve hiz
+    // olcumunu susturuyordu ama sayfa goruntulemeyi DEGIL — yani "kendimi
+    // istatistikten cikardim" sanilirken trafik paneli kendi gezintimizi
+    // saymaya devam ediyordu. Olculdu: o gun 148 goruntulemenin 96'si
+    // /akis + /gonderi-olustur, yani yukleme testi yaptigimiz iki ekran.
+    // Panelin en cok bakilan sayisi (gunluk tekil) bu yuzden sisikti.
+    let ekip = false;
+    try { ekip = localStorage.getItem('ga-disabled') === 'true'; } catch { /* private mode */ }
+    if (ekip) { lastPath = pathname; return; }
+
     lastPath = pathname;
     try {
       fetch('/api/hit', {
