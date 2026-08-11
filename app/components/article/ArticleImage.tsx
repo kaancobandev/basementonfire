@@ -94,10 +94,17 @@ export default function ArticleImage({
           basementonfire.com
         </span>
       </div>
+      {/* Kredi eskiden `shrink-0` idi ve UZUN krediler telefonda EKRANDAN
+          TAŞIYORDU: flex-wrap onu kendi satırına indiriyor, ama shrink-0 orada da
+          daralmayı reddettiği için metin tek satırda kalıp dışarı çıkıyordu
+          (2026-08-10, periyodik-tablo makalesinde iki ayrı görselde görüldü —
+          hata ArticleImage'da olduğu için tüm makaleleri etkiliyordu).
+          `min-w-0` + `break-words`: kısa krediler hâlâ altyazının yanında kalır,
+          uzun olanlar sarar. */}
       {(caption || credit) && (
         <figcaption className="mt-2 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-xs leading-relaxed text-[var(--ai-caption,#94a3b8)]">
-          {caption ? <span>{caption}</span> : <span />}
-          {credit && <span className="shrink-0 italic text-[var(--ai-credit,#475569)]">{credit}</span>}
+          {caption ? <span className="min-w-0 break-words">{caption}</span> : <span />}
+          {credit && <span className="min-w-0 break-words italic text-[var(--ai-credit,#475569)]">{credit}</span>}
         </figcaption>
       )}
     </figure>

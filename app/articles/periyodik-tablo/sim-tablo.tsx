@@ -25,8 +25,28 @@ const KATEGORI_RENK: Record<string, string> = {
   'Transition metal': '#f472b6', 'Post-transition metal': '#94a3b8',
   'Lanthanide': '#e879f9', 'Actinide': '#c084fc',
 };
-const HAL_RENK: Record<string, string> = { Solid: '#94a3b8', Liquid: '#38bdf8', Gas: '#4ade80', Expected: '#52525b' };
-const HAL_TR: Record<string, string> = { Solid: 'Katı', Liquid: 'Sıvı', Gas: 'Gaz', Expected: 'Öngörülen' };
+// Efsanede İNGİLİZCE yazıyordu — veri PubChem'den ham geliyor, çeviri yoktu.
+const KATEGORI_TR: Record<string, string> = {
+  'Nonmetal': 'Ametal', 'Noble gas': 'Soy gaz', 'Alkali metal': 'Alkali metal',
+  'Alkaline earth metal': 'Toprak alkali metal', 'Metalloid': 'Yarı metal', 'Halogen': 'Halojen',
+  'Transition metal': 'Geçiş metali', 'Post-transition metal': 'Zayıf metal',
+  'Lanthanide': 'Lantanit', 'Actinide': 'Aktinit',
+};
+
+// ⚠ PubChem'in ham `hal` değerleri İNGİLİZCE ve ikisi tek kelime DEĞİL, cümle:
+// "Expected to be a Solid" / "Expected to be a Gas" — henüz ölçülememiş, teorik
+// öngörü. Eski harita yalnız `Solid/Liquid/Gas/Expected` anahtarlarını tutuyordu,
+// yani o dokuz element hem gri boyanıyor hem de detay kartında ham İngilizce
+// görünüyordu (`HAL_TR[e.hal] ?? e.hal` yedeği devreye giriyordu).
+// Anahtarlar artık verideki DEĞERLERİN BİREBİR AYNISI.
+const HAL_RENK: Record<string, string> = {
+  'Solid': '#94a3b8', 'Liquid': '#38bdf8', 'Gas': '#4ade80',
+  'Expected to be a Solid': '#5b6472', 'Expected to be a Gas': '#3f7a4a',
+};
+const HAL_TR: Record<string, string> = {
+  'Solid': 'Katı', 'Liquid': 'Sıvı', 'Gas': 'Gaz',
+  'Expected to be a Solid': 'Katı (öngörü)', 'Expected to be a Gas': 'Gaz (öngörü)',
+};
 
 /** Keşif yılı → renk. "Ancient" ve boşlar en koyu. */
 function kesifRenk(k: string): string {
@@ -79,7 +99,7 @@ export default function SimTablo() {
       hero
       kicker="İNTERAKTİF TABLO"
       title="118 element"
-      hint="Bir hücreye dokun. Renklendirmeyi değiştirip aynı tabloyu farklı sorularla oku."
+      hint="Bir hücreye dokun. Renklendirmeyi değiştirip aynı tabloyu farklı sorularla oku. Telefonda tabloyu parmağınla yana kaydırabilirsin."
       footnote="Veri: PubChem (NCBI / U.S. National Library of Medicine) — kamu malı. Türkçe adlar: Wikidata (CC0). 3. grupta lantan ve aktinyum duruyor (TKD biçimi)."
     >
       <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -95,10 +115,15 @@ export default function SimTablo() {
         />
       </div>
 
-      <div className="overflow-x-auto pb-1">
+      {/* 18 sütunlu bir tablo telefona sığmaz; yana kaydırma kaçınılmaz. Üç şey
+          yapıldı: (1) kaydırma ÇUBUĞU gizlendi — görsel kirlilik olarak bildirildi,
+          (2) `overscroll-x-contain`: yatay kaydırma sayfanın dikey kaydırmasına
+          ZİNCİRLENMEZ, parmak tabloda kalır, (3) min genişlik 560 → 520, yani
+          kaydırılacak mesafe kısaldı. Kaydırılabilirliği yukarıdaki `hint` yazıyor. */}
+      <div className="ptab-kaydir overflow-x-auto overscroll-x-contain pb-1">
         <svg
           viewBox={`-1 -1 ${18 * (W + G) + 2} ${10 * (H + G) + 10}`}
-          className="w-full min-w-[560px]"
+          className="w-full min-w-[520px]"
           role="img"
           aria-label="Periyodik tablo, 118 element"
         >
@@ -178,7 +203,7 @@ export default function SimTablo() {
             {mod === 'blok' && (Object.keys(BLOK) as BlokKey[]).map((b) => (
               <Efsane key={b} renk={BLOK[b].color} label={`${BLOK[b].label} · ${BLOK[b].kapasite} sütun`} />
             ))}
-            {mod === 'kategori' && Object.entries(KATEGORI_RENK).map(([k, c]) => <Efsane key={k} renk={c} label={k} />)}
+            {mod === 'kategori' && Object.entries(KATEGORI_RENK).map(([k, c]) => <Efsane key={k} renk={c} label={KATEGORI_TR[k] ?? k} />)}
             {mod === 'hal' && Object.entries(HAL_RENK).map(([k, c]) => <Efsane key={k} renk={c} label={HAL_TR[k] ?? k} />)}
             {mod === 'kesif' && (
               <div className="w-full">
@@ -189,6 +214,12 @@ export default function SimTablo() {
           </div>
         )}
       </div>
+
+      {/* Kaydırma çubuğunu gizle. Tailwind'de karşılığı yok, iki satır CSS. */}
+      <style>{`
+        .ptab-kaydir { scrollbar-width: none; -ms-overflow-style: none; }
+        .ptab-kaydir::-webkit-scrollbar { display: none; }
+      `}</style>
     </WidgetFrame>
   );
 }

@@ -128,9 +128,9 @@ export function OrbitalAnatomisi() {
 
   return (
     <WidgetFrame
-      kicker="ŞEKLİN SEBEBİ"
-      title="Blok genişliği = orbital kapasitesi"
-      hint="Tablodaki sütun sayıları keyfî değil: her blok, o orbitalin alabildiği elektron sayısı kadar geniş."
+      kicker="ŞEKLİN SEBEBİ · ORBİTALLER"
+      title="Her blok neden tam o kadar sütun geniş?"
+      hint="Aşağıdaki dört bloğa sırayla dokun: her biri bir orbital türü. Orbitalin kaba biçimini, kaç elektron alabildiğini ve tabloda kaç sütuna karşılık geldiğini görürsün. Sütun sayıları keyfî değil — s = 2, p = 6, d = 10, f = 14; tablonun genişliği doğrudan buradan çıkıyor."
     >
       <div className="mb-4 flex flex-wrap gap-2">
         {(Object.keys(BLOK) as BlokKey[]).map((k) => (
@@ -186,7 +186,18 @@ export function TrendGrafigi() {
   const veri = ELEMENTLER.filter((e) => e.z <= 86 && e[t.key] != null)
     .map((e) => ({ z: e.z, v: e[t.key] as number, blok: e.blok, s: e.s, ad: e.ad }));
   const enB = Math.max(...veri.map((d) => d.v));
-  const W = 620, H = 190, SOL = 34, SAG = 8, UST = 12, ALT = 26;
+  // ⚠ TELEFONDA KÜÇÜK KALIYORDU. viewBox genişliği sabit, SVG kabına göre
+  // ölçekleniyor: 360 px'lik ekranda 620 birimlik kutu 0,58 ile çarpılıyordu,
+  // yani 8 birimlik yazılar 4,6 px'e düşüyordu — okunmuyordu.
+  // Çözüm kutuyu DARALTMAK: viewBox küçüldükçe aynı kapta her şey büyür.
+  // 620 → 420 ile 375 px'lik telefonda yazı 3,8 px'den 7,7 px'e çıkıyor (ölçüldü).
+  // Yazılar ayrıca 8 → 11, noktalar büyütüldü, grafik yükseltildi (190 → 235):
+  // ekrandaki yükseklik 89 px'den ~164 px'e çıktı, testere dişi artık belirgin.
+  //
+  // ⚠ Dar viewBox tek başına MASAÜSTÜNÜ BOZARDI: orada kap ~700 px, ölçek 1,7'ye
+  // fırlar ve eksen yazıları 19 px'lik başlıklara dönerdi. `max-w-[480px]` o ucu
+  // kesiyor — mobilde büyüt, masaüstünde şişirme.
+  const W = 420, H = 235, SOL = 40, SAG = 8, UST = 14, ALT = 34;
   const ix = (z: number) => SOL + ((z - 1) / 85) * (W - SOL - SAG);
   const iy = (v: number) => UST + (1 - v / enB) * (H - UST - ALT);
   const cizgi = veri.map((d, i) => `${i ? 'L' : 'M'}${ix(d.z).toFixed(1)},${iy(d.v).toFixed(1)}`).join('');
@@ -208,33 +219,138 @@ export function TrendGrafigi() {
         ))}
       </div>
 
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img"
+      <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto w-full max-w-[480px]" role="img"
         aria-label={`${t.label} değerinin atom numarasına göre değişimi: her periyotta tekrarlayan testere dişi desen`}>
         {[0, 0.5, 1].map((f) => (
           <line key={f} x1={SOL} y1={iy(enB * f)} x2={W - SAG} y2={iy(enB * f)} stroke="rgba(255,255,255,0.08)" />
         ))}
-        <text x={SOL - 5} y={iy(enB) + 3} textAnchor="end" fontSize="8" fill="#7d8590">{tr(enB, 1)}</text>
-        <text x={SOL - 5} y={iy(0) + 3} textAnchor="end" fontSize="8" fill="#7d8590">0</text>
-        <path d={cizgi} fill="none" stroke={ACCENT} strokeWidth={1.6} strokeLinejoin="round" />
+        <text x={SOL - 6} y={iy(enB) + 4} textAnchor="end" fontSize="11" fill="#7d8590">{tr(enB, 1)}</text>
+        <text x={SOL - 6} y={iy(0) + 4} textAnchor="end" fontSize="11" fill="#7d8590">0</text>
+        <path d={cizgi} fill="none" stroke={ACCENT} strokeWidth={2.2} strokeLinejoin="round" />
         {veri.map((d) => (
-          <circle key={d.z} cx={ix(d.z)} cy={iy(d.v)} r={1.7} fill={BLOK[d.blok].color} />
+          <circle key={d.z} cx={ix(d.z)} cy={iy(d.v)} r={2.2} fill={BLOK[d.blok].color} />
         ))}
         {soy.map((d) => (
           <g key={d.z}>
-            <circle cx={ix(d.z)} cy={iy(d.v)} r={3.4} fill="none" stroke="#fff" strokeWidth={1} opacity={0.7} />
-            <text x={ix(d.z)} y={iy(d.v) - 7} textAnchor="middle" fontSize="8" fill="#e2e8f0">{d.s}</text>
+            <circle cx={ix(d.z)} cy={iy(d.v)} r={4.4} fill="none" stroke="#fff" strokeWidth={1.2} opacity={0.7} />
+            <text x={ix(d.z)} y={iy(d.v) - 9} textAnchor="middle" fontSize="11" fill="#e2e8f0">{d.s}</text>
           </g>
         ))}
         {alkali.map((d) => (
-          <text key={d.z} x={ix(d.z)} y={iy(d.v) + 12} textAnchor="middle" fontSize="8" fill="#94a3b8">{d.s}</text>
+          <text key={d.z} x={ix(d.z)} y={iy(d.v) + 16} textAnchor="middle" fontSize="11" fill="#94a3b8">{d.s}</text>
         ))}
-        <text x={SOL} y={H - 8} fontSize="8" fill="#7d8590">atom numarası →</text>
+        <text x={SOL} y={H - 10} fontSize="11" fill="#7d8590">atom numarası →</text>
       </svg>
 
       <p className="mt-2 text-sm leading-relaxed text-slate-300">
         {t.key === 'yaricap'
           ? 'Yarıçapta desen ters yönde: her periyodun başındaki alkali metal en şişkin, sonundaki soy gaz en küçüktür.'
           : 'Tepeler hep aynı sütunda: soy gazlar. Dipler de öyle: alkali metaller. Aynı sütun, aynı davranış — çünkü aynı dış kabuk.'}
+      </p>
+    </WidgetFrame>
+  );
+}
+
+/* ══════════ 6 · Janet'nin sol-adım tablosu ══════════ */
+
+// Sol-adım tablosunun kuruluşu: satırlar n+ℓ değerine göre ayrılır, her satır
+// SAĞA DAYALIDIR ve HER ZAMAN s-bloğuyla biter. Satır uzunlukları 2, 2, 8, 8,
+// 18, 18, 32, 32 — yani doldurma sırasının kendisi.
+const JANET_SATIRLAR = [
+  { bas: 1, uzunluk: 2 }, { bas: 3, uzunluk: 2 },
+  { bas: 5, uzunluk: 8 }, { bas: 13, uzunluk: 8 },
+  { bas: 21, uzunluk: 18 }, { bas: 39, uzunluk: 18 },
+  { bas: 57, uzunluk: 32 }, { bas: 89, uzunluk: 32 },
+];
+
+// Blok VERİDEN değil KONUMDAN türetilir — sol-adım tablosunun tanımı budur.
+// Satırın sonundan geriye doğru: son 2 = s, önceki 6 = p, önceki 10 = d, kalan 14 = f.
+// Bunun bir yan sonucu var ve makaleyle doğrudan ilgili: bu tanım gereği lantan
+// f-bloğunda, lutesyum d-bloğunda kalır — yani Janet'nin biçimi, 4. perdede
+// anlatılan Sc-Y-Lu-Lr tarafını ima eder.
+function janetBlok(i: number, uzunluk: number): BlokKey {
+  const sagdan = uzunluk - 1 - i;
+  if (sagdan < 2) return 's';
+  if (sagdan < 8) return 'p';
+  if (sagdan < 18) return 'd';
+  return 'f';
+}
+
+const SEMBOL = new Map(ELEMENTLER.map((e) => [e.z, e.s]));
+
+export function JanetTablosu() {
+  const KW = 10, KH = 10, SOL = 20, UST = 4;   // hücre adımı + kenar boşlukları
+  const gx = (c: number) => SOL + (c - 1) * KW;
+  const gy = (r: number) => UST + (r - 1) * KH;
+
+  // Blok bantları: f 1-14, d 15-24, p 25-30, s 31-32 (sağa dayalı 32 sütunda).
+  const BANTLAR: { b: BlokKey; ilk: number; son: number }[] = [
+    { b: 'f', ilk: 1, son: 14 }, { b: 'd', ilk: 15, son: 24 },
+    { b: 'p', ilk: 25, son: 30 }, { b: 's', ilk: 31, son: 32 },
+  ];
+
+  return (
+    <WidgetFrame
+      kicker="ALTERNATİF BİÇİM"
+      title="Charles Janet'nin “sol-adım” tablosu (1928)"
+      hint="Aynı 118 element, başka bir dizilişte. Satırlar sağa dayalı ve hepsi s-bloğuyla bitiyor; sıralama doğrudan orbital doldurma sırasını izliyor. Lantanitler burada aşağı sarkmıyor — çünkü sarkma zaten kimyasal değil, sayfaya sığdırma kararıydı."
+      footnote="Bloklar konumdan türetilmiştir (sol-adım tanımı gereği). Renkler makalenin blok paletiyle aynı."
+    >
+      <svg viewBox="0 0 344 122" className="w-full" role="img"
+        aria-label="Janet'nin sol-adım periyodik tablosu: sekiz satır, hepsi sağa dayalı, soldan sağa f, d, p ve s blokları; lantanitler ayrı bir satıra sarkmıyor.">
+        {JANET_SATIRLAR.map((sat, r) =>
+          Array.from({ length: sat.uzunluk }, (_, i) => {
+            const z = sat.bas + i;
+            const c = 33 - sat.uzunluk + i;
+            const blok = janetBlok(i, sat.uzunluk);
+            const renk = BLOK[blok].color;
+            const hayalet = z > 118;   // 119 ve 120: satırı tamamlayan, henüz yok
+            return (
+              <rect
+                key={z} x={gx(c)} y={gy(r + 1)} width={KW - 1} height={KH - 1} rx={1.4}
+                fill={renk} fillOpacity={hayalet ? 0 : 0.34}
+                stroke={renk} strokeWidth={hayalet ? 0.7 : 0.5}
+                strokeOpacity={hayalet ? 0.55 : 1}
+                strokeDasharray={hayalet ? '1.6 1.4' : undefined}
+              >
+                <title>{hayalet ? `${z} · henüz sentezlenmedi` : `${z} · ${SEMBOL.get(z) ?? ''}`}</title>
+              </rect>
+            );
+          }),
+        )}
+
+        {/* Sol kenar: satırı belirleyen n+ℓ değeri */}
+        {JANET_SATIRLAR.map((_, r) => (
+          <text key={r} x={SOL - 4} y={gy(r + 1) + 6.6} textAnchor="end" fontSize="5" fill="#7d8590">{r + 1}</text>
+        ))}
+        <text x={SOL - 4} y={gy(9) + 4} textAnchor="end" fontSize="4.4" fill="#5c6370">n+ℓ</text>
+
+        {/* Alt kenar: blok bantları ve kapasiteleri */}
+        {BANTLAR.map(({ b, ilk, son }) => (
+          <g key={b}>
+            <rect x={gx(ilk)} y={gy(9) + 1} width={(son - ilk + 1) * KW - 1} height={3.4} rx={1.2}
+              fill={BLOK[b].color} fillOpacity={0.55} />
+            <text x={gx(ilk) + ((son - ilk + 1) * KW - 1) / 2} y={gy(9) + 12} textAnchor="middle"
+              fontSize="6" fontWeight={700} fill={BLOK[b].color}>{b}</text>
+            <text x={gx(ilk) + ((son - ilk + 1) * KW - 1) / 2} y={gy(9) + 18.5} textAnchor="middle"
+              fontSize="4.6" fill="#7d8590">{(son - ilk + 1)} sütun</text>
+          </g>
+        ))}
+      </svg>
+
+      <p className="mt-4 text-sm leading-relaxed text-slate-300">
+        Karşılaştır: bu yazının başındaki tabloda lantanitler ana gövdenin altında ayrı bir
+        şeritte duruyor. Burada durmuyorlar — <strong className="text-white">7. satırın
+        solunda</strong>, ait oldukları yerdeler. Fark kimyada değil, sayfa genişliğinde:
+        alışıldık tablo 18 sütuna sığsın diye f-bloğu aşağı indirilir, Janet indirmez ve
+        32 sütun basar.
+      </p>
+      <p className="mt-2 text-sm leading-relaxed text-slate-400">
+        Bedeli de var, o yüzden yaygınlaşmadı. Helyum burada berilyumun üstüne, s-bloğuna
+        oturuyor — orbital doldurma açısından doğru, ama helyum kimyasal olarak bir soy gaz
+        ve okurun onu neonun üstünde görmesi beklenir. Ayrıca 32 sütun bir sınıf duvarına da,
+        bir kitap sayfasına da zor sığar. Yani iki tablo arasındaki seçim bir doğruluk
+        meselesi değil, <em>neyi öne çıkarmak istediğin</em> meselesi.
       </p>
     </WidgetFrame>
   );

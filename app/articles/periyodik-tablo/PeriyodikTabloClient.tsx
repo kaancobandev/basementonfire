@@ -17,7 +17,7 @@ import ArticleImage from '@/app/components/article/ArticleImage';
 import { ACCENT, BG, AdlandirmaNotu, InView, TahminNotu, WidgetSkeleton } from './ui';
 import { ReadingProgress, PerdeNav } from './chrome';
 import { TabloPoster } from './posters';
-import { TahminMasasi, YontemKutusu, HayaletListesi, OrbitalAnatomisi, TrendGrafigi } from './widgets';
+import { TahminMasasi, YontemKutusu, HayaletListesi, OrbitalAnatomisi, TrendGrafigi, JanetTablosu } from './widgets';
 import { BoslukKarari, AdlandirmaKarari } from './decisions';
 import {
   KARLSRUHE, LECOQ, NEWTONYUM, TELLUR, NOBEL, SEKIL, MADELUNG, GRUP3,
@@ -195,6 +195,9 @@ export default function PeriyodikTabloClient() {
             <p><strong>{SEKIL.kok}</strong> {SEKIL.sonuc}</p>
             <OrbitalAnatomisi />
             <p>{SEKIL.bloklar} {SEKIL.lantanit}</p>
+            {/* Janet'nin tablosu metinde ADI GEÇTİĞİ paragrafın hemen ardında:
+                "sarkma yok" cümlesinin kanıtı okurun bir sonraki baktığı şey olsun. */}
+            <JanetTablosu />
             <TrendGrafigi />
             <p><strong>{MADELUNG.baslik}.</strong> {MADELUNG.metin}</p>
             <p className="text-slate-400">
@@ -210,7 +213,11 @@ export default function PeriyodikTabloClient() {
             <p><strong>{GRUP3.soru}</strong> {GRUP3.metin}</p>
             <blockquote className="my-5 border-l-2 pl-4 text-slate-300" style={{ borderColor: ACCENT }}>
               “{GRUP3.alinti}”
-              <footer className="mt-1.5 text-xs text-slate-500">— {GRUP3.alintiKaynak}</footer>
+              {/* Özgün cümle de duruyor: çeviri, okurun kaynağı doğrulamasını engellememeli. */}
+              <p className="mt-1.5 text-xs italic leading-relaxed text-slate-600">
+                “{GRUP3.alintiOrijinal}”
+              </p>
+              <footer className="mt-1 text-xs text-slate-500">— {GRUP3.alintiKaynak}</footer>
             </blockquote>
             <p>{GRUP3.uzlasi}</p>
             <AdlandirmaNotu>{GRUP3.turkiye}</AdlandirmaNotu>
@@ -264,7 +271,6 @@ export default function PeriyodikTabloClient() {
             />
             <p><strong>{TURKIYE.lantanit.baslik}.</strong> {TURKIYE.lantanit.metin}</p>
             <p><strong>{TURKIYE.kitap.baslik}.</strong> {TURKIYE.kitap.metin}</p>
-            <TahminNotu tuttu={false}>{TURKIYE.yok.metin}</TahminNotu>
 
             <AdlandirmaKarari />
 

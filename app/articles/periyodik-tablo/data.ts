@@ -146,8 +146,12 @@ export const GRUP3 = {
   soru: '3. grubun altına lantan mı yazılacak, lutesyum mu?',
   metin:
     'Tartışma 1948’de başladı, 1982’de genişledi, 1988’de IUPAC raporu Sc-Y-Lu-Lr biçimini destekledi. 2015’te Eric Scerri başkanlığında bir IUPAC projesi kuruldu.',
-  alinti: 'there is no objective means to adjudicate between group 3 consisting of Sc, Y, La and Ac or as Sc, Y, Lu and Lr',
-  alintiKaynak: 'IUPAC geçici raporu, 2021',
+  // Alıntı okura TÜRKÇE gösterilir; özgün İngilizce cümle hemen altında durur,
+  // çünkü bu bir kurum belgesinden birebir alıntı ve çeviri okurun eline
+  // kaynağı doğrulama imkânı bırakmalı.
+  alinti: '3. grubun Sc, Y, La ve Ac’den mi yoksa Sc, Y, Lu ve Lr’den mi oluştuğuna karar vermenin nesnel bir yolu yok.',
+  alintiOrijinal: 'there is no objective means to adjudicate between group 3 consisting of Sc, Y, La and Ac or as Sc, Y, Lu and Lr',
+  alintiKaynak: 'IUPAC geçici raporu, 2021 · İngilizce özgün metinden çevrildi',
   uzlasi:
     'Rapor uzlaşı olarak Sc-Y-Lu-Lr’yi öneriyor: atom numarası dizisini bozmayan, d bloğunu iki eşitsiz parçaya ayırmayan ve blok genişliklerini kuantumun dayattığı 2/6/10/14’te tutan tek biçim bu.',
   turkiye:
@@ -217,10 +221,8 @@ export const TURKIYE = {
     baslik: 'Tablodan yirmi bir yıl önce',
     metin: 'İlk Osmanlı Türkçesi kimya kitabı, Derviş Paşa’nın "Usûl-i Kimya"sı, 1847-48’de İstanbul’da basıldı — Mendeleyev’in tablosundan yaklaşık yirmi bir yıl önce. 1871’de Kırımlı Aziz Bey, kimya sembollerinin Latin harfleri yerine Osmanlı harfleriyle yazılmasını önerdi ve bütün denklemleri öyle yazdı.',
   },
-  yok: {
-    baslik: 'Ve olmayan şey',
-    metin: 'Tabloda Türkiye’ye ya da bir Türk bilim insanına adanmış element yok. On altı element bir kişinin adını taşıyor; hiçbiri Türk değil. Bunu yazmak, olmayan bir bağ uydurmaktan iyidir.',
-  },
+  // NOT: burada bir `yok` bloğu vardı ("Tabloda Türkiye'ye adanmış element yok…").
+  // 2026-08-10'da kullanıcı isteğiyle kaldırıldı. Geri istenirse git geçmişinde.
 } as const;
 
 /* ══════════════ KARAR DÜĞÜMLERİ (anket) ══════════════ */
