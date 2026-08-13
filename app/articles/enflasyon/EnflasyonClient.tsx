@@ -294,7 +294,7 @@ export default function EnflasyonClient() {
           ratio="1485 / 713"
           alt="1995 tarihli bir milyon Türk lirası banknotu; üzerinde 1000000 rakamı, Bir Milyon Türk Lirası yazısı ve Atatürk portresi."
           caption="Onlarca yıl üst üste binen enflasyonun ete kemiğe bürünmüş hâli: banknotun üstünde biriken altı sıfır. 2005’te o altı sıfır atıldı ve bir milyon lira, bir liraya döndü."
-          credit="Kerhaneci31 · CC0"
+          credit="Wikimedia Commons · CC0"
         />
         <p className="enf-p">
           Yastık altındaki paranın alım gücü, yüksek enflasyonda birkaç yıl içinde yarıya iniyor.
@@ -399,7 +399,7 @@ export default function EnflasyonClient() {
           ratio="1195 / 1035"
           alt="Latince yazıtlı taş levha parçası; kırmızıya boyanmış harflerle mal adları ve karşılarında rakamlar sıralanmış."
           caption="Azami Fiyat Fermanı’ndan bir parça — at, deve, eşek, koyun ve işçilik için taşa kazınmış tavan fiyatlar. Berlin’deki bu levha özgün taşın kalıp kopyasıdır."
-          credit="MatthiasKabel · CC BY-SA 3.0"
+          credit="Wikimedia Commons kullanıcısı MatthiasKabel · CC BY-SA 3.0"
         />
         <p className="enf-p">
           Sonuç: satıcılar tavan fiyattan satmaktansa mallarını piyasadan çekti. Raflar boşaldı,

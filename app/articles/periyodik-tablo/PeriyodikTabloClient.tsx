@@ -120,7 +120,7 @@ export default function PeriyodikTabloClient() {
               ratio="1600 / 1200"
               alt="Mendeleyev'in el yazısıyla mürekkeple doldurulmuş çalışma sayfası; element sembolleri ve atom ağırlıkları arasında tire işaretiyle yazılmış boş kayıtlar."
               caption="Boşluklar onun kendi elinden: sayfada “−=44”, “−=68” ve “−=72” yazıyor. Henüz adları yok, sadece birer sayı — sırasıyla skandiyum, galyum ve germanyum olacaklar."
-              credit="Saint Petersburg Üniversitesi'ndeki dairesinde sergilenen el yazısı tablolarından biri · Foto: Scotted400, CC0"
+              credit="Saint Petersburg Üniversitesi'ndeki dairesinde sergilenen el yazısı tablolarından biri · Foto: Wikimedia Commons, CC0"
             />
             <YontemKutusu />
             <TahminMasasi />

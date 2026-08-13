@@ -109,7 +109,7 @@
     swipeLoops: 2,        // how many times the swipe cycle plays per reaction
     fallSpeed: 260,       // CSS px per second when dropping off the wall
     landMs: 110,          // frame time for the squash-and-recover on landing
-    sayings: ['!', '?', 'merhaba', 'hey', '<3', 'basements'],
+    sayings: ['!', '?', 'merhaba', 'hey', '<3', 'basementonfire'],
     speechMs: 1800
   };
 

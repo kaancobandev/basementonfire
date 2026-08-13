@@ -112,7 +112,7 @@ const connTypes = [
   { name: 'Mobil', icon: '📡', speed: '10 Mbps–1 Gbps', d: '4G/5G baz istasyonları üzerinden kablosuz geniş bant.' },
   { name: 'Uydu', icon: '🛰️', speed: '25–250 Mbps', d: 'Yörüngedeki uydularla; kırsalda erişim sağlar, gecikmesi yüksek olabilir.' },
 ];
-
+
 
 /* ════════════════════════ YARDIMCI: STEPPER ════════════════════════ */
 
@@ -790,7 +790,7 @@ export default function InternetClient() {
             ratio="1600 / 1000"
             alt="Kesitten görünen fiber optik demet: uçlarından parlak ışık çıkan çok sayıda ince cam lif."
             caption="Fiber optik lifler. “Veriyi ışık olarak taşır” cümlesi mecaz değil: her lifin içinden geçen ışık darbeleri, saniyede milyarlarca bit anlamına geliyor."
-            credit="Geek3 · CC BY-SA 4.0"
+            credit="Wikimedia Commons kullanıcısı Geek3 · CC BY-SA 4.0"
           />
           <ArticleImage narrow
             className="net-img"

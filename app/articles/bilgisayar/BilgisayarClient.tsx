@@ -92,7 +92,7 @@ export default function BilgisayarClient() {
           ratio="1600 / 1600"
           alt="Modern bir işlemci, altın rengi temas noktaları görünecek şekilde yandan ve üstten; üstünde metal bir kapak, kapağın üzerinde model yazısı var."
           caption="Modern bir masaüstü işlemcisi. Gördüğünüz parlak metal, transistörler değil onların üzerindeki ısı kapağı — milyarlarca anahtar bu kapağın altında, tırnak kadar bir silikon parçasında duruyor."
-          credit="4300streetcar · CC BY 4.0"
+          credit="Wikimedia Commons kullanıcısı 4300streetcar · CC BY 4.0"
         />
         <CommandCycle />
         <div className="mt-6 grid gap-3 sm:grid-cols-3">
@@ -136,7 +136,7 @@ export default function BilgisayarClient() {
           ratio="1600 / 1067"
           alt="Uzun, dikdörtgen bir ekran kartı; üzerinde üç adet büyük fan ve fanların altında metal soğutucu kanatlar görünüyor."
           caption="Modern bir ekran kartı. Buradaki hacmin neredeyse tamamı soğutma: binlerce çekirdeğin ürettiği ısıyı atmak, çekirdeklerin kendisinden daha çok yer kaplıyor."
-          credit="PantheraLeo1359531 · CC BY 4.0"
+          credit="Wikimedia Commons kullanıcısı PantheraLeo1359531 · CC BY 4.0"
         />
         <Compare items={CPU_GPU} />
         <Analogy>CPU birkaç dâhi profesörse, GPU binlerce öğrencinin aynı anda kolay çarpım yapmasıdır. Tek karmaşık problem için profesör, milyonlarca basit işlem için ordu lazımdır.</Analogy>
@@ -209,7 +209,7 @@ export default function BilgisayarClient() {
           ratio="1600 / 1280"
           alt="Bir vitrinde yan yana dizilmiş, farklı boy ve biçimlerde bellek modülleri; bazıları uzun ince çubuk, bazıları kısa dikdörtgen kart."
           caption="SK Hynix'in Computex 2025'te sergilediği çeşitli DDR5 biçimleri. Hepsi aynı kuşak bellek, ama farklı biçim faktörleri: uzun çubuklar masaüstü DIMM'leri, yassı kartlar ise dizüstü için tasarlanan CAMM modülleri."
-          credit="4300streetcar · CC BY 4.0"
+          credit="Wikimedia Commons kullanıcısı 4300streetcar · CC BY 4.0"
         />
       </ArticleSection>
 
@@ -243,7 +243,7 @@ export default function BilgisayarClient() {
           ratio="1600 / 1330"
           alt="Bir anakart tepeden çekilmiş: solda kare işlemci soketi, üstte dört uzun ince bellek yuvası, sağda yatay uzanan geniş genişleme yuvaları ve aralarda metal soğutucu kapaklar."
           caption="Bir anakart, tepeden. Soldaki kare çerçeve işlemci soketi, üstteki dört uzun yuva bellek çubukları için, sağdaki geniş yatay yuvalar ise ekran kartı gibi genişleme kartlarına ait. Bu makalede tek tek anlattığımız parçaların hepsi buraya takılıyor."
-          credit="PantheraLeo1359531 · CC BY 4.0"
+          credit="Wikimedia Commons kullanıcısı PantheraLeo1359531 · CC BY 4.0"
         />
         <Analogy>Anakart bir şehrin yol ve altyapı ağıdır; CPU, GPU ve RAM ise o şehirdeki binalar. Binalar ne kadar güçlü olursa olsun, onları bağlayan yollar olmadan hiçbir şey çalışmaz.</Analogy>
       </ArticleSection>

@@ -11,7 +11,7 @@
   ratio="1485 / 713"
   alt="TODO — görseli gören biri için betimle"
   caption="TODO — anlatıya bağla"
-  credit="Kerhaneci31 · CC0"
+  credit="Wikimedia Commons · CC0"
 />
 
 <ArticleImage

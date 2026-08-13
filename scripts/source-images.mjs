@@ -4,7 +4,12 @@
 //   node scripts/source-images.mjs <slug> --dry    # sadece doğrula, indirme
 //
 // Girdi : scripts/image-specs/<slug>.json
-// Çıktı : public/articles/<slug>/*.webp + README.md (manifest) + <slug>.snippets.txt
+// Çıktı : public/articles/<slug>/*.webp
+//         docs/article-images/<slug>.md (manifest) + scripts/image-specs/<slug>.snippets.txt
+//
+// MANİFEST public/ ALTINDA DURMAZ: public/ altındaki her dosya siteden servis edilir.
+// Manifest yazar için tutulan iç not (lisans çekinceleri, künye uyarıları, ham Commons
+// alanları); /articles/<slug>/README.md diye herkese açık yayınlanmıştı, geri alındı.
 //
 // NEDEN BU SCRIPT VAR (fatih'ten alınan ders):
 //   fatih görselleri elle, Google Görseller'den indirilmişti (.jfif izleri) →
@@ -94,16 +99,50 @@ function judge(info) {
  *  artist boşken devreye girer. */
 const attrib = (info) => info.artist || info.credit;
 
+// Commons'ın Artist/Credit alanı serbest metindir: kurum adı da gelir, rastgele bir
+// kullanıcı rumuzu da, blog arayüzü kalıntısı da ("( Leave a reply )"), klavye ezmesi de
+// ("AFADadcADSasd"), düpedüz "null" da. Ham hâlde geçirilirse fotoğrafın altında yayına
+// çıkar — "Kerhaneci31 · CC0" tam olarak böyle yayınlandı.
+const ATIF_COPU = /^(unknown author\s*)+$|^(own work|no machine-readable author provided|null|-|—)$/i;
+const ARAYUZ_KALINTISI = /\s*\(\s*(leave a reply|talk|discussion)\b[^)]*\)\s*/gi;
+const BOS_ALAN_KUYRUGU = /\s*[-–—]\s*null\s*$/i;   // "NASA's ... Studio - null"
+
+/** Ham Artist/Credit metnini temizler; geriye anlamlı bir ad kalmazsa null döner. */
+function temizAtif(ham) {
+  if (!ham) return null;
+  const s = ham.replace(ARAYUZ_KALINTISI, ' ').replace(BOS_ALAN_KUYRUGU, '')
+    .replace(/\s+/g, ' ').trim();
+  if (!s || ATIF_COPU.test(s)) return null;
+  if (/^https?:\/\//i.test(s)) return null;        // ad değil, ham kaynak URL'si
+  return s;
+}
+
+/** Boşluksuz + rakam ya da araya kaçmış büyük harf = büyük ihtimalle Commons rumuzu.
+ *  "PantheraLeo1359531", "Kerhaneci31", "Psgs123xyz" yakalanır; "Rijksmuseum",
+ *  "Gary Todd", "Takkk" yakalanmaz. */
+function rumuzMu(s) {
+  const yalin = s.replace(/^User:/i, '').replace(/\s+at\s+(English\s+)?Wikipedia$/i, '').trim();
+  return !yalin.includes(' ') && (/\d/.test(yalin) || /[a-z][A-Z]/.test(yalin));
+}
+
 /** ArticleImage `credit` prop'u için atıf satırı. CC BY/BY-SA'da ZORUNLU.
  *  Attribution alanı varsa onu kullan — foto-vs-eser lisans karmaşasını atlar
  *  (doğru yazar+lisans zaten o metnin içinde). */
 function creditLine(info) {
   if (info.attribution) return info.attribution.slice(0, 90);
   const l = info.license;
-  const who = attrib(info).slice(0, 60);
-  if (/^cc0/i.test(l)) return who ? `${who} · CC0` : 'CC0';
-  if (/public domain|^pd/i.test(l)) return who ? `${who} · kamu malı` : 'Kamu malı';
-  return who ? `${who} · ${l}` : l;
+  const who = temizAtif(attrib(info));
+  const cc0 = /^cc0/i.test(l);
+  const pd = /public domain|^pd/i.test(l);
+  const etiket = cc0 ? 'CC0' : pd ? 'kamu malı' : l;
+
+  // CC0 / kamu malı: atıf hukuken ZORUNLU DEĞİL → rumuzu hiç basma, kaynağı yaz.
+  if (!who || (rumuzMu(who) && (cc0 || pd))) {
+    return cc0 || pd ? `Wikimedia Commons · ${etiket}` : etiket;
+  }
+  // CC BY / BY-SA: atıf ZORUNLU, rumuz silinemez → rumuz olduğunu açıkça söyle.
+  const ad = rumuzMu(who) ? `Wikimedia Commons kullanıcısı ${who.replace(/^User:/i, '')}` : who;
+  return `${ad.slice(0, 70)} · ${etiket}`;
 }
 
 async function main() {
@@ -166,9 +205,13 @@ async function main() {
 
   if (dry) { console.log(`\n${rows.length} uygun / ${failed} elendi`); return; }
 
-  await writeFile(path.join(outDir, 'README.md'),
+  // MANİFEST public/ DIŞINA: public/ altındaki her şey siteden servis edilir, bu ise iç not.
+  const manifestPath = path.join('docs', 'article-images', `${slug}.md`);
+  await mkdir(path.dirname(manifestPath), { recursive: true });
+  await writeFile(manifestPath,
     `# /articles/${slug} görselleri\n\n` +
-    `\`ArticleImage\` ile Netlify Image CDN üzerinden servis edilir (otomatik WebP + responsive).\n` +
+    `İÇ NOT — yayınlanmaz. Görseller \`public/articles/${slug}/\` altında, \`ArticleImage\` ile\n` +
+    `Netlify Image CDN üzerinden servis edilir (otomatik WebP + responsive).\n` +
     `Tümü \`scripts/source-images.mjs\` ile Wikimedia Commons'tan indirildi: lisans doğrulandı,\n` +
     `ticari kullanıma açık (NC/ND yok), en fazla ${MAX_W}px genişliğe indirildi.\n\n` +
     `Yeniden üretmek için: \`node scripts/source-images.mjs ${slug}\`\n\n` +
@@ -176,7 +219,7 @@ async function main() {
     `| Dosya | Yerleşim | Lisans | Kaynak/Yazar | Commons |\n|---|---|---|---|---|\n${rows.join('\n')}\n`
   );
   await writeFile(path.join('scripts', 'image-specs', `${slug}.snippets.txt`), snippets.join('\n\n'));
-  console.log(`\n${rows.length} görsel · ${failed} elendi → ${outDir}/README.md + snippets`);
+  console.log(`\n${rows.length} görsel · ${failed} elendi → ${outDir}/ + ${manifestPath} + snippets`);
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

@@ -83,7 +83,7 @@ const roadmapSteps = [
   { t: 'Kompozisyon & stil', d: `Temeller oturunca büyük harfler, süslemeler (flourishing) ve kendi tarzın gelir.` },
 ];
 const roadmapIcons = ['🖊️', '✍️', '〰️', '🔡', '🔗', '🎨'];
-
+
 
 const refs: BibItem[] = [
   { title: 'Writing & Illuminating, & Lettering', authors: 'Edward Johnston', year: '1906', source: 'Batı kaligrafisinin klasik el kitabı' },
@@ -306,7 +306,7 @@ export default function KaligrafiClient() {
             ratio="1600 / 1067"
             alt="Müze ortamında sergilenen koyu ahşap çalışma masası; üzerinde açılmış kâğıt, fırçalık ve fırçalar, yuvarlak bir mürekkep taşı ve küçük aletler duruyor, arkada hat panosu var."
             caption="Bir çalışma odası masası: kâğıt, fırça, mürekkep taşı ve mürekkep çubuğu. Bu dört araç, Çin geleneğinde “Çalışma Odasının Dört Hazinesi” diye tek bir bütün sayılır."
-            credit="ahen0barbus · CC BY-SA 3.0"
+            credit="Wikimedia Commons kullanıcısı ahen0barbus · CC BY-SA 3.0"
           />
         </div>
       </section>

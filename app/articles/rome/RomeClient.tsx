@@ -412,7 +412,7 @@ export default function RomePage() {
                   ratio="1600 / 582"
                   alt="Geniş panorama: harabe hâlinde tapınak kalıntıları, ayakta kalmış tek tek sütunlar, temel taşları ve patikalar; arkada kubbeli kiliseler ve şehir."
                   caption="Forum Romanum bugün. Cicero'nun konuştuğu, Caesar'ın yakıldığı meydan."
-                  credit="BeBo86 · CC BY-SA 3.0"
+                  credit="Wikimedia Commons kullanıcısı BeBo86 · CC BY-SA 3.0"
                 />
                 <div className="ro-col-facts">
                   <span>MS 395 — Doğu-Batı bölünmesi</span>
