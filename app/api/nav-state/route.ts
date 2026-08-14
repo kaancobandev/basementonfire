@@ -114,7 +114,10 @@ export async function GET(req: Request) {
         // nesne kurulduktan SONRA değerlendiriliyor. Sırayı bozma.
         'Server-Timing': zaman({
           auth: sure?.auth ?? 0,
+          // urow artık auth ile ÇAKIŞIYOR: spek=1 ise bu süre yalnızca hazır
+          // sonucun beklenmesi (≈0), spek=0 ise gerçek sorgunun tam turu.
           urow: sure?.urow ?? 0,
+          spek: sure?.spek ?? 0,
           cnt: cntMs,
           feed: feedMs,
           // feed'in İÇİ: icerik = önbellekli içerik dalgası (isabet varsa ~0),
