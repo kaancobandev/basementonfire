@@ -9,10 +9,30 @@ import { buildFeedPersonal } from '@/lib/feedPersonal';
 // düşer). force-dynamic + no-store: kişiye özel, asla cache'lenmez.
 export const dynamic = 'force-dynamic';
 
+// Bu ucun toplam suresi 2026-08-14'te GERCEK girisli oturumda 2,6-3,4 sn olctuldu
+// (once kullanicinin DevTools'unda, sonra Performance API ile dogrulandi). Ayni
+// sayfanin BELGESI 75 ms TTFB ile geliyordu — yani darbogaz sayfa degil BURASI.
+// Neyin yavas oldugunu tahmin etmemek icin her asama olculup Server-Timing ile
+// yayinlaniyor; tarayicinin ag panelinden okunabilir:
+//   auth → client.auth.getUser()  (Supabase Auth'a ag turu)
+//   urow → users satiri            (auth'un id'sine BAGLI, ardisik olmak zorunda)
+//   cnt  → 3 sayac sorgusu         (kendi aralarinda paralel)
+//   feed → buildFeedPersonal       (2 dalga: onbellekli icerik + 8 paralel sorgu)
+//   all  → toplam
+// cnt ve feed BIRBIRIYLE de paralel kosuyor, yani toplam ≈ auth + urow + max(cnt, feed).
+const zaman = (d: Record<string, number>) =>
+  Object.entries(d).map(([k, v]) => `${k};dur=${v}`).join(', ');
+
 export async function GET(req: Request) {
-  const { me } = await getMe();
+  const t0 = Date.now();
+  const { me, sure } = await getMe();
   if (!me) {
-    return NextResponse.json({ user: null }, { headers: { 'Cache-Control': 'private, no-store' } });
+    return NextResponse.json({ user: null }, {
+      headers: {
+        'Cache-Control': 'private, no-store',
+        'Server-Timing': zaman({ auth: sure?.auth ?? 0, urow: sure?.urow ?? 0, all: Date.now() - t0 }),
+      },
+    });
   }
 
   // ── ?feed=1 — akışın kişisel katını AYNI turda ver ──
@@ -25,10 +45,14 @@ export async function GET(req: Request) {
   // PARALEL koşturuyoruz, yanıtı kurarken bekliyoruz. Burada await edilirse
   // zincir uca taşınmış olurdu, hiçbir şey kazanılmazdı.
   const feedIstendi = new URL(req.url).searchParams.get('feed') === '1';
+  const tFeed = Date.now();
+  let feedMs = 0;
   const feedIsi = feedIstendi
     // Fail-safe: kişisel kat patlarsa nav ÇALIŞMAYA DEVAM ETSİN. Aksi hâlde
     // akıştaki bir sorgu hatası menüyü ve bildirimleri de düşürürdü.
-    ? buildFeedPersonal(me).catch((e) => { logIfError('nav-state feed', e); return null; })
+    ? buildFeedPersonal(me)
+        .catch((e) => { logIfError('nav-state feed', e); return null; })
+        .then((r) => { feedMs = Date.now() - tFeed; return r; })
     : null;
 
   // "Şu an online" için son görülme (≤2dk'da bir, ateşle-unut — yanıtı bekletmez).
@@ -43,6 +67,7 @@ export async function GET(req: Request) {
   }
 
   // Üç sayaç tek turda paralel (layout'taki eski mantığın birebir taşınması).
+  const tCnt = Date.now();
   const [notifRes, convRes, msgRes] = await Promise.all([
     db.from('notifications').select('*', { count: 'exact', head: true }).eq('user_id', me.id).eq('is_read', false),
     db.from('conversations').select('id').or(`user1_id.eq.${me.id},user2_id.eq.${me.id}`),
@@ -53,6 +78,7 @@ export async function GET(req: Request) {
       .eq('is_read', false),
   ]);
 
+  const cntMs = Date.now() - tCnt;
   const convIds = convRes.data?.map((c: any) => c.id) ?? [];
   let unreadMsgCount = 0;
   if (!msgRes.error) {
@@ -80,6 +106,19 @@ export async function GET(req: Request) {
       // HİÇ atmaz (bkz. AppShell + HomeFeed).
       ...(feedIsi ? { feed: await feedIsi } : {}),
     },
-    { headers: { 'Cache-Control': 'private, no-store' } },
+    {
+      headers: {
+        'Cache-Control': 'private, no-store',
+        // ⚠ `feed` await'İ YUKARIDA olduğu için feedMs burada dolu — bu satır
+        // nesne kurulduktan SONRA değerlendiriliyor. Sırayı bozma.
+        'Server-Timing': zaman({
+          auth: sure?.auth ?? 0,
+          urow: sure?.urow ?? 0,
+          cnt: cntMs,
+          feed: feedMs,
+          all: Date.now() - t0,
+        }),
+      },
+    },
   );
 }

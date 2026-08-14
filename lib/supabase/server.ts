@@ -49,12 +49,20 @@ export function createAuthClientForResponse(req: NextRequest, res: NextResponse)
 // React cache() ile sarıldı → aynı istek (request) boyunca layout + sayfa +
 // metadata aynı getMe()'yi çağırsa bile auth.getUser() + users sorgusu YALNIZCA
 // BİR KEZ çalışır (2 ağ turu tekrarlanmaz). TTFB kazancı.
+// `sure` alani: iki ADIMIN ayri ayri maliyeti (ms). Rota bunu Server-Timing
+// basligina basar; boylece "getMe yavas" demek yerine HANGI adimin yavas
+// oldugu tarayicinin ag panelinden okunabilir. Iki adim ARDISIK olmak
+// zorunda (users sorgusu auth'un dondurdugu id'ye bagli), o yuzden hangisinin
+// baskin oldugu optimizasyonun yonunu belirliyor.
 export const getMe = cache(async () => {
   const client = await createAuthClient();
+  const t0 = Date.now();
   const { data: { user } } = await client.auth.getUser();
-  if (!user) return { authUser: null, me: null, client };
+  const authMs = Date.now() - t0;
+  if (!user) return { authUser: null, me: null, client, sure: { auth: authMs, urow: 0 } };
+  const t1 = Date.now();
   const { data: me } = await db.from('users').select('*').eq('auth_id', user.id).single();
-  return { authUser: user, me: me ?? null, client };
+  return { authUser: user, me: me ?? null, client, sure: { auth: authMs, urow: Date.now() - t1 } };
 });
 
 // Admin mi? Onay kuyrugu (kullanici makaleleri) gibi yetkili islemler icin.
