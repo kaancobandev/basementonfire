@@ -30,16 +30,24 @@ export type FeedPersonal = {
   suggestedUsers: unknown[];
   ownStoryUser: unknown;
   otherStoryUsers: unknown[];
+  /** İki dalganın ayrı süreleri (ms) — çağıran Server-Timing'e basar. */
+  sure?: { icerik: number; sorgu: number };
 };
 
 /** Girişli kullanıcının akış katmanı. `me` = getMe().me (null OLMAMALI). */
 export async function buildFeedPersonal(me: any): Promise<FeedPersonal> {
-  // Paylaşılan içerik (önbellekten) — kişisel sorguları KAPSAMAK için gerekli:
-  // beğeni id'leri yalnız akışta GÖRÜNEN öğeler için sorgulanır.
+  // ⚠ İKİ DALGA VE İKİSİ ARDIŞIK: aşağıdaki kişisel sorgular, akışta GÖRÜNEN
+  // öğelerin id'lerine ihtiyaç duyduğu için önce içeriğin gelmesi gerekiyor.
+  // Toplam 750 ms ölçüldü (2026-08-14, gerçek oturum); hangi dalganın baskın
+  // olduğunu bilmek için ikisi ayrı ayrı raporlanıyor — `sure` alanı çağıranın
+  // Server-Timing'ine girer. İçerik dalgası unstable_cache'li, yani ÖNBELLEK
+  // ISABETİNDE ~0 olmalı; büyük çıkarsa sorun önbelleğin ıskalamasıdır.
+  const tIcerik = Date.now();
   const [{ rawFacts, rawPosts, storiesRaw }, dyks] = await Promise.all([
     getHomeContent(),
     getDidYouKnow(),
   ]);
+  const icerikMs = Date.now() - tIcerik;
   const { facts, posts } = buildFeedItems(rawFacts ?? [], rawPosts ?? [], dyks);
 
   const dykIds = dyks.map((d) => d.id);
@@ -52,6 +60,7 @@ export async function buildFeedPersonal(me: any): Promise<FeedPersonal> {
   // GÖRÜLMEMİŞ (story_views) id'leri kitle filtresinden ÖNCEKİ ham listeden alınır.
   // Fazlası ZARARSIZ: viewer_id=me.id koşulu yalnız kullanıcının KENDİ "gördüm"
   // kayıtlarını döndürür; görünmeyen hikâye filtrelenmiş storyMap'e zaten girmez.
+  const tSorgu = Date.now();
   const [canSeeStory, fr, pr, rr, dl, bm, suggestedUsers, seenRes] = await Promise.all([
     audiencePredicate(me.id),
     facts.length ? db.from('fact_likes').select('fact_id').eq('user_id', me.id).in('fact_id', facts.map((f) => f.id)) : Promise.resolve({ data: [] as any[] }),
@@ -66,6 +75,7 @@ export async function buildFeedPersonal(me: any): Promise<FeedPersonal> {
     getSuggestedUsers(me.id),
     allStoryIds.length ? db.from('story_views').select('story_id').eq('viewer_id', me.id).in('story_id', allStoryIds) : Promise.resolve({ data: [] as any[] }),
   ]);
+  const sorguMs = Date.now() - tSorgu;
 
   // Hikâye şeridi — KİŞİYE ÖZEL kitle filtresiyle yeniden kurulur.
   const storyMap = buildStoryUsers(storiesRaw ?? [], canSeeStory);
@@ -91,5 +101,6 @@ export async function buildFeedPersonal(me: any): Promise<FeedPersonal> {
       suggestedUsers,
       ownStoryUser,
       otherStoryUsers,
+      sure: { icerik: icerikMs, sorgu: sorguMs },
   };
 }

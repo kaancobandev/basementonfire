@@ -47,12 +47,13 @@ export async function GET(req: Request) {
   const feedIstendi = new URL(req.url).searchParams.get('feed') === '1';
   const tFeed = Date.now();
   let feedMs = 0;
+  let feedAlt: { icerik: number; sorgu: number } | undefined;
   const feedIsi = feedIstendi
     // Fail-safe: kişisel kat patlarsa nav ÇALIŞMAYA DEVAM ETSİN. Aksi hâlde
     // akıştaki bir sorgu hatası menüyü ve bildirimleri de düşürürdü.
     ? buildFeedPersonal(me)
         .catch((e) => { logIfError('nav-state feed', e); return null; })
-        .then((r) => { feedMs = Date.now() - tFeed; return r; })
+        .then((r) => { feedMs = Date.now() - tFeed; feedAlt = r?.sure; return r; })
     : null;
 
   // "Şu an online" için son görülme (≤2dk'da bir, ateşle-unut — yanıtı bekletmez).
@@ -116,6 +117,10 @@ export async function GET(req: Request) {
           urow: sure?.urow ?? 0,
           cnt: cntMs,
           feed: feedMs,
+          // feed'in İÇİ: icerik = önbellekli içerik dalgası (isabet varsa ~0),
+          // sorgu = 8 kişisel sorgunun paralel dalgası. İkisi ARDIŞIK.
+          ficerik: feedAlt?.icerik ?? 0,
+          fsorgu: feedAlt?.sorgu ?? 0,
           all: Date.now() - t0,
         }),
       },
