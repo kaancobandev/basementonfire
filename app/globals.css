@@ -230,7 +230,7 @@
 }
 .auth-brand { display: flex; align-items: center; justify-content: center; gap: 12px; }
 .auth-brand-name {
-  font-family: var(--font-display), system-ui, sans-serif;
+  font-family: var(--font-display), var(--font-display-ext), system-ui, sans-serif;
   font-size: 1.85rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.1;
   color: #fff;
 }
@@ -261,7 +261,7 @@
 }
 
 /* ── Marka tipografisi: başlıklar Bricolage Grotesque, gövde DM Sans (next/font, bkz. layout.tsx) ── */
-h1, h2, h3, .font-display { font-family: var(--font-display), system-ui, sans-serif; }
+h1, h2, h3, .font-display { font-family: var(--font-display), var(--font-display-ext), system-ui, sans-serif; }
 /* Kürate makaleler (kendi -page/-root tipografisi olanlar: rome=Georgia, takyon/greece=system-ui,
    carthage=Georgia vb.) başlıklarını KENDİ fontlarında tutar. :where() sıfır-özgüllük olduğundan
    bu kural yalnız yukarıdaki global h1/h2/h3'ü ezer (kaynak-sırası) ama makalenin AÇIK başlık
@@ -359,7 +359,7 @@ html:not(.js) .reveal-blok {
 }
 
 body {
-  font-family: var(--font-body), system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-body), var(--font-body-ext), system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   background: var(--color-bg);
   color: var(--color-text);
   margin: 0;

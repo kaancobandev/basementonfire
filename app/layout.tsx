@@ -1,21 +1,75 @@
 import type { Metadata, Viewport } from 'next';
 import { Suspense } from 'react';
-import { Bricolage_Grotesque, DM_Sans } from 'next/font/google';
+import localFont from 'next/font/local';
 import './globals.css';
 
-// Marka tipografisi (self-hosted → CDN/CSP sorunu yok, latin-ext ile tam Türkçe).
-// Display: Bricolage Grotesque (başlıklar) · Gövde: DM Sans.
-const fontDisplay = Bricolage_Grotesque({
-  subsets: ['latin', 'latin-ext'],
-  weight: ['600', '700', '800'],
+// ════════════════════════════════════════════════════════════════════════
+// Marka tipografisi. Display: Bricolage Grotesque (başlıklar) · Gövde: DM Sans.
+//
+// 2026-08-14: `next/font/google` → `next/font/local`. SEBEP OLAY: next/font/google
+// woff2 dosyalarını DERLEME ANINDA indiriyor; fonts.gstatic.com ~1 dakika hata
+// döndürdü ve Netlify build'i "Failed to fetch `Bricolage Grotesque`" ile düştü,
+// deploy kaybedildi. Dosyalar artık app/fonts/ altında → derlemenin Google'a
+// bağımlılığı YOK. ÇALIŞMA ANINDA hiçbir şey değişmedi: next/font zaten ikisini
+// de kendi kaynağımızdan servis ediyordu, Google'a giden tek adım derlemeydi.
+//
+// ⚠ AİLE BAŞINA İKİ ÇAĞRI, ÇÜNKÜ TÜRKÇE İKİ ALT KÜMEYE YAYILI:
+//   latin     → ç ö ü ve `ı` (U+0131 aralıkta AÇIKÇA listeli)
+//   latin-ext → ğ İ ş (U+0100-02BA içinde)
+// Tek dosyayla yetinilirse Türkçe metin sessizce yedek fonta düşer. Google da
+// tam olarak böyle bölüyor; unicode-range değerleri onun CSS'inden birebir
+// alındı. Tarayıcı karakter karakter seçer → yazı tipi yığınında İKİSİ DE olmalı
+// (globals.css: `var(--font-display), var(--font-display-ext), ...`).
+//
+// Ağırlık ARALIK olarak veriliyor ('600 800'): dosyalar değişken font, sabit
+// ağırlık listesi yerine aralık hem daha küçük hem ara ağırlıklara açık.
+// Yenilemek için: scripts/fontlari-indir.mjs
+//
+// ⚠ unicode-range DİZELERİ NEDEN DÖRT KEZ TEKRARLIYOR: `next/font` yükleyicisi
+// derleme zamanında statik olarak çözümlenir ve "Font loader values must be
+// explicitly written literals" der — sabite çıkarmak build'i KIRAR (denendi).
+// İki latin dizesi birbirinin aynısı, iki latin-ext dizesi de öyle; birini
+// değiştirirsen eşini de değiştir.
+// ════════════════════════════════════════════════════════════════════════
+const fontDisplay = localFont({
+  src: './fonts/bricolage-latin.woff2',
+  weight: '600 800',
+  display: 'swap',
   variable: '--font-display',
-  display: 'swap',
+  // ⚠ KAPALI OLMAK ZORUNDA: Next varsayılan olarak bu fontun ardına
+  // `unicode-range: U+0-10FFFF` taşıyan bir "Fallback" ailesi enjekte eder.
+  // O aralık HER ŞEYİ kapsadığı için ğ/ş/İ sırası ext dosyasına HİÇ gelmez,
+  // Arial metriğiyle çizilirdi (ölçüldü: ext fontlar 'unloaded' kalıyordu).
+  // Metrik yedeği zinciri ext fontu sağlıyor — o yığında en sonda duruyor.
+  adjustFontFallback: false,
+  declarations: [{ prop: 'unicode-range', value: 'U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD' }],
 });
-const fontBody = DM_Sans({
-  subsets: ['latin', 'latin-ext'],
-  weight: ['400', '500', '700'],
-  variable: '--font-body',
+const fontDisplayExt = localFont({
+  src: './fonts/bricolage-latin-ext.woff2',
+  weight: '600 800',
   display: 'swap',
+  variable: '--font-display-ext',
+  declarations: [{ prop: 'unicode-range', value: 'U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF' }],
+});
+const fontBody = localFont({
+  src: './fonts/dmsans-latin.woff2',
+  weight: '400 700',
+  display: 'swap',
+  variable: '--font-body',
+  // ⚠ KAPALI OLMAK ZORUNDA: Next varsayılan olarak bu fontun ardına
+  // `unicode-range: U+0-10FFFF` taşıyan bir "Fallback" ailesi enjekte eder.
+  // O aralık HER ŞEYİ kapsadığı için ğ/ş/İ sırası ext dosyasına HİÇ gelmez,
+  // Arial metriğiyle çizilirdi (ölçüldü: ext fontlar 'unloaded' kalıyordu).
+  // Metrik yedeği zinciri ext fontu sağlıyor — o yığında en sonda duruyor.
+  adjustFontFallback: false,
+  declarations: [{ prop: 'unicode-range', value: 'U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD' }],
+});
+const fontBodyExt = localFont({
+  src: './fonts/dmsans-latin-ext.woff2',
+  weight: '400 700',
+  display: 'swap',
+  variable: '--font-body-ext',
+  declarations: [{ prop: 'unicode-range', value: 'U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF' }],
 });
 import AppShell from './components/AppShell';
 import { MediaDockProvider } from './components/MediaDock';
@@ -117,7 +171,7 @@ export const metadata: Metadata = {
 // (kullanıcı + sayaçlar) artık istemcide /api/nav-state'ten gelir (AppShell).
 export default function RootLayout({ children, modal }: { children: React.ReactNode; modal: React.ReactNode }) {
   return (
-    <html lang="tr" className={`${fontDisplay.variable} ${fontBody.variable}`} suppressHydrationWarning>
+    <html lang="tr" className={`${fontDisplay.variable} ${fontDisplayExt.variable} ${fontBody.variable} ${fontBodyExt.variable}`} suppressHydrationWarning>
       <head>
         {/* Supabase'e erken bağlantı: realtime + istemci fetch'leri (nav-state
             sonrası) ilk istekte DNS+TLS beklemez. TEK preconnect ve crossorigin'li:
