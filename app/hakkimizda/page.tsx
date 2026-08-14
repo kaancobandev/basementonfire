@@ -95,7 +95,7 @@ export default function HakkimizdaPage() {
           <li>
             <strong>İnteraktif makaleler.</strong> Kuşatma simülasyonundan çift yarık deneyine,
             radyoaktivite hesaplayıcısından kuvvet laboratuvarına — konunun mekanizması
-            oynanabilir bir modüle dönüşüyor. <Link href="/" style={linkStyle}>Örnekleri gör →</Link>
+            oynanabilir bir modüle dönüşüyor. <Link href="/discover" style={linkStyle}>Örnekleri gör →</Link>
           </li>
           <li>
             <strong>Kaynakça zorunluluğu.</strong> Her makale kaynakçayla biter. Kaynaklar

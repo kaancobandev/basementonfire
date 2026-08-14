@@ -271,6 +271,35 @@ export default function AppShell({ children }: AppShellProps) {
         {children}
       </div>
 
+      {/* ══ HUKUKİ ALT BİLGİ — YALNIZ ≤1200px'te görünür (globals.css .mobil-hukuki)
+          Kenar çubuğundaki `.sidebar-legal` 1200px altında display:none, `.sidebar`
+          ise 699px altında tamamen gizli. Yani tablet ve TÜM telefonlarda KVKK
+          metinlerine site içinden hiçbir yol kalmıyordu.
+
+          Bu boşluğu eskiden landing'in kendi footer'ı kapatıyordu (yalnız `/`de ve
+          yalnız çıkışlıda; girişli kullanıcı 307 ile /feed'e gidiyordu ve orada da
+          yoktu). 2026-08-14'te landing app/components/landing/LandingPage.tsx'e
+          taşınınca o footer render edilmez oldu → açık büyüdü.
+
+          Buraya taşındı ki HER sayfada bulunsun: hukuki metinlere erişim bir
+          landing tasarımının yan etkisi olmamalı. Masaüstünde gizli, çünkü orada
+          kenar çubuğu aynı linkleri zaten gösteriyor (mükerrer olurdu). */}
+      <footer className="mobil-hukuki" aria-label="Hukuki bağlantılar">
+        <div>
+          <Link href="/hakkimizda">Hakkımızda</Link><span aria-hidden>·</span>
+          <Link href="/teknoloji">Teknoloji</Link><span aria-hidden>·</span>
+          <Link href="/basin">Basın</Link><span aria-hidden>·</span>
+          <Link href="/iletisim">İletişim</Link>
+        </div>
+        <div>
+          <Link href="/gizlilik">Gizlilik</Link><span aria-hidden>·</span>
+          <Link href="/aydinlatma">KVKK</Link><span aria-hidden>·</span>
+          <Link href="/acik-riza">Açık Rıza</Link><span aria-hidden>·</span>
+          <Link href="/kosullar">Koşullar</Link><span aria-hidden>·</span>
+          <Link href="/en" hrefLang="en">English</Link>
+        </div>
+      </footer>
+
       {/* Bildirim zili — ana sayfanın SAĞ ÜSTÜNE park eder (fixed değil: kaydırınca
           içerikle yukarı çıkar, bkz. globals.css .notif-float).
 
