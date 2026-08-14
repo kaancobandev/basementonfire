@@ -73,7 +73,7 @@ export default function HeroDeck({ subline }: { subline: string }) {
             <Link className={s.authSolid} href="/register">Üye ol</Link>
           </span>
           <span className="auth-in">
-            <Link className={s.authGhost} href="/feed">Akışına git →</Link>
+            <Link className={s.authGhost} href="/">Akışına git →</Link>
           </span>
         </span>
       </div>

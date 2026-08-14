@@ -46,10 +46,10 @@ export async function POST(req: Request) {
   // Anket varsa metin zorunlu değil (anket açmak yazı yazmaktan kolay olmalı);
   // anket yoksa boş gönderi kabul edilmez.
   if (!content && !pollOptions.length) {
-    return isJson ? json({ error: 'Bir şeyler yaz ya da anket ekle' }, 400) : NextResponse.redirect(new URL('/feed', req.url), { status: 303 });
+    return isJson ? json({ error: 'Bir şeyler yaz ya da anket ekle' }, 400) : NextResponse.redirect(new URL('/', req.url), { status: 303 });
   }
   if (content.length > 500) {
-    return isJson ? json({ error: 'En fazla 500 karakter' }, 400) : NextResponse.redirect(new URL('/feed', req.url), { status: 303 });
+    return isJson ? json({ error: 'En fazla 500 karakter' }, 400) : NextResponse.redirect(new URL('/', req.url), { status: 303 });
   }
 
   // Flood freni → lib/rateLimit.ts (token bucket). Sürdürülebilir hız eskisiyle
@@ -63,7 +63,7 @@ export async function POST(req: Request) {
   if (!gate.ok) {
     return isJson
       ? tooMany('Çok hızlı paylaşıyorsun, biraz bekle.', gate, 'post')
-      : NextResponse.redirect(new URL('/feed', req.url), { status: 303 });
+      : NextResponse.redirect(new URL('/', req.url), { status: 303 });
   }
 
   const { data: newPost, error } = await db
@@ -73,7 +73,7 @@ export async function POST(req: Request) {
     .single();
 
   if (error || !newPost) {
-    return isJson ? json({ error: 'Paylaşılamadı' }, 500) : NextResponse.redirect(new URL('/feed', req.url), { status: 303 });
+    return isJson ? json({ error: 'Paylaşılamadı' }, 500) : NextResponse.redirect(new URL('/', req.url), { status: 303 });
   }
 
   let poll: string[] | null = null;
@@ -89,7 +89,7 @@ export async function POST(req: Request) {
   // bildirim sayfası linki zaten aktör profiline gider.
   after(() => notifyMentions({ actorId: me.id, text: content }));
 
-  if (!isJson) return NextResponse.redirect(new URL('/feed', req.url), { status: 303 });
+  if (!isJson) return NextResponse.redirect(new URL('/', req.url), { status: 303 });
   return json({
     post: {
       ...newPost,

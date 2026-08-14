@@ -26,7 +26,7 @@ export default async function EpostaOnayiPage({
 }) {
   // Onaylayıp giriş yaptıysa burada işi yok.
   const { me } = await getMe();
-  if (me) redirect('/feed');
+  if (me) redirect('/');
 
   const jar = await cookies();
   const email = jar.get(PENDING_EMAIL_COOKIE)?.value ?? '';

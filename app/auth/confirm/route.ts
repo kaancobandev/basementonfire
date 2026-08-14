@@ -33,7 +33,11 @@ export async function GET(req: NextRequest) {
   // `welcome=1` → CelebrateOnParam konfetiyi burada patlatır. O kutlama kayıt
   // anı için yazılmıştı ama e-posta onayı açıkken kullanıcı o an giriş yapmamış
   // oluyordu; hesabın gerçekten aktifleştiği an burası.
-  const ok = NextResponse.redirect(new URL('/feed?welcome=1', req.url), { status: 303 });
+  // `/feed?welcome=1` → `/?welcome=1` (2026-08-14, tek ana sayfa). Eski hâli
+  // çalışmaya devam ederdi (middleware 301'liyor) ama onay akışına gereksiz bir
+  // tur eklerdi ve 301 sorgu dizesini taşısa da zincirin ucunda konfeti
+  // parametresini kaybetme riski vardı.
+  const ok = NextResponse.redirect(new URL('/?welcome=1', req.url), { status: 303 });
 
   if (!tokenHash) {
     return NextResponse.redirect(new URL('/login?error=onay_gecersiz', req.url), { status: 303 });

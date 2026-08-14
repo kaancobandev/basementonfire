@@ -30,9 +30,10 @@ const navItems = [
 ];
 
 function getActiveId(pathname: string) {
-  // Ana sayfa artık STATİK LANDING (çıkışlı ziyaretçi için); girişli kullanıcının
-  // zengin akışı /feed'de. İkisi de nav'da "Ana Sayfa" olarak işaretlenir.
-  if (pathname === '/' || pathname.startsWith('/feed')) return 'home';
+  // TEK ana sayfa (2026-08-14): girişli/çıkışlı herkes `/`yi görür. Eskiden
+  // `/` landing, `/feed` akıştı ve ikisi de burada 'home' işaretleniyordu;
+  // `/feed` kaldırıldı (middleware 301'liyor), tek koşul kaldı.
+  if (pathname === '/') return 'home';
   if (pathname.startsWith('/discover')) return 'discover';
   if (pathname.startsWith('/akis')) return 'akis';
   if (pathname.startsWith('/muzik')) return 'muzik';
@@ -91,8 +92,9 @@ export default function AppShell({ children }: AppShellProps) {
     // gerekli yolda basılıyor; diğer sayfalar akış sorgularının bedelini ödemez.
     // pathname BAĞIMLILIĞA EKLENMEDİ (eslint-disable aşağıda): efekt mount'ta
     // bir kez koşar, gezinmede tekrarlanmaz. Bayrak yalnız ilk açılış yolunu
-    // belirler; sonradan /feed'e gidilirse HomeFeed kendi isteğini atar.
-    const feedGerek = pathname === '/feed' || pathname === '/';
+    // belirler; sonradan ana sayfaya gidilirse HomeFeed kendi isteğini atar.
+    // 2026-08-14: akış `/feed`ten `/`ye taşındı → tek koşul kaldı.
+    const feedGerek = pathname === '/';
     fetch(`/api/nav-state${feedGerek ? '?feed=1' : ''}`, { credentials: 'same-origin' })
       .then(r => r.json())
       .then((d: { user?: { id: number; username: string; display_name: string } | null; unreadCount?: number; unreadMsgCount?: number; myId?: number | null; convIds?: number[] }) => {
@@ -209,9 +211,10 @@ export default function AppShell({ children }: AppShellProps) {
 
           <nav className="sidebar-nav">
             {navItems.map(item => (
-              // Girişliyse "Ana Sayfa" akışa (/feed) gider; çıkışlıysa landing'e (/).
-              // user=undefined (henüz bilinmiyor) → landing: soğuk ziyaretçi için doğru taraf.
-              <Link key={item.id} href={item.id === 'home' ? (user ? '/feed' : '/') : item.href} aria-label={item.label} className={`nav-link${activeId === item.id ? ' active' : ''}`}>
+              // "Ana Sayfa" herkes için `/` (navItems'taki href zaten bu). Eskiden
+              // burada `user ? '/feed' : '/'` koşulu vardı — tek ana sayfaya
+              // geçilince gereksizleşti ve `user` beklemeden doğru linki basıyoruz.
+              <Link key={item.id} href={item.href} aria-label={item.label} className={`nav-link${activeId === item.id ? ' active' : ''}`}>
                 <span className="nav-icon-wrap">
                   {item.icon}
                   {item.id === 'messages' && msgCount > 0 && (
@@ -317,7 +320,7 @@ export default function AppShell({ children }: AppShellProps) {
             { href: '/muzik', id: 'muzik', label: 'Müzik', icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> },
           ].map(item => (
             <Fragment key={item.id}>
-              <Link href={item.id === 'home' ? (user ? '/feed' : '/') : item.href} aria-label={item.label} className={`mobile-nav-btn${activeId === item.id ? ' active' : ''}`}>
+              <Link href={item.href} aria-label={item.label} className={`mobile-nav-btn${activeId === item.id ? ' active' : ''}`}>
                 {item.icon}
                 <span className="mobile-nav-label">{item.label}</span>
               </Link>

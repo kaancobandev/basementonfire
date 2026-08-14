@@ -19,9 +19,12 @@ const OPTIONS = [
     icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" /></svg>,
   },
   {
-    // `/feed?story=1` — `/?story=1` DEĞİL: middleware girişli kullanıcıyı zaten
-    // /feed'e atıyor ve bu menü yalnızca girişliye görünüyor. Doğrudan hedefe git.
-    href: '/feed?story=1', label: 'Hikaye',
+    // `/?story=1`. ESKİDEN `/feed?story=1` idi ve gerekçesi "middleware girişli
+    // kullanıcıyı zaten /feed'e atıyor, doğrudan hedefe git" idi. 2026-08-14'te
+    // akış `/`ye taşındı, yönlendirme TERSİNE döndü → eski hâli bırakılsaydı her
+    // hikâye açılışı gereksiz bir 301 turu öderdi. Sorgu dizesi kritik:
+    // `story=1` düşerse hikâye oluşturucu sessizce açılmaz.
+    href: '/?story=1', label: 'Hikaye',
     icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path d="M12 8v4l3 3" /></svg>,
   },
   {

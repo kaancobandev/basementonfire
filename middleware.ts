@@ -33,17 +33,13 @@ function tokenNeedsRefresh(request: NextRequest): boolean {
   }
 }
 
-/** Oturum çerezi VAR mı? Ağ çağrısı YOK — layout'taki inline auth-hint
- *  script'iyle (data-auth) birebir aynı sezgi, o yüzden ikisi tutarlı.
- *  Çerez bayat olabilir; o hâlde /feed getMe() ile çıkışlı render eder (kırılmaz). */
-// DİKKAT: Bu testin ikizi app/layout.tsx'teki satır içi auth-hint script'idir
-// (data-auth). Burası kullanıcının NEREYE gideceğine, orası nav'ın NE
-// göstereceğine karar verir; ikisi ayrışırsa nav ile gerçek davranış çelişir
-// (ör. nav "girişlisin" deyip paylaş düğmesini gösterir, middleware yönlendirmez).
-// Birini değiştirirsen ÖTEKİNİ DE değiştir.
-function hasSessionCookie(request: NextRequest): boolean {
-  return request.cookies.getAll().some((c) => /^sb-.+-auth-token(\.\d+)?$/.test(c.name));
-}
+// NOT: Burada eskiden `hasSessionCookie()` vardı ve `/` → `/feed` yönlendirmesini
+// besliyordu. Tek ana sayfaya geçilince (2026-08-14) o yönlendirme kalktı, bu
+// yardımcı da öksüz kaldı → silindi. İkizi app/layout.tsx'teki satır içi
+// auth-hint script'i (data-auth) YAŞIYOR ve hâlâ gerekli: nav'ın girişli/çıkışlı
+// hangi hâlde çizileceğine o karar veriyor. Artık middleware kimsenin NEREYE
+// gideceğine çereze bakarak karar vermiyor, o yüzden "ikisi tutarlı olmalı"
+// kısıtı da ortadan kalktı.
 
 // ── GÜVENLİK BAŞLIKLARI — RUNTIME SAYFALAR İÇİN TEK GERÇEK KAYNAK BURASI.
 //
@@ -110,26 +106,27 @@ export async function middleware(request: NextRequest) {
 
   const path = request.nextUrl.pathname;
 
-  // Ana sayfa (/) çıkışlı ziyaretçinin STATİK landing'i — Googlebot ve soğuk
-  // ziyaretçi için. Giriş yapmış birinin orada işi yok → akışına gönder.
-  // MALİYET ~0: yalnız çerez okunur, ağ çağrısı yok, Netlify bunu Edge Function
-  // olarak (Lambda değil) koşturur. Soğuk start /feed'in force-dynamic olmasından
-  // gelir, bu satırdan değil — nav'dan tıklasa da aynı bedel ödenirdi.
+  // ════════════════════════════════════════════════════════════════════
+  // /feed → / (301). 2026-08-14: TEK ANA SAYFA.
   //
-  // 307 (geçici) + no-store, iki ayrı sebeple ZORUNLU:
-  //  · KALICI (301/308) olsaydı tarayıcı sonsuza dek cache'ler → çıkış yapınca
-  //    kullanıcı /feed'e kilitlenir, landing'i bir daha göremezdi.
-  //  · no-store olmasaydı CDN bu ÇEREZE BAĞLI yanıtı cache'leyip anonim
-  //    ziyaretçiyi de /feed'e atabilirdi (landing ölür, SEO ölür).
-  // Cache'lenen / her zaman landing kalır; kişisel içerik kendi URL'inde.
-  if (path === '/' && hasSessionCookie(request)) {
-    // `request.nextUrl.search` ŞART: `new URL('/feed', base)` sorgu dizesini
-    // TAŞIMAZ. Paylaş menüsündeki "Hikaye" seçeneği `/?story=1`e gidiyordu →
-    // sorgu burada düşüyordu → HomeFeed'in `story=1` efekti hiç tetiklenmiyor,
-    // hikaye oluşturucu sessizce AÇILMIYORDU (iki giriş noktasında da ölüydü).
-    const res = NextResponse.redirect(new URL('/feed' + request.nextUrl.search, request.url), 307);
-    res.headers.set('cache-control', 'private, no-store');
-    return res;
+  // BURADA ESKİDEN TERSİ VARDI: `/` çıkışlının statik landing'iydi ve oturum
+  // çerezi olan `/feed`e 307'leniyordu. Landing app/components/landing/
+  // LandingPage.tsx'e taşındı, akış `/`nin kendisi oldu, `/feed` kaldırıldı.
+  //
+  // ⚠⚠ ESKİ BLOĞU GERİ EKLEME. `/` → `/feed` ile buradaki `/feed` → `/` aynı
+  // anda durursa tarayıcı iki adres arasında SONSUZ DÖNGÜye girer ve site hiç
+  // açılmaz. İkisinden yalnız biri var olabilir.
+  //
+  // 301 (kalıcı) bilinçli — eski 307'nin geçici olma gerekçesi ("çıkış yapınca
+  // landing'e dönebilmeli") artık YOK: `/feed` bir daha içerik servis etmeyecek,
+  // hedef herkes için aynı ve çereze BAĞLI DEĞİL. Çereze bakmadığı için yanıt
+  // CDN'de cache'lenebilir; eski bloğun no-store'a ihtiyacı bu yüzden kalktı.
+  //
+  // `request.nextUrl.search` ŞART: `new URL('/', base)` sorgu dizesini TAŞIMAZ.
+  // Paylaş menüsündeki "Hikâye" seçeneği `?story=1` taşıyor — düşerse hikâye
+  // oluşturucu sessizce açılmaz (bu hata bir kez yaşandı).
+  if (path === '/feed') {
+    return NextResponse.redirect(new URL('/' + request.nextUrl.search, request.url), 301);
   }
 
   // auth.getUser() sonucu yalnızca şu kararlar için gerekiyor: korumalı yola
@@ -153,7 +150,16 @@ export async function middleware(request: NextRequest) {
   // SSR'da artık auth OKUMUYOR (kimlik istemcide /api/feed/personal'dan gelir).
   // Bayat token'lı ziyaretçiyi burada refresh için bekletmek, sayfanın CDN'den
   // gelmesinin tüm kazancını yerdi.
-  const STATIC_NO_AUTH_SSR = /^\/(articles(\/|$)|feed$|discover$|akis$|muzik$|lig$|gizlilik$|kosullar$|aydinlatma$|acik-riza$)/;
+  //
+  // ⚠ `^\/$` (ÇIPLAK KÖK) 2026-08-14'te EKLENDİ — ATLAMA. Aşağıdaki alternatif
+  // grubun HER dalı eğik çizgiden sonra en az bir karakter istiyor, yani `/`
+  // hiçbirine uymaz. Bu, akış `/feed`teyken zararsızdı: girişli ziyaretçi zaten
+  // yukarıdaki 307'ye takılıp buraya hiç gelmiyordu. Akış `/`ye taşınıp o
+  // yönlendirme kalkınca, kök burada eşleşmeseydi girişli HER ziyaretçi ana
+  // sayfada istek başına bir Supabase getUser() turu ödemeye başlardı — yani
+  // 307'yi kaldırıp sayfayı YAVAŞLATMIŞ olurduk. `/` artık SSR'da auth okumuyor
+  // (app/page.tsx), listeye ait.
+  const STATIC_NO_AUTH_SSR = /^\/$|^\/(articles(\/|$)|discover$|akis$|muzik$|lig$|gizlilik$|kosullar$|aydinlatma$|acik-riza$)/;
 
   // Halka açık yol + oturum çerezi taze (veya hiç yok) → Supabase Auth'a ağ
   // çağrısı gereksiz: gerçek doğrulamayı zaten her sayfada getMe() yapıyor.
@@ -187,11 +193,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // Girişli kullanıcı /login|/register'a düşerse akışına gönder. ESKİDEN '/' idi
-  // ve doğruydu (ana sayfa akıştı); ana sayfa landing olunca giriş yapmış
-  // kullanıcıyı pazarlama sayfasına atmaya başlamıştı → /feed.
+  // Girişli kullanıcı /login|/register'a düşerse ana sayfaya gönder.
+  // Bu satır iki kez taşındı: '/' (ana sayfa akıştı) → '/feed' (ana sayfa
+  // landing oldu, kullanıcıyı pazarlama sayfasına atmasın diye) → yine '/'
+  // (2026-08-14, tek ana sayfa). `/feed` yazsaydı yukarıdaki 301'e çarpıp
+  // gereksiz ikinci bir tur ekleyecekti.
   if (user && (path === '/login' || path === '/register')) {
-    return NextResponse.redirect(new URL('/feed', request.url));
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
   return response;

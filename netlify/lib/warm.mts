@@ -50,14 +50,11 @@ const ACCEPT_ENCODING = 'gzip, br';
 // sitemap'e yeni bir dinamik rota eklenirse süpürgeye SESSİZCE sızamaz.
 // Yeni MAKALE eklenince ise otomatik kapsanır (lib/articles.ts → sitemap → burası).
 const ALLOW = [
-  /^\/$/,                          // landing (statik)
-  // ⚠ 2026-08-07 DÜZELTME: buradaki eski yorum "süpürge /feed'i ısıtıyor" diyordu.
-  // YANLIŞTI ve bu regex bugüne kadar HİÇ EŞLEŞMEDİ. Sebep: aşağıdaki liste
-  // yalnızca sitemap'ten kuruluyor (bkz. runWarm), /feed ise sitemap'te YOK ve
-  // olamaz da — `app/feed/page.tsx` robots:{index:false}. Yani izin listesinde
-  // olması tek başına yetmiyor; URL listeye hiç girmiyordu.
-  // Çözüm: EK_YOLLAR ile listeye elle ekleniyor (aşağıda).
-  /^\/feed$/,
+  // Ana sayfa. 2026-08-14'te landing'den AKIŞA dönüştü (ISR 3600) — yani artık
+  // ısıtmanın asıl önem kazandığı yer burası: eskiden build'de üretilmiş statik
+  // dosyaydı, şimdi bayatlayınca Netlify yeniden üretimi BEKLETİYOR.
+  // `/feed` regex'i buradan SİLİNDİ: rota kaldırıldı, middleware 301'liyor.
+  /^\/$/,
   /^\/articles\/[a-z0-9-]+$/,      // 32 makale (statik) — asıl kazanç burada
   /^\/discover$/,                  // ISR 60 sn — kısmi fayda, bkz. not
   /^\/akis$/,                      // ISR 30 sn (2026-07-18 dönüşümü)
@@ -102,11 +99,12 @@ export async function runWarm(trigger: string): Promise<{ status: number; body: 
 
   // ── Süpürülecek liste: sitemap (tek kaynak, yeni makaleyi kendi getirir) + filtre
   //
-  // EK_YOLLAR: sitemap'te BULUNMAYAN ama ısıtılması gereken sayfalar. /feed
-  // noindex olduğu için sitemap'e giremez (bkz. sitemap sağlık kuralı) — oysa
-  // girişli açılışın indiği ilk sayfa orası. Sitemap'e eklemek YANLIŞ çözüm
-  // olurdu; liste burada tamamlanıyor.
-  const EK_YOLLAR = ['/feed'];
+  // EK_YOLLAR: sitemap'te BULUNMAYAN ama ısıtılması gereken sayfalar.
+  // 2026-08-14'te BOŞALDI: tek girdisi `/feed` idi (noindex olduğu için
+  // sitemap'e giremiyordu). O rota kaldırıldı ve akış `/`ye taşındı; `/` zaten
+  // sitemap'te priority 1 ile duruyor, yani normal yoldan ısıtılıyor.
+  // Liste, sitemap'e giremeyen yeni bir sayfa çıkarsa diye duruyor.
+  const EK_YOLLAR: string[] = [];
   let urls: string[] = [];
   try {
     const r = await fetch(`${SITE}/sitemap.xml`, { headers: { 'user-agent': UA } });

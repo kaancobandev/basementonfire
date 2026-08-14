@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { unstable_cache } from 'next/cache';
 import { db, logIfError } from '@/lib/supabase/server';
 import { ARTICLES } from '@/lib/articles';
+import { jsonLdScript } from '@/lib/seo';
 import DiscoverClient from './DiscoverClient';
 
 // ════════════════════════════════════════════════════════════════════════
@@ -106,6 +107,25 @@ export const metadata: Metadata = {
   },
 };
 
+// Sitedeki TÜM kürate makaleleri Google'a tek listede bildirir.
+// 2026-08-14'te app/page.tsx'ten BURAYA taşındı: ana sayfa akışa çevrildi ve
+// 36 makale linki artık orada değil, burada. İşaretleme, linklerin fiilen
+// bulunduğu sayfada durmalı — kategori sayfalarındaki ItemList'ler yalnız
+// 3+ makalesi olan kategorileri kapsıyor, yani tek başlarına 36'yı toplamıyor.
+// Görünmez: ekranda hiçbir şey göstermez, sayfa yerleşimini etkilemez.
+const itemListJsonLd = () => ({
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: 'Basementonfire makaleleri',
+  numberOfItems: ARTICLES.length,
+  itemListElement: ARTICLES.map((a, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    url: `https://basementonfire.com/articles/${a.slug}`,
+    name: a.title,
+  })),
+});
+
 export default async function DiscoverPage() {
   // Paylaşılan içerik önbellekten gelir (60sn); kişiye özel veri YOK → sayfa ISR.
   const { users, mediaRaw, uaRaw, trending } = await getDiscoverContent();
@@ -117,12 +137,15 @@ export default async function DiscoverPage() {
 
   // Makale listesi artik tek kaynaktan (lib/articles.ts). Sira ayni -> görünüm degismez.
   return (
-    <DiscoverClient
-      users={users ?? []}
-      media={media}
-      articles={ARTICLES}
-      communityArticles={communityArticles}
-      trending={trending ?? []}
-    />
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(itemListJsonLd()) }} />
+      <DiscoverClient
+        users={users ?? []}
+        media={media}
+        articles={ARTICLES}
+        communityArticles={communityArticles}
+        trending={trending ?? []}
+      />
+    </>
   );
 }

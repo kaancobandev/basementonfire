@@ -4,7 +4,7 @@ import AnimatedRays from '@/app/components/AnimatedRays';
 import Logo from '@/app/components/Logo';
 
 // ESKİDEN dinamikti: getMe()+redirect ÖLÜ koddu (middleware.ts girişli
-// kullanıcıyı /login'e ulaşmadan /feed'e yönlendiriyor) ve ?error= sunucuda
+// kullanıcıyı /login'e ulaşmadan ana sayfaya yönlendiriyor) ve ?error= sunucuda
 // okunuyordu. Hata kutusu istemciye taşındı (AuthErrorNotice) → sayfa statik;
 // ilk ziyaretçinin ilk temas noktası deploy sonrası soğuk fonksiyon beklemez.
 export default function LoginPage() {

@@ -103,7 +103,7 @@ export default async function LigPage() {
       <div style={{ maxWidth: 560, margin: '0 auto', padding: '18px 16px 64px' }}>
         <p style={{ margin: '0 0 16px', fontSize: '0.88rem', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
           Bu hafta <strong style={{ color: 'var(--color-text)' }}>günün sorusunda</strong> en çok doğru cevabı verenler.
-          Lig her pazartesi sıfırlanır — <Link href="/feed" style={{ color: 'var(--color-primary)', fontWeight: 700, textDecoration: 'none' }}>bugünün sorusunu çöz</Link> ve tabloya gir.
+          Lig her pazartesi sıfırlanır — <Link href="/" style={{ color: 'var(--color-primary)', fontWeight: 700, textDecoration: 'none' }}>bugünün sorusunu çöz</Link> ve tabloya gir.
         </p>
 
         {rows.length === 0 ? (

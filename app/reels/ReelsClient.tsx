@@ -85,7 +85,7 @@ export default function ReelsClient({ reels, loggedIn }: { reels: Reel[]; logged
         <div style={{ fontSize: '2.4rem' }}>🎬</div>
         <h1 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--color-text)' }}>Henüz reel yok</h1>
         <p style={{ margin: 0, color: 'var(--color-text-muted)', fontSize: '0.9rem', maxWidth: 320 }}>Video içeren gönderiler burada tam ekran görünür. İlk videoyu sen paylaş!</p>
-        <Link href="/feed" style={{ marginTop: 6, padding: '10px 18px', borderRadius: 9999, background: 'var(--color-accent)', color: '#0f0e0d', fontWeight: 700, fontSize: '0.9rem', textDecoration: 'none' }}>Akışa dön</Link>
+        <Link href="/" style={{ marginTop: 6, padding: '10px 18px', borderRadius: 9999, background: 'var(--color-accent)', color: '#0f0e0d', fontWeight: 700, fontSize: '0.9rem', textDecoration: 'none' }}>Akışa dön</Link>
       </main>
     );
   }
