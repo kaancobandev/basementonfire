@@ -34,8 +34,23 @@ export type FeedPersonal = {
   sure?: { icerik: number; sorgu: number };
 };
 
-/** Girişli kullanıcının akış katmanı. `me` = getMe().me (null OLMAMALI). */
-export async function buildFeedPersonal(me: any): Promise<FeedPersonal> {
+/** İçerik dalgasının tipi — `buildFeedPersonal`a DIŞARIDAN verilebilsin diye. */
+type IcerikYuku = [Awaited<ReturnType<typeof getHomeContent>>, Awaited<ReturnType<typeof getDidYouKnow>>];
+
+/** İçerik dalgasını başlatır. Çağıran bunu KİMLİK DOĞRULAMASINDAN ÖNCE çağırıp
+ *  sonucu `buildFeedPersonal`a geçirebilir — iki iş paralel koşar.
+ *  KULLANICIDAN TAMAMEN BAĞIMSIZ: ikisi de paylaşımlı `unstable_cache`
+ *  (lib/feedData.ts), herkese aynı veriyi döndürür, `me` ile hiçbir ilgisi yok. */
+export function icerikDalgasiniBaslat(): Promise<IcerikYuku> {
+  return Promise.all([getHomeContent(), getDidYouKnow()]);
+}
+
+/** Girişli kullanıcının akış katmanı. `me` = getMe().me (null OLMAMALI).
+ *
+ *  `onIcerik`: varsa içerik dalgası ZATEN başlatılmış demektir (çağıran onu
+ *  kimlik turuyla paralel başlattı) — burada yalnızca beklenir. Yoksa burada
+ *  başlatılır, yani eski davranış korunur ve /api/feed/personal etkilenmez. */
+export async function buildFeedPersonal(me: any, onIcerik?: Promise<IcerikYuku>): Promise<FeedPersonal> {
   // ⚠ İKİ DALGA VE İKİSİ ARDIŞIK: aşağıdaki kişisel sorgular, akışta GÖRÜNEN
   // öğelerin id'lerine ihtiyaç duyduğu için önce içeriğin gelmesi gerekiyor.
   // Toplam 750 ms ölçüldü (2026-08-14, gerçek oturum); hangi dalganın baskın
@@ -43,10 +58,9 @@ export async function buildFeedPersonal(me: any): Promise<FeedPersonal> {
   // Server-Timing'ine girer. İçerik dalgası unstable_cache'li, yani ÖNBELLEK
   // ISABETİNDE ~0 olmalı; büyük çıkarsa sorun önbelleğin ıskalamasıdır.
   const tIcerik = Date.now();
-  const [{ rawFacts, rawPosts, storiesRaw }, dyks] = await Promise.all([
-    getHomeContent(),
-    getDidYouKnow(),
-  ]);
+  const [{ rawFacts, rawPosts, storiesRaw }, dyks] = await (onIcerik ?? icerikDalgasiniBaslat());
+  // `onIcerik` verildiyse bu süre "hazır sonucu bekleme"dir (≈0 olmalı), yoksa
+  // dalganın tam maliyeti. Server-Timing'deki ficerik bu ayrımı gösterir.
   const icerikMs = Date.now() - tIcerik;
   const { facts, posts } = buildFeedItems(rawFacts ?? [], rawPosts ?? [], dyks);
 

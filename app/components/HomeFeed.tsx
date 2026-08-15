@@ -82,6 +82,27 @@ const HeartEmpty = () => (
   </svg>
 );
 
+/** Kullanıcı giriş yapmış OLABİLİR mi? — eylem düğmeleri için erken çıkış kapısı.
+ *
+ * ⚠ NEDEN `currentUser` TEK BAŞINA YETMİYOR: sayfa ISR, yani SSR'dan gelen
+ * `currentUser` HER ZAMAN null (bkz. aşağıdaki prop notu). Gerçek kimlik ancak
+ * kişisel yük indiğinde doluyor ve o yük canlıda 1,7-1,9 sn ölçüldü. O pencerede
+ * GİRİŞLİ kullanıcı hikâye tepkisi / hikâye yanıtı / kaydet / repost'a basınca
+ * `!currentUser` doğru çıkıp kullanıcıyı /login'e ATIYORDU (2026-08-14'te bulundu).
+ *
+ * Çerez ipucu bu boşluğu kapatır: layout.tsx'teki satır içi script `data-auth`ı
+ * İLK BOYAMADAN ÖNCE basıyor, yani sayfa görünür olduğu andan itibaren doğru.
+ *
+ * YANLIŞ POZİTİF ZARARSIZ: çerez bayatsa istek sunucuya gider, sunucu 401 döner
+ * ve aşağıdaki dört handler'ın hepsinde ZATEN olan 401 yolu kullanıcıyı /login'e
+ * gönderir. Yani gerçek yetki kapısı sunucuda; burası sadece gereksiz isteği
+ * önleyen bir kestirme. Bu yüzden ipucuna güvenmek güvenli.
+ */
+function girisliOlabilir(currentUser: unknown): boolean {
+  if (currentUser) return true;
+  try { return document.documentElement.getAttribute('data-auth') === 'in'; } catch { return false; }
+}
+
 export default function HomeFeed({
   feedItems: initialItems, likedFactIds, likedPostIds, repostedFactIds,
   likedDykIds: initialLikedDykIds = [],
@@ -493,7 +514,7 @@ export default function HomeFeed({
 
   async function sendStoryReaction(storyId: number, emoji: string) {
     if (reactionSent) return;
-    if (!currentUser) { window.location.href = '/login'; return; }
+    if (!girisliOlabilir(currentUser)) { window.location.href = '/login'; return; }
     setReactionSent(emoji); // optimistik
     try {
       const r = await fetch(`/api/stories/${storyId}/view`, {
@@ -512,7 +533,7 @@ export default function HomeFeed({
   async function sendStoryReply(storyId: number) {
     const text = replyText.trim();
     if (!text || replySending) return;
-    if (!currentUser) { window.location.href = '/login'; return; }
+    if (!girisliOlabilir(currentUser)) { window.location.href = '/login'; return; }
     setReplySending(true);
     try {
       const r = await fetch(`/api/stories/${storyId}/view`, {
@@ -582,7 +603,7 @@ export default function HomeFeed({
   // Repost (yalnızca quick_facts) — optimistik, hata/401'de geri alır
   /** Kaydet/kaldır — /p/[id] ile birebir aynı uç ve aynı iyimser güncelleme. */
   async function toggleBookmark(id: number) {
-    if (!currentUser) { window.location.href = '/login'; return; }
+    if (!girisliOlabilir(currentUser)) { window.location.href = '/login'; return; }
     const vardi = bookmarkedFacts.has(id);
     setBookmarkedFacts(prev => { const n = new Set(prev); vardi ? n.delete(id) : n.add(id); return n; });
     try {
@@ -601,7 +622,7 @@ export default function HomeFeed({
   }
 
   async function toggleRepost(id: number) {
-    if (!currentUser) { window.location.href = '/login'; return; }
+    if (!girisliOlabilir(currentUser)) { window.location.href = '/login'; return; }
     const was = repostedFacts.has(id);
     setRepostedFacts(prev => { const n = new Set(prev); was ? n.delete(id) : n.add(id); return n; });
     const revert = () => setRepostedFacts(prev => { const n = new Set(prev); was ? n.add(id) : n.delete(id); return n; });

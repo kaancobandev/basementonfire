@@ -1,6 +1,6 @@
 import { NextResponse, after } from 'next/server';
 import { db, getMe, logIfError } from '@/lib/supabase/server';
-import { buildFeedPersonal } from '@/lib/feedPersonal';
+import { buildFeedPersonal, icerikDalgasiniBaslat } from '@/lib/feedPersonal';
 
 // Nav (üst/yan menü) için kişiye özel durum: kullanıcı + okunmamış bildirim/mesaj
 // sayaçları + realtime abonelik anahtarları. ESKİDEN bu iş root layout'ta SSR'da
@@ -25,6 +25,25 @@ const zaman = (d: Record<string, number>) =>
 
 export async function GET(req: Request) {
   const t0 = Date.now();
+
+  // ⚠ KİMLİKTEN ÖNCE BAŞLIYOR, BİLEREK. İçerik dalgası (getHomeContent +
+  // getDidYouKnow) paylaşımlı önbellekten gelir ve KULLANICIDAN BAĞIMSIZDIR —
+  // `me`ye ihtiyacı yok. Eskiden `await getMe()` bittikten sonra, yani sırada
+  // bekleyerek başlıyordu; ölçümde bu 145-148 ms'ye mal oluyordu (iki bağımsız
+  // örnekte de aynı çıktı). Buraya alınınca kimlik turuyla paralel koşuyor.
+  //
+  // `feed=1` YOKSA HİÇ BAŞLATMA: nav-only isteklere (her makale sayfası,
+  // /discover…) bedava iş eklemek olurdu.
+  //
+  // Sessiz `.catch` ŞART ama AYRI takılıyor: kullanıcı çıkışlıysa aşağıda erken
+  // dönüyoruz ve bu promise sahipsiz kalıyor — bu, yakalanmamış reddi bastırır.
+  // Zincire eklenmiyor, çünkü `.catch(() => null)` promise'in TİPİNİ bozar ve
+  // buildFeedPersonal'a geçirilemez hâle gelir. Gerçek hata yolu aşağıdaki
+  // buildFeedPersonal catch'inde zaten var.
+  const feedIstendi = new URL(req.url).searchParams.get('feed') === '1';
+  const icerikOn = feedIstendi ? icerikDalgasiniBaslat() : undefined;
+  icerikOn?.catch(() => {});
+
   const { me, sure } = await getMe();
   if (!me) {
     return NextResponse.json({ user: null }, {
@@ -44,14 +63,13 @@ export async function GET(req: Request) {
   // ⚠ `await` BURADA YOK, bilerek: promise'i başlatıp aşağıdaki nav sorgularıyla
   // PARALEL koşturuyoruz, yanıtı kurarken bekliyoruz. Burada await edilirse
   // zincir uca taşınmış olurdu, hiçbir şey kazanılmazdı.
-  const feedIstendi = new URL(req.url).searchParams.get('feed') === '1';
   const tFeed = Date.now();
   let feedMs = 0;
   let feedAlt: { icerik: number; sorgu: number } | undefined;
   const feedIsi = feedIstendi
     // Fail-safe: kişisel kat patlarsa nav ÇALIŞMAYA DEVAM ETSİN. Aksi hâlde
     // akıştaki bir sorgu hatası menüyü ve bildirimleri de düşürürdü.
-    ? buildFeedPersonal(me)
+    ? buildFeedPersonal(me, icerikOn)
         .catch((e) => { logIfError('nav-state feed', e); return null; })
         .then((r) => { feedMs = Date.now() - tFeed; feedAlt = r?.sure; return r; })
     : null;
