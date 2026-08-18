@@ -38,16 +38,33 @@ export const AUTH_COOKIE_OPTIONS = {
 const PROJE_REF = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '')
   .match(/^https?:\/\/([a-z0-9]+)\.supabase\./i)?.[1] ?? null;
 
-/** Eşlemenin gerçekten ref'e daraltılıp daraltılmadığı. Ref okunamazsa geniş
- *  desene düşülür ve YUKARIDAKİ HATA GERİ GELİR — bu yüzden sessiz kalmamalı:
- *  /api/nav-state bunu Server-Timing'e `cerez` alanı olarak basıyor. */
-export const CEREZ_KAPSAMI = PROJE_REF ?? 'genis';
+/** Kurulumun sağlam olup olmadığı — `/api/nav-state` bunu `cerez` alanına basar.
+ *  Ref'in kendisi yazılır (gizli değil, her depolama URL'sinde zaten var);
+ *  `genis` = ref okunamadı, `BOZUK` = desen kendi sınamasını geçemedi. */
+export let CEREZ_KAPSAMI: string = PROJE_REF ?? 'genis';
 
-/** YALNIZ şu anki projenin oturum çerezini eşler. Ref okunamazsa eski geniş
- *  desene düşer — o hâlde bile davranış bugünküyle aynı, daha kötü değil. */
-export const OTURUM_CEREZI = PROJE_REF
-  ? new RegExp(`^sb-${PROJE_REF}-auth-token(\.\d+)?$`)
-  : /^sb-.+-auth-token(\.\d+)?$/;
+// ⚠ KAÇIŞI ŞABLON DİZESİNE YAZMA. İlk hâli şöyleydi:
+//     new RegExp(`^sb-${PROJE_REF}-auth-token(\.\d+)?$`)
+// Şablon dizesi `\.` ve `\d`yi KAÇIŞ DİZİSİ olarak yer ve geriye `.` ile `d`
+// kalır → desen `(.d+)?$` olur, yani `.0` / `.1` eklerini HİÇ eşlemez. Tam
+// olarak düzeltmeye çalıştığım hatanın aynısını üretti ve tsc göremedi.
+// Son ek bu yüzden bir REGEX LİTERALİNDEN alınıyor: orada kaçış tek anlamlı.
+const SON_EK = /(\.\d+)?$/.source;
+
+/** YALNIZ şu anki projenin oturum çerezini eşler. */
+export const OTURUM_CEREZI: RegExp = (() => {
+  if (!PROJE_REF) return /^sb-.+-auth-token(\.\d+)?$/;
+  const desen = new RegExp('^sb-' + PROJE_REF + '-auth-token' + SON_EK);
+  // KENDİ KENDİNİ SINA: parçalı ve parçasız ad da eşleşmeli, başka projeninki
+  // eşleşmemeli. Tutmazsa geniş desene düş (auth'u kırmaktansa) ama SESSİZ KALMA.
+  const gecer =
+    desen.test(`sb-${PROJE_REF}-auth-token`) &&
+    desen.test(`sb-${PROJE_REF}-auth-token.0`) &&
+    desen.test(`sb-${PROJE_REF}-auth-token.1`) &&
+    !desen.test('sb-baskaproje123-auth-token');
+  if (!gecer) { CEREZ_KAPSAMI = 'BOZUK'; return /^sb-.+-auth-token(\.\d+)?$/; }
+  return desen;
+})();
 
 /** Çerez listesinden oturum parçalarını sırayla çıkarır (`.0`, `.1`, …). */
 export function oturumParcalari<T extends { name: string }>(liste: T[]): T[] {
