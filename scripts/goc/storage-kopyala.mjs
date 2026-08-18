@@ -96,8 +96,37 @@ async function main() {
         }
       }
     }
-    console.log(hepsiTamam ? '\nSonuç: TAMAM' : '\nSonuç: EKSİK VAR — kopyalamayı tekrar çalıştır');
-    process.exit(hepsiTamam ? 0 : 1);
+    // ── GERÇEK İNDİRME TESTİ ───────────────────────────────────────
+    // ⚠⚠ SADECE SAYMAK YETMEZ — 15.08.2026'da kuru provada yanlış "TAMAM"
+    // verdi. Sebebi: veri dökümü `storage.objects` tablosunu da taşıyor,
+    // yani yeni projede META VERİ var ama DOSYANIN BAYTLARI yok. list() o
+    // tablodan okuduğu için sayılar eşleşiyordu; aynı yolu download()
+    // etmeye çalışınca "The resource was not found" dönüyordu.
+    console.log('\nGerçek indirme testi (meta veri değil, dosyanın kendisi):');
+    let indirmeTamam = true;
+    for (const { id } of BUCKETLAR) {
+      const e = await dosyalariTopla(eski, id).catch(() => []);
+      if (!e.length) continue;
+      // En küçük + ortanca + en büyük: boyut UÇLARI hep kapsansın, çünkü
+      // proje yükleme limitine takılan tam olarak en büyük dosyalardı.
+      const sirali = [...e].sort((a, b) => a.boyut - b.boyut);
+      const ornek = [...new Set([sirali[0], sirali[Math.floor(sirali.length / 2)], sirali[sirali.length - 1]])];
+      for (const f of ornek) {
+        const { data, error } = await yeni.storage.from(id).download(f.yol);
+        const ok = !error && data && data.size === f.boyut;
+        if (!ok) indirmeTamam = false;
+        const durum = error ? `HATA: ${error.message}`
+          : data.size !== f.boyut ? `BOYUT FARKLI: ${data.size} != ${f.boyut}`
+          : 'tamam';
+        console.log(`  ${ok ? '✓' : '✗'} ${id}/${f.yol}  ${mb(f.boyut)} MB  ${durum}`);
+      }
+    }
+
+    const gecti = hepsiTamam && indirmeTamam;
+    console.log(gecti
+      ? '\nSonuç: TAMAM — sayılar eşleşiyor VE dosyalar gerçekten indirilebiliyor'
+      : '\nSonuç: EKSİK — kopyalamayı tekrar çalıştır (upsert açık, güvenli)');
+    process.exit(gecti ? 0 : 1);
   }
 
   // ── Bucket'ları yeni projede hazırla (yoksa oluştur, limiti eşle).
