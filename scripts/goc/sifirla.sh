@@ -31,9 +31,17 @@
 # dokunmak GoTrue'yu bozar. Dökümde ne varsa tam olarak o temizlenir —
 # liste kendini dökümle senkron tutar.
 #
-# ⚠ storage.objects meta verisi silinir ama DOSYALAR S3'te KALIR:
-# SQL ile satır silmek nesneyi silmez. Bu bilinçli — 119 dosya zaten
-# kopyalandı ve indirme testinden geçti, tekrar kopyalamaya gerek yok.
+# 🚨 storage.objects TRUNCATE EDİLİRSE DOSYALAR DA GİDER — GECİKMELİ.
+# Burada ÖNCE tersini yazmıştım ("meta veri silinir, baytlar kalır") ve
+# 18.08.2026'da CANLIDA ÇÜRÜDÜ: sıfırlamadan hemen sonra indirme testi
+# GEÇTİ, ~30 dk sonra 25 dosyanın 23'ü "NoSuchKey" döndü. Supabase'in
+# yetim-nesne temizliği meta verisi olmayan baytları siliyor; test yanlış
+# değil ERKENDİ. Tek ölçümle "kalıyor" sonucuna varma.
+#
+# SONUÇ: bu script'ten sonra storage kopyalama ZORUNLU olarak tekrar
+# koşmalı — kesim penceresinin ~15 dk'lık parçasıdır, isteğe bağlı değil:
+#   node scripts/goc/storage-kopyala.mjs
+#   node scripts/goc/medya-dogrula.mjs --tamamla   ← gerçek sinama
 # ════════════════════════════════════════════════════════════════════
 set -uo pipefail
 
