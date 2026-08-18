@@ -13,6 +13,33 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
+# ════════════════════════════════════════════════════════════════════════
+# FONKSIYON BOLGESI: fra (Frankfurt) — ⚠ BU DOSYADAN AYARLANAMAZ.
+#
+# Ayarin yeri: Netlify panel → Project configuration → Build & deploy →
+# Continuous deployment → Functions region.
+#
+# Neden buraya yazilamiyor (dogrulandi 19.08.2026, Netlify docs):
+#   · `region` global [functions] kapsaminda DESTEKLENMIYOR; orada yalnizca
+#     directory / node_bundler / included_files / external_node_modules var.
+#   · Per-function `[functions."ad"] region = "fra"` var, AMA Next.js gibi
+#     framework adaptorlerinde fonksiyon dosyalari DERLEME ANINDA uretiliyor;
+#     dokumantasyon bu durumda proje duzeyi panel ayarini kullanmayi soyluyor.
+#   · Uretilen fonksiyonun adini tahmin edip yazmak TUZAK olurdu: eklenti
+#     surumu sabitlenmemis (yukaridaki [[plugins]] blogu), ad degisirse kural
+#     sessizce uygulanmaz ve varsayilan `cmh` (Ohio) devreye girer.
+#
+# Bolgenin ne kadar onemli oldugu olculdu (kullanicinin tarayicisi, girisli
+# oturum, /api/nav-state `all` alani):
+#   Ohio + Supabase Seul      1382 ms
+#   Tokyo + Supabase Seul      348 ms
+#   Frankfurt + Supabase Frankfurt  114 ms
+#
+# SESSIZ GERI DONUSE KARSI: /api/nav-state artik Server-Timing'e
+# `bolge;desc="<AWS_REGION>"` basiyor. Beklenen deger `eu-central-1`.
+# Baska bir sey goruyorsan panel ayari dusmus demektir.
+# ════════════════════════════════════════════════════════════════════════
+
 # NOT (2026-07-28): burada `[functions."keep-warm"] schedule = "*/5 * * * *"` vardı.
 # KALDIRILDI, iki sebeple:
 #   1. HİÇ KOŞMADI. Kanıt: fonksiyon URL'den çağrılabiliyordu (HTTP 204) — oysa

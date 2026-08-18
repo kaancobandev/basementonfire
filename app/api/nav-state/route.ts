@@ -20,8 +20,18 @@ export const dynamic = 'force-dynamic';
 //   feed → buildFeedPersonal       (2 dalga: onbellekli icerik + 8 paralel sorgu)
 //   all  → toplam
 // cnt ve feed BIRBIRIYLE de paralel kosuyor, yani toplam ≈ auth + urow + max(cnt, feed).
+//
+// bolge → Lambda'nin kostugu AWS bolgesi. NEDEN BURADA: Netlify'da fonksiyon
+// bolgesi Next.js projelerinde YALNIZCA panelden ayarlanabiliyor — adaptor
+// fonksiyon dosyalarini derleme aninda urettigi icin netlify.toml'dan
+// hedeflenemiyor (dogrulandi 19.08.2026, Netlify docs). Yani ayar repoda DEGIL
+// ve panelden dusrse kimse fark etmez: 18.08'de olculdu, Ohio→Frankfurt farki
+// nav-state'te 1382→114 ms. Bolgeyi olcum basligina basmak, sessiz bir geri
+// donusu GORUNUR kilar — her olcumde karsina cikar.
+const BOLGE = process.env.AWS_REGION ?? 'bilinmiyor';
+
 const zaman = (d: Record<string, number>) =>
-  Object.entries(d).map(([k, v]) => `${k};dur=${v}`).join(', ');
+  [...Object.entries(d).map(([k, v]) => `${k};dur=${v}`), `bolge;desc="${BOLGE}"`].join(', ');
 
 export async function GET(req: Request) {
   const t0 = Date.now();
