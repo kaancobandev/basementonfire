@@ -156,6 +156,7 @@ export async function GET(req: Request) {
           // cz: 0 parça yok · 1 çözüldü · 2 patladı · 3 id yok — esl: tahmin==user.id
           cz: sure?.cz ?? -1,
           esl: sure?.esl ?? 0,
+          sb: sure?.sb ?? -1,
           cnt: cntMs,
           feed: feedMs,
           // feed'in İÇİ: icerik = önbellekli içerik dalgası (isabet varsa ~0),

@@ -64,11 +64,13 @@ export function createAuthClientForResponse(req: NextRequest, res: NextResponse)
  *  ayrımı yapılamıyor. Tahmin etmemek için burada. */
 export const CZ = { PARCA_YOK: 0, COZULDU: 1, PATLADI: 2, ID_YOK: 3 } as const;
 
-async function cerezdenAuthId(): Promise<{ id: string | null; cz: number }> {
+async function cerezdenAuthId(): Promise<{ id: string | null; cz: number; sb?: number }> {
   try {
     const store = await cookies();
-    const parcalar = oturumParcalari(store.getAll());
-    if (!parcalar.length) return { id: null, cz: CZ.PARCA_YOK };
+    const tumu = store.getAll();
+    const parcalar = oturumParcalari(tumu);
+    // sb- ile baslayan cerez VAR ama eslesme YOKSA, sorun desendedir.
+    if (!parcalar.length) return { id: null, cz: CZ.PARCA_YOK, sb: tumu.filter((c) => c.name.startsWith('sb-')).length };
     let ham = parcalar.map((c) => c.value).join('');
     if (ham.startsWith('base64-')) {
       const b64 = ham.slice(7).replace(/-/g, '+').replace(/_/g, '/');
@@ -107,7 +109,7 @@ export const getMe = cache(async () => {
   const client = await createAuthClient();
   const t0 = Date.now();
 
-  const { id: tahmin, cz } = await cerezdenAuthId();
+  const { id: tahmin, cz, sb } = await cerezdenAuthId();
   // .then(ok, hata) ile sarıldı: spekülatif sorgu patlarsa yakalanmamış promise
   // reddi bırakmasın — bu yol tamamen best-effort.
   const onSorgu = tahmin
@@ -116,7 +118,7 @@ export const getMe = cache(async () => {
 
   const { data: { user } } = await client.auth.getUser();
   const authMs = Date.now() - t0;
-  if (!user) return { authUser: null, me: null, client, sure: { auth: authMs, urow: 0, spek: 0, cz, esl: 0 } };
+  if (!user) return { authUser: null, me: null, client, sure: { auth: authMs, urow: 0, spek: 0, cz, esl: 0, sb: sb ?? -1 } };
 
   const t1 = Date.now();
   let me: any = null;
@@ -131,7 +133,7 @@ export const getMe = cache(async () => {
     const { data } = await db.from('users').select('*').eq('auth_id', user.id).single();
     me = data ?? null;
   }
-  return { authUser: user, me, client, sure: { auth: authMs, urow: Date.now() - t1, spek, cz, esl: tahmin === user.id ? 1 : 0 } };
+  return { authUser: user, me, client, sure: { auth: authMs, urow: Date.now() - t1, spek, cz, esl: tahmin === user.id ? 1 : 0, sb: sb ?? -1 } };
 });
 
 // Admin mi? Onay kuyrugu (kullanici makaleleri) gibi yetkili islemler icin.

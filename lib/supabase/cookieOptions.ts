@@ -41,7 +41,7 @@ const PROJE_REF = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '')
 /** Eşlemenin gerçekten ref'e daraltılıp daraltılmadığı. Ref okunamazsa geniş
  *  desene düşülür ve YUKARIDAKİ HATA GERİ GELİR — bu yüzden sessiz kalmamalı:
  *  /api/nav-state bunu Server-Timing'e `cerez` alanı olarak basıyor. */
-export const CEREZ_KAPSAMI = PROJE_REF ? 'dar' : 'genis';
+export const CEREZ_KAPSAMI = PROJE_REF ?? 'genis';
 
 /** YALNIZ şu anki projenin oturum çerezini eşler. Ref okunamazsa eski geniş
  *  desene düşer — o hâlde bile davranış bugünküyle aynı, daha kötü değil. */
