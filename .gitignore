@@ -51,3 +51,6 @@ next-env.d.ts
 # sürüme özel açık aramayı kolaylaştırır. İleride migration workflow'una
 # geçilirse supabase/migrations ve supabase/config.toml AYRICA izin verilmeli.
 /supabase/.temp/
+
+# Göç dökümleri — kullanıcı e-postaları ve tüm veri burada, ASLA commitlenmez
+/goc-dokum/
