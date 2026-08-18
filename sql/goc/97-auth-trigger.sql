@@ -20,6 +20,21 @@
 -- ÖNCE sql/fix-handle-new-user.sql çalıştırılmış olmalı (fonksiyon şema
 -- dökümüyle gelir ama garanti altına almak için tekrar çalıştırmak zararsız,
 -- `create or replace`).
+--
+-- ── DOĞRULANDI (eski projeden okundu, 15.08.2026) ──────────────────
+-- Gerçek tanım:
+--   CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users
+--     FOR EACH ROW EXECUTE FUNCTION handle_new_user()
+--
+-- Aşağıdaki yeniden kurulum bununla aynı — TEK fark, fonksiyon adının
+-- `public.` ile nitelenmesi. BU BİLİNÇLİ: fonksiyon `security definer` ve
+-- niteliksiz çağrı `search_path`e bağlı çözülüyor. Açıkça yazmak davranışı
+-- değiştirmez, o bağımlılığı kaldırır.
+--
+-- Ayrıca doğrulandı: auth/storage şemalarındaki 21 fonksiyonun tamamı
+-- Supabase built-in'i (auth.uid, auth.jwt, storage.foldername, storage.search
+-- vb.) — ÖZEL fonksiyon YOK. Ve o iki şemada RLS politikası YOK.
+-- Yani bu trigger, iki şemadan taşınacak TEK şey.
 -- ════════════════════════════════════════════════════════════════════
 
 drop trigger if exists on_auth_user_created on auth.users;
