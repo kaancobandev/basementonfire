@@ -157,3 +157,47 @@ Supabase varsayılanı, değiştirilmemiş.
 - [ ] Allow new users to sign up AÇIK
 - [ ] Test: yeni kayıt → onay e-postası geldi mi
 - [ ] Test: şifre sıfırlama → e-posta geldi mi
+
+---
+
+## 5. Storage — proje seviyesi yükleme limiti
+
+> ⚠ **KURU PROVADA YAKALANDI (15.08.2026).** Bu ayar ne dökümde ne de
+> `storage.buckets` tablosunda var. `storage.buckets.file_size_limit` iki
+> projede de `NULL` — yani bucket kendi limitini koymuyor, **projenin genel
+> limitini** devralıyor. O genel limit ise platform ayarı ve yeni projede
+> Supabase'in **50 MB varsayılanında** başlıyor.
+
+**Belirti:** kopyalama 119 dosyanın 116'sını taşıdı, üçü şu hatayla düştü:
+
+```
+The object exceeded the maximum allowed size
+```
+
+Düşen dosyalar ve boyutları (hepsi `media` bucket'ında):
+
+| Dosya | Boyut |
+|---|---|
+| `2/1785437196313-3rknfs.mp4` | 184,7 MB |
+| `2/1785437794439-ovs1tg.mp4` | 182,2 MB |
+| `2/1785437510941-qp6nhe.mp4` | 95,8 MB |
+
+Başarılı olan en büyük dosya 23,9 MB → sınır ikisinin arasında, yani 50 MB.
+
+**Yapılacak:** yeni projede **Storage → Settings → Upload file size limit**
+değerini eski projedekiyle aynı yap. Eski projede önce oku, sonra kopyala.
+(Uygulamanın kendi kapısı `app/api/storage/sign/route.ts`'te 250 MB; proje
+limiti bundan küçük olamaz.)
+
+Ayarlandıktan sonra kopyalamayı TEKRAR çalıştır — `upsert` açık, zaten geçmiş
+116 dosya yeniden yazılır, sorun çıkmaz:
+
+```
+node scripts/goc/storage-kopyala.mjs
+node scripts/goc/storage-kopyala.mjs --dogrula
+```
+
+**Neden sessiz arıza sayılır:** bu üç dosya videoların HAM hâlleri; sitede
+`-h264` son ekli transcode edilmiş kopyaları oynatılıyor ve onlar 23,9 MB ile
+sorunsuz geçti. Yani limit düzeltilmeseydi site normal görünecek, yalnızca ham
+dosyalara doğrudan erişim kırılacaktı — ve bunu fark etmek aylar alabilirdi.
