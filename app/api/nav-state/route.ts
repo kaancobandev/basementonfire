@@ -66,7 +66,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ user: null }, {
       headers: {
         'Cache-Control': 'private, no-store',
-        'Server-Timing': zaman({ auth: sure?.auth ?? 0, urow: sure?.urow ?? 0, all: Date.now() - t0 }),
+        'Server-Timing': zaman({ auth: sure?.auth ?? 0, urow: sure?.urow ?? 0, cz: sure?.cz ?? -1, all: Date.now() - t0 }),
       },
     });
   }
@@ -153,6 +153,9 @@ export async function GET(req: Request) {
           // sonucun beklenmesi (≈0), spek=0 ise gerçek sorgunun tam turu.
           urow: sure?.urow ?? 0,
           spek: sure?.spek ?? 0,
+          // cz: 0 parça yok · 1 çözüldü · 2 patladı · 3 id yok — esl: tahmin==user.id
+          cz: sure?.cz ?? -1,
+          esl: sure?.esl ?? 0,
           cnt: cntMs,
           feed: feedMs,
           // feed'in İÇİ: icerik = önbellekli içerik dalgası (isabet varsa ~0),

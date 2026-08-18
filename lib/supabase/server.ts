@@ -58,11 +58,17 @@ export function createAuthClientForResponse(req: NextRequest, res: NextResponse)
  *  Çerez biçimi @supabase/ssr'ın kendi biçimi: "base64-<base64url(JSON)>",
  *  gerekirse `sb-…-auth-token.0/.1` diye parçalanmış. middleware.ts'teki
  *  tokenNeedsRefresh AYNI çözümlemeyi yapıyor — biçim değişirse İKİSİ DE bozulur. */
-async function cerezdenAuthId(): Promise<string | null> {
+/** Çözümlemenin NEREDE durduğu — Server-Timing'e `cz` olarak basılır.
+ *  `spek` 2026-08-19'da sessizce 0'a düşmüştü ve nedenini dışarıdan görmek
+ *  imkânsızdı: bu alan olmadan "çerez mi yok, çözülemedi mi, id mi tutmadı"
+ *  ayrımı yapılamıyor. Tahmin etmemek için burada. */
+export const CZ = { PARCA_YOK: 0, COZULDU: 1, PATLADI: 2, ID_YOK: 3 } as const;
+
+async function cerezdenAuthId(): Promise<{ id: string | null; cz: number }> {
   try {
     const store = await cookies();
     const parcalar = oturumParcalari(store.getAll());
-    if (!parcalar.length) return null;
+    if (!parcalar.length) return { id: null, cz: CZ.PARCA_YOK };
     let ham = parcalar.map((c) => c.value).join('');
     if (ham.startsWith('base64-')) {
       const b64 = ham.slice(7).replace(/-/g, '+').replace(/_/g, '/');
@@ -71,8 +77,10 @@ async function cerezdenAuthId(): Promise<string | null> {
       ham = decodeURIComponent(ham);
     }
     const id = (JSON.parse(ham) as { user?: { id?: string } })?.user?.id;
-    return typeof id === 'string' && id ? id : null;
-  } catch { return null; }
+    return typeof id === 'string' && id
+      ? { id, cz: CZ.COZULDU }
+      : { id: null, cz: CZ.ID_YOK };
+  } catch { return { id: null, cz: CZ.PATLADI }; }
 }
 
 // ════════════════════════════════════════════════════════════════════════
@@ -99,7 +107,7 @@ export const getMe = cache(async () => {
   const client = await createAuthClient();
   const t0 = Date.now();
 
-  const tahmin = await cerezdenAuthId();
+  const { id: tahmin, cz } = await cerezdenAuthId();
   // .then(ok, hata) ile sarıldı: spekülatif sorgu patlarsa yakalanmamış promise
   // reddi bırakmasın — bu yol tamamen best-effort.
   const onSorgu = tahmin
@@ -108,7 +116,7 @@ export const getMe = cache(async () => {
 
   const { data: { user } } = await client.auth.getUser();
   const authMs = Date.now() - t0;
-  if (!user) return { authUser: null, me: null, client, sure: { auth: authMs, urow: 0, spek: 0 } };
+  if (!user) return { authUser: null, me: null, client, sure: { auth: authMs, urow: 0, spek: 0, cz, esl: 0 } };
 
   const t1 = Date.now();
   let me: any = null;
@@ -123,7 +131,7 @@ export const getMe = cache(async () => {
     const { data } = await db.from('users').select('*').eq('auth_id', user.id).single();
     me = data ?? null;
   }
-  return { authUser: user, me, client, sure: { auth: authMs, urow: Date.now() - t1, spek } };
+  return { authUser: user, me, client, sure: { auth: authMs, urow: Date.now() - t1, spek, cz, esl: tahmin === user.id ? 1 : 0 } };
 });
 
 // Admin mi? Onay kuyrugu (kullanici makaleleri) gibi yetkili islemler icin.
