@@ -71,7 +71,12 @@ begin;
 set session_replication_role = replica;
 
 -- auth + storage: yapiyi koru, veriyi sil.
-truncate table $TABLOLAR restart identity cascade;
+-- `restart identity` YOK, bilerek: auth sequence'lari supabase_auth_admin'e
+-- ait ve postgres onlari sifirlayamiyor ("must be owner of sequence
+-- refresh_tokens_id_seq" ile duser). Gerek de yok — data.sql sonunda kendi
+-- setval() cagrilarini tasiyor, yani sayaclar geri yuklemede dogru degere
+-- kuruluyor.
+truncate table $TABLOLAR cascade;
 
 -- public: komple sifirla.
 drop schema public cascade;
