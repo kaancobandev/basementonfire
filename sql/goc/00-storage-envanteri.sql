@@ -56,3 +56,25 @@ from pg_extension e
 join pg_namespace n on n.oid = e.extnamespace
 where e.extname not in ('plpgsql')          -- varsayilan, tasinmasi gerekmiyor
 order by e.extname;
+
+-- ════════════════════════════════════════════════════════════════════
+-- EK 2 — ESKİ projede çalıştır: Vault'ta gerçekten sır var mı?
+--
+-- ⚠ GERİ DÖNÜŞSÜZ OLAN TEK ADIM BU. Yedek dosyaları Vault'un KÖK
+-- ANAHTARINI içermez, yalnız şifreli veriyi taşır. Eski proje
+-- duraklatılır ya da silinirse anahtar ve onunla şifrelenmiş her şey
+-- BİR DAHA ALINAMAZ.
+--
+-- supabase_vault extension'ı yeni projelerde VARSAYILAN olarak kurulu
+-- gelir; kurulu olması tek başına bir şey ifade etmez. Belirleyici olan
+-- içinde satır olup olmadığı.
+--
+-- ⚠ decrypted_secret KOLONUNU SEÇME — sır değerlerini ekrana basar.
+-- Burada yalnız sayı ve ad okunuyor.
+-- ════════════════════════════════════════════════════════════════════
+select count(*) as vault_sir_sayisi from vault.secrets;
+
+-- Sayı 0'dan büyükse: hangileri olduğunu gör (değerleri DEĞİL).
+select id, name, description, created_at
+from vault.secrets
+order by created_at;
