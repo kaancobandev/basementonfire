@@ -17,3 +17,43 @@ export const AUTH_COOKIE_OPTIONS = {
   sameSite: 'lax' as const,
   path: '/',
 };
+
+// ════════════════════════════════════════════════════════════════════════
+// OTURUM ÇEREZİ EŞLEME — TEK KAYNAK.
+//
+// @supabase/ssr çerezi PROJE REF'İ ile adlandırır: `sb-<ref>-auth-token`,
+// büyükse `.0` / `.1` diye bölünür. İki yer bu çerezi ELLE çözümlüyor:
+// middleware'deki tokenNeedsRefresh ve server.ts'teki cerezdenAuthId.
+//
+// 🚨 18.08.2026, Frankfurt göçünde ISIRDI. İkisi de `/^sb-.+-auth-token$/`
+// kullanıyordu — yani ESKİ projenin çerezini de eşliyordu. Kullanıcının
+// tarayıcısında hem eski hem yeni ref'in çerezi vardı; parçalar sıralanıp
+// BİRLEŞTİRİLİNCE ortaya bozuk bir dize çıkıyor ve JSON.parse patlıyordu.
+// Kullanıcının tarayıcısında ölçüldü:
+//   · cerezdenAuthId → null  → `spek=0`, spekülatif users sorgusu ÖLÜ
+//   · tokenNeedsRefresh → catch → `true` → middleware HER istekte fazladan
+//     bir getUser() ağ turu atıyor
+// Ref'e bağlanınca ikisi de düzeldi. Ref değişimi (yeni proje, ortam ayrımı)
+// bu kodu SESSİZCE bozar; testte görünmez, çünkü tek çerez varken çalışır.
+const PROJE_REF = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '')
+  .match(/^https?:\/\/([a-z0-9]+)\.supabase\./i)?.[1] ?? null;
+
+/** YALNIZ şu anki projenin oturum çerezini eşler. Ref okunamazsa eski geniş
+ *  desene düşer — o hâlde bile davranış bugünküyle aynı, daha kötü değil. */
+export const OTURUM_CEREZI = PROJE_REF
+  ? new RegExp(`^sb-${PROJE_REF}-auth-token(\.\d+)?$`)
+  : /^sb-.+-auth-token(\.\d+)?$/;
+
+/** Başka bir projeye ait (bayat) oturum çerezi mi? Ref okunamazsa hiçbir şeyi
+ *  bayat saymaz — yanlışlıkla geçerli oturumu silmek en kötü sonuç olurdu. */
+export function bayatOturumCerezi(ad: string): boolean {
+  if (!PROJE_REF) return false;
+  return /^sb-[a-z0-9]+-auth-token(\.\d+)?$/i.test(ad) && !OTURUM_CEREZI.test(ad);
+}
+
+/** Çerez listesinden oturum parçalarını sırayla çıkarır (`.0`, `.1`, …). */
+export function oturumParcalari<T extends { name: string }>(liste: T[]): T[] {
+  return liste
+    .filter((c) => OTURUM_CEREZI.test(c.name))
+    .sort((a, b) => a.name.localeCompare(b.name, 'en', { numeric: true }));
+}

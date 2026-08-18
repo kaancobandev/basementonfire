@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
-import { AUTH_COOKIE_OPTIONS } from '@/lib/supabase/cookieOptions';
+import { AUTH_COOKIE_OPTIONS, oturumParcalari, bayatOturumCerezi } from '@/lib/supabase/cookieOptions';
 
 const PROTECTED = ['/profile', '/settings', '/messages', '/notifications', '/bookmarks', '/gonderi-olustur', '/bilgi-karti'];
 
@@ -10,10 +10,7 @@ const PROTECTED = ['/profile', '/settings', '/messages', '/notifications', '/boo
 // adım çözülemezse "yenileme gerekli" varsayılır (güvenli taraf: getUser çalışır).
 function tokenNeedsRefresh(request: NextRequest): boolean {
   try {
-    const chunks = request.cookies
-      .getAll()
-      .filter((c) => /^sb-.+-auth-token(\.\d+)?$/.test(c.name))
-      .sort((a, b) => a.name.localeCompare(b.name, 'en', { numeric: true }));
+    const chunks = oturumParcalari(request.cookies.getAll());
     if (!chunks.length) return false; // oturum yok → yenilenecek şey de yok
     let raw = chunks.map((c) => c.value).join('');
     if (raw.startsWith('base64-')) {
@@ -168,6 +165,21 @@ export async function middleware(request: NextRequest) {
   // oturumu Set-Cookie ile kalıcılaştırır (aşağıdaki akış).
   if (!needsAuthDecision && (!tokenNeedsRefresh(request) || STATIC_NO_AUTH_SSR.test(path))) {
     return response;
+  }
+
+  // Başka bir Supabase projesine ait BAYAT oturum çerezini sil. Frankfurt
+  // göçünde ortaya çıktı: çerez adı proje ref'ini taşıdığı için eski ref'in
+  // çerezi tarayıcıda kalıyor, her istekte boşuna gönderiliyor ve elle
+  // çözümleyen iki yeri bozuyordu (bkz. cookieOptions.ts).
+  //
+  // ⚠ BURAYA KOYULDU, YUKARIYA DEĞİL: bu satırın üstündeki erken dönüş statik
+  // ve edge'de ÖNBELLEKLENEN yolları kapsıyor. Oraya Set-Cookie eklemek o
+  // yanıtları kişiselleştirip önbelleği kırardı. Burası zaten auth kararı
+  // veren, önbelleklenmeyen dal.
+  for (const c of request.cookies.getAll()) {
+    if (bayatOturumCerezi(c.name)) {
+      response.cookies.set(c.name, '', { ...AUTH_COOKIE_OPTIONS, maxAge: 0 });
+    }
   }
 
   const supabase = createServerClient(

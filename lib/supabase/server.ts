@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { type NextRequest, type NextResponse } from 'next/server';
 import { cache } from 'react';
-import { AUTH_COOKIE_OPTIONS } from './cookieOptions';
+import { AUTH_COOKIE_OPTIONS, oturumParcalari } from './cookieOptions';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -61,9 +61,7 @@ export function createAuthClientForResponse(req: NextRequest, res: NextResponse)
 async function cerezdenAuthId(): Promise<string | null> {
   try {
     const store = await cookies();
-    const parcalar = store.getAll()
-      .filter((c) => /^sb-.+-auth-token(\.\d+)?$/.test(c.name))
-      .sort((a, b) => a.name.localeCompare(b.name, 'en', { numeric: true }));
+    const parcalar = oturumParcalari(store.getAll());
     if (!parcalar.length) return null;
     let ham = parcalar.map((c) => c.value).join('');
     if (ham.startsWith('base64-')) {
