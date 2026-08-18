@@ -38,18 +38,16 @@ export const AUTH_COOKIE_OPTIONS = {
 const PROJE_REF = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '')
   .match(/^https?:\/\/([a-z0-9]+)\.supabase\./i)?.[1] ?? null;
 
+/** Eşlemenin gerçekten ref'e daraltılıp daraltılmadığı. Ref okunamazsa geniş
+ *  desene düşülür ve YUKARIDAKİ HATA GERİ GELİR — bu yüzden sessiz kalmamalı:
+ *  /api/nav-state bunu Server-Timing'e `cerez` alanı olarak basıyor. */
+export const CEREZ_KAPSAMI = PROJE_REF ? 'dar' : 'genis';
+
 /** YALNIZ şu anki projenin oturum çerezini eşler. Ref okunamazsa eski geniş
  *  desene düşer — o hâlde bile davranış bugünküyle aynı, daha kötü değil. */
 export const OTURUM_CEREZI = PROJE_REF
   ? new RegExp(`^sb-${PROJE_REF}-auth-token(\.\d+)?$`)
   : /^sb-.+-auth-token(\.\d+)?$/;
-
-/** Başka bir projeye ait (bayat) oturum çerezi mi? Ref okunamazsa hiçbir şeyi
- *  bayat saymaz — yanlışlıkla geçerli oturumu silmek en kötü sonuç olurdu. */
-export function bayatOturumCerezi(ad: string): boolean {
-  if (!PROJE_REF) return false;
-  return /^sb-[a-z0-9]+-auth-token(\.\d+)?$/i.test(ad) && !OTURUM_CEREZI.test(ad);
-}
 
 /** Çerez listesinden oturum parçalarını sırayla çıkarır (`.0`, `.1`, …). */
 export function oturumParcalari<T extends { name: string }>(liste: T[]): T[] {

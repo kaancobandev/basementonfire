@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
-import { AUTH_COOKIE_OPTIONS, oturumParcalari, bayatOturumCerezi } from '@/lib/supabase/cookieOptions';
+import { AUTH_COOKIE_OPTIONS, oturumParcalari } from '@/lib/supabase/cookieOptions';
 
 const PROTECTED = ['/profile', '/settings', '/messages', '/notifications', '/bookmarks', '/gonderi-olustur', '/bilgi-karti'];
 
@@ -8,6 +8,27 @@ const PROTECTED = ['/profile', '/settings', '/messages', '/notifications', '/boo
 // ÇAĞRISI YAPMADAN anlar. @supabase/ssr oturumu "base64-<base64url(JSON)>"
 // biçiminde, gerekirse `sb-…-auth-token.0/.1` diye bölerek saklar. Herhangi bir
 // adım çözülemezse "yenileme gerekli" varsayılır (güvenli taraf: getUser çalışır).
+// 🚨 YÖNLENDİRİRKEN ÇEREZLERİ TAŞI — yoksa OTURUM ÖLÜR.
+//
+// `NextResponse.redirect()` SIFIRDAN bir yanıt üretir; elimizdeki `response`a
+// yazılmış Set-Cookie başlıkları o yanıta GEÇMEZ. Sorun şu ki `getUser()`
+// oturumu tazelediğinde @supabase/ssr yeni access+refresh token'ı tam olarak
+// oraya yazıyor. Yönlendirme bunu atınca:
+//   · sunucu refresh token'ı DÖNDÜRDÜ (eskisi artık tüketilmiş sayılıyor)
+//   · tarayıcıda hâlâ ESKİ token duruyor
+//   · bir sonraki yenileme reddediliyor → kullanıcı kalıcı olarak çıkış yapıyor
+// Yani kullanıcı, korumalı bir sayfaya token yenilenmesi gereken anda girdiği
+// için oturumunu kaybediyordu. Sessiz ve tekrarı zor bir hata.
+//
+// Aynı tuzağa auth API route'larında da düşülmüştü (createAuthClientForResponse
+// oradaki çözüm). Kural: Set-Cookie yazabilecek bir akıştan yönlendiriyorsan
+// çerezleri ELİNLE taşı.
+function yonlendir(hedef: URL, kaynak: NextResponse): NextResponse {
+  const r = NextResponse.redirect(hedef);
+  for (const c of kaynak.cookies.getAll()) r.cookies.set(c);
+  return r;
+}
+
 function tokenNeedsRefresh(request: NextRequest): boolean {
   try {
     const chunks = oturumParcalari(request.cookies.getAll());
@@ -167,21 +188,6 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  // Başka bir Supabase projesine ait BAYAT oturum çerezini sil. Frankfurt
-  // göçünde ortaya çıktı: çerez adı proje ref'ini taşıdığı için eski ref'in
-  // çerezi tarayıcıda kalıyor, her istekte boşuna gönderiliyor ve elle
-  // çözümleyen iki yeri bozuyordu (bkz. cookieOptions.ts).
-  //
-  // ⚠ BURAYA KOYULDU, YUKARIYA DEĞİL: bu satırın üstündeki erken dönüş statik
-  // ve edge'de ÖNBELLEKLENEN yolları kapsıyor. Oraya Set-Cookie eklemek o
-  // yanıtları kişiselleştirip önbelleği kırardı. Burası zaten auth kararı
-  // veren, önbelleklenmeyen dal.
-  for (const c of request.cookies.getAll()) {
-    if (bayatOturumCerezi(c.name)) {
-      response.cookies.set(c.name, '', { ...AUTH_COOKIE_OPTIONS, maxAge: 0 });
-    }
-  }
-
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -202,7 +208,7 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user && PROTECTED.some(p => path.startsWith(p))) {
-    return NextResponse.redirect(new URL('/login', request.url));
+    return yonlendir(new URL('/login', request.url), response);
   }
 
   // Girişli kullanıcı /login|/register'a düşerse ana sayfaya gönder.
@@ -211,7 +217,7 @@ export async function middleware(request: NextRequest) {
   // (2026-08-14, tek ana sayfa). `/feed` yazsaydı yukarıdaki 301'e çarpıp
   // gereksiz ikinci bir tur ekleyecekti.
   if (user && (path === '/login' || path === '/register')) {
-    return NextResponse.redirect(new URL('/', request.url));
+    return yonlendir(new URL('/', request.url), response);
   }
 
   return response;

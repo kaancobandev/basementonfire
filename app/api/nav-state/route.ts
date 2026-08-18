@@ -1,6 +1,7 @@
 import { NextResponse, after } from 'next/server';
 import { db, getMe, logIfError } from '@/lib/supabase/server';
 import { buildFeedPersonal, icerikDalgasiniBaslat } from '@/lib/feedPersonal';
+import { CEREZ_KAPSAMI } from '@/lib/supabase/cookieOptions';
 
 // Nav (üst/yan menü) için kişiye özel durum: kullanıcı + okunmamış bildirim/mesaj
 // sayaçları + realtime abonelik anahtarları. ESKİDEN bu iş root layout'ta SSR'da
@@ -31,7 +32,13 @@ export const dynamic = 'force-dynamic';
 const BOLGE = process.env.AWS_REGION ?? 'bilinmiyor';
 
 const zaman = (d: Record<string, number>) =>
-  [...Object.entries(d).map(([k, v]) => `${k};dur=${v}`), `bolge;desc="${BOLGE}"`].join(', ');
+  [
+    ...Object.entries(d).map(([k, v]) => `${k};dur=${v}`),
+    `bolge;desc="${BOLGE}"`,
+    // 'dar' beklenir. 'genis' gorursen cerez eslemesi proje ref'ine
+    // daraltilamamis demektir ve spek sessizce 0'a duser.
+    `cerez;desc="${CEREZ_KAPSAMI}"`,
+  ].join(', ');
 
 export async function GET(req: Request) {
   const t0 = Date.now();
