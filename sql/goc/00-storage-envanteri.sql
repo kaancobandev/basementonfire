@@ -39,3 +39,20 @@ select
   max(array_length(string_to_array(name, '/'), 1)) as en_derin_seviye
 from storage.objects
 group by bucket_id;
+
+-- ════════════════════════════════════════════════════════════════════
+-- EK — ESKİ projede çalıştır: extension'lar hangi şemada?
+--
+-- Yeni projede extension'ı AYNI şemaya kurmak zorunludur. Yanlış şemaya
+-- kurulursa dökümdeki `CREATE EXTENSION IF NOT EXISTS ... WITH SCHEMA x`
+-- satırı "zaten var" deyip atlar; extension yanlış yerde kalır ve
+-- trigram index'leri gin_trgm_ops operatör sınıfını bulamayabilir.
+--
+-- Panelde "Create a new schema" seçeneğini SEÇME — kaynakta olmayan bir
+-- yapı eklemiş olursun.
+-- ════════════════════════════════════════════════════════════════════
+select e.extname as extension, n.nspname as sema
+from pg_extension e
+join pg_namespace n on n.oid = e.extnamespace
+where e.extname not in ('plpgsql')          -- varsayilan, tasinmasi gerekmiyor
+order by e.extname;
