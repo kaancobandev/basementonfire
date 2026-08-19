@@ -9,7 +9,13 @@ import Logo from '@/app/components/Logo';
 // ilk ziyaretçinin ilk temas noktası deploy sonrası soğuk fonksiyon beklemez.
 export default function LoginPage() {
   return (
-    <main className="main-content" style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--color-bg)', overflow: 'hidden' }}>
+    // 🪤 `alignItems: center` YERINE `margin: auto` (karttaki mevcut margin ile
+    // birlesir). Ikisi de ortalar, ama fark su: dikey ortalamada gorunur alan
+    // degisince kart YARI FARK kadar oynar — olculdu, 812px→420px'te giris
+    // butonu 147px yukari kaydi. Klavye acilip kapanirken bu kayma dokunusun
+    // butonun altindan kacmasina yol aciyor. `overflow: hidden` da kalkti:
+    // gorunur alan kartlan kisaysa sayfa artik KAYDIRILABILIR, kart kirpilmaz.
+    <main className="main-content auth-sayfa" style={{ position: 'relative', display: 'flex', justifyContent: 'center', minHeight: '100vh', background: 'var(--color-bg)' }}>
       {/* themeAware={false}: arka plan ışınları tema seçiminden BAĞIMSIZ (invert
           yok → renkler doğru, açık/koyu temada aynı). Kart yine tema duyarlı. */}
       <AnimatedRays themeAware={false} className="!absolute inset-0" />

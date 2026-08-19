@@ -190,6 +190,13 @@
    ⚠ RENKLER TOKEN EZEREK değişiyor, .ls-* kurallarına DOKUNULMUYOR: harf harf
    floating-label animasyonu (transition + transitionDelay) aynen korunur.
    Buradaki her --color-* yalnız kartın İÇİNDE geçerli, site geneli etkilenmez. */
+/* Giris/kayit sayfasi: kart `margin: auto` ile ortalanir, `align-items` ile DEGIL.
+   Gerekcesi app/login/page.tsx'te — dikey ortalama, gorunur alan degistiginde
+   karti oynatiyor ve mobilde klavye acilinca dokunusu dusuruyordu (olculdu:
+   812px→420px'te buton 147px kaydi). margin:auto yer varken ayni sekilde
+   ortalar, yer kalmayinca kaydirmaya birakir. */
+.auth-sayfa > .auth-card { margin: auto; }
+
 .auth-card {
   position: relative;
   z-index: 1;
@@ -241,13 +248,24 @@
 .auth-submit {
   margin-top: 6px; padding: 13px; border: 0; border-radius: var(--radius-md);
   font-size: 1rem; font-weight: 700; color: #fff; cursor: pointer;
+  /* 🪤 MOBİLDE İKİ KEZ BASMA GEREKİYORDU (kullanıcı bildirdi, 19.08.2026).
+     touch-action:manipulation → tarayıcı çift-dokunma-yakınlaştırma ihtimalini
+     BEKLEMEZ, dokunuşu anında tıklamaya çevirir. Varsayılan `auto` ölçüldü. */
+  touch-action: manipulation;
   /* Buton rengi KART TOKENINDAN bağımsız: --color-primary burada açık lavantaya
      ezildi, buton onu kullansaydı beyaz metin okunmazdı. */
   background: linear-gradient(135deg, #7a4bff, #4a1fd6);
   box-shadow: 0 8px 22px rgba(74,31,214,.45);
   transition: filter .15s, box-shadow .15s, transform .1s;
 }
-.auth-submit:hover { filter: brightness(1.12); box-shadow: 0 10px 26px rgba(74,31,214,.6); }
+/* 🪤 HOVER YALNIZ GERÇEK İMLEÇTE. Dokunmatikte iOS/Android ilk dokunuşu
+   "hover" saymaya çalışır ve tıklamayı ikinci dokunuşa bırakabilir — giriş
+   butonunda iki kez basma şikâyetinin bilinen sebeplerinden biri.
+   `(hover: hover)` fare/trackpad olan cihazları ayırır; masaüstünde görünüm
+   birebir aynı kalır. */
+@media (hover: hover) {
+  .auth-submit:hover { filter: brightness(1.12); box-shadow: 0 10px 26px rgba(74,31,214,.6); }
+}
 .auth-submit:active { transform: translateY(1px); }
 
 /* Dar telefon: "Basementonfire" tek parça bir kelime — logo+kelime satırı kartın

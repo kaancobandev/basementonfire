@@ -7,7 +7,9 @@ import Logo from '@/app/components/Logo';
 // zaten var (ölü kod), ?error= istemcide okunur → sayfa statik.
 export default function RegisterPage() {
   return (
-    <main className="main-content" style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--color-bg)', overflow: 'hidden' }}>
+    // Dikey ortalama YOK — gerekcesi app/login/page.tsx'te (klavye acilinca
+    // kart oynuyor, dokunus dusuyor). Kart .auth-sayfa ile margin:auto ortalanir.
+    <main className="main-content auth-sayfa" style={{ position: 'relative', display: 'flex', justifyContent: 'center', minHeight: '100vh', background: 'var(--color-bg)' }}>
       {/* themeAware={false}: login ile AYNI — koyu zemin, invert yok (renkler
           bozulmaz), difference yok, SSR'da render. Kart yine tema duyarlı. */}
       <AnimatedRays themeAware={false} className="!absolute inset-0" />
