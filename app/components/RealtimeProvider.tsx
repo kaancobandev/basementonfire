@@ -35,6 +35,24 @@ export default function RealtimeProvider({ myId, convIds, onNotif, onMsg }: Prop
       .subscribe();
 
     // ── Mesaj kanalı — tüm konuşmalar ────────────────────────────────────────
+    //
+    // 🔒 FİLTRE YOK, BİLEREK: "benim tüm konuşmalarım" tek bir postgres_changes
+    // filtresiyle ifade edilemiyor. GÜVENLİK BURADAKİ if'LERDE DEĞİL, RLS'TE.
+    //
+    // 19.08.2026'ya kadar öyle DEĞİLDİ ve bu bir gizlilik açığıydı: public
+    // şemadaki tabloların hepsinde RLS açık ama POLİTİKA SIFIRDI, ve o durumda
+    // realtime satırları süzmeden gönderiyordu. Yani giriş yapmış her kullanıcının
+    // tarayıcısı platformdaki TÜM DM'leri alıyordu (content + media_url dâhil);
+    // aşağıdaki `convIdsRef` kontrolü onları yalnızca ARAYÜZDE gizliyordu — veri
+    // o kontrole gelene kadar çoktan inmiş oluyordu. DevTools yeterliydi.
+    //
+    // `sql/realtime-rls-sizinti.sql` iki politika ekledi (messages: yalnız
+    // konuşma katılımcısı, notifications: yalnız sahibi) ve ölçüldü:
+    //   · anon dinleyici test mesajını ARTIK ALMIYOR
+    //   · yabancı kullanıcı konuşma 2'nin 2 mesajının 0'ını görüyor, katılımcı 2'sini de
+    //
+    // ⚠ Aşağıdaki iki `return` artık yalnızca gürültü elemesi. Politikaları
+    // kaldırırsan açık GERİ GELİR ve bu satırlar seni korumaz.
     const msgCh = supa
       .channel(`msg-user-${myId}`)
       .on(
