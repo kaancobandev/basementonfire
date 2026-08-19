@@ -20,9 +20,19 @@ export default async function MessagesPage() {
   // her konuşma için en yenisi tam olarak seçilir.
   // Okunmamışlar layout'taki conversations!inner join deseniyle çekilir →
   // convIds beklenmez, iki sorgu TEK turda paralel koşar.
+  // 🔒 `!inner`: HENÜZ MESAJI OLMAYAN konuşma listede GÖRÜNMEZ.
+  //
+  // /api/dm/start konuşma satırını sohbet ekranı AÇILIR AÇILMAZ oluşturuyor
+  // (akışın işlemesi için bir id gerekiyor). Bu satır olmadan karşı taraf,
+  // sen tek kelime yazmadan DM kutusunda seni görüyordu — "birine yazmaktan
+  // vazgeçtim" bilgisi karşı tarafa sızıyordu. Kullanıcı bildirdi, 19.08.2026.
+  //
+  // Boş konuşma satırı yine oluşuyor (id akışa lazım) ama KİMSEYE gösterilmiyor;
+  // ilk mesaj gidince iki tarafta da belirir. `last_message_at` bu iş için
+  // KULLANILAMAZ: varsayılanı `now()`, yani boş konuşmada da dolu geliyor.
   const [{ data: convs }, { data: unread }] = await Promise.all([
     db.from('conversations')
-      .select('id, last_message_at, u1:user1_id(id, username, display_name, avatar), u2:user2_id(id, username, display_name, avatar), messages(conversation_id, content, sender_id, created_at)')
+      .select('id, last_message_at, u1:user1_id(id, username, display_name, avatar), u2:user2_id(id, username, display_name, avatar), messages!messages_conversation_id_fkey!inner(conversation_id, content, sender_id, created_at)')
       .or(`user1_id.eq.${me.id},user2_id.eq.${me.id}`)
       .order('last_message_at', { ascending: false })
       .order('created_at', { foreignTable: 'messages', ascending: false })

@@ -7,7 +7,9 @@ export async function GET() {
 
   const { data } = await db
     .from('conversations')
-    .select('id, user1_id, user2_id, last_message_at, user1:user1_id(id, username, display_name, avatar), user2:user2_id(id, username, display_name, avatar)')
+    .select('id, user1_id, user2_id, last_message_at, user1:user1_id(id, username, display_name, avatar), user2:user2_id(id, username, display_name, avatar), messages!messages_conversation_id_fkey!inner(id)')
+    // 🔒 `!inner` — mesajsız konuşma listelenmez; gerekçe: app/messages/page.tsx
+    .limit(1, { foreignTable: 'messages' })
     .or(`user1_id.eq.${me.id},user2_id.eq.${me.id}`)
     .order('last_message_at', { ascending: false });
 
