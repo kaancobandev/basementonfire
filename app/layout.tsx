@@ -88,19 +88,40 @@ const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 const SITE_URL = 'https://basementonfire.com';
 const SITE_DESC = 'Bilim, tarih ve kültürü interaktif makaleler ve toplulukla keşfet: Antik Yunan, Roma İmparatorluğu, Kara Delikler, Kartaca, Türkler ve daha fazlası.';
 
+// Bunu eklemek KÜRESEL bir karardır: yatay modda çentik tarafındaki kenara da
+// içerik girebilir, bu yüzden kenara sabitlenmiş öğeler (.notif-float)
+// güvenli alana göre ayrıca korundu.
+//
+// interactiveWidget: 'resizes-visual' — KLAVYE ACILINCA DUZEN YENIDEN AKMASIN.
+//
+// Sorun (kullanici bildirdi, 19.08.2026): klavye acikken ekrana ilk dokunus
+// HICBIR YERE ULASMIYOR, yalnizca klavyeyi kapatiyor; her seye iki kez basmak
+// gerekiyordu. Yalnizca giris butonu degil, uygulama genelinde.
+//
+// Sebep: cihazin varsayilani `resizes-content` gibi davraniyor — klavye acilinca
+// DUZEN alani da kuculuyor, sayfa yeniden akiyor. Olculdu (canli /login, mobil
+// gorunum): gorunur yukseklik 812→420 olunca giris butonu 147px YUKARI kaydi.
+// Klavye kapanirken buton geri asagi ziplayinca dokunus parmagin altindan kaciyor
+// ve tiklama hic dogmuyor.
+//
+// 'resizes-visual' SPEC VARSAYILANIDIR: yalnizca GORSEL alan kuculur, duzen
+// alani sabit kalir → viewport birimleri (vh/dvh) degismez → yeniden akis YOK.
+// Tarayici odaklanan alani gorunur tutmak icin gorsel alani kaydirir.
+//
+// ⚠ 'overlays-content' SECILMEDI: o da akisi durdururdu ama klavye icerigin
+// USTUNU orterdi ve DM yazma cubugu klavyenin ARKASINDA kalirdi.
+//
 // viewportFit: 'cover' OLMADAN env(safe-area-inset-*) HER ZAMAN 0 döner ve iOS
 // düzen alanını güvenli alanların üstünde bitirir → dibe oturttuğumuz mobil
 // dock'un ALTINDA bir şerit zemin görünür (kullanıcının istemediği boşluk).
 // 'cover' ile düzen ekranın gerçek kenarına uzanır: dock'un camı ana ekran
 // çizgisinin arkasını da doldurur, ikonlar ise .mobile-nav'ın
 // padding-bottom: env(safe-area-inset-bottom) değeri sayesinde üstte kalır.
-// Bunu eklemek KÜRESEL bir karardır: yatay modda çentik tarafındaki kenara da
-// içerik girebilir, bu yüzden kenara sabitlenmiş öğeler (.notif-float)
-// güvenli alana göre ayrıca korundu.
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
+  interactiveWidget: 'resizes-visual',
 };
 
 export const metadata: Metadata = {
