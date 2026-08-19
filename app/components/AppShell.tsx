@@ -55,6 +55,10 @@ const NOTIF_TEXT: Record<string, string> = {
 
 export default function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
+
+  // Kendi yuksekligini 100dvh'ye SABITLEYEN, uygulama gibi davranan rotalar.
+  // Bunlarin ALTINA hicbir sey konulamaz — sebebi asagida (bkz. .mobil-hukuki).
+  const tamEkranRota = pathname === '/messages' || pathname === '/reels';
   const activeId = getActiveId(pathname);
   const sheetRef = useRef<HTMLDivElement>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -284,6 +288,16 @@ export default function AppShell({ children }: AppShellProps) {
           Buraya taşındı ki HER sayfada bulunsun: hukuki metinlere erişim bir
           landing tasarımının yan etkisi olmamalı. Masaüstünde gizli, çünkü orada
           kenar çubuğu aynı linkleri zaten gösteriyor (mükerrer olurdu). */}
+      {/* 🪤 TAM-EKRAN ROTALARDA BASILMAZ — mobilde klavyenin üstünde beliriyordu.
+          `/messages` sohbeti `height: calc(100dvh - var(--nav-space))`, `/reels`
+          bolumleri `height: 100dvh`. `dvh` DINAMIK: mobilde klavye acilinca gorunur
+          alan kuculur ve bu yukseklikler de kuculur. Sohbet kisalinca hemen
+          altindaki bu footer yukari kayip klavyenin ustunde goruniyordu — kullanici
+          bildirdi, 19.08.2026.
+          `100vh` olsaydi da cozulmezdi (o zaman giris cubugu klavyenin altinda
+          kalirdi); dogru cozum footer'i bu rotalarda hic basmamak. KVKK erisimi
+          kaybolmuyor: bunlar giris noktasi degil ve diger TUM sayfalarda duruyor. */}
+      {!tamEkranRota && (
       <footer className="mobil-hukuki" aria-label="Hukuki bağlantılar">
         <div>
           <Link href="/hakkimizda">Hakkımızda</Link><span aria-hidden>·</span>
@@ -299,6 +313,7 @@ export default function AppShell({ children }: AppShellProps) {
           <Link href="/en" hrefLang="en">English</Link>
         </div>
       </footer>
+      )}
 
       {/* Bildirim zili — ana sayfanın SAĞ ÜSTÜNE park eder (fixed değil: kaydırınca
           içerikle yukarı çıkar, bkz. globals.css .notif-float).
