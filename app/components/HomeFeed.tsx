@@ -1522,23 +1522,23 @@ export default function HomeFeed({
               <div style={{ marginTop: 12 }}>
                 {!artPicker ? (
                   <button type="button" onClick={() => setArtPicker(true)}
-                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '10px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.15)', background: 'transparent', color: '#cfe3f2', fontFamily: 'inherit', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}>
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '10px', borderRadius: 12, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontFamily: 'inherit', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
                     veya bir makaleyi paylaş
                   </button>
                 ) : (
-                  <div style={{ border: '1px solid rgba(255,255,255,0.15)', borderRadius: 12, overflow: 'hidden' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                      <span style={{ color: '#b9ada0', fontSize: '0.8rem', fontWeight: 700 }}>Makale seç</span>
-                      <button type="button" onClick={() => setArtPicker(false)} style={{ background: 'none', border: 'none', color: '#8a7f74', fontSize: '0.75rem', cursor: 'pointer', fontFamily: 'inherit' }}>vazgeç</button>
+                  <div style={{ border: '1px solid var(--color-border)', borderRadius: 12, overflow: 'hidden' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderBottom: '1px solid var(--color-border)' }}>
+                      <span style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', fontWeight: 700 }}>Makale seç</span>
+                      <button type="button" onClick={() => setArtPicker(false)} style={{ background: 'none', border: 'none', color: 'var(--color-text-muted)', fontSize: '0.75rem', cursor: 'pointer', fontFamily: 'inherit' }}>vazgeç</button>
                     </div>
                     <div style={{ maxHeight: 220, overflowY: 'auto' }}>
                       {ARTICLES.map(a => (
                         <button key={a.slug} type="button" onClick={() => shareArticleToStory(a.slug)} disabled={!!artBusy}
-                          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', background: 'none', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.05)', color: '#e8e0d8', cursor: artBusy ? 'default' : 'pointer', textAlign: 'left', fontFamily: 'inherit' }}>
+                          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', background: 'none', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.05)', color: 'var(--color-text)', cursor: artBusy ? 'default' : 'pointer', textAlign: 'left', fontFamily: 'inherit' }}>
                           <span style={{ fontSize: '1.1rem', width: 22, flexShrink: 0 }}>{a.emoji}</span>
                           <span style={{ flex: 1, minWidth: 0, fontSize: '0.85rem', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.title}</span>
-                          {artBusy === a.slug && <span style={{ fontSize: '0.75rem', color: '#8a7f74' }}>hazırlanıyor…</span>}
+                          {artBusy === a.slug && <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>hazırlanıyor…</span>}
                         </button>
                       ))}
                     </div>
@@ -1552,11 +1552,11 @@ export default function HomeFeed({
             {storyTracks.length > 0 && (
               <div style={{ marginTop: 14 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#b9ada0" strokeWidth="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-                  <span style={{ color: '#b9ada0', fontSize: '0.8rem', fontWeight: 700 }}>Müzik ekle</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" strokeWidth="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                  <span style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', fontWeight: 700 }}>Müzik ekle</span>
                   {storyMusicId !== null && (
                     <button type="button" onClick={() => { setStoryMusicId(null); storyPreviewAudioRef.current?.pause(); }}
-                      style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#8a7f74', fontSize: '0.75rem', cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'underline' }}>
+                      style={{ marginLeft: 'auto', background: 'none', border: 'none', color: 'var(--color-text-muted)', fontSize: '0.75rem', cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'underline' }}>
                       Kaldır
                     </button>
                   )}
@@ -1575,10 +1575,10 @@ export default function HomeFeed({
                           if (a) { a.src = t.src; a.currentTime = 0; a.play().catch(() => {}); }
                         }}
                         style={{ flex: '0 0 auto', maxWidth: 150, textAlign: 'left', padding: '8px 10px', borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit',
-                          border: secili ? '2px solid var(--color-accent)' : '1px solid rgba(255,255,255,0.14)',
-                          background: secili ? 'rgba(255,255,255,0.08)' : 'transparent', color: '#e8e0d8' }}>
+                          border: secili ? '2px solid var(--color-accent)' : '1px solid var(--color-border)',
+                          background: secili ? 'var(--color-hover)' : 'transparent', color: 'var(--color-text)' }}>
                         <span style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.title}</span>
-                        {t.artist && <span style={{ display: 'block', fontSize: '0.7rem', color: '#9d9086', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.artist}</span>}
+                        {t.artist && <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--color-text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.artist}</span>}
                       </button>
                     );
                   })}
@@ -1592,9 +1592,9 @@ export default function HomeFeed({
                 edilir (lib/storyLink.ts); dışarı açık yönlendirme riski sıfır. */}
             <div style={{ marginTop: 14 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#b9ada0" strokeWidth="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-                <span style={{ color: '#b9ada0', fontSize: '0.8rem', fontWeight: 700 }}>Bağlantı ekle</span>
-                <span style={{ color: '#7d7268', fontSize: '0.7rem' }}>site içi</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" strokeWidth="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                <span style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', fontWeight: 700 }}>Bağlantı ekle</span>
+                <span style={{ color: 'var(--color-text-muted)', fontSize: '0.7rem' }}>site içi</span>
               </div>
               <input
                 list="story-link-suggestions"
@@ -1602,7 +1602,7 @@ export default function HomeFeed({
                 onChange={e => setStoryLink(e.target.value)}
                 placeholder="/articles/rome"
                 inputMode="url"
-                style={{ width: '100%', padding: '9px 11px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.14)', background: 'transparent', color: '#e8e0d8', fontFamily: 'inherit', fontSize: '0.85rem' }}
+                style={{ width: '100%', padding: '9px 11px', borderRadius: 10, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontFamily: 'inherit', fontSize: '0.85rem' }}
               />
               <datalist id="story-link-suggestions">
                 {articleLinkOptions.map(a => <option key={a.path} value={a.path}>{a.title}</option>)}
@@ -1618,7 +1618,7 @@ export default function HomeFeed({
                   onChange={e => setStoryLinkLabel(e.target.value)}
                   placeholder="Düğme yazısı (ör. Makaleyi oku)"
                   maxLength={40}
-                  style={{ width: '100%', marginTop: 8, padding: '9px 11px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.14)', background: 'transparent', color: '#e8e0d8', fontFamily: 'inherit', fontSize: '0.85rem' }}
+                  style={{ width: '100%', marginTop: 8, padding: '9px 11px', borderRadius: 10, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontFamily: 'inherit', fontSize: '0.85rem' }}
                 />
               )}
             </div>
@@ -1629,18 +1629,18 @@ export default function HomeFeed({
             <div style={{ marginTop: 14 }}>
               {!pollOpen ? (
                 <button type="button" onClick={() => setPollOpen(true)}
-                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '10px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.15)', background: 'transparent', color: '#cfe3f2', fontFamily: 'inherit', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}>
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '10px', borderRadius: 12, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontFamily: 'inherit', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="7"/><rect x="14" y="6" width="3" height="11"/></svg>
                   Anket ekle
                 </button>
               ) : (
-                <div style={{ border: '1px solid rgba(255,255,255,0.15)', borderRadius: 12, padding: 12 }}>
+                <div style={{ border: '1px solid var(--color-border)', borderRadius: 12, padding: 12 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                    <span style={{ color: '#b9ada0', fontSize: '0.8rem', fontWeight: 700 }}>{pollCorrect != null ? 'Quiz' : 'Anket'}</span>
-                    <button type="button" onClick={() => { setPollOpen(false); setPollQ(''); setPollOpts(['', '']); setPollCorrect(null); }} style={{ background: 'none', border: 'none', color: '#8a7f74', fontSize: '0.75rem', cursor: 'pointer', fontFamily: 'inherit' }}>kaldır</button>
+                    <span style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', fontWeight: 700 }}>{pollCorrect != null ? 'Quiz' : 'Anket'}</span>
+                    <button type="button" onClick={() => { setPollOpen(false); setPollQ(''); setPollOpts(['', '']); setPollCorrect(null); }} style={{ background: 'none', border: 'none', color: 'var(--color-text-muted)', fontSize: '0.75rem', cursor: 'pointer', fontFamily: 'inherit' }}>kaldır</button>
                   </div>
                   <input value={pollQ} onChange={e => setPollQ(e.target.value)} placeholder="Soru (ör. Sence hangisi doğru?)" maxLength={100}
-                    style={{ width: '100%', padding: '9px 11px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.14)', background: 'transparent', color: '#e8e0d8', fontFamily: 'inherit', fontSize: '0.85rem' }} />
+                    style={{ width: '100%', padding: '9px 11px', borderRadius: 10, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontFamily: 'inherit', fontSize: '0.85rem' }} />
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}>
                     {pollOpts.map((opt, i) => {
                       const isCorrect = pollCorrect === i;
@@ -1651,12 +1651,12 @@ export default function HomeFeed({
                         <button type="button" disabled={!opt.trim()} aria-pressed={isCorrect} aria-label={isCorrect ? 'Doğru cevap' : 'Doğru olarak işaretle'}
                           onClick={() => setPollCorrect(prev => prev === i ? null : i)}
                           style={{ flexShrink: 0, width: 30, height: 30, borderRadius: '50%', cursor: opt.trim() ? 'pointer' : 'not-allowed',
-                            border: isCorrect ? 'none' : '1px solid rgba(255,255,255,0.25)', background: isCorrect ? '#22c55e' : 'transparent',
-                            color: isCorrect ? '#0f0e0d' : '#8a7f74', opacity: opt.trim() ? 1 : 0.4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            border: isCorrect ? 'none' : '1px solid var(--color-border)', background: isCorrect ? '#22c55e' : 'transparent',
+                            color: isCorrect ? '#0f0e0d' : 'var(--color-text-muted)', opacity: opt.trim() ? 1 : 0.4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6 9 17l-5-5"/></svg>
                         </button>
                         <input value={opt} onChange={e => setPollOpts(prev => prev.map((o, j) => j === i ? e.target.value : o))} placeholder={`Seçenek ${i + 1}`} maxLength={60}
-                          style={{ flex: 1, minWidth: 0, padding: '8px 11px', borderRadius: 10, border: isCorrect ? '1px solid #22c55e' : '1px solid rgba(255,255,255,0.14)', background: 'transparent', color: '#e8e0d8', fontFamily: 'inherit', fontSize: '0.84rem' }} />
+                          style={{ flex: 1, minWidth: 0, padding: '8px 11px', borderRadius: 10, border: isCorrect ? '1px solid #22c55e' : '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontFamily: 'inherit', fontSize: '0.84rem' }} />
                         {pollOpts.length > 2 && (
                           <button type="button" aria-label="Seçeneği kaldır"
                             onClick={() => {
@@ -1664,7 +1664,7 @@ export default function HomeFeed({
                               setPollCorrect(prev => prev == null ? null : prev === i ? null : prev > i ? prev - 1 : prev);
                               setPollOpts(prev => prev.filter((_, j) => j !== i));
                             }}
-                            style={{ flexShrink: 0, width: 30, height: 30, borderRadius: 8, border: 'none', background: 'rgba(255,255,255,0.08)', color: '#c88', cursor: 'pointer' }}>×</button>
+                            style={{ flexShrink: 0, width: 30, height: 30, borderRadius: 8, border: 'none', background: 'var(--color-hover)', color: 'var(--color-danger)', cursor: 'pointer' }}>×</button>
                         )}
                       </div>
                       );
@@ -1672,9 +1672,9 @@ export default function HomeFeed({
                   </div>
                   {pollOpts.length < 4 && (
                     <button type="button" onClick={() => setPollOpts(prev => [...prev, ''])}
-                      style={{ marginTop: 8, background: 'none', border: 'none', color: '#8fa9ff', fontSize: '0.8rem', cursor: 'pointer', fontFamily: 'inherit' }}>+ seçenek ekle</button>
+                      style={{ marginTop: 8, background: 'none', border: 'none', color: 'var(--color-primary)', fontSize: '0.8rem', cursor: 'pointer', fontFamily: 'inherit' }}>+ seçenek ekle</button>
                   )}
-                  <p style={{ margin: '10px 2px 0', color: '#8a7f74', fontSize: '0.72rem', lineHeight: 1.4 }}>
+                  <p style={{ margin: '10px 2px 0', color: 'var(--color-text-muted)', fontSize: '0.72rem', lineHeight: 1.4 }}>
                     {pollCorrect != null ? '✓ Doğru cevabı işaretledin — bu bir quiz. İzleyici seçince doğru/yanlış görecek.' : 'İpucu: bir seçeneği ✓ ile doğru işaretlersen anket quize dönüşür.'}
                   </p>
                 </div>
@@ -1684,20 +1684,20 @@ export default function HomeFeed({
             {/* KİTLE — kimin göreceği. Filtre hikayenin göründüğü her yüzeyde
                 sunucuda uygulanır (lib/storyAudience.ts). SQL yoksa 'public'e düşer. */}
             <div style={{ marginTop: 14 }}>
-              <div style={{ color: '#b9ada0', fontSize: '0.78rem', fontWeight: 700, marginBottom: 6 }}>Kimler görsün?</div>
+              <div style={{ color: 'var(--color-text-muted)', fontSize: '0.78rem', fontWeight: 700, marginBottom: 6 }}>Kimler görsün?</div>
               <div style={{ display: 'flex', gap: 6 }}>
                 {([['public', 'Herkes'], ['followers', 'Takipçiler'], ['close', 'Yakın arkadaşlar']] as const).map(([val, label]) => (
                   <button key={val} type="button" onClick={() => setStoryAudience(val)}
                     style={{ flex: 1, padding: '8px 4px', borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.76rem', fontWeight: 700,
-                      border: storyAudience === val ? '2px solid var(--color-accent)' : '1px solid rgba(255,255,255,0.14)',
-                      background: storyAudience === val ? 'rgba(255,157,10,0.15)' : 'transparent', color: '#e8e0d8' }}>
+                      border: storyAudience === val ? '2px solid var(--color-accent)' : '1px solid var(--color-border)',
+                      background: storyAudience === val ? 'var(--color-accent-soft)' : 'transparent', color: 'var(--color-text)' }}>
                     {label}
                   </button>
                 ))}
               </div>
               {storyAudience === 'close' && (
                 <button type="button" onClick={() => setCloseMgrOpen(true)}
-                  style={{ marginTop: 8, background: 'none', border: 'none', color: '#8fa9ff', fontSize: '0.78rem', cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'underline' }}>
+                  style={{ marginTop: 8, background: 'none', border: 'none', color: 'var(--color-primary)', fontSize: '0.78rem', cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'underline' }}>
                   Yakın arkadaşları düzenle
                 </button>
               )}
