@@ -955,117 +955,12 @@ export default function HomeFeed({
                 );
               }
               if (item.kind === 'fact') {
-                const liked = likedFacts.has(item.id);
-                // ⚠ GECICI TANILAMA — ÖLÇÜNCE SİL
-                if (typeof window !== 'undefined' && !(window as any).__tip) {
-                  (window as any).__tip = { itemId: item.id, tipi: typeof item.id, kumeBoyu: likedFacts.size,
-                    kumeIcerik: JSON.stringify([...likedFacts]), kumeTipleri: [...likedFacts].map(x => typeof x).join(','),
-                    hasSonucu: likedFacts.has(item.id) };
+                // ⚠ GECICI TANILAMA — HER RENDER'I KAYDET. ÖLÇÜNCE SİL
+                if (typeof window !== 'undefined') {
+                  const w = window as any;
+                  w.__rn = (w.__rn || 0) + 1;
+                  w.__son = { render: w.__rn, kumeBoyu: likedFacts.size, kume: JSON.stringify([...likedFacts]), itemId: item.id, has: likedFacts.has(item.id) };
                 }
-                const likes = factLikes[item.id] ?? item.likes;
-                const reposted = repostedFacts.has(item.id);
-                const saved = bookmarkedFacts.has(item.id);
-                return (
-                  <m.article
-                    key={`fact-${item.id}`}
-                    style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, overflow: 'hidden' }}
-                    initial={{ opacity: 0, y: 28 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: Math.min(index * 0.07, 0.5), ease: 'easeOut' }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px' }}>
-                      <Link href={`/u/${item.username}`} style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, textDecoration: 'none', overflow: 'hidden' }}>
-                        <Img src={avatarSrc(item.username, item.avatar)} alt="" fixedWidth={76} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      </Link>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <Link href={`/u/${item.username}`} style={{ display: 'block', fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-text)', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.display_name}</Link>
-                        <span style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)' }}>@{item.username} · <TimeAgo iso={item.created_at} /></span>
-                      </div>
-                      <ReportButton targetType="post" targetId={item.id} subtitle={`@${item.username} gönderisi`} size={32} canReport={!!currentUser && currentUser.id !== item.user_id} />
-                    </div>
-                    <div style={{ width: '100%', background: '#000', lineHeight: 0 }}>
-                      <MediaCarousel media={factMediaList(item)} variant="feed" caption={item.caption ?? ''} sizes="(max-width:620px) 100vw, 600px" priority={isFirstMedia} />
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 10px 4px' }}>
-                      <m.button
-                        onClick={() => likePost(item.id, 'fact')}
-                        whileTap={{ scale: 0.80 }}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', borderRadius: '9999px', color: liked ? 'var(--color-danger)' : 'var(--color-text)', fontWeight: 600, fontFamily: 'inherit', transition: 'color 0.15s', fontSize: '0.9rem' }}
-                      >
-                        <AnimatePresence mode="wait" initial={false}>
-                          <m.span key={liked ? 'f' : 'e'} initial={{ scale: 0.5, rotate: -15 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0.5 }} transition={{ type: 'spring', stiffness: 400, damping: 15 }} style={{ display: 'flex' }}>
-                            {liked ? <HeartFilled /> : <HeartEmpty />}
-                          </m.span>
-                        </AnimatePresence>
-                        <m.span className="tnum" key={likes} initial={{ y: -6, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.2 }}>{likes}</m.span>
-                      </m.button>
-                      {/* Yorum butonu YER TUTUCUYDU: /akis'e gidiyordu, yani
-                          tıklayan kişi yorumlara değil akış sayfasına düşüyordu.
-                          Yorum altyapısının tamamı (ekleme/listeleme/silme +
-                          gizlilik kuralları + bildirim) ZATEN vardı; eksik olan
-                          yalnızca bu bağlantıydı. /p/[id] akıştan tıklanınca
-                          modal olarak açılır (paralel rota) ve yorumları gösterir.
-                          aria-label/title: ikon-only buton erişilebilir isimsizdi. */}
-                      <Link href={`/p/${item.id}`} aria-label={`Yorumlar${typeof item.comments_count === 'number' ? ` (${item.comments_count})` : ''}`} title="Yorumlar" style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', borderRadius: '9999px', color: 'var(--color-text)', fontWeight: 600, fontSize: '0.9rem', textDecoration: 'none', transition: 'background 0.12s' }}>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                        {/* Sorguda comments(count) seçilmeyen yüzeylerde undefined
-                            gelir → sayaç hiç basılmaz, kart bozulmaz. */}
-                        {typeof item.comments_count === 'number' && (
-                          <span className="tnum">{item.comments_count}</span>
-                        )}
-                      </Link>
-                      <m.button
-                        onClick={() => toggleRepost(item.id)}
-                        whileTap={{ scale: 0.80 }}
-                        aria-label="Repost"
-                        title={reposted ? 'Repost geri al' : 'Repost'}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '6px 8px', borderRadius: '9999px', color: reposted ? 'var(--color-success)' : 'var(--color-text)', transition: 'color 0.15s' }}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m17 1 4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="m7 23-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-                      </m.button>
-                      {/* KAYDET — akıştaki karta eklendi. Eskiden yalnız gönderi
-                          detayında (/p/[id]) vardı; aynı gönderinin akışta
-                          kaydedilememesi, nereden baktığına göre değişen bir
-                          eylem kümesi demekti. Sıra ve ikon detay sayfasıyla
-                          birebir aynı. */}
-                      <m.button
-                        onClick={() => toggleBookmark(item.id)}
-                        whileTap={{ scale: 0.80 }}
-                        aria-label={saved ? 'Kaydı kaldır' : 'Kaydet'}
-                        title={saved ? 'Kaydı kaldır' : 'Kaydet'}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '6px 8px', borderRadius: '9999px', color: saved ? 'var(--color-accent-ink)' : 'var(--color-text)', marginLeft: 'auto', transition: 'color 0.15s' }}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill={saved ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-                      </m.button>
-                      {/* Kayıtlıyken koleksiyon SONRADAN da seçilebilmeli: yer
-                          imine basmak kaydı kaldırır, o yüzden ayrı düğme. */}
-                      {saved && (
-                        <button
-                          type="button"
-                          onClick={() => setPickerFor(item.id)}
-                          aria-label="Koleksiyona ekle"
-                          title="Koleksiyona ekle"
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '6px 4px', color: 'var(--color-text-muted)' }}
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
-                        </button>
-                      )}
-                    </div>
-                    <div style={{ padding: '2px 14px 4px' }}>
-                      <span className="tnum" style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-text)' }}>{likes} beğeni</span>
-                    </div>
-                    {item.caption && (
-                      <div style={{ padding: '2px 14px 14px', fontSize: '0.87rem', lineHeight: 1.5, color: 'var(--color-text)' }}>
-                        <Caption
-                          text={item.caption}
-                          clamp
-                          prefix={<Link href={`/u/${item.username}`} style={{ fontWeight: 700, color: 'var(--color-text)', textDecoration: 'none' }}>{item.display_name}</Link>}
-                        />
-                      </div>
-                    )}
-                  </m.article>
-                );
-              }
 
               // Text post
               const liked = likedPosts.has(item.id);
