@@ -179,7 +179,16 @@ export default function HomeFeed({
     // Beğeni kümelerinde YALNIZ DOKUNULMAMIŞSA sunucu doğrusunu uygula.
     // Kullanıcı yanıt gelmeden bir şeyi beğendiyse (dar pencere) onun
     // eylemini geri almak, eksik vurgudan daha kötü bir hata olurdu.
-    setLikedFacts(prev => (prev.size ? prev : new Set<number>(d.likedFactIds ?? [])));
+    setLikedFacts(prev => {
+      // ⚠ GECICI TANILAMA — ÖLÇÜNCE SİL
+      if (typeof window !== 'undefined') {
+        const w = window as any;
+        (w.__yd = w.__yd || { kosu: 0, olay: [] }).olay.push(
+          '  setLikedFacts: prev.size=' + prev.size + ' gelen=' + JSON.stringify(d.likedFactIds ?? 'YOK') +
+          ' -> ' + (prev.size ? 'PREV KORUNDU' : 'YENI UYGULANDI'));
+      }
+      return prev.size ? prev : new Set<number>(d.likedFactIds ?? []);
+    });
     setLikedPosts(prev => (prev.size ? prev : new Set<number>(d.likedPostIds ?? [])));
     setRepostedFacts(prev => (prev.size ? prev : new Set<number>(d.repostedFactIds ?? [])));
     setBookmarkedFacts(prev => (prev.size ? prev : new Set<number>(d.bookmarkedFactIds ?? [])));
