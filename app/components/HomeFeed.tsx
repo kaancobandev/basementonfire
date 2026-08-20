@@ -34,7 +34,7 @@ const articleLinkOptions = ARTICLES.map(a => ({ path: `/articles/${a.slug}`, tit
 // Kırpıcı yalnız görsel seçilince insin — react-easy-crop akışın ilk yükünde yer almasın.
 const ImageCropper = dynamic(() => import('./ImageCropper'), { ssr: false });
 const CloseFriendsModal = dynamic(() => import('./CloseFriendsModal'), { ssr: false });
-import { LazyMotion, m, AnimatePresence } from 'framer-motion';
+import { LazyMotion, m } from 'framer-motion';
 
 // framer-motion'un animasyon çekirdeği (domAnimation) async chunk olarak iner:
 // senkron bundle'da yalnız minik `m` + LazyMotion kalır (motion importu tüm
@@ -971,11 +971,22 @@ export default function HomeFeed({
                         whileTap={{ scale: 0.80 }}
                         style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', borderRadius: '9999px', color: liked ? 'var(--color-danger)' : 'var(--color-text)', fontWeight: 600, fontFamily: 'inherit', transition: 'color 0.15s', fontSize: '0.9rem' }}
                       >
-                        <AnimatePresence mode="wait" initial={false}>
-                          <m.span key={liked ? 'f' : 'e'} initial={{ scale: 0.5, rotate: -15 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0.5 }} transition={{ type: 'spring', stiffness: 400, damping: 15 }} style={{ display: 'flex' }}>
-                            {liked ? <HeartFilled /> : <HeartEmpty />}
-                          </m.span>
-                        </AnimatePresence>
+                        {/* ⚠ BURADA `AnimatePresence mode="wait"` VARDI — BEĞENİ HATASININ
+                            KAYNAĞI BUYDU. Dolu/boş kalp geçişi, eskisinin ÇIKIŞ animasyonunun
+                            bitmesine bağlıydı. Animasyon tamamlanmazsa React doğru ikonu
+                            commit etse bile ekranda BOŞ kalp kalıyordu: kullanıcı beğeninin
+                            kaydolmadığını sanıp tekrar basıyor, ikinci basış beğeniyi geri
+                            alıyordu. (Belirti: mesajlar sayfasına gidip ana sayfaya dönünce
+                            beğeniler kayıp görünüyor.) Veri yolu ölçüldü ve TEMİZ çıktı —
+                            uç, efekt, tip, state hepsi doğru; kırık olan tek şey bu el
+                            sıkışmasıydı.
+                            Artık kalıcı tek eleman + düz koşullu render: animasyon motoru hiç
+                            çalışmasa bile DOM doğru. Dokunma geri bildirimi zaten butondaki
+                            whileTap'ten geliyor, kaybımız yok.
+                            ⛔ Buraya bir daha AnimatePresence/key tabanlı ikon değişimi koyma. */}
+                        <span style={{ display: 'flex' }}>
+                          {liked ? <HeartFilled /> : <HeartEmpty />}
+                        </span>
                         <m.span className="tnum" key={likes} initial={{ y: -6, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.2 }}>{likes}</m.span>
                       </m.button>
                       {/* Yorum butonu YER TUTUCUYDU: /akis'e gidiyordu, yani
@@ -1085,11 +1096,10 @@ export default function HomeFeed({
                       whileTap={{ scale: 0.80 }}
                       style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', borderRadius: '9999px', color: liked ? 'var(--color-danger)' : 'var(--color-text)', fontWeight: 600, fontFamily: 'inherit', fontSize: '0.9rem', transition: 'color 0.15s' }}
                     >
-                      <AnimatePresence mode="wait" initial={false}>
-                        <m.span key={liked ? 'f' : 'e'} initial={{ scale: 0.5, rotate: -15 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0.5 }} transition={{ type: 'spring', stiffness: 400, damping: 15 }} style={{ display: 'flex' }}>
-                          {liked ? <HeartFilled /> : <HeartEmpty />}
-                        </m.span>
-                      </AnimatePresence>
+                      {/* AnimatePresence YOK — gerekçe yukarıdaki bilgi kartı kalbinde. */}
+                      <span style={{ display: 'flex' }}>
+                        {liked ? <HeartFilled /> : <HeartEmpty />}
+                      </span>
                       <m.span className="tnum" key={likes} initial={{ y: -6, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.2 }}>{likes}</m.span>
                     </m.button>
                   </div>
