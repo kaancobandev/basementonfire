@@ -159,7 +159,7 @@ export default function GonderiForm() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '24px 16px 40px', gap: 16, maxWidth: 540, margin: '0 auto', width: '100%' }}>
 
         {error && (
-          <div style={{ width: '100%', background: 'var(--color-danger-soft)', color: 'var(--color-danger)', padding: '10px 14px', borderRadius: 12, fontSize: '0.88rem' }}>
+          <div style={{ width: '100%', background: '#fee2e2', color: '#dc2626', padding: '10px 14px', borderRadius: 12, fontSize: '0.88rem' }}>
             {error}
           </div>
         )}
@@ -186,9 +186,9 @@ export default function GonderiForm() {
               onDrop={e => { e.preventDefault(); setDragOver(false); addFiles(Array.from(e.dataTransfer.files)); }}
               style={{
                 width: '100%', aspectRatio: '1',
-                border: `2px dashed ${dragOver ? 'var(--color-primary)' : shake ? 'var(--color-danger)' : 'var(--color-border)'}`,
+                border: `2px dashed ${dragOver ? '#6366f1' : shake ? '#ef4444' : '#c7d2fe'}`,
                 borderRadius: 20,
-                background: dragOver ? 'var(--color-primary-soft)' : shake ? 'var(--color-danger-soft)' : 'var(--color-surface)',
+                background: dragOver ? '#eef2ff' : shake ? '#fff0f0' : 'var(--color-surface)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 cursor: 'pointer', overflow: 'hidden',
                 transition: 'border-color 0.15s, background 0.15s',
@@ -197,15 +197,15 @@ export default function GonderiForm() {
             >
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: 24, textAlign: 'center', pointerEvents: 'none' }}>
                 <div style={{ marginBottom: 8 }}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-border)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#c7d2fe" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
                     <circle cx="9" cy="9" r="2"/>
                     <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
                   </svg>
                 </div>
-                <p style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--color-text)', margin: 0 }}>Fotoğraf veya video seç</p>
-                <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', margin: 0 }}>Tıkla veya sürükle bırak · en fazla {MAX_MEDIA}</p>
-                <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: 4, margin: 0 }}>JPG · PNG · WEBP · GIF · MP4 · WEBM · max 250 MB</p>
+                <p style={{ fontSize: '1rem', fontWeight: 700, color: '#374151', margin: 0 }}>Fotoğraf veya video seç</p>
+                <p style={{ fontSize: '0.85rem', color: '#6b7280', margin: 0 }}>Tıkla veya sürükle bırak · en fazla {MAX_MEDIA}</p>
+                <p style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: 4, margin: 0 }}>JPG · PNG · WEBP · GIF · MP4 · WEBM · max 250 MB</p>
               </div>
             </div>
           ) : (
@@ -215,15 +215,15 @@ export default function GonderiForm() {
               onDragOver={e => { e.preventDefault(); setDragOver(true); }}
               onDragLeave={() => setDragOver(false)}
               onDrop={e => { e.preventDefault(); setDragOver(false); addFiles(Array.from(e.dataTransfer.files)); }}
-              style={{ width: '100%', border: `2px dashed ${dragOver ? 'var(--color-primary)' : 'var(--color-border)'}`, borderRadius: 16, padding: 10, background: 'var(--color-surface)', transition: 'border-color 0.15s' }}
+              style={{ width: '100%', border: `2px dashed ${dragOver ? '#6366f1' : 'var(--color-border)'}`, borderRadius: 16, padding: 10, background: 'var(--color-surface)', transition: 'border-color 0.15s' }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                 <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-muted)' }}>{items.length} fotoğraf/video</span>
-                <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>İlk öğe kapak olur</span>
+                <span style={{ fontSize: '0.72rem', color: '#9ca3af' }}>İlk öğe kapak olur</span>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(92px, 1fr))', gap: 8 }}>
                 {items.map((it, i) => (
-                  <div key={it.id} style={{ position: 'relative', aspectRatio: '1', borderRadius: 10, overflow: 'hidden', background: '#000', border: i === 0 ? '2px solid var(--color-primary)' : '1px solid var(--color-border)' }}>
+                  <div key={it.id} style={{ position: 'relative', aspectRatio: '1', borderRadius: 10, overflow: 'hidden', background: '#000', border: i === 0 ? '2px solid #6366f1' : '1px solid var(--color-border)' }}>
                     {it.type === 'video'
                       ? <VideoThumb src={it.url} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                       : <img src={it.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
@@ -245,7 +245,7 @@ export default function GonderiForm() {
                     type="button"
                     onClick={openPicker}
                     aria-label="Ekle"
-                    style={{ aspectRatio: '1', borderRadius: 10, border: '2px dashed var(--color-border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)' }}
+                    style={{ aspectRatio: '1', borderRadius: 10, border: '2px dashed #c7d2fe', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6366f1' }}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
                   </button>
@@ -318,10 +318,10 @@ export default function GonderiForm() {
                 resize: 'none', outline: 'none', background: 'var(--color-surface)',
                 color: 'var(--color-text)', transition: 'border-color 0.15s', boxSizing: 'border-box',
               }}
-              onFocus={e => (e.target.style.borderColor = 'var(--color-primary)')}
+              onFocus={e => (e.target.style.borderColor = '#6366f1')}
               onBlur={e => (e.target.style.borderColor = 'var(--color-border)')}
             />
-            <span style={{ position: 'absolute', bottom: 10, right: 12, fontSize: '0.75rem', color: charOver ? 'var(--color-danger)' : 'var(--color-text-muted)', transition: 'color 0.15s' }}>
+            <span style={{ position: 'absolute', bottom: 10, right: 12, fontSize: '0.75rem', color: charOver ? '#ef4444' : '#9ca3af', transition: 'color 0.15s' }}>
               {charLen} / 10000
             </span>
           </div>
