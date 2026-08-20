@@ -21,9 +21,35 @@ export default function DidYouKnowCard({ item, initialLiked = false, loggedIn = 
   const [likes, setLikes] = useState(item.likes ?? 0);
   const [busy, setBusy] = useState(false);
 
+  /* ⚠ `useState(initialLiked)` prop'u YALNIZ ilk render'da okur; sonradan
+     gelen değeri sonsuza kadar görmez. Bu kartta o dilim ölümcüldü:
+     app/page.tsx sunucudan `likedDykIds={[]}` yolluyor (ana sayfa ISR/statik
+     kalsın diye KASITLI — orayı düzeltmeye çalışma), gerçek liste ancak
+     istemcideki kişisel katman isteğiyle geliyor. Yani `initialLiked` mount'ta
+     HER ZAMAN false, birkaç yüz ms sonra true oluyor — donmuş state bunu hiç
+     görmüyordu. Kalp SPA gezinmesinde değil, HER ZAMAN yanlıştı.
+
+     Belirti: kendi beğendiğin bilgi kartının kalbi beyaz kalıyor ama SAYAÇ
+     doğru görünüyor — çünkü sayaç `item.likes`ten, yani feed yüküyle baştan
+     gelen içerik verisinden okunuyor. Kullanıcı beğenisinin gitmediğini sanıp
+     tekrar basıyor ve o ikinci dokunuş beğeniyi GERİ ALIYOR.
+
+     Düzeltme: kullanıcı bu karta dokunana kadar prop'u izle; dokunduktan sonra
+     doğru kaynak yerel state olsun — yoksa yoldaki eski prop, kişinin az önceki
+     tıklamasını geri alırdı. Render sırasında düzeltiyoruz; useEffect ile
+     yapılsaydı bir kare boyunca yanlış kalp boyanırdı.
+     ⛔ `liked`i tekrar salt `useState(initialLiked)`e çevirme. */
+  const [gorulenProp, setGorulenProp] = useState(initialLiked);
+  const [dokunuldu, setDokunuldu] = useState(false);
+  if (!dokunuldu && initialLiked !== gorulenProp) {
+    setGorulenProp(initialLiked);
+    setLiked(initialLiked);
+  }
+
   async function toggleLike() {
     if (busy) return;
     if (!loggedIn) { window.location.href = '/login'; return; }
+    setDokunuldu(true); // bundan sonra prop DEĞİL yerel state doğru kaynak
     setBusy(true);
     const prevLiked = liked, prevLikes = likes;
     setLiked(!prevLiked);

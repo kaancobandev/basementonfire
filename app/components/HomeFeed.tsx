@@ -935,7 +935,11 @@ export default function HomeFeed({
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: Math.min(index * 0.07, 0.5), ease: 'easeOut' }}
                   >
-                    <DidYouKnowCard item={item} initialLiked={likedDykIds.includes(item.id)} loggedIn={!!currentUser} />
+                    {/* ⚠ `!!currentUser` DEĞİL: sayfa ISR olduğu için SSR'dan gelen currentUser
+                        HER ZAMAN null ve kişisel yük ~1,8 sn sürüyor. O pencerede GİRİŞLİ
+                        kullanıcı bu kalbe basınca kart onu /login'e atıyordu. 2026-08-14'te
+                        aynı hata dört handler'da düzeltilmişti ama bu kart atlanmıştı. */}
+                    <DidYouKnowCard item={item} initialLiked={likedDykIds.includes(item.id)} loggedIn={girisliOlabilir(currentUser)} />
                   </m.div>
                 );
               }
