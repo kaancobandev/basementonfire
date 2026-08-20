@@ -956,6 +956,12 @@ export default function HomeFeed({
               }
               if (item.kind === 'fact') {
                 const liked = likedFacts.has(item.id);
+                // ⚠ GECICI TANILAMA — ÖLÇÜNCE SİL
+                if (typeof window !== 'undefined' && !(window as any).__tip) {
+                  (window as any).__tip = { itemId: item.id, tipi: typeof item.id, kumeBoyu: likedFacts.size,
+                    kumeIcerik: JSON.stringify([...likedFacts]), kumeTipleri: [...likedFacts].map(x => typeof x).join(','),
+                    hasSonucu: likedFacts.has(item.id) };
+                }
                 const likes = factLikes[item.id] ?? item.likes;
                 const reposted = repostedFacts.has(item.id);
                 const saved = bookmarkedFacts.has(item.id);
