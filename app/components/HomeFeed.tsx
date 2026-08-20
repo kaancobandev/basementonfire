@@ -167,8 +167,23 @@ export default function HomeFeed({
   // undefined = bu turda gelmedi (istemci tarafı gezinme) → kendimiz çekeriz.
   const feedPersonal = useFeedPersonal();
 
+  // ⚠ GECICI TANILAMA — 20.08.2026. Begeni kisisel kati arayuze ulasmiyor;
+  // sunucu dogru veriyi donuyor ama hicbir alan uygulanmiyor. Zincirin hangi
+  // halkasinda koptugunu olcmek icin. ÖLÇÜM BİTİNCE SİL.
+  if (typeof window !== 'undefined') {
+    (window as any).__tanilama = {
+      navUser: navUser ? 'dolu' : (navUser === null ? 'null' : String(navUser)),
+      feedPersonal: feedPersonal === undefined ? 'undefined' : (feedPersonal === null ? 'null' : 'dolu'),
+    };
+  }
+
   /** Gelen kişisel yükü state'e yaz. İki kaynak da (context / fetch) burayı kullanır. */
   const uygula = useCallback((d: any) => {
+    // ⚠ GECICI TANILAMA — ÖLÇÜM BİTİNCE SİL (20.08.2026)
+    if (typeof window !== 'undefined') {
+      const w = window as any;
+      w.__uygula = { cagri: (w.__uygula?.cagri ?? 0) + 1, userVar: !!d?.user, likedPostIds: d?.likedPostIds ?? 'YOK' };
+    }
     if (!d?.user) return;
     setCurrentUser(d.user);
     setCanMatch(!!d.canMatch);
