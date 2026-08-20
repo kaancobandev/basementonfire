@@ -18,7 +18,7 @@ import { avatarSrc } from '@/lib/avatar';
  */
 export default function DidYouKnowCard({ item, initialLiked = false, guncelLikes, loggedIn = false }: { item: DidYouKnow; initialLiked?: boolean; guncelLikes?: number; loggedIn?: boolean }) {
   const [liked, setLiked] = useState(initialLiked);
-  const [likes, setLikes] = useState(item.likes ?? 0);
+  const [likes, setLikes] = useState(guncelLikes ?? item.likes ?? 0);
   const [busy, setBusy] = useState(false);
 
   /* ⚠ `useState(initialLiked)` prop'u YALNIZ ilk render'da okur; sonradan
@@ -49,7 +49,15 @@ export default function DidYouKnowCard({ item, initialLiked = false, guncelLikes
   /* SAYAÇ da aynı sebeple bayat: `item.likes` paylaşılan içerik önbelleğinden
      (revalidate 3600) geliyor ve hiçbir beğeni rotası o tag'i düşürmüyor.
      `guncelLikes` kişisel yükle inen TAZE değer — kullanıcı bu karta dokunana
-     kadar onu izle, dokunduktan sonra uçtan dönen kesin sayı geçerli olsun. */
+     kadar onu izle, dokunduktan sonra uçtan dönen kesin sayı geçerli olsun.
+
+     ⛔ `likes` YUKARIDA `guncelLikes ?? item.likes` ile tohumlanıyor; bunu salt
+     `item.likes`e ÇEVİRME. Nöbetçi `guncelLikes !== gorulenSayi` karşılaştırması
+     yapıyor, yani iki state FARKLI kaynaklardan doğarsa kart `guncelLikes` ZATEN
+     doluyken mount olduğunda (sekme değişimi kartları unmount/remount ediyor)
+     nöbetçi ilk render'da false döner, `setLikes` hiç çalışmaz ve kart bayat
+     sayıda KALICI olarak donar. Kardeş `liked`/`gorulenProp` çifti bu hatayı
+     yapmıyor çünkü ikisi de `initialLiked`ten doğuyor — o simetriyi koru. */
   const [gorulenSayi, setGorulenSayi] = useState<number | undefined>(guncelLikes);
   if (!dokunuldu && guncelLikes !== undefined && guncelLikes !== gorulenSayi) {
     setGorulenSayi(guncelLikes);

@@ -275,6 +275,40 @@ export default function HomeFeed({
   const [tabLoading, setTabLoading] = useState(false);
   const allSnapshot = useRef<{ items: any[]; cursor: string | null; hasMore: boolean } | null>(null);
 
+  /* ⚠ TAZE SUNUCU VERİSİ GELİNCE OVERLAY'İ BIRAK.
+     `sayimlar` overlay'i ISR kabuğundaki BAYAT sayıları düzeltmek için var.
+     Ama `/api/feed` (sekme değişimi + sonsuz kaydırma) ÖNBELLEKSİZ ve
+     `comments(count)` ile CANLI sayı taşıyor. Overlay temizlenmezse
+     `factLikes[id] ?? item.likes` zinciri, sayfa açılışındaki anlık görüntüye
+     az önce ağdan gelen daha yeni sayının ÜSTÜNDE öncelik verir — yani
+     düzeltmenin kendisi yeni bir bayatlık kaynağına dönüşür.
+     Kullanıcının elle dokunduğu id'ler KORUNUR: orada uçtan dönen kesin
+     sonuç her ikisinden de yenidir. */
+  const overlayBirak = useCallback((gelenler: any[]) => {
+    const birak = (
+      setter: (f: (p: Record<number, number>) => Record<number, number>) => void,
+      idler: number[],
+      dokunulan: Set<number>,
+    ) => {
+      if (!idler.length) return;
+      setter((prev) => {
+        let degisti = false;
+        const yeni = { ...prev };
+        for (const id of idler) {
+          if (dokunulan.has(id)) continue;
+          if (id in yeni) { delete yeni[id]; degisti = true; }
+        }
+        return degisti ? yeni : prev; // referans korunsun, gereksiz render olmasın
+      });
+    };
+    const ed = elleDegisen.current;
+    const factIds = gelenler.filter((i) => i?.kind === 'fact').map((i) => Number(i.id));
+    const postIds = gelenler.filter((i) => i?.kind === 'post').map((i) => Number(i.id));
+    birak(setFactLikes, factIds, ed.fact);
+    birak(setYorumSayilari, factIds, ed.fact);
+    birak(setPostLikes, postIds, ed.post);
+  }, []);
+
   const loadMore = useCallback(async () => {
     if (loadingMore || !hasMore || !nextCursor) return;
     setLoadingMore(true);
@@ -282,6 +316,7 @@ export default function HomeFeed({
       const res = await fetch(`/api/feed?type=${tab === 'following' ? 'following' : 'mixed'}&cursor=${encodeURIComponent(nextCursor)}&limit=10`);
       const data = await res.json();
       if (data.posts?.length) {
+        overlayBirak(data.posts);
         setFeedItems(prev => {
           // Tekrar eklemeyi önle
           const existingKeys = new Set(prev.map((i: any) => `${i.kind}-${i.id}`));
@@ -298,7 +333,7 @@ export default function HomeFeed({
     } finally {
       setLoadingMore(false);
     }
-  }, [loadingMore, hasMore, nextCursor, tab]);
+  }, [loadingMore, hasMore, nextCursor, tab, overlayBirak]);
 
   // Sekme değişimi: 'all' anlık geri döner (SSR anlık görüntüsü saklanır),
   // 'following' ilk açılışta API'den çekilir. Boş sonuçta ŞEFFAF davranış:
@@ -318,6 +353,7 @@ export default function HomeFeed({
     try {
       const res = await fetch('/api/feed?type=following&limit=10');
       const data = await res.json();
+      overlayBirak(data.posts ?? []);
       setFeedItems(data.posts ?? []);
       setNextCursor(data.nextCursor ?? null);
       setHasMore(!!data.hasMore);
@@ -327,7 +363,7 @@ export default function HomeFeed({
     } finally {
       setTabLoading(false);
     }
-  }, [tab, feedItems, nextCursor, hasMore]);
+  }, [tab, feedItems, nextCursor, hasMore, overlayBirak]);
 
   // Son seçilen sekmeyi hatırla (girişli kullanıcı için).
   useEffect(() => {
