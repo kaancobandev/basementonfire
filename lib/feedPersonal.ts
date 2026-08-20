@@ -30,9 +30,42 @@ export type FeedPersonal = {
   suggestedUsers: unknown[];
   ownStoryUser: unknown;
   otherStoryUsers: unknown[];
+  /** TAZE SAYAÇLAR — paylaşılan içerik önbelleği 1 saatlik (`revalidate: 3600`)
+   *  ve hiçbir beğeni/yorum rotası `revalidateTag('feed')` ÇAĞIRMIYOR (çağırsa
+   *  her beğenide tüm akış önbelleği düşerdi — ISR kazancı ölürdü). Bu yüzden
+   *  önbellekteki `likes`/`comments_count` bir saate kadar bayat olabiliyordu:
+   *  kendi beğenin sayıya yansımıyor, kullanıcı "kaydolmadı" sanıyordu.
+   *  Bu alanlar HER istekte DB'den okunur ve istemcide bayat olanların üstüne
+   *  yazılır. Aynı `Promise.all` içinde koştukları için EK TUR maliyeti yok. */
+  sayimlar: {
+    factLikes: Record<number, number>;
+    postLikes: Record<number, number>;
+    factComments: Record<number, number>;
+    dykLikes: Record<number, number>;
+  };
   /** İki dalganın ayrı süreleri (ms) — çağıran Server-Timing'e basar. */
   sure?: { icerik: number; sorgu: number };
 };
+
+/** `{id: sayı}` haritası. Sorgu hata verdiyse (uykuda tablo/kolon) BOŞ döner —
+ *  o zaman istemci önbellekteki sayıyı kullanmaya devam eder, kırılma olmaz. */
+function sayiHaritasi(res: any, sec: (r: any) => number): Record<number, number> {
+  if (!res || res.error || !Array.isArray(res.data)) return {};
+  const o: Record<number, number> = {};
+  for (const r of res.data) {
+    const deger = sec(r);
+    if (Number.isFinite(deger)) o[Number(r.id)] = deger;
+  }
+  return o;
+}
+
+/** PostgREST gömülü `tablo(count)` sonucu `[{count: n}]` şeklinde gelir. */
+function gomuluSayi(alan: string) {
+  return (r: any): number => {
+    const g = r[alan];
+    return Array.isArray(g) && g[0] ? Number(g[0].count) || 0 : 0;
+  };
+}
 
 /** İçerik dalgasının tipi — `buildFeedPersonal`a DIŞARIDAN verilebilsin diye. */
 type IcerikYuku = [Awaited<ReturnType<typeof getHomeContent>>, Awaited<ReturnType<typeof getDidYouKnow>>];
@@ -75,7 +108,7 @@ export async function buildFeedPersonal(me: any, onIcerik?: Promise<IcerikYuku>)
   // Fazlası ZARARSIZ: viewer_id=me.id koşulu yalnız kullanıcının KENDİ "gördüm"
   // kayıtlarını döndürür; görünmeyen hikâye filtrelenmiş storyMap'e zaten girmez.
   const tSorgu = Date.now();
-  const [canSeeStory, fr, pr, rr, dl, bm, suggestedUsers, seenRes] = await Promise.all([
+  const [canSeeStory, fr, pr, rr, dl, bm, suggestedUsers, seenRes, tfRes, tpRes, tdRes] = await Promise.all([
     audiencePredicate(me.id),
     facts.length ? db.from('fact_likes').select('fact_id').eq('user_id', me.id).in('fact_id', facts.map((f) => f.id)) : Promise.resolve({ data: [] as any[] }),
     posts.length ? db.from('post_likes').select('post_id').eq('user_id', me.id).in('post_id', posts.map((p) => p.id)) : Promise.resolve({ data: [] as any[] }),
@@ -88,6 +121,13 @@ export async function buildFeedPersonal(me: any, onIcerik?: Promise<IcerikYuku>)
     facts.length ? db.from('bookmarks').select('post_id').eq('user_id', me.id).in('post_id', facts.map((f) => f.id)) : Promise.resolve({ data: [] as any[] }),
     getSuggestedUsers(me.id),
     allStoryIds.length ? db.from('story_views').select('story_id').eq('viewer_id', me.id).in('story_id', allStoryIds) : Promise.resolve({ data: [] as any[] }),
+    // ⬇ TAZE SAYAÇLAR (bkz. FeedPersonal.sayimlar). Hepsi birincil anahtarla
+    // filtreli ve ~30 satır; bu Promise.all'un İÇİNDE oldukları için toplam
+    // gecikmeye ek TUR getirmezler (bu projede gecikme = ardışık tur sayısı).
+    facts.length ? db.from('quick_facts').select('id, likes, comments(count)').in('id', facts.map((f) => f.id)) : Promise.resolve({ data: [] as any[] }),
+    posts.length ? db.from('posts').select('id, likes').in('id', posts.map((p) => p.id)) : Promise.resolve({ data: [] as any[] }),
+    // dyk_likes tablosu yoksa embed patlar → aşağıda sessizce boş geçilir.
+    dykIds.length ? db.from('did_you_know').select('id, dyk_likes(count)').in('id', dykIds) : Promise.resolve({ data: [] as any[] }),
   ]);
   const sorguMs = Date.now() - tSorgu;
 
@@ -112,6 +152,12 @@ export async function buildFeedPersonal(me: any, onIcerik?: Promise<IcerikYuku>)
       repostedFactIds: ((rr as any).data ?? []).map((r: any) => r.fact_id),
       likedDykIds: ((dl as any).data ?? []).map((r: any) => r.dyk_id),
       bookmarkedFactIds: ((bm as any).data ?? []).map((r: any) => r.post_id),
+      sayimlar: {
+        factLikes: sayiHaritasi(tfRes, (r) => Number(r.likes) || 0),
+        postLikes: sayiHaritasi(tpRes, (r) => Number(r.likes) || 0),
+        factComments: sayiHaritasi(tfRes, gomuluSayi('comments')),
+        dykLikes: sayiHaritasi(tdRes, gomuluSayi('dyk_likes')),
+      },
       suggestedUsers,
       ownStoryUser,
       otherStoryUsers,

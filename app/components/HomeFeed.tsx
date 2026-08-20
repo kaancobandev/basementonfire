@@ -110,6 +110,26 @@ const HeartEmpty = () => (
  *
  * Doğrusu id bazında olmak: dokunulmayan id'lerde sunucu, dokunulanlarda
  * kullanıcı kazanır. */
+/** Taze sayaçları uygular; kullanıcının elle dokunduğu id'leri ATLAR — onlarda
+ *  uçtan dönen kesin sonuç zaten daha yeni. Sorgu uykudaysa harita boş gelir ve
+ *  hiçbir şey değişmez (önbellekteki sayı kullanılmaya devam eder). */
+function sayimUygula(
+  setter: (f: (prev: Record<number, number>) => Record<number, number>) => void,
+  gelen: Record<number, number> | undefined,
+  dokunulan?: Set<number>,
+): void {
+  if (!gelen || !Object.keys(gelen).length) return;
+  setter((prev) => {
+    const yeni = { ...prev };
+    for (const [anahtar, deger] of Object.entries(gelen)) {
+      const id = Number(anahtar);
+      if (dokunulan?.has(id)) continue;
+      yeni[id] = deger;
+    }
+    return yeni;
+  });
+}
+
 function birlestir(sunucu: number[] | undefined, yerel: Set<number>, dokunulan: Set<number>): Set<number> {
   const sonuc = new Set<number>(sunucu ?? []);
   for (const id of dokunulan) {
@@ -172,6 +192,10 @@ export default function HomeFeed({
   const [bookmarkedFacts, setBookmarkedFacts] = useState<Set<number>>(new Set());
   const [pickerFor, setPickerFor] = useState<number | null>(null);
   const [postLikes, setPostLikes] = useState<Record<number, number>>({});
+  // Paylaşılan içerik önbelleği 1 saatlik olduğu için oradaki yorum/DYK
+  // sayıları bayat olabilir; kişisel yük TAZE değerleri getirir (sayimlar).
+  const [yorumSayilari, setYorumSayilari] = useState<Record<number, number>>({});
+  const [dykLikes, setDykLikes] = useState<Record<number, number>>({});
   const [followedUsers, setFollowedUsers] = useState<Set<string>>(new Set());
 
   // ── KİŞİYE ÖZEL KAT (ISR kabuğunun tamamlayıcısı).
@@ -207,6 +231,17 @@ export default function HomeFeed({
     // Sunucu doğrusu + kullanıcının elle yaptıkları. Küme genelinde değil
     // İD BAZINDA korunuyor; gerekçe birlestir()'in başında.
     const ed = elleDegisen.current;
+    /* TAZE SAYAÇLAR — akıştaki `item.likes`/`item.comments_count` paylaşılan
+       `unstable_cache`ten geliyor (revalidate 3600) ve hiçbir beğeni rotası o
+       tag'i düşürmüyor, yani bir saate kadar bayat olabiliyor: kendi beğenin
+       sayıya yansımıyor, kullanıcı "kaydolmadı" sanıp tekrar basıyor.
+       Kullanıcının ELLE dokunduğu id'lerde uçtan gelen kesin sonuç daha yeni,
+       onları EZME. */
+    const say = d.sayimlar ?? {};
+    sayimUygula(setFactLikes, say.factLikes, ed.fact);
+    sayimUygula(setPostLikes, say.postLikes, ed.post);
+    sayimUygula(setYorumSayilari, say.factComments);
+    sayimUygula(setDykLikes, say.dykLikes);
     setLikedFacts(prev => birlestir(d.likedFactIds, prev, ed.fact));
     setLikedPosts(prev => birlestir(d.likedPostIds, prev, ed.post));
     setRepostedFacts(prev => birlestir(d.repostedFactIds, prev, ed.repost));
@@ -988,7 +1023,7 @@ export default function HomeFeed({
                         HER ZAMAN null ve kişisel yük ~1,8 sn sürüyor. O pencerede GİRİŞLİ
                         kullanıcı bu kalbe basınca kart onu /login'e atıyordu. 2026-08-14'te
                         aynı hata dört handler'da düzeltilmişti ama bu kart atlanmıştı. */}
-                    <DidYouKnowCard item={item} initialLiked={likedDykIds.includes(item.id)} loggedIn={girisliOlabilir(currentUser)} />
+                    <DidYouKnowCard item={item} initialLiked={likedDykIds.includes(item.id)} guncelLikes={dykLikes[item.id]} loggedIn={girisliOlabilir(currentUser)} />
                   </m.div>
                 );
               }
@@ -1049,12 +1084,12 @@ export default function HomeFeed({
                           yalnızca bu bağlantıydı. /p/[id] akıştan tıklanınca
                           modal olarak açılır (paralel rota) ve yorumları gösterir.
                           aria-label/title: ikon-only buton erişilebilir isimsizdi. */}
-                      <Link href={`/p/${item.id}`} aria-label={`Yorumlar${typeof item.comments_count === 'number' ? ` (${item.comments_count})` : ''}`} title="Yorumlar" style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', borderRadius: '9999px', color: 'var(--color-text)', fontWeight: 600, fontSize: '0.9rem', textDecoration: 'none', transition: 'background 0.12s' }}>
+                      <Link href={`/p/${item.id}`} aria-label={`Yorumlar${typeof (yorumSayilari[item.id] ?? item.comments_count) === 'number' ? ` (${yorumSayilari[item.id] ?? item.comments_count})` : ''}`} title="Yorumlar" style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', borderRadius: '9999px', color: 'var(--color-text)', fontWeight: 600, fontSize: '0.9rem', textDecoration: 'none', transition: 'background 0.12s' }}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                         {/* Sorguda comments(count) seçilmeyen yüzeylerde undefined
                             gelir → sayaç hiç basılmaz, kart bozulmaz. */}
-                        {typeof item.comments_count === 'number' && (
-                          <span className="tnum">{item.comments_count}</span>
+                        {typeof (yorumSayilari[item.id] ?? item.comments_count) === 'number' && (
+                          <span className="tnum">{yorumSayilari[item.id] ?? item.comments_count}</span>
                         )}
                       </Link>
                       <m.button

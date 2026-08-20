@@ -16,7 +16,7 @@ import { avatarSrc } from '@/lib/avatar';
  * gor→tekrar uret dongusunun en ucuz halkasi). author gizli/silinmis hesapta
  * null gelir (sunucu karar verir), imza satiri gizlenir.
  */
-export default function DidYouKnowCard({ item, initialLiked = false, loggedIn = false }: { item: DidYouKnow; initialLiked?: boolean; loggedIn?: boolean }) {
+export default function DidYouKnowCard({ item, initialLiked = false, guncelLikes, loggedIn = false }: { item: DidYouKnow; initialLiked?: boolean; guncelLikes?: number; loggedIn?: boolean }) {
   const [liked, setLiked] = useState(initialLiked);
   const [likes, setLikes] = useState(item.likes ?? 0);
   const [busy, setBusy] = useState(false);
@@ -44,6 +44,16 @@ export default function DidYouKnowCard({ item, initialLiked = false, loggedIn = 
   if (!dokunuldu && initialLiked !== gorulenProp) {
     setGorulenProp(initialLiked);
     setLiked(initialLiked);
+  }
+
+  /* SAYAÇ da aynı sebeple bayat: `item.likes` paylaşılan içerik önbelleğinden
+     (revalidate 3600) geliyor ve hiçbir beğeni rotası o tag'i düşürmüyor.
+     `guncelLikes` kişisel yükle inen TAZE değer — kullanıcı bu karta dokunana
+     kadar onu izle, dokunduktan sonra uçtan dönen kesin sayı geçerli olsun. */
+  const [gorulenSayi, setGorulenSayi] = useState<number | undefined>(guncelLikes);
+  if (!dokunuldu && guncelLikes !== undefined && guncelLikes !== gorulenSayi) {
+    setGorulenSayi(guncelLikes);
+    setLikes(guncelLikes);
   }
 
   /* İstek düşerse yalnız değerleri değil `dokunuldu` bayrağını da geri al.
