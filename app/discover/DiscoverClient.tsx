@@ -10,7 +10,8 @@ import type { ArticleMeta } from '@/lib/articles';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 
-interface User { id: number; username: string; display_name: string; bio: string | null; avatar: string | null; }
+// is_following/is_me: /api/search ZATEN döndürüyordu, burada okunmuyordu.
+interface User { id: number; username: string; display_name: string; bio: string | null; avatar: string | null; is_following?: boolean; is_requested?: boolean; is_me?: boolean; }
 interface MediaPost { id: number; media_url: string; media_type: string; caption: string; likes: number; username: string; display_name: string; }
 // Makale tipi lib/articles.ts'ten (TEK KAYNAK) — ArticleIndex `category` alanına
 // ihtiyaç duyuyor, yerel kopya onu taşımıyordu.
@@ -31,6 +32,67 @@ export default function DiscoverClient({ users, media, articles, communityArticl
   const [searchResults, setSearchResults] = useState<{ users: User[]; posts: MediaPost[] } | null>(null);
   const [searching, setSearching] = useState(false);
   const [followed, setFollowed] = useState<Set<string>>(new Set());
+  const [istekGonderilen, setIstekGonderilen] = useState<Set<string>>(new Set());
+  const [benimKullanicim, setBenimKullanicim] = useState<string | null>(null);
+  // Kullanıcının ELLE dokunduğu kullanıcı adları — geç inen tohum bunları ezmesin.
+  const elleDegisen = useRef(new Set<string>());
+
+  /* ⚠ BU SAYFA TAKİP DURUMUNU HİÇ BİLMİYORDU. `followed` boş Set'le başlıyordu ve
+     tek yazarı followUser()'dı; yani zaten takip ettiğin herkes "Takip Et" olarak
+     görünüyordu — kendin dahil. Takip ucu bir TOGGLE olduğu için o butona basmak
+     kişiyi TAKİPTEN ÇIKARIYOR (ya da açık hesapta yeniden takip edip karşı tarafa
+     gereksiz bildirim yolluyordu). Sayfa ISR olduğu için sunucu bunu basamıyor
+     (page.tsx'e getMe() GERİ EKLEME — o karar ölçümle alındı), bu yüzden durum
+     istemcide, mount'ta çekiliyor. */
+  function tohumla(gelenler: { username: string; takipEdiyorum: boolean; istekVar: boolean }[]) {
+    const uygula = (prev: Set<string>, sec: (g: { takipEdiyorum: boolean; istekVar: boolean }) => boolean) => {
+      const yeni = new Set(prev);
+      for (const g of gelenler) {
+        if (elleDegisen.current.has(g.username)) continue; // kullanıcının eylemi kazanır
+        if (sec(g)) yeni.add(g.username); else yeni.delete(g.username);
+      }
+      return yeni;
+    };
+    setFollowed(prev => uygula(prev, g => g.takipEdiyorum));
+    setIstekGonderilen(prev => uygula(prev, g => g.istekVar));
+  }
+
+  // ISR listesi için takip durumu.
+  useEffect(() => {
+    /* ⚠ ÇIKIŞLI ZİYARETÇİDE İSTEK ATMA. Bu sayfanın ISR'a çevrilmesinin tek
+       sebebi ziyaretçinin HTML'i edge'den alması ve fonksiyonun hiç koşmamasıydı.
+       Kapısız bir fetch her anonim görüntülemede boşuna bir Lambda uyandırır ve
+       garantili `{following:[],...}` döner. AppShell (AppShell.tsx) ve HomeFeed
+       aynı çerez ipucu kapısını aynı gerekçeyle kullanıyor; ipucunu satır içi
+       script ilk boyamadan ÖNCE basıyor. Yanlış pozitif zararsız: çerez bayatsa
+       uç zaten boş döner, gerçek yetki kapısı sunucudaki getMe(). */
+    if (document.documentElement.getAttribute('data-auth') !== 'in') return;
+    const adlar = users.map(u => u.username).filter(Boolean);
+    if (!adlar.length) return;
+    let alive = true;
+    fetch(`/api/users/follow-state?u=${encodeURIComponent(adlar.join(','))}`)
+      .then(r => r.json())
+      .then((d: { following?: string[]; requested?: string[]; me?: string | null }) => {
+        if (!alive) return;
+        setBenimKullanicim(d.me ?? null);
+        const takip = new Set(d.following ?? []);
+        const istek = new Set(d.requested ?? []);
+        tohumla(adlar.map(a => ({ username: a, takipEdiyorum: takip.has(a), istekVar: istek.has(a) })));
+      })
+      .catch(() => {});
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Arama sonuçları: uç is_following'i zaten taşıyor, bedava tohum.
+  useEffect(() => {
+    const gelen = searchResults?.users ?? [];
+    if (!gelen.length) return;
+    tohumla(gelen.map(u => ({ username: u.username, takipEdiyorum: !!u.is_following, istekVar: !!u.is_requested })));
+    const ben = gelen.find(u => u.is_me);
+    if (ben) setBenimKullanicim(ben.username);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchResults]);
 
   // ?q=... ile gelindiğinde (Google sitelinks arama kutusu) otomatik ara.
   // useSearchParams KULLANILMIYOR — sayfa artık ISR (bkz. page.tsx): o hook,
@@ -72,10 +134,24 @@ export default function DiscoverClient({ users, media, articles, communityArticl
   }
 
   async function followUser(username: string) {
-    const res = await fetch(`/api/users/${username}/follow`, { method: 'POST' });
-    if (res.status === 401) { window.location.href = '/login'; return; }
-    const data = await res.json();
-    setFollowed(prev => { const n = new Set(prev); data.following ? n.add(username) : n.delete(username); return n; });
+    elleDegisen.current.add(username); // geç inen tohum bunu ezmesin
+    // İşareti geri almazsak başarısız bir istekten sonra tohum bu kullanıcıyı
+    // BİR DAHA düzeltemez ve buton kalıcı olarak yanlış kalır.
+    const isaretiBirak = () => { elleDegisen.current.delete(username); };
+    try {
+      const res = await fetch(`/api/users/${username}/follow`, { method: 'POST' });
+      if (res.status === 401) { window.location.href = '/login'; return; }
+      if (!res.ok) { isaretiBirak(); return; }
+      const data = await res.json();
+      setFollowed(prev => { const n = new Set(prev); data.following ? n.add(username) : n.delete(username); return n; });
+      // GİZLİ HESAP: takip `follows`a değil `follow_requests`e yazılır, yani uç
+      // `{following:false, requested:true}` döner. Yalnız `following`e bakarsak
+      // buton "Takip Et"te kalır, kullanıcı "olmadı" sanıp tekrar basar ve o
+      // ikinci dokunuş bekleyen isteği SESSİZCE İPTAL EDER.
+      setIstekGonderilen(prev => { const n = new Set(prev); data.requested ? n.add(username) : n.delete(username); return n; });
+    } catch {
+      isaretiBirak();
+    }
   }
 
   // showFollow:
@@ -88,12 +164,15 @@ export default function DiscoverClient({ users, media, articles, communityArticl
   //             .dc-user-row'un flex çocuğu gibi yerleşir (ona stil VERME).
   function UserRow({ u, showFollow }: { u: User; showFollow: 'always' | 'auth' }) {
     const isFollowed = followed.has(u.username);
+    const istekBekliyor = !isFollowed && istekGonderilen.has(u.username);
+    // Kendine "Takip Et" gösterme — uç zaten reddeder ama buton anlamsızdı.
+    const benMiyim = u.is_me === true || (!!benimKullanicim && u.username === benimKullanicim);
     const followBtn = (
       <button
         onClick={() => followUser(u.username)}
-        className={`dc-follow-btn${isFollowed ? ' following' : ''}`}
+        className={`dc-follow-btn${isFollowed || istekBekliyor ? ' following' : ''}`}
       >
-        {isFollowed ? 'Takip Ediliyor' : 'Takip Et'}
+        {isFollowed ? 'Takip Ediliyor' : istekBekliyor ? 'İstek Gönderildi' : 'Takip Et'}
       </button>
     );
     return (
@@ -106,7 +185,7 @@ export default function DiscoverClient({ users, media, articles, communityArticl
           <div className="dc-user-handle">@{u.username}</div>
           {u.bio && <div className="dc-user-bio">{u.bio}</div>}
         </div>
-        {showFollow === 'always' ? followBtn : <span className="auth-in">{followBtn}</span>}
+        {benMiyim ? null : showFollow === 'always' ? followBtn : <span className="auth-in">{followBtn}</span>}
       </div>
     );
   }

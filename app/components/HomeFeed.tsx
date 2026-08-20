@@ -98,6 +98,26 @@ const HeartEmpty = () => (
  * gönderir. Yani gerçek yetki kapısı sunucuda; burası sadece gereksiz isteği
  * önleyen bir kestirme. Bu yüzden ipucuna güvenmek güvenli.
  */
+/** Sunucu doğrusunu, kullanıcının ELLE yaptığı değişiklikleri EZMEDEN uygular.
+ *
+ * ⚠ ÖNCEKİ HALİ HEPSİ-YA-HİÇ'Tİ: `prev.size ? prev : yeniKüme`. Niyeti doğruydu
+ * (kişisel yük inmeden bir şeye dokunan kullanıcının eylemini geri almamak) ama
+ * bedeli çok ağırdı: TEK bir dokunuş `prev.size`ı 1 yapıyor ve sunucudan gelen
+ * kümenin TAMAMI çöpe gidiyordu. O oturum boyunca kullanıcının önceden
+ * beğendiği/kaydettiği/repostladığı her şey BOŞ ikonla görünüyordu — ve boş
+ * görünene basmak, uçlar TOGGLE olduğu için var olan kaydı SİLİYORDU.
+ * Yani koruma, korumaya çalıştığı şeyin daha büyüğünü yok ediyordu.
+ *
+ * Doğrusu id bazında olmak: dokunulmayan id'lerde sunucu, dokunulanlarda
+ * kullanıcı kazanır. */
+function birlestir(sunucu: number[] | undefined, yerel: Set<number>, dokunulan: Set<number>): Set<number> {
+  const sonuc = new Set<number>(sunucu ?? []);
+  for (const id of dokunulan) {
+    if (yerel.has(id)) sonuc.add(id); else sonuc.delete(id);
+  }
+  return sonuc;
+}
+
 function girisliOlabilir(currentUser: unknown): boolean {
   if (currentUser) return true;
   try { return document.documentElement.getAttribute('data-auth') === 'in'; } catch { return false; }
@@ -133,6 +153,14 @@ export default function HomeFeed({
   const [hasMore, setHasMore] = useState(initialItems.length >= 10);
   const [loadingMore, setLoadingMore] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
+
+  // Kullanıcının BU OTURUMDA elle değiştirdiği id'ler. Sunucu doğrusu geç
+  // indiğinde yalnız bunlar korunur (bkz. birlestir()). Ref, çünkü render
+  // tetiklemesi gerekmiyor ve `uygula` useCallback([]) içinde okunuyor.
+  const elleDegisen = useRef({
+    fact: new Set<number>(), post: new Set<number>(),
+    repost: new Set<number>(), bookmark: new Set<number>(),
+  });
 
   const [likedFacts, setLikedFacts] = useState<Set<number>>(new Set(likedFactIds));
   const [factLikes, setFactLikes] = useState<Record<number, number>>({});
@@ -176,13 +204,13 @@ export default function HomeFeed({
     setSuggestedUsers(d.suggestedUsers ?? []);
     setOwnStoryUser(d.ownStoryUser ?? null);
     setOtherStoryUsers(d.otherStoryUsers ?? []);
-    // Beğeni kümelerinde YALNIZ DOKUNULMAMIŞSA sunucu doğrusunu uygula.
-    // Kullanıcı yanıt gelmeden bir şeyi beğendiyse (dar pencere) onun
-    // eylemini geri almak, eksik vurgudan daha kötü bir hata olurdu.
-    setLikedFacts(prev => (prev.size ? prev : new Set<number>(d.likedFactIds ?? [])));
-    setLikedPosts(prev => (prev.size ? prev : new Set<number>(d.likedPostIds ?? [])));
-    setRepostedFacts(prev => (prev.size ? prev : new Set<number>(d.repostedFactIds ?? [])));
-    setBookmarkedFacts(prev => (prev.size ? prev : new Set<number>(d.bookmarkedFactIds ?? [])));
+    // Sunucu doğrusu + kullanıcının elle yaptıkları. Küme genelinde değil
+    // İD BAZINDA korunuyor; gerekçe birlestir()'in başında.
+    const ed = elleDegisen.current;
+    setLikedFacts(prev => birlestir(d.likedFactIds, prev, ed.fact));
+    setLikedPosts(prev => birlestir(d.likedPostIds, prev, ed.post));
+    setRepostedFacts(prev => birlestir(d.repostedFactIds, prev, ed.repost));
+    setBookmarkedFacts(prev => birlestir(d.bookmarkedFactIds, prev, ed.bookmark));
   }, []);
 
   // Hazır geldiyse ikinci istek YOK.
@@ -587,16 +615,30 @@ export default function HomeFeed({
   // Like handlers
   async function likePost(id: number, kind: 'fact' | 'post') {
     const endpoint = kind === 'fact' ? `/api/quick-facts/${id}/like` : `/api/posts/${id}/like`;
-    const res = await fetch(endpoint, { method: 'POST' });
-    if (res.status === 401) { window.location.href = '/login'; return; }
-    if (!res.ok) return;
-    const data = await res.json();
-    if (kind === 'fact') {
-      setLikedFacts(prev => { const n = new Set(prev); data.liked ? n.add(id) : n.delete(id); return n; });
-      setFactLikes(prev => ({ ...prev, [id]: data.likes }));
-    } else {
-      setLikedPosts(prev => { const n = new Set(prev); data.liked ? n.add(id) : n.delete(id); return n; });
-      setPostLikes(prev => ({ ...prev, [id]: data.likes }));
+    try {
+      const res = await fetch(endpoint, { method: 'POST' });
+      if (res.status === 401) { window.location.href = '/login'; return; }
+      if (!res.ok) return;
+      const data = await res.json();
+      /* ⚠ İŞARET NİYETE DEĞİL SONUCA BAĞLI — sırası önemli.
+         İsteği ATMADAN ÖNCE işaretlersek ve istek düşerse (500, kopan bağlantı)
+         yerel küme hiç değişmez ama işaret kalır; sonra inen kişisel yükte
+         birlestir() o id'yi "kullanıcı kapattı" sanıp sunucudaki GERÇEK
+         beğeniyi SİLER — ve kullanıcı boş görüp bastığında uç toggle olduğu
+         için beğeni gerçekten yok olur. İşaret, "yerel değer doğrudur"
+         vaadidir; yerel değer yazılmadıysa işaret yalan söyler.
+         Kişisel yük bu yanıttan ÖNCE inerse de sonuç doğru: o turda işaret
+         yok, sunucu doğrusu uygulanır, hemen ardından bu yanıt üstüne yazar. */
+      elleDegisen.current[kind].add(id);
+      if (kind === 'fact') {
+        setLikedFacts(prev => { const n = new Set(prev); data.liked ? n.add(id) : n.delete(id); return n; });
+        setFactLikes(prev => ({ ...prev, [id]: data.likes }));
+      } else {
+        setLikedPosts(prev => { const n = new Set(prev); data.liked ? n.add(id) : n.delete(id); return n; });
+        setPostLikes(prev => ({ ...prev, [id]: data.likes }));
+      }
+    } catch {
+      // Ağ hatası: işaret KONMADI, sunucu doğrusu geçerli kalmaya devam eder.
     }
   }
 
@@ -605,6 +647,8 @@ export default function HomeFeed({
   async function toggleBookmark(id: number) {
     if (!girisliOlabilir(currentUser)) { window.location.href = '/login'; return; }
     const vardi = bookmarkedFacts.has(id);
+    // İşaret iyimser yazmayla AYNI anda konur; geri alınırsa birlikte kalkar.
+    elleDegisen.current.bookmark.add(id);
     setBookmarkedFacts(prev => { const n = new Set(prev); vardi ? n.delete(id) : n.add(id); return n; });
     try {
       const res = await fetch(`/api/quick-facts/${id}/bookmark`, { method: 'POST' });
@@ -617,15 +661,20 @@ export default function HomeFeed({
       // aynı davranış).
       if (d.bookmarked) toast.success('Kaydedildi', { action: { label: 'Koleksiyona ekle', onClick: () => setPickerFor(id) } });
     } catch {
+      elleDegisen.current.bookmark.delete(id); // yerel değer geri alındı → vaat de geri alınmalı
       setBookmarkedFacts(prev => { const n = new Set(prev); vardi ? n.add(id) : n.delete(id); return n; });
     }
   }
 
   async function toggleRepost(id: number) {
     if (!girisliOlabilir(currentUser)) { window.location.href = '/login'; return; }
+    elleDegisen.current.repost.add(id);
     const was = repostedFacts.has(id);
     setRepostedFacts(prev => { const n = new Set(prev); was ? n.delete(id) : n.add(id); return n; });
-    const revert = () => setRepostedFacts(prev => { const n = new Set(prev); was ? n.add(id) : n.delete(id); return n; });
+    const revert = () => {
+      elleDegisen.current.repost.delete(id); // yerel değer geri alındı → vaat de geri alınmalı
+      setRepostedFacts(prev => { const n = new Set(prev); was ? n.add(id) : n.delete(id); return n; });
+    };
     try {
       const res = await fetch(`/api/quick-facts/${id}/repost`, { method: 'POST' });
       if (res.status === 401) { window.location.href = '/login'; return; }

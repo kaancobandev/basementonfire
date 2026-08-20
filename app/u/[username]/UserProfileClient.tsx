@@ -59,6 +59,32 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
   const [following, setFollowing] = useState(initialFollowing);
   const [requested, setRequested] = useState(isRequested); // gizli hesaba bekleyen istek
   const [followers, setFollowers] = useState(followersCount);
+
+  /* ⚠ YUKARIDAKİ ÜÇ `useState(prop)` prop'u YALNIZ mount'ta okur ve burada bu
+     ölümcül: `router.refresh()` bileşeni REMOUNT ETMEZ — sunucu ağacını yeniden
+     koşturup TAZE PROP'u mount haldeki bileşene akıtır. Yani engelle/engeli
+     kaldır sonrası sunucu doğruyu gönderiyordu ama donmuş state görmüyordu.
+     Somut zarar: engelleme, follows ve follow_requests satırlarını İKİ YÖNDEN
+     siliyor (api/users/[username]/block/route.ts:36,40) — buna rağmen buton
+     "Takip Ediliyor" demeye devam ediyordu. Kullanıcı takipten çıkmak için
+     basınca sunucuda silinecek satır bulunmuyor ve açık hesapta YENİDEN TAKİP
+     EDİYOR, karşı tarafa "seni takip etti" bildirimi gidiyordu. Takipçi sayacı
+     da aynı şekilde donuyor: iki sayaç yan yana, biri güncelleniyor diğeri
+     bayat kalıyordu.
+     Sunucu prop'u DEĞİŞTİĞİNDE yeniden eşitliyoruz. Optimistik toggleFollow
+     prop'u değiştirmediği için bu senkron onu ezmez; render sırasında
+     yapılıyor, useEffect ile yapılsaydı bir kare yanlış buton boyanırdı.
+     ⚠ SINIRI: bu bir "prop DEĞİŞTİ mi" dedektörü. Prop A→B→A turu yapıp aynı
+     değere dönerse tetiklenmez. Tek prop tazeleyicisi toggleBlock olduğu için
+     orada yerel değerleri elle uzlaştırıyoruz; yeni bir router.refresh()
+     çağrısı eklersen o yolu da elle uzlaştırman gerekir. */
+  const [gorulenTakip, setGorulenTakip] = useState(initialFollowing);
+  if (gorulenTakip !== initialFollowing) { setGorulenTakip(initialFollowing); setFollowing(initialFollowing); }
+  const [gorulenIstek, setGorulenIstek] = useState(isRequested);
+  if (gorulenIstek !== isRequested) { setGorulenIstek(isRequested); setRequested(isRequested); }
+  const [gorulenSayi, setGorulenSayi] = useState(followersCount);
+  if (gorulenSayi !== followersCount) { setGorulenSayi(followersCount); setFollowers(followersCount); }
+
   const [followLoading, setFollowLoading] = useState(false);
   const [dmLoading, setDmLoading] = useState(false);
   const [followModal, setFollowModal] = useState<'followers' | 'following' | null>(null);
@@ -87,6 +113,20 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
       const data = await res.json().catch(() => ({}));
       if (!res.ok) { alert(data.error || 'İşlem başarısız.'); return; }
       setBlocked(data.blocked);
+      /* Engelleme sunucuda İKİ YÖNDEKİ takibi ve bekleyen isteği ZATEN sildi
+         (block/route.ts:36,40) — yerel durumu burada elle uzlaştırıyoruz.
+         ⚠ SAYACI DA DÜŞMEK ŞART, çünkü aşağıdaki prop senkronu bir "prop
+         DEĞİŞTİ mi" dedektörü; "yerel değer prop'tan saptı mı" dedektörü değil.
+         Takip edip sonra engelleyince sayı 10 → (iyimser) 11 → (engelleme
+         sonrası gerçek) 10 turunu yapıyor; prop mount değerine geri döndüğü
+         için senkron HİÇ tetiklenmiyor ve sayaç 11'de takılı kalıyordu.
+         Burada -1 uygulayınca yerel değer sunucununkine oturuyor ve gelen
+         özdeş prop'un senkronu tetiklememesi de doğru davranış oluyor. */
+      if (data.blocked) {
+        if (following) setFollowers(f => Math.max(0, f - 1));
+        setFollowing(false);
+        setRequested(false);
+      }
       router.refresh(); // içeriğin gizli/görünür durumunu yenile
     } finally {
       setBlockLoading(false);

@@ -46,6 +46,15 @@ export default function DidYouKnowCard({ item, initialLiked = false, loggedIn = 
     setLiked(initialLiked);
   }
 
+  /* İstek düşerse yalnız değerleri değil `dokunuldu` bayrağını da geri al.
+     Yoksa kart prop senkronundan SONSUZA DEK kopar (dokunuldu bir daha false
+     olmaz) ve düzeltmeye çalıştığımız donma aynen geri gelir. */
+  function geriAl(oncekiLiked: boolean, oncekiLikes: number) {
+    setLiked(oncekiLiked);
+    setLikes(oncekiLikes);
+    setDokunuldu(false);
+  }
+
   async function toggleLike() {
     if (busy) return;
     if (!loggedIn) { window.location.href = '/login'; return; }
@@ -58,11 +67,11 @@ export default function DidYouKnowCard({ item, initialLiked = false, loggedIn = 
       const r = await fetch(`/api/dyk/${item.id}/like`, { method: 'POST' });
       if (r.status === 401) { window.location.href = '/login'; return; }
       const d = await r.json();
-      if (!r.ok || typeof d.liked === 'undefined') { setLiked(prevLiked); setLikes(prevLikes); return; }
+      if (!r.ok || typeof d.liked === 'undefined') { geriAl(prevLiked, prevLikes); return; }
       setLiked(d.liked);
       setLikes(d.likes ?? prevLikes);
     } catch {
-      setLiked(prevLiked); setLikes(prevLikes);
+      geriAl(prevLiked, prevLikes);
     } finally {
       setBusy(false);
     }

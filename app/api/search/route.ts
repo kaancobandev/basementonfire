@@ -1,4 +1,4 @@
-import { db, getMe } from '@/lib/supabase/server';
+import { db, getMe, isMissingSchema } from '@/lib/supabase/server';
 import { getBlockedUserIds } from '@/lib/blocks';
 import { NextResponse } from 'next/server';
 
@@ -48,21 +48,33 @@ export async function GET(req: Request) {
 
   // Engel listesi ile takip durumu birbirinden bağımsız → paralel.
   const targetIds = me && (type === 'users' || type === 'all') ? (usersRes.data ?? []).map((u: any) => u.id) : [];
-  const [blocked, followsRes] = await Promise.all([
+  const [blocked, followsRes, istekRes] = await Promise.all([
     // Engellediğim + beni engelleyen kullanıcılar aramada (hem profil hem gönderi) görünmez.
     me ? getBlockedUserIds(me.id) : Promise.resolve(new Set<number>()),
     me && targetIds.length > 0
       ? db.from('follows').select('following_id').eq('follower_id', me.id).in('following_id', targetIds)
       : Promise.resolve({ data: [] as { following_id: number }[] }),
+    // GİZLİ HESAP: takip `follows`a değil `follow_requests`e yazılır. Bunu
+    // taşımazsak arama sonucundaki buton "Takip Et" der ve kullanıcının bir
+    // sonraki dokunuşu bekleyen isteği sessizce iptal eder.
+    me && targetIds.length > 0
+      ? db.from('follow_requests').select('target_id').eq('requester_id', me.id).in('target_id', targetIds)
+      : Promise.resolve({ data: [] as { target_id: number }[] }),
   ]);
   const followingIds = new Set<number>();
   (followsRes.data ?? []).forEach((f: any) => followingIds.add(f.following_id));
+  // Tablo uykudaysa sessizce boş geç — arama kırılmasın.
+  const requestedIds = new Set<number>();
+  if (!((istekRes as any).error && isMissingSchema((istekRes as any).error))) {
+    (istekRes.data ?? []).forEach((r: any) => requestedIds.add(r.target_id));
+  }
 
   const users = (usersRes.data ?? [])
     .filter((u: any) => !blocked.has(u.id))
     .map((u: any) => ({
       ...u,
       is_following: followingIds.has(u.id),
+      is_requested: !followingIds.has(u.id) && requestedIds.has(u.id),
       is_me: u.id === me?.id,
     }));
 
