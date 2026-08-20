@@ -179,16 +179,7 @@ export default function HomeFeed({
     // Beğeni kümelerinde YALNIZ DOKUNULMAMIŞSA sunucu doğrusunu uygula.
     // Kullanıcı yanıt gelmeden bir şeyi beğendiyse (dar pencere) onun
     // eylemini geri almak, eksik vurgudan daha kötü bir hata olurdu.
-    setLikedFacts(prev => {
-      // ⚠ GECICI TANILAMA — ÖLÇÜNCE SİL
-      if (typeof window !== 'undefined') {
-        const w = window as any;
-        (w.__yd = w.__yd || { kosu: 0, olay: [] }).olay.push(
-          '  setLikedFacts: prev.size=' + prev.size + ' gelen=' + JSON.stringify(d.likedFactIds ?? 'YOK') +
-          ' -> ' + (prev.size ? 'PREV KORUNDU' : 'YENI UYGULANDI'));
-      }
-      return prev.size ? prev : new Set<number>(d.likedFactIds ?? []);
-    });
+    setLikedFacts(prev => (prev.size ? prev : new Set<number>(d.likedFactIds ?? [])));
     setLikedPosts(prev => (prev.size ? prev : new Set<number>(d.likedPostIds ?? [])));
     setRepostedFacts(prev => (prev.size ? prev : new Set<number>(d.repostedFactIds ?? [])));
     setBookmarkedFacts(prev => (prev.size ? prev : new Set<number>(d.bookmarkedFactIds ?? [])));
@@ -198,23 +189,17 @@ export default function HomeFeed({
   useEffect(() => { if (feedPersonal) uygula(feedPersonal); }, [feedPersonal, uygula]);
 
   useEffect(() => {
-    // ⚠ GECICI TANILAMA — SPA gezinmesinde begeni gorunmuyor. ÖLÇÜNCE SİL.
-    const T: any = (typeof window !== 'undefined')
-      ? ((window as any).__yd = (window as any).__yd || { kosu: 0, olay: [] })
-      : null;
-    if (T) { T.kosu++; T.olay.push('kosu#' + T.kosu + ' navUser=' + (navUser ? 'var' : 'yok') + ' feedPersonal=' + (feedPersonal === undefined ? 'undef' : feedPersonal === null ? 'null' : 'dolu')); }
     if (!navUser) return;
+    // ⚠ `!== undefined` DEĞİL: nav-state kişisel katı üretirken hata alırsa
+    // `feed: null` döner (fail-safe). O hâlde AppShell "halletmiş" sayılmamalı,
+    // yedek uca düşmeliyiz — yoksa kullanıcı beğenilerini hiç göremezdi.
     if (feedPersonal) return;
     let alive = true;
-    if (T) T.olay.push('  fetch basladi');
     fetch('/api/feed/personal')
-      .then((r) => { if (T) T.olay.push('  yanit kod=' + r.status); return r.json(); })
-      .then((d) => {
-        if (T) T.olay.push('  cozuldu alive=' + alive + ' fact=' + JSON.stringify(d?.likedFactIds ?? 'YOK'));
-        if (alive) uygula(d);
-      })
-      .catch((e) => { if (T) T.olay.push('  HATA ' + e.message); });
-    return () => { if (T) T.olay.push('  temizlik alive=false'); alive = false; };
+      .then(r => r.json())
+      .then(d => { if (alive) uygula(d); })
+      .catch(() => { /* fail-safe: kabuk kalır */ });
+    return () => { alive = false; };
   }, [navUser?.id]);
 
   // Sonsuz kaydırma — birleşik feed
@@ -956,12 +941,6 @@ export default function HomeFeed({
               }
               if (item.kind === 'fact') {
                 const liked = likedFacts.has(item.id);
-                // ⚠ GECICI TANILAMA — ÖLÇÜNCE SİL
-                if (typeof window !== 'undefined' && !(window as any).__tip) {
-                  (window as any).__tip = { itemId: item.id, tipi: typeof item.id, kumeBoyu: likedFacts.size,
-                    kumeIcerik: JSON.stringify([...likedFacts]), kumeTipleri: [...likedFacts].map(x => typeof x).join(','),
-                    hasSonucu: likedFacts.has(item.id) };
-                }
                 const likes = factLikes[item.id] ?? item.likes;
                 const reposted = repostedFacts.has(item.id);
                 const saved = bookmarkedFacts.has(item.id);
