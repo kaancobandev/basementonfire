@@ -182,7 +182,15 @@ export default function HomeFeed({
     // ⚠ GECICI TANILAMA — ÖLÇÜM BİTİNCE SİL (20.08.2026)
     if (typeof window !== 'undefined') {
       const w = window as any;
-      w.__uygula = { cagri: (w.__uygula?.cagri ?? 0) + 1, userVar: !!d?.user, likedPostIds: d?.likedPostIds ?? 'YOK' };
+      w.__uygula = {
+        cagri: (w.__uygula?.cagri ?? 0) + 1,
+        userVar: !!d?.user,
+        anahtarlar: d ? Object.keys(d) : 'd YOK',
+        likedPostIds: d?.likedPostIds ?? 'YOK',
+        likedFactIds: d?.likedFactIds ?? 'YOK',
+        suggested: (d?.suggestedUsers || []).length,
+        ms: Math.round(performance.now()),
+      };
     }
     if (!d?.user) return;
     setCurrentUser(d.user);
