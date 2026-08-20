@@ -1448,10 +1448,10 @@ export default function HomeFeed({
       {/* Story Create Modal */}
       {createOpen && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={e => { if (e.target === e.currentTarget) closeStoryCreate(); }}>
-          <div style={{ background: '#1a1510', borderRadius: 20, width: '100%', maxWidth: 400, padding: 20, position: 'relative', zIndex: 1, maxHeight: '88vh', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, fontWeight: 700, fontSize: '1rem', color: '#e8e0d8' }}>
+          <div style={{ background: 'var(--color-surface)', borderRadius: 20, width: '100%', maxWidth: 400, padding: 20, position: 'relative', zIndex: 1, maxHeight: '88vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, fontWeight: 700, fontSize: '1rem', color: 'var(--color-text)' }}>
               <span>Yeni Hikaye</span>
-              <button onClick={closeStoryCreate} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', color: '#aaa' }}>
+              <button onClick={closeStoryCreate} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', color: 'var(--color-text-muted)' }}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
               </button>
             </div>
@@ -1459,7 +1459,7 @@ export default function HomeFeed({
               role="button"
               tabIndex={textMode ? -1 : 0}
               aria-label="Fotoğraf veya video seç"
-              style={{ border: textMode ? 'none' : '2px dashed rgba(255,255,255,0.15)', borderRadius: 16, width: '100%', maxWidth: 'calc(50vh * 9 / 16)', aspectRatio: '9 / 16', maxHeight: '50vh', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: textMode ? 'default' : 'pointer', textAlign: 'center', overflow: 'hidden', position: 'relative', color: '#ccc', transition: 'border-color 0.2s', ...(textMode ? { background: `linear-gradient(0deg, ${(TEXT_STORY_BGS[storyBg] ?? TEXT_STORY_BGS[0])[0]}, ${(TEXT_STORY_BGS[storyBg] ?? TEXT_STORY_BGS[0])[1]})` } : {}) }}
+              style={{ border: textMode ? 'none' : '2px dashed var(--color-border)', borderRadius: 16, width: '100%', maxWidth: 'calc(50vh * 9 / 16)', aspectRatio: '9 / 16', maxHeight: '50vh', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: textMode ? 'default' : 'pointer', textAlign: 'center', overflow: 'hidden', position: 'relative', color: 'var(--color-text-muted)', transition: 'border-color 0.2s', ...(textMode ? { background: `linear-gradient(0deg, ${(TEXT_STORY_BGS[storyBg] ?? TEXT_STORY_BGS[0])[0]}, ${(TEXT_STORY_BGS[storyBg] ?? TEXT_STORY_BGS[0])[1]})` } : {}) }}
               onClick={() => { if (!textMode) document.getElementById('story-file-input')?.click(); }}
               onKeyDown={(e) => { if (!textMode && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); document.getElementById('story-file-input')?.click(); } }}
             >
@@ -1474,7 +1474,7 @@ export default function HomeFeed({
               ) : (
                 <div>
                   <p style={{ fontWeight: 600, marginBottom: 4 }}>Fotoğraf veya video seç</p>
-                  <p style={{ fontSize: '0.8rem', color: '#888' }}>Tıkla · Max 50MB</p>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Tıkla · Max 50MB</p>
                 </div>
               )}
             </div>
@@ -1485,8 +1485,8 @@ export default function HomeFeed({
             {storyFile && (
               <div style={{ marginTop: 12 }}>
                 <textarea value={storyCaption} onChange={e => setStoryCaption(e.target.value.slice(0, 200))} rows={2} placeholder="Bir şeyler yaz… (isteğe bağlı)"
-                  style={{ width: '100%', resize: 'none', padding: '10px 12px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.04)', color: '#e8e0d8', fontFamily: 'inherit', fontSize: '0.9rem', lineHeight: 1.4 }} />
-                {storyCaption.length > 0 && <p style={{ margin: '4px 2px 0', textAlign: 'right', fontSize: '0.7rem', color: '#8a7f74' }}>{storyCaption.length}/200</p>}
+                  style={{ width: '100%', resize: 'none', padding: '10px 12px', borderRadius: 12, border: '1px solid var(--color-border)', background: 'var(--color-hover)', color: 'var(--color-text)', fontFamily: 'inherit', fontSize: '0.9rem', lineHeight: 1.4 }} />
+                {storyCaption.length > 0 && <p style={{ margin: '4px 2px 0', textAlign: 'right', fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>{storyCaption.length}/200</p>}
               </div>
             )}
 
@@ -1495,13 +1495,13 @@ export default function HomeFeed({
             {!storyFile && textMode && (
               <div style={{ marginTop: 12 }}>
                 <textarea autoFocus value={storyText} onChange={e => setStoryText(e.target.value.slice(0, 240))} rows={3} placeholder="Ne düşünüyorsun?"
-                  style={{ width: '100%', resize: 'none', padding: '10px 12px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.04)', color: '#e8e0d8', fontFamily: 'inherit', fontSize: '0.95rem', lineHeight: 1.4 }} />
+                  style={{ width: '100%', resize: 'none', padding: '10px 12px', borderRadius: 12, border: '1px solid var(--color-border)', background: 'var(--color-hover)', color: 'var(--color-text)', fontFamily: 'inherit', fontSize: '0.95rem', lineHeight: 1.4 }} />
                 <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap', alignItems: 'center' }}>
                   {TEXT_STORY_BGS.map(([a, b], i) => (
                     <button key={i} type="button" aria-label={`Renk ${i + 1}`} onClick={() => setStoryBg(i)}
                       style={{ width: 30, height: 30, borderRadius: '50%', cursor: 'pointer', background: `linear-gradient(135deg, ${b}, ${a})`, border: storyBg === i ? '2px solid #fff' : '2px solid transparent', boxShadow: storyBg === i ? '0 0 0 1px rgba(0,0,0,0.4)' : 'none' }} />
                   ))}
-                  <button type="button" onClick={() => { setTextMode(false); setStoryText(''); }} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#8a7f74', fontSize: '0.75rem', cursor: 'pointer', fontFamily: 'inherit' }}>vazgeç</button>
+                  <button type="button" onClick={() => { setTextMode(false); setStoryText(''); }} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: 'var(--color-text-muted)', fontSize: '0.75rem', cursor: 'pointer', fontFamily: 'inherit' }}>vazgeç</button>
                 </div>
               </div>
             )}
@@ -1509,7 +1509,7 @@ export default function HomeFeed({
             {/* SADECE-METİN başlat düğmesi — dosya da metin modu da yokken. */}
             {!storyFile && !textMode && (
               <button type="button" onClick={() => { setTextMode(true); setArtPicker(false); }}
-                style={{ width: '100%', marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '10px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.15)', background: 'transparent', color: '#e8d9c6', fontFamily: 'inherit', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}>
+                style={{ width: '100%', marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '10px', borderRadius: 12, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontFamily: 'inherit', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 7V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2M9 20h6M12 4v16"/></svg>
                 Sadece yazı
               </button>
