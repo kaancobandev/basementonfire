@@ -76,8 +76,15 @@ jobs:
           # gorunurluk sorunu var. Anahtarin tuttugunu Netlify fonksiyon
           # gunluklerinden dogrula: "[warm:webhook] REDDEDILDI" ara.
 
-          # Dolayli ama GERCEK geri bildirim: supurge bittikten sonra ana
-          # sayfanin onbellek durumu. `Age` kucukse girdi tazelenmis demektir.
+          # Supurge sonrasi ana sayfanin onbellek durumu.
+          # ⚠ BU SATIRLAR "SUPURGE CALISTI"YI KANITLAMAZ. Girdi zaten taze ise
+          # supurgenin istegi de onbellek isabeti alir ve `Age`/`X-Nextjs-Date`
+          # HIC DEGISMEZ. Olculdu (21.08.2026): elle tetiklenen kosudan sonra
+          # X-Nextjs-Date hala 18 dk oncesini gosteriyordu, cunku ttl=2372 idi.
+          # ASIL AYIRT EDICI YUKARIDAKI ILK SATIR:
+          #   "WARM_SECRET tanimli degil -> atlaniyor."  = secret YOK
+          #   "supurge tetigi -> HTTP 202"               = tetiklendi
+          # Burasi sadece o anki onbellek fotografi.
           sleep 45
           echo "--- supurge sonrasi / durumu ---"
           curl -s -D- -o /dev/null --compressed -H 'accept-encoding: gzip, br' -H "user-agent: $UA" 'https://basementonfire.com/?notrack=1' > /tmp/basliklar.txt
