@@ -275,6 +275,17 @@ export default function HomeFeed({
   const [tabLoading, setTabLoading] = useState(false);
   const allSnapshot = useRef<{ items: any[]; cursor: string | null; hasMore: boolean } | null>(null);
 
+  /* ⚠ AKIŞ İSTEKLERİNDE SIRA MUHAFIZI — kullanıcı bildirdi (20.08.2026):
+     "Takip Ettiklerin"e bas, yanıt gelmeden "Herkes"e dön → AKIŞ BOŞALIYOR.
+     Sebep: 'all' dalı anlık görüntüyü hemen geri yüklüyor, ama UÇUŞTAKİ
+     'following' isteği sonradan dönüp `setFeedItems(data.posts ?? [])` ile
+     o listenin ÜZERİNE yazıyor. Takip listesi boşsa yazılan şey BOŞ DİZİ →
+     ekranda tek bir gönderi kalmıyor. Sayfa yenileyince düzeliyor, çünkü
+     bayat yanıt artık yok.
+     Her istek bir sıra numarası alır; yanıt döndüğünde numara değiştiyse
+     ATILIR. DiscoverClient'taki `aramaSirasi` ile birebir aynı desen. */
+  const istekSirasi = useRef(0);
+
   /* ⚠ TAZE SUNUCU VERİSİ GELİNCE OVERLAY'İ BIRAK.
      `sayimlar` overlay'i ISR kabuğundaki BAYAT sayıları düzeltmek için var.
      Ama `/api/feed` (sekme değişimi + sonsuz kaydırma) ÖNBELLEKSİZ ve
@@ -310,11 +321,15 @@ export default function HomeFeed({
   }, []);
 
   const loadMore = useCallback(async () => {
-    if (loadingMore || !hasMore || !nextCursor) return;
+    // `tabLoading` iken çalışma: imleç hâlâ ESKİ sekmenin, sayfalama yanlış
+    // listeye eklenirdi.
+    if (loadingMore || tabLoading || !hasMore || !nextCursor) return;
+    const sira = ++istekSirasi.current;
     setLoadingMore(true);
     try {
       const res = await fetch(`/api/feed?type=${tab === 'following' ? 'following' : 'mixed'}&cursor=${encodeURIComponent(nextCursor)}&limit=10`);
       const data = await res.json();
+      if (sira !== istekSirasi.current) return; // sekme değişti → bu yanıt eskidi
       if (data.posts?.length) {
         overlayBirak(data.posts);
         setFeedItems(prev => {
@@ -333,16 +348,20 @@ export default function HomeFeed({
     } finally {
       setLoadingMore(false);
     }
-  }, [loadingMore, hasMore, nextCursor, tab, overlayBirak]);
+  }, [loadingMore, tabLoading, hasMore, nextCursor, tab, overlayBirak]);
 
   // Sekme değişimi: 'all' anlık geri döner (SSR anlık görüntüsü saklanır),
   // 'following' ilk açılışta API'den çekilir. Boş sonuçta ŞEFFAF davranış:
   // küresel akışa sessizce düşmek yerine durumu söyleyip seçenek sunuyoruz.
   const switchTab = useCallback(async (next: 'all' | 'following') => {
     if (next === tab) return;
+    // Numarayı BURADA artır: uçuştaki her yanıt bu anda geçersizleşir.
+    const sira = ++istekSirasi.current;
     if (next === 'all') {
       const snap = allSnapshot.current;
-      setTab('all'); setTabEmpty(null);
+      // tabLoading'i de kapat: uçuştaki isteğin `finally`si artık onu
+      // temizlemeyecek (sıra tutmuyor), yoksa spinner takılı kalırdı.
+      setTab('all'); setTabEmpty(null); setTabLoading(false);
       if (snap) { setFeedItems(snap.items); setNextCursor(snap.cursor); setHasMore(snap.hasMore); }
       try { localStorage.setItem('feedTab', 'all'); } catch {}
       return;
@@ -353,15 +372,16 @@ export default function HomeFeed({
     try {
       const res = await fetch('/api/feed?type=following&limit=10');
       const data = await res.json();
+      if (sira !== istekSirasi.current) return; // kullanıcı sekmeyi değiştirdi → ATLA
       overlayBirak(data.posts ?? []);
       setFeedItems(data.posts ?? []);
       setNextCursor(data.nextCursor ?? null);
       setHasMore(!!data.hasMore);
       setTabEmpty((data.posts ?? []).length === 0 ? (data.empty ?? 'none') : null);
     } catch {
-      setTabEmpty('none');
+      if (sira === istekSirasi.current) setTabEmpty('none');
     } finally {
-      setTabLoading(false);
+      if (sira === istekSirasi.current) setTabLoading(false);
     }
   }, [tab, feedItems, nextCursor, hasMore, overlayBirak]);
 
