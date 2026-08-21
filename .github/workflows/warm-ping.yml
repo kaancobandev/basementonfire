@@ -1,0 +1,72 @@
+# ══════════════════════════════════════════════════════════════════════════
+# ISITMA PİNGİ — Netlify Lambda'sını sıcak tutar.
+#
+# NEDEN VAR (21.08.2026 ölçümü, üç bağımsız koşu):
+#   Sessiz pencereden sonraki İLK istek     2368 / 2443 / 2459 ms
+#   Hemen ardından aynı rota                 260 -  350 ms
+#   → ~2,1 saniye saf cold start bedeli.
+#   Gerçek kullanıcı verisi (RUM, 285 açılış): açılışların %39'u sunucudan
+#   1 sn'den geç yanıt aldı. Günde ~13 tekil ziyaretçide fonksiyon çoğu zaman
+#   soğuk; bu iş tam olarak o boşluğu kapatmak için var.
+#
+# ⭐ TEK PİNG YETER: Netlify Next runtime TÜM dinamik rotaları (/p/[id],
+#   /u/[username], /reels, /messages, tüm /api/*) TEK Lambda'da topluyor.
+#   İki kez doğrulandı: soğuk /p/15 (2459 ms) → hemen sonra /reels 337 ms;
+#   soğuk /u/... (2368 ms) → hemen sonra /p/15 349 ms.
+#   Yani 80 URL'lik süpürgeyi 5 dakikada bir koşturmaya GEREK YOK — o ayrı iş
+#   (warm-sweep.yml) ve saatte bir koşuyor.
+#
+# NEDEN NETLIFY SCHEDULED FUNCTION DEĞİL: 2026-07-28'de İKİ yolla denendi
+#   (netlify.toml `[functions."keep-warm"] schedule` + in-source
+#   `export const config`), HİÇBİRİ KOŞMADI. Kanıt netlify.toml:43-52'de.
+#   Depo public olduğu için GitHub Actions dakikaları sınırsız.
+#
+# NEDEN /api/nav-state?feed=1:
+#   · API rotası → sayfa görüntülemesi DEĞİL, istatistik panelini şişirmez.
+#   · Anonim istekte getMe() erken çıkıyor (oturum çerezi yok) → ucuz.
+#   · `feed=1` içerik dalgasını da tetikliyor → getHomeContent()'in
+#     unstable_cache girdisi de sıcak kalıyor. Bu, revalidateTag('feed')
+#     purge'lerinden sonra yeniden üretimi de hızlandırır.
+#   ⛔ /api/hit, /api/perf, /api/csp-report'a ASLA ping atma — analitik uçları.
+#
+# ⚠ GitHub cron'u gecikebilir (yoğunlukta 5-15 dk). Bu yüzden her koşu tek
+#   ping atmıyor, ~4 dakika boyunca 60 sn arayla 5 ping atıyor; */5 cron ile
+#   birlikte kapsama neredeyse kesintisiz oluyor.
+# ══════════════════════════════════════════════════════════════════════════
+name: Isitma pingi
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+# Üst üste binmesin: gecikmiş bir koşu yenisini iptal ETMESİN, sıraya girsin.
+concurrency:
+  group: warm-ping
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Lambda'yi sicak tut
+        # Ping'in başarısız olması işi KIRMASIN: kırmızı koşu birikirse GitHub
+        # zamanlanmış iş akışını devre dışı bırakabiliyor.
+        continue-on-error: true
+        run: |
+          set +e
+          for i in 1 2 3 4 5; do
+            BASLA=$(date +%s%3N)
+            KOD=$(curl -s -o /dev/null -w '%{http_code}' --max-time 25 \
+              -H 'accept-encoding: gzip, br' \
+              -H 'user-agent: BasementsWarmPing/1.0 (+https://basementonfire.com)' \
+              'https://basementonfire.com/api/nav-state?feed=1')
+            if [ -z "$KOD" ]; then KOD="hata"; fi
+            echo "ping $i -> HTTP $KOD  ($(( $(date +%s%3N) - BASLA )) ms)"
+            if [ "$i" -lt 5 ]; then sleep 55; fi
+          done
+          exit 0

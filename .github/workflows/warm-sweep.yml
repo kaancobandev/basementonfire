@@ -1,0 +1,85 @@
+# ══════════════════════════════════════════════════════════════════════════
+# ÖNBELLEK SÜPÜRGESİ — ISR girdilerini taze tutar.
+#
+# warm-ping.yml'den FARKI: o iş Lambda'yı sıcak tutuyor (sık + tek istek),
+# bu iş CDN'deki ISR girdilerini dolduruyor (seyrek + ~65 URL). İkisi ayrı
+# problemler; ping bu işin yerini TUTMAZ, bu iş de pingin yerini tutmaz.
+#
+# NEDEN VAR:
+#   1. `/` ve `/akis` girdilerinin TTL'i 3600 sn. Süresi dolduğunda sıradaki
+#      ziyaretçi yeniden üretimi bekliyor.
+#   2. `revalidateTag('feed')` çağıran YEDİ yazma yolu var (api/posts:86,
+#      api/upload:107, api/stories:159, api/did-you-know:50,
+#      user-articles/[id]:89+107, .../moderate:65+75+92, lib/deleteFact:43).
+#      Hepsi girdiyi SİLİYOR ama hiçbiri yerine yenisini koymuyor; süpürge
+#      şimdiye kadar YALNIZ deploy sonrası koşuyordu.
+#
+# ASIL MANTIK netlify/lib/warm.mts'te (izin listesi + HARD_CAP=80 + doğru
+# `accept-encoding: gzip, br` başlığı). Burası sadece tetikleyici.
+#
+# SAATTE BİR, :07'DE:
+#   · Saat başı GitHub zamanlayıcısının en yoğun olduğu an — :07 daha güvenilir.
+#   · Daha sık koşturmak bant genişliği harcar (~65 sayfa x ~200 KB). Ping
+#     Lambda'yı zaten sıcak tuttuğu için bir yeniden üretim ~2400 ms değil
+#     ~300 ms sürüyor; süpürgenin marjinal değeri o yüzden düşük.
+#
+# KURULUM (bir kez, kullanıcı yapmalı):
+#   GitHub -> Settings -> Secrets and variables -> Actions -> New repository secret
+#   Ad: WARM_SECRET · Değer: Netlify'daki WARM_SECRET ortam değişkeniyle AYNI
+#   (Netlify -> Site configuration -> Environment variables, scope: Functions).
+#   Secret tanımlı DEĞİLSE bu iş sessizce atlanır, kırmızı koşu bırakmaz.
+# ══════════════════════════════════════════════════════════════════════════
+name: Onbellek supurgesi
+
+on:
+  schedule:
+    - cron: '7 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: warm-sweep
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Supurgeyi tetikle
+        continue-on-error: true
+        env:
+          WARM_SECRET: ${{ secrets.WARM_SECRET }}
+          UA: 'BasementsCacheWarmer/1.0 (+https://basementonfire.com)'
+        run: |
+          set +e
+          if [ -z "$WARM_SECRET" ]; then
+            echo "WARM_SECRET tanimli degil -> atlaniyor."
+            echo "Kurulum icin bu dosyanin basindaki nota bak."
+            exit 0
+          fi
+          # Anahtar sorgu parametresinde: warm-background.mts'in mevcut
+          # sozlesmesi bu (netlify/functions/warm-background.mts:37).
+          # GitHub secret degerini gunlukte maskeler; URL'i yazdirma.
+          HEDEF="https://basementonfire.com/.netlify/functions/warm-background?key=$WARM_SECRET"
+          KOD=$(curl -s -o /dev/null -w '%{http_code}' --max-time 60 -H "user-agent: $UA" "$HEDEF")
+          echo "supurge tetigi -> HTTP $KOD  (202 beklenir)"
+
+          # ⚠ DURUM KODU ANAHTARIN DOGRULUGUNU SOYLEMEZ. Bu bir Netlify
+          # `-background` fonksiyonu: Netlify istegi kuyruga alip HEMEN 202
+          # donuyor, fonksiyonun icindeki 401 cagirana ULASMIYOR. Olculdu
+          # (21.08.2026): anahtarsiz cagri da 202 dondu.
+          # Yetki kontrolu yine de YAPILIYOR, sadece fonksiyonun ICINDE
+          # (warm-background.mts:42, fail-closed) -> guvenlik sorunu yok,
+          # gorunurluk sorunu var. Anahtarin tuttugunu Netlify fonksiyon
+          # gunluklerinden dogrula: "[warm:webhook] REDDEDILDI" ara.
+
+          # Dolayli ama GERCEK geri bildirim: supurge bittikten sonra ana
+          # sayfanin onbellek durumu. `Age` kucukse girdi tazelenmis demektir.
+          sleep 45
+          echo "--- supurge sonrasi / durumu ---"
+          curl -s -D- -o /dev/null --compressed -H 'accept-encoding: gzip, br' -H "user-agent: $UA" 'https://basementonfire.com/?notrack=1' > /tmp/basliklar.txt
+          grep -iE '^(cache-status|age|x-nextjs-date):' /tmp/basliklar.txt | sed 's/^/  /'
+          exit 0
