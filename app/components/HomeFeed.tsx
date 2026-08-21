@@ -286,6 +286,28 @@ export default function HomeFeed({
      ATILIR. DiscoverClient'taki `aramaSirasi` ile birebir aynı desen. */
   const istekSirasi = useRef(0);
 
+  /* ⚠ SSR'DA `initial` SATIR İÇİ STİL OLARAK BASILIR.
+     framer-motion, `m.*` bileşenlerinin `initial` değerini sunucu HTML'ine
+     inline style diye yazıyor. Yani akıştaki her kart sunucudan `opacity:0`
+     ile geliyor ve ancak hidrasyon + animasyon bitince görünür oluyor.
+     İki somut zarar (ölçüldü, 21.08.2026):
+       1. Chrome SAYDAM öğeyi LCP adayı SAYMAZ → LCP hidrasyona kilitleniyor.
+          Derlenmiş `.next/server/app/index.html` içinde 14 kart opacity:0.
+       2. Beğeni SAYILARI da aynı kapının arkasında → rakamlar BOŞ boyanıyor.
+     Çözüm: ilk render'da `initial={false}` — framer `animate` değerlerini
+     başlangıç kabul eder, HTML `opacity:1` çıkar. Giriş animasyonu YALNIZ
+     mount'tan SONRA gelen kartlarda (sonsuz kaydırma, sekme değişimi) koşar.
+
+     ⚠ HİDRASYON: sunucu ile istemcinin İLK render'ı aynı değeri görmeli, bu
+     yüzden bayrak `useState(false)` + `useEffect` — `typeof window` DEĞİL.
+     `initial` yalnız mount'ta okunur; sonradan değişmesi zaten monte olmuş
+     kartları etkilemez, o yüzden bu bayrak eski kartları geç animasyona sokmaz.
+     ⛔ Bunları tekrar sabit `initial={{ opacity: 0 }}`e çevirme. */
+  const [bagladi, setBagladi] = useState(false);
+  useEffect(() => { setBagladi(true); }, []);
+  const girisAnim = bagladi ? { opacity: 0, y: 28 } : false;
+  const sayacAnim = bagladi ? { y: -6, opacity: 0 } : false;
+
   /* ⚠ TAZE SUNUCU VERİSİ GELİNCE OVERLAY'İ BIRAK.
      `sayimlar` overlay'i ISR kabuğundaki BAYAT sayıları düzeltmek için var.
      Ama `/api/feed` (sekme değişimi + sonsuz kaydırma) ÖNBELLEKSİZ ve
@@ -1071,7 +1093,7 @@ export default function HomeFeed({
                 return (
                   <m.div
                     key={`dyk-${item.id}`}
-                    initial={{ opacity: 0, y: 28 }}
+                    initial={girisAnim}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: Math.min(index * 0.07, 0.5), ease: 'easeOut' }}
                   >
@@ -1092,7 +1114,7 @@ export default function HomeFeed({
                   <m.article
                     key={`fact-${item.id}`}
                     style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, overflow: 'hidden' }}
-                    initial={{ opacity: 0, y: 28 }}
+                    initial={girisAnim}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: Math.min(index * 0.07, 0.5), ease: 'easeOut' }}
                   >
@@ -1131,7 +1153,7 @@ export default function HomeFeed({
                         <span style={{ display: 'flex' }}>
                           {liked ? <HeartFilled /> : <HeartEmpty />}
                         </span>
-                        <m.span className="tnum" key={likes} initial={{ y: -6, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.2 }}>{likes}</m.span>
+                        <m.span className="tnum" key={likes} initial={sayacAnim} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.2 }}>{likes}</m.span>
                       </m.button>
                       {/* Yorum butonu YER TUTUCUYDU: /akis'e gidiyordu, yani
                           tıklayan kişi yorumlara değil akış sayfasına düşüyordu.
@@ -1209,7 +1231,7 @@ export default function HomeFeed({
                 <m.article
                   key={`post-${item.id}`}
                   style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, overflow: 'hidden' }}
-                  initial={{ opacity: 0, y: 28 }}
+                  initial={girisAnim}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: Math.min(index * 0.07, 0.5), ease: 'easeOut' }}
                 >
@@ -1244,7 +1266,7 @@ export default function HomeFeed({
                       <span style={{ display: 'flex' }}>
                         {liked ? <HeartFilled /> : <HeartEmpty />}
                       </span>
-                      <m.span className="tnum" key={likes} initial={{ y: -6, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.2 }}>{likes}</m.span>
+                      <m.span className="tnum" key={likes} initial={sayacAnim} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.2 }}>{likes}</m.span>
                     </m.button>
                   </div>
                 </m.article>
