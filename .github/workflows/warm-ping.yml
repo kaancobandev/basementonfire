@@ -6,32 +6,51 @@
 #   Hemen ardından aynı rota                 260 -  350 ms
 #   → ~2,1 saniye saf cold start bedeli.
 #   Gerçek kullanıcı verisi (RUM, 285 açılış): açılışların %39'u sunucudan
-#   1 sn'den geç yanıt aldı. Günde ~13 tekil ziyaretçide fonksiyon çoğu zaman
-#   soğuk; bu iş tam olarak o boşluğu kapatmak için var.
+#   1 sn'den geç yanıt aldı.
 #
 # ⭐ TEK PİNG YETER: Netlify Next runtime TÜM dinamik rotaları (/p/[id],
 #   /u/[username], /reels, /messages, tüm /api/*) TEK Lambda'da topluyor.
 #   İki kez doğrulandı: soğuk /p/15 (2459 ms) → hemen sonra /reels 337 ms;
 #   soğuk /u/... (2368 ms) → hemen sonra /p/15 349 ms.
-#   Yani 80 URL'lik süpürgeyi 5 dakikada bir koşturmaya GEREK YOK — o ayrı iş
-#   (warm-sweep.yml) ve saatte bir koşuyor.
+#
+# ══════════════════════════════════════════════════════════════════════════
+# ⚠ İLK SÜRÜM YETERSİZDİ — ÖLÇÜLEREK DÜZELTİLDİ (21.08.2026, aynı gün)
+#
+# İlk hâli `*/5` cron + koşu başına ~4 dk ping'di. Varsayım: GitHub 5 dakikada
+# bir koşturur. GERÇEK DAVRANIŞ ölçüldü, çok farklı:
+#
+#   ping koşuları:  15:16 → 15:49 → 16:13 → 16:50 → 17:14 → 17:44 → 18:02
+#   aralıklar:          +33    +24    +37    +24    +31    +18  dakika
+#
+#   GitHub `*/5`'i ORTALAMA 24 DAKİKAYA seyreltiyor (public repo, yoğunluk).
+#   Her koşu 3 dk 50 sn sürüyordu → KAPSAMA yalnızca ~%16.
+#
+# Ve boşluk gerçekten ısırıyor — ölçüldü:
+#   son ping bitişi 18:06:47 · ölçüm 18:15:07 · BOŞLUK 8 dk 20 sn
+#   /p/15 ILK VURUŞ → 2165 ms (soğuk!) · ardından 435, 333, 426 ms
+#
+#   ⇒ Lambda 8 DAKİKADAN KISA sürede soğuyor.
+#
+# ÇÖZÜM: cron sıklığına güvenme, HER KOŞUYU KENDİ BOŞLUĞUNU KAPATACAK KADAR
+# UZAT. Depo public → Actions dakikaları sınırsız, uzun koşunun maliyeti yok.
+#   · 3 dakikada bir ping (ölçülen ~8 dk eşiğinin rahatça altında)
+#   · koşu başına ~55 dakika (18 ping)
+#   · cancel-in-progress: TRUE — yeni koşu eskisini devralır. `false` olsaydı
+#     yeni koşu SIRAYA girer ve kapsama uzamazdı; devralmada boşluk saniyeler.
+#
+# ⛔ `*/5`i "gerçekten 5 dakikada bir koşuyor" sanma. Ölçtük, koşmuyor.
+# ══════════════════════════════════════════════════════════════════════════
 #
 # NEDEN NETLIFY SCHEDULED FUNCTION DEĞİL: 2026-07-28'de İKİ yolla denendi
 #   (netlify.toml `[functions."keep-warm"] schedule` + in-source
 #   `export const config`), HİÇBİRİ KOŞMADI. Kanıt netlify.toml:43-52'de.
-#   Depo public olduğu için GitHub Actions dakikaları sınırsız.
 #
 # NEDEN /api/nav-state?feed=1:
 #   · API rotası → sayfa görüntülemesi DEĞİL, istatistik panelini şişirmez.
 #   · Anonim istekte getMe() erken çıkıyor (oturum çerezi yok) → ucuz.
 #   · `feed=1` içerik dalgasını da tetikliyor → getHomeContent()'in
-#     unstable_cache girdisi de sıcak kalıyor. Bu, revalidateTag('feed')
-#     purge'lerinden sonra yeniden üretimi de hızlandırır.
+#     unstable_cache girdisi de sıcak kalıyor.
 #   ⛔ /api/hit, /api/perf, /api/csp-report'a ASLA ping atma — analitik uçları.
-#
-# ⚠ GitHub cron'u gecikebilir (yoğunlukta 5-15 dk). Bu yüzden her koşu tek
-#   ping atmıyor, ~4 dakika boyunca 60 sn arayla 5 ping atıyor; */5 cron ile
-#   birlikte kapsama neredeyse kesintisiz oluyor.
 # ══════════════════════════════════════════════════════════════════════════
 name: Isitma pingi
 
@@ -40,10 +59,10 @@ on:
     - cron: '*/5 * * * *'
   workflow_dispatch:
 
-# Üst üste binmesin: gecikmiş bir koşu yenisini iptal ETMESİN, sıraya girsin.
+# Yeni koşu eskisini DEVRALSIN (bkz. yukarıdaki ölçüm notu).
 concurrency:
   group: warm-ping
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -51,22 +70,37 @@ permissions:
 jobs:
   ping:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 60
     steps:
       - name: Lambda'yi sicak tut
         # Ping'in başarısız olması işi KIRMASIN: kırmızı koşu birikirse GitHub
         # zamanlanmış iş akışını devre dışı bırakabiliyor.
         continue-on-error: true
+        env:
+          ADET: '18'
+          ARALIK: '180'
+          HEDEF: 'https://basementonfire.com/api/nav-state?feed=1'
+          UA: 'BasementsWarmPing/1.0 (+https://basementonfire.com)'
         run: |
           set +e
-          for i in 1 2 3 4 5; do
+          echo "hedef: $HEDEF"
+          echo "$ADET ping x $ARALIK sn = ~$(( ADET * ARALIK / 60 )) dakika kapsama"
+          echo
+          YAVAS=0
+          for i in $(seq 1 "$ADET"); do
             BASLA=$(date +%s%3N)
-            KOD=$(curl -s -o /dev/null -w '%{http_code}' --max-time 25 \
-              -H 'accept-encoding: gzip, br' \
-              -H 'user-agent: BasementsWarmPing/1.0 (+https://basementonfire.com)' \
-              'https://basementonfire.com/api/nav-state?feed=1')
+            KOD=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 \
+              -H 'accept-encoding: gzip, br' -H "user-agent: $UA" "$HEDEF")
+            SURE=$(( $(date +%s%3N) - BASLA ))
             if [ -z "$KOD" ]; then KOD="hata"; fi
-            echo "ping $i -> HTTP $KOD  ($(( $(date +%s%3N) - BASLA )) ms)"
-            if [ "$i" -lt 5 ]; then sleep 55; fi
+            # 1500 ms ustu = muhtemelen SOGUK yakaladik; kapsamada bosluk var demektir.
+            ISARET=""
+            if [ "$SURE" -gt 1500 ]; then ISARET="  <-- SOGUK?"; YAVAS=$(( YAVAS + 1 )); fi
+            echo "$(date -u +%H:%M:%S) ping $i/$ADET -> HTTP $KOD  ${SURE} ms$ISARET"
+            if [ "$i" -lt "$ADET" ]; then sleep "$ARALIK"; fi
           done
+          echo
+          echo "ozet: $YAVAS/$ADET ping 1500 ms uzerinde"
+          # Bu sayi surekli 1'den buyukse kapsamada hala bosluk var demektir;
+          # ARALIK'i dusur ya da harici bir zamanlayiciya gec.
           exit 0
