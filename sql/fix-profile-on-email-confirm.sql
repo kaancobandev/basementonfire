@@ -26,6 +26,14 @@
 -- profil doğduğunda oraya taşınıyor.
 --
 -- MEVCUT KULLANICILARA DOKUNMAZ. Yalnızca bundan sonraki auth olaylarını etkiler.
+--
+-- ── SÜRÜM 2 (22.08.2026, test hesabıyla doğrulandıktan sonra) ──────────────
+-- Sürüm 1 cinsiyet eksik/geçersizken kolona NULL yazıyordu; `users.gender`
+-- NOT NULL olduğu için bu, metadata'sı olmayan her auth kullanıcısının
+-- (Supabase panelinden veya OAuth ile açılan hesap) e-postasını ASLA
+-- onaylayamamasına yol açıyordu. Test hesabıyla ölçüldü, düzeltildi.
+-- Sürüm 1'i çalıştırdıysan BU DOSYAYI TEKRAR ÇALIŞTIR — `create or replace`
+-- olduğu için tekrarı zararsız, tetikleyici tanımı da aynı kalıyor.
 -- ═══════════════════════════════════════════════════════════════════════════
 
 create or replace function public.handle_new_user()
@@ -42,7 +50,7 @@ declare
   ham_ons  text;
   dogum    date;
   onay_ts  timestamptz;
-  cinsiyet text;
+  cinsiyet text := '';   -- ⚠ NOT NULL kolon; varsayılanı boş string, NULL DEĞİL
 begin
   -- ── 1) KAPI: e-posta onaylanmadıysa profil OLUŞTURMA ──────────────────────
   if NEW.email_confirmed_at is null then
@@ -94,10 +102,16 @@ begin
     onay_ts := null;
   end;
 
-  -- Cinsiyet sözlüğü lib/types.ts GENDERS ile aynı; dışındaki değer NULL'lanır.
-  cinsiyet := nullif(NEW.raw_user_meta_data ->> 'gender', '');
-  if cinsiyet is not null and cinsiyet not in ('kadin', 'erkek', 'diger') then
-    cinsiyet := null;
+  -- Cinsiyet sözlüğü lib/types.ts GENDERS ile aynı; dışındaki değer temizlenir.
+  -- ⚠ NULL YAZMA — `users.gender` NOT NULL ve varsayılanı `''`. NULL yazmak
+  --   not-null ihlali fırlatır ve tetikleyici AFTER olduğu için ONAYI KOMPLE
+  --   DÜŞÜRÜR. Ölçüldü (22.08.2026): metadata'sı boş bir auth kullanıcısı
+  --   (Supabase panelinden veya OAuth ile açılan hesap) e-postasını HİÇ
+  --   onaylayamıyordu — GoTrue "Error updating user / 500" dönüyordu.
+  --   Boş string sözlüğün "belirtilmemiş" değeri, kolonun da varsayılanı.
+  cinsiyet := coalesce(nullif(NEW.raw_user_meta_data ->> 'gender', ''), '');
+  if cinsiyet not in ('kadin', 'erkek', 'diger') then
+    cinsiyet := '';
   end if;
 
   -- ── 5) Profili oluştur ────────────────────────────────────────────────────
