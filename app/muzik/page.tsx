@@ -6,10 +6,27 @@ import MuzikClient from './MuzikClient';
 // ESKİDEN force-dynamic'ti — tek sebebi getMe()'nin ürettiği currentUserId'ydi
 // ve o da yalnız istemci UI görünürlüğü içindi (ekle/sil butonları). Kimlik
 // artık istemcide NavUserContext'ten geliyor → sayfa ISR, CDN'den döner.
-export const revalidate = 120;
+// ⚠⚠ 120 → 3600 (2026-08-22). AŞAĞIDAKİ unstable_cache DA 3600 OLMALI — Next
+// efektif revalidate'i ikisinin EN KÜÇÜĞÜ olarak alır, biri 120 kalırsa bu
+// değişiklik HİÇBİR ŞEY yapmaz.
+//
+// NEDEN: süpürge saatte bir koşuyor, TTL ise 120 sn'ydi → sayfa saatin ~%97'sini
+// BAYAT geçiriyordu ve her ziyaretçi yeniden üretimi bekliyordu. Süpürgeyi
+// sıklaştırmak yanlış çözüm olurdu: 20 dakikada bir süpürmek bant genişliğini
+// üçe katlıyor (~26 GB/ay) ve 120 sn'lik TTL'i yine yakalayamazdı.
+//
+// GÜVENLİ, çünkü tazelik TTL'den DEĞİL tag'ten geliyor: `tags:['muzik']` var ve
+// ALTI ayrı `revalidateTag('muzik')` çağrısı ekleme+silme yollarının hepsini
+// kapatıyor (api/music/track:50,85 · api/spotify/playlist:48,67 ·
+// api/youtube/item:56,75). Yani bir müzik eklenince/silinince girdi ANINDA düşer.
+//
+// ⛔ /lig'e AYNI ŞEYİ YAPMA: orada tag YOK (repoda `revalidateTag('lig')` sıfır)
+// ve günün sorusunu yazan rota hiçbir revalidate çağırmıyor → 3600 yapmak
+// kullanıcının kendi sırasını 1 saat görememesi demek olurdu.
+export const revalidate = 3600;
 
 // Müzik listeleri PAYLAŞILAN (topluluğun paylaştığı son müzikler) — kişiye özel
-// değil, sık değişmez → 120sn önbellek.
+// değil; tazeliği tag sağlıyor, TTL yalnızca tavan.
 const getMusic = unstable_cache(
   async () => {
     // users embed'leri FK adıyla SABİTLENDİ (`users!<tablo>_user_id_fkey`).
@@ -32,7 +49,10 @@ const getMusic = unstable_cache(
     return { sp: spResult.data ?? [], yt: ytResult.data ?? [], tr: trResult.data ?? [] };
   },
   ['muzik-content-v2'],
-  { revalidate: 120, tags: ['muzik'] },
+  // ⚠ Sayfanın yukarıdaki `export const revalidate` değeriyle AYNI olmalı (3600).
+  // Next efektif revalidate'i en küçüğü alır; burası 120 kalsaydı sayfadaki 3600
+  // no-op olurdu. Tazelik `tags:['muzik']`ten geliyor — gerekçe yukarıda.
+  { revalidate: 3600, tags: ['muzik'] },
 );
 
 export const metadata: Metadata = {

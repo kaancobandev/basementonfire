@@ -11,7 +11,12 @@
 
 const SITE = 'https://basementonfire.com';
 const CONCURRENCY = 4;
-const HARD_CAP = 80; // emniyet kemeri: izin listesi bozulsa bile kredi patlamasın
+// Emniyet kemeri: izin listesi bozulsa bile kredi patlamasın.
+// 2026-08-22'de 80 → 120. Ölçüldü: bugün 46 URL süpürülüyordu; +12 kurumsal/kategori
+// sayfası +2 (login, register) ile 60 oldu. 80 tavanı yeni makalelerle birlikte
+// SESSİZCE bağlayıcı hale gelip asıl sayfaları kırpardı — kırpılan şey de log'a
+// düşmezdi. 120, bugünkü 60'ın iki katı; makale sayısı ikiye katlanana kadar rahat.
+const HARD_CAP = 120;
 // Kullanıcı makaleleri (/makale/*) büyüyebilir — sitemap 5.000'e kadar taşır.
 // HARD_CAP'e güvenmek yetmez (80'i makaleler doldurup asıl sayfaları dışarıda
 // bırakırdı) → makalelere AYRI, küçük tavan: en yeni ~20'si ısınır, gerisi ilk
@@ -66,6 +71,14 @@ const ALLOW = [
   // dinamik" notu BAYATTI; rota çoktan force-dynamic'ten ISR'a çevrilmiş).
   // MAKALE_CAP ile ayrıca sınırlanır (yukarıdaki not).
   /^\/makale\/[a-z0-9_-]+$/,
+  // ── 2026-08-22 EKLENDİ: sitemap'te OLUP izin listesinde OLMAYAN 12 sayfa.
+  // Ölçüldü: sitemap 59 URL taşıyor, ALLOW'dan yalnız 46'sı geçiyordu; kalan
+  // 13'ü hiç süpürülmüyordu. Hepsi force-static → CDN girdisi var, doldurulabilir.
+  /^\/discover\/[a-z0-9-]+$/,                                   // 6 kategori sayfası
+  /^\/(hakkimizda|iletisim|basin|teknoloji|yol-haritasi|en)$/,  // 6 kurumsal sayfa
+  // ⛔ /reels BİLEREK YOK: force-dynamic, `fwd=bypass` — CDN'de doldurulacak
+  // girdisi YOK. Süpürmek yalnız Lambda'yı uyandırır ve 22.08 ölçümü Lambda'nın
+  // darboğaz OLMADIĞINI gösterdi (statik 2046 ms / dinamik 803 ms). Boşuna çağrı.
   // /hashtag/* BİLEREK YOK: sitemap 2.000 etiket taşıyor, süpürmek kredi tuzağı.
 ];
 // /discover NOTU (ölçüm): süpürgenin isteğinde `"Netlify Durable"; fwd=bypass`
@@ -104,7 +117,15 @@ export async function runWarm(trigger: string): Promise<{ status: number; body: 
   // sitemap'e giremiyordu). O rota kaldırıldı ve akış `/`ye taşındı; `/` zaten
   // sitemap'te priority 1 ile duruyor, yani normal yoldan ısıtılıyor.
   // Liste, sitemap'e giremeyen yeni bir sayfa çıkarsa diye duruyor.
-  const EK_YOLLAR: string[] = [];
+  // 2026-08-22: /login ve /register EKLENDİ. Ölçümle bulundu — 12 dk sessizlik
+  // sonrası `/login` İLK vuruş **2046 ms**, `hit,fwd=stale,fwd=miss`. İkisi de
+  // TAM STATİK (prerender-manifest: initialRevalidateSeconds:false), yani
+  // Lambda o yolda YOK; süre tamamen bayat CDN girdisinin origin'e gitmesi.
+  // Sitemap'e ekleyemeyiz (robots.txt Disallow, Search Console hata verir) →
+  // EK_YOLLAR tam olarak bu durum için var.
+  // ⚠ Dönen kullanıcının İLK gördüğü sayfa /login; sitenin en yavaş sayfası da o
+  // (RUM p75 LCP 4,73 sn). Buradan çıkarma.
+  const EK_YOLLAR: string[] = ['/login', '/register'];
   let urls: string[] = [];
   try {
     const r = await fetch(`${SITE}/sitemap.xml`, { headers: { 'user-agent': UA } });

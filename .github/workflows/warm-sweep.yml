@@ -1,9 +1,26 @@
 # ══════════════════════════════════════════════════════════════════════════
-# ÖNBELLEK SÜPÜRGESİ — ISR girdilerini taze tutar.
+# ÖNBELLEK SÜPÜRGESİ — CDN girdilerini taze tutar. TEK ısıtma mekanizması.
 #
-# warm-ping.yml'den FARKI: o iş Lambda'yı sıcak tutuyor (sık + tek istek),
-# bu iş CDN'deki ISR girdilerini dolduruyor (seyrek + ~65 URL). İkisi ayrı
-# problemler; ping bu işin yerini TUTMAZ, bu iş de pingin yerini tutmaz.
+# ⚠⚠ `warm-ping.yml` 2026-08-22'de SİLİNDİ — YAPISAL OLARAK İŞE YARAMIYORDU.
+# Bir gün boyunca "Lambda cold start" sanılan şey ölçümle çürüdü:
+#
+#   12 dk sessizlik sonrası, sırayla:
+#     /login   TAM STATİK (Lambda o yolda YOK)   2046 ms  hit,fwd=stale,fwd=miss
+#     /api/nav-state                              224 ms  Server-Timing: all;dur=1
+#     /p/15    force-dynamic (Lambda VAR)         803 ms  fwd=bypass,fwd=miss
+#
+#   → Lambda'nın OLMADIĞI yol 2046 ms, OLDUĞU yol 803 ms. Handler'ın kendi
+#     süresi 1 ms. Suçlu Lambda değil, BAYAT CDN GİRDİSİ.
+#
+# Ping'in hedefi `/api/nav-state` idi ve o rota `fwd=bypass` — önbellek yoluna
+# HİÇ girmiyor. Yani ne kadar sık koşarsa koşsun bayat bir CDN girdisini
+# tazeleyemezdi. "Ping HTTP 200 dönüyor ama kullanıcı hâlâ soğuk" çelişkisinin
+# cevabı buydu; PoP coğrafyası, eşzamanlılık ya da ayrı fonksiyonlar değil
+# (üçü de denendi, üçü de çürüdü).
+#
+# ⛔ Bir daha "Lambda'yı ısıtalım" diye ping ekleme. Ölçüm gerekiyorsa önce
+#    `/api/nav-state`in Server-Timing `all;dur=` değerine bak: handler içi
+#    süreyi verir, dışarıdaki her şeyi dışlar.
 #
 # NEDEN VAR:
 #   1. `/` ve `/akis` girdilerinin TTL'i 3600 sn. Süresi dolduğunda sıradaki
