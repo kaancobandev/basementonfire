@@ -70,18 +70,24 @@ export async function POST(req: NextRequest) {
   const response = NextResponse.redirect(new URL('/?welcome=1&signup=1', req.url), { status: 303 });
   const client = createAuthClientForResponse(req, response);
 
-  // birthdate'i auth metadata'ya DA yaz: public.users satırı trigger ile oluşuyor;
-  // aşağıdaki update'i (yarış nedeniyle) yakalayamazsak bile yaş beyanı auth tarafında kalır.
+  // ⚠ KVKK BEYANLARI AUTH METADATA'SINDA TAŞINIR — public.users satırı artık
+  // kayıt anında DEĞİL, e-posta ONAYLANDIĞINDA oluşuyor
+  // (sql/fix-profile-on-email-confirm.sql). Yani aşağıdaki update çalıştığında
+  // ortada satır olmayabilir. Yaş beyanı, cinsiyet ve koşul onayı KVKK ispat
+  // kaydıdır ve KAYBOLAMAZ: üçü de buradan metadata'ya yazılır, tetikleyici
+  // profili doğururken oradan okur. ⛔ Bu üç alanı metadata'dan çıkarma.
+  //
   // emailRedirectTo → onay bağlantısı /auth/confirm'e insin (sunucu tarafı
   // doğrulama). Varsayılanda token'lar URL fragment'ında geliyor, fragment
   // sunucuya ulaşmadığı için oturum HİÇ kurulmuyordu. Bkz. app/auth/confirm.
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || new URL(req.url).origin).replace(/\/$/, '');
+  const onayZamani = new Date().toISOString();
 
   const { data, error } = await client.auth.signUp({
     email,
     password,
     options: {
-      data: { username: uname, birthdate, gender },
+      data: { username: uname, birthdate, gender, terms_accepted_at: onayZamani },
       emailRedirectTo: `${siteUrl}/auth/confirm`,
     },
   });
@@ -91,14 +97,16 @@ export async function POST(req: NextRequest) {
   if (error)
     return fail(req, authCodeFromError(error.message));
 
-  // DİKKAT — bu blok oturum kontrolünden ÖNCE gelmeli. public.users satırı
-  // signUp anında trigger ile oluşuyor (oturum olsun olmasın). Yaş beyanı ve
-  // koşul onayı KVKK ispat kaydıdır; e-posta onayı açıkken de yazılmalı.
+  // Bu blok artık YALNIZCA e-posta onayı KAPALI olduğunda iş görür: o durumda
+  // `email_confirmed_at` insert anında dolu gelir, tetikleyici hemen ateşlenir
+  // ve satır burada zaten vardır. Onay AÇIKKEN satır henüz yoktur → update 0
+  // satır etkiler, hata dönmez, sessizce geçilir; beyan metadata'da bekler ve
+  // profil onayda doğarken oradan yazılır. Yani bu blok bir yedek, tek yol değil.
   if (data.user) {
     // Yaş + onay kaydını users satırına yaz (kanıt/ispat). Hata olursa kaydı BOZMA, sadece logla.
     const { error: upErr } = await db
       .from('users')
-      .update({ birthdate, gender, terms_accepted_at: new Date().toISOString() })
+      .update({ birthdate, gender, terms_accepted_at: onayZamani })
       .eq('auth_id', data.user.id);
 
     if (upErr) {
