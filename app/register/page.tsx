@@ -1,4 +1,4 @@
-import RegisterForm from './RegisterForm';
+import RegisterWizard from './RegisterWizard';
 import AuthErrorNotice from '@/app/components/AuthErrorNotice';
 import AnimatedRays from '@/app/components/AnimatedRays';
 import Logo from '@/app/components/Logo';
@@ -15,17 +15,19 @@ export default function RegisterPage() {
       <AnimatedRays themeAware={false} className="!absolute inset-0" />
       {/* Buzlu cam kart — /login ile AYNI (.auth-card). */}
       <div className="auth-card">
-        <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+        {/* Sihirbaz kendi başlığını taşıyor (her adımın kendi başlığı var), o
+            yüzden buradaki "Hesap oluştur" alt yazısı kaldırıldı — iki başlık
+            üst üste gelmesin. Marka bloğu kalıyor. */}
+        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <div className="auth-brand">
             <Logo size={48} className="auth-logo" />
             <span className="auth-brand-name">Basementonfire</span>
           </div>
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', marginTop: '6px' }}>Hesap oluştur</div>
         </div>
 
         <AuthErrorNotice />
 
-        <RegisterForm />
+        <RegisterWizard />
 
         <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '0.88rem', color: 'var(--color-text-muted)' }}>
           Zaten hesabın var mı?{' '}
