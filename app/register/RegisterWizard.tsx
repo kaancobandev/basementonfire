@@ -62,6 +62,24 @@ const ILGILER = [
 const EN_FAZLA_ILGI = 3;
 const TOPLAM_ADIM = 5;
 
+/**
+ * TASLAK SAKLAMA — sunucu hatasında 5 adımın silinmesini önler.
+ *
+ * SORUN: 5. adım gerçek form POST'u ve sunucu hatada `303 → /register?error=`
+ * dönüyor. Bu TAM SAYFA yenilemesidir: bileşen yeniden mount olur, `useState(1)`
+ * çalışır ve cinsiyet/ilgi/tarih/kullanıcı adı/e-posta hepsi silinir. Üstelik
+ * istemci doğrulaması sunucuyu birebir aynaladığı için sunucudan dönebilen
+ * hataların neredeyse hepsi istemcinin ÖNCEDEN BİLEMEYECEĞİ hatalar
+ * (`ad_alinmis`, `kayitli`, `cok_deneme`) — yani bu yol istisna değil, OLAĞAN yol.
+ * Kullanıcı tek kelimelik bir düzeltme için 5 ekranı baştan tıklıyordu.
+ *
+ * ⛔ ŞİFRE VE ONAY KUTUSU YAZILMAZ:
+ *    · şifre hiçbir koşulda saklamaya gitmez,
+ *    · onay her gönderimde YENİDEN verilmesi gereken bir irade beyanıdır (KVKK) —
+ *      kutuyu işaretli geri getirmek beyanı kullanıcı adına tekrarlamak olurdu.
+ */
+const TASLAK = 'bof_kayit_taslak';
+
 export default function RegisterWizard() {
   const [adim, setAdim] = useState(1);
   const [cinsiyet, setCinsiyet] = useState<string>('');
@@ -81,8 +99,51 @@ export default function RegisterWizard() {
   const [maxYil, setMaxYil] = useState(0);
   useEffect(() => { setMaxYil(new Date().getFullYear()); }, []);
 
+  // Taslağı geri yükle — YALNIZCA `?error=` ile dönüldüğünde. Okur okumaz
+  // siliyoruz: başarılı kayıtta sekmede asılı kalmasın.
+  useEffect(() => {
+    let ham: string | null = null;
+    try {
+      ham = sessionStorage.getItem(TASLAK);
+      sessionStorage.removeItem(TASLAK);
+    } catch { /* özel mod / depolama kapalı — taslak yok sayılır */ }
+    if (!ham) return;
+    if (!new URLSearchParams(window.location.search).has('error')) return;
+    try {
+      const t = JSON.parse(ham) as Record<string, unknown>;
+      // Depolama kurcalanabilir. Sunucu zaten her alanı yeniden doğruluyor ama
+      // gizli input'a çöp koymayalım diye burada da süzüyoruz.
+      if (typeof t.c === 'string' && (GENDERS as readonly string[]).includes(t.c)) setCinsiyet(t.c);
+      if (Array.isArray(t.i)) {
+        setIlgiler(
+          t.i.filter((x): x is number => Number.isInteger(x) && x >= 0 && x < ILGILER.length)
+            .slice(0, EN_FAZLA_ILGI),
+        );
+      }
+      if (typeof t.g === 'string') setGun(t.g.replace(/\D/g, '').slice(0, 2));
+      if (typeof t.a === 'string') setAy(t.a.replace(/\D/g, '').slice(0, 2));
+      if (typeof t.y === 'string') setYil(t.y.replace(/\D/g, '').slice(0, 4));
+      if (typeof t.k === 'string') setKullaniciAdi(t.k.slice(0, 30));
+      if (typeof t.e === 'string') setEposta(t.e.slice(0, 254));
+      // Hata mesajı (AuthErrorNotice, page.tsx'te kartın üstünde) 5. adımdaki bir
+      // alanı işaret ediyor — kullanıcıyı 1. adımda değil orada karşılamalıyız.
+      setAdim(TOPLAM_ADIM);
+    } catch { /* bozuk taslak — yok say */ }
+  }, []);
+
+  // bfcache: kullanıcı gönderip GERİ tuşuna basarsa sayfa mount OLMADAN geri
+  // gelir; `gonderiliyor` true kalır ve buton kalıcı olarak "Oluşturuluyor…"
+  // halinde kilitlenirdi.
+  useEffect(() => {
+    const geriGeldi = (e: PageTransitionEvent) => { if (e.persisted) setGonderiliyor(false); };
+    window.addEventListener('pageshow', geriGeldi);
+    return () => window.removeEventListener('pageshow', geriGeldi);
+  }, []);
+
+  const gunRef = useRef<HTMLInputElement>(null);
   const ayRef = useRef<HTMLInputElement>(null);
   const yilRef = useRef<HTMLInputElement>(null);
+  const cinsiyetRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const iki = (v: string) => v.padStart(2, '0');
   const dogumIso = gun && ay && yil.length === 4 ? `${yil}-${iki(ay)}-${iki(gun)}` : '';
@@ -93,6 +154,11 @@ export default function RegisterWizard() {
   const adGecerli = /^[a-z0-9_]{3,30}$/.test(kullaniciAdi.trim().toLowerCase());
   const epostaGecerli = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(eposta.trim());
   const sifreGecerli = sifre.length >= 6;
+
+  // Üç kutu da dolduğunda tarihi YARGILAYABİLİRİZ. `tarihGecerli` false ise
+  // kullanıcıya SEBEBİNİ söylemek şart: ageFromBirthdate takvimde olmayan gün
+  // (31/02) ve gelecek tarih için `null` döner, o durumda yaş uyarısı basılamaz.
+  const tarihDolu = !!gun && !!ay && yil.length === 4;
   const tarihGecerli =
     !!dogumIso && yas !== null && yas >= MIN_AGE && Number(yil) >= 1900 &&
     (maxYil === 0 || Number(yil) <= maxYil) &&
@@ -103,18 +169,62 @@ export default function RegisterWizard() {
 
   const sayiYaz = (v: string, uzunluk: number) => v.replace(/[^0-9]/g, '').slice(0, uzunluk);
 
+  /** Boş kutuda Backspace → önceki kutuya dön. Otomatik ileri atlama tek yönlüydü;
+   *  kullanıcı yılı silip aya dönemiyordu. */
+  const geriAtla = (bos: boolean, onceki: React.RefObject<HTMLInputElement | null>) =>
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Backspace' && bos && onceki.current) {
+        e.preventDefault();
+        onceki.current.focus();
+      }
+    };
+
+  /** Cinsiyet bir radyo grubu: ok tuşlarıyla gezinilir, Tab grubu tek durak sayar. */
+  const cinsiyetKlavye = (i: number) => (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    const ileri = e.key === 'ArrowDown' || e.key === 'ArrowRight';
+    const geri = e.key === 'ArrowUp' || e.key === 'ArrowLeft';
+    if (!ileri && !geri) return;
+    e.preventDefault();
+    const n = CINSIYET_SIRA.length;
+    const j = (i + (ileri ? 1 : -1) + n) % n;
+    setCinsiyet(CINSIYET_SIRA[j]);
+    cinsiyetRefs.current[j]?.focus();
+  };
+
+  const gonderKapali = gonderiliyor || !adGecerli || !epostaGecerli || !sifreGecerli || !onay;
+  // Devre dışı submit butonu odak sırasından çıkar ve tarayıcının kendi
+  // doğrulama balonlarını da tetikleyemez — bu satır olmadan kullanıcı sebebini
+  // hiç öğrenemiyordu.
+  // ⚠ Alan BOŞ olan durumlar burada, alan DOLU ama geçersiz olanlar aşağıdaki
+  // <Uyari>'da anlatılıyor. İkisi birden konuşursa aynı cümle ekranda iki kez
+  // görünür — o yüzden geçersiz hâller burada bilerek boş geçiliyor.
+  const eksikOlan =
+    !kullaniciAdi ? 'Kullanıcı adını gir.'
+    : !adGecerli ? ''
+    : !eposta ? 'E-posta adresini gir.'
+    : !epostaGecerli ? ''
+    : !sifre ? 'Şifreni gir.'
+    : !sifreGecerli ? ''
+    : !onay ? 'Devam etmek için koşulları kabul etmelisin.'
+    : '';
+
   return (
     <div>
       <IlerlemeCubugu adim={adim} />
 
       {adim === 1 && (
         <Ekran baslik="Cinsiyetini seç" alt="Profilini oluşturmak için ilk adım.">
-          <div style={{ display: 'grid', gap: 10 }}>
-            {CINSIYET_SIRA.map((deger) => (
+          <div role="radiogroup" aria-label="Cinsiyet" style={{ display: 'grid', gap: 10 }}>
+            {CINSIYET_SIRA.map((deger, i) => (
               <SecimKarti
                 key={deger}
+                radyo
                 secili={cinsiyet === deger}
                 onClick={() => setCinsiyet(deger)}
+                onKeyDown={cinsiyetKlavye(i)}
+                // Gezinen tabindex: grup Tab sırasında TEK durak olsun.
+                tabIndex={cinsiyet ? (cinsiyet === deger ? 0 : -1) : i === 0 ? 0 : -1}
+                dugmeRef={(el) => { cinsiyetRefs.current[i] = el; }}
                 baslik={CINSIYET_ETIKET[deger]}
               />
             ))}
@@ -125,7 +235,7 @@ export default function RegisterWizard() {
 
       {adim === 2 && (
         <Ekran baslik="Burada neler yapmak istersin?" alt={`En fazla ${EN_FAZLA_ILGI} tane seç. İstediğin zaman değiştirirsin.`}>
-          <div style={{ display: 'grid', gap: 8 }}>
+          <div role="group" aria-label="İlgi alanları" style={{ display: 'grid', gap: 8 }}>
             {ILGILER.map((it, i) => {
               const secili = ilgiler.includes(i);
               const dolu = !secili && ilgiler.length >= EN_FAZLA_ILGI;
@@ -133,6 +243,9 @@ export default function RegisterWizard() {
                 <SecimKarti
                   key={it.baslik}
                   secili={secili}
+                  // ⚠ `disabled` DEĞİL `aria-disabled`: gerçekten devre dışı bıraksaydık
+                  // kartlar odak sırasından çıkardı ve ekran okuyucu kullanıcısı
+                  // kalan seçenekleri hiç duyamazdı. Tıklama zaten `ilgiSec`te no-op.
                   soluk={dolu}
                   onClick={() => ilgiSec(i)}
                   baslik={it.baslik}
@@ -141,6 +254,11 @@ export default function RegisterWizard() {
               );
             })}
           </div>
+          {ilgiler.length >= EN_FAZLA_ILGI && (
+            <p aria-live="polite" style={{ margin: '10px 0 0', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+              En fazla {EN_FAZLA_ILGI} tane seçebilirsin. Değiştirmek için birini geri al.
+            </p>
+          )}
           <Devam disabled={ilgiler.length === 0} onClick={() => setAdim(3)}>Devam et</Devam>
           <Geri onClick={() => setAdim(1)} />
         </Ekran>
@@ -172,22 +290,41 @@ export default function RegisterWizard() {
       {adim === 4 && (
         <Ekran baslik="Ne zaman doğdun?" alt="Sadece yaşını doğrulamak için kullanıyoruz.">
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.3fr', gap: 10 }}>
-            <TarihKutu deger={gun} etiket="Gün" enFazla={2} onDegis={(v) => {
-              const t = sayiYaz(v, 2); setGun(t);
-              if (t.length === 2) ayRef.current?.focus();
-            }} />
-            <TarihKutu deger={ay} etiket="Ay" enFazla={2} inputRef={ayRef} onDegis={(v) => {
-              const t = sayiYaz(v, 2); setAy(t);
-              if (t.length === 2) yilRef.current?.focus();
-            }} />
-            <TarihKutu deger={yil} etiket="Yıl" enFazla={4} inputRef={yilRef} onDegis={(v) => setYil(sayiYaz(v, 4))} />
+            <TarihKutu
+              deger={gun} etiket="Gün" enFazla={2} inputRef={gunRef} otomatik="bday-day"
+              hatali={tarihDolu && !tarihGecerli} tanim="reg-dogum-hata"
+              onDegis={(v) => {
+                const t = sayiYaz(v, 2); setGun(t);
+                if (t.length === 2) ayRef.current?.focus();
+              }}
+            />
+            <TarihKutu
+              deger={ay} etiket="Ay" enFazla={2} inputRef={ayRef} otomatik="bday-month"
+              hatali={tarihDolu && !tarihGecerli} tanim="reg-dogum-hata"
+              onKeyDown={geriAtla(ay === '', gunRef)}
+              onDegis={(v) => {
+                const t = sayiYaz(v, 2); setAy(t);
+                if (t.length === 2) yilRef.current?.focus();
+              }}
+            />
+            <TarihKutu
+              deger={yil} etiket="Yıl" enFazla={4} inputRef={yilRef} otomatik="bday-year"
+              hatali={tarihDolu && !tarihGecerli} tanim="reg-dogum-hata"
+              onKeyDown={geriAtla(yil === '', ayRef)}
+              onDegis={(v) => setYil(sayiYaz(v, 4))}
+            />
           </div>
 
-          {/* Yaş kapısı — sunucu yeniden hesaplıyor ama kullanıcı 5. adıma
-              gidip orada reddedilmesin diye burada da söylüyoruz. */}
-          {dogumIso && yas !== null && yas < MIN_AGE && (
-            <p style={{ marginTop: 12, fontSize: '0.84rem', color: 'var(--color-danger)' }}>
-              Basementonfire {MIN_AGE} yaş ve üzeri içindir.
+          {/* Yaş kapısı — sunucu yeniden hesaplıyor ama kullanıcı 5. adıma gidip
+              orada reddedilmesin diye burada da söylüyoruz.
+              ⚠ KOŞUL `yas < MIN_AGE` DEĞİL: takvimde olmayan gün (31/02) ve
+              gelecek tarih `yas === null` üretir; eski koşulda o durumda HİÇBİR
+              mesaj basılmıyordu ve "Devam et" sebepsiz kilitli kalıyordu. */}
+          {tarihDolu && !tarihGecerli && (
+            <p id="reg-dogum-hata" role="alert" style={{ marginTop: 12, fontSize: '0.84rem', color: 'var(--color-danger)' }}>
+              {yas !== null && yas < MIN_AGE
+                ? `Basementonfire ${MIN_AGE} yaş ve üzeri içindir.`
+                : `Geçerli bir tarih gir — gün 1–31, ay 1–12, yıl 1900 ile ${maxYil || 'bu yıl'} arası.`}
             </p>
           )}
 
@@ -200,9 +337,23 @@ export default function RegisterWizard() {
         <Ekran baslik="Hesabını oluştur." alt="Son adım — birkaç bilgi yeterli.">
           {/* ⚠ GERÇEK FORM POST — fetch DEĞİL. Sunucu `formData()` okuyor ve
               hatada `/register?error=` ile 303 dönüyor; AuthErrorNotice o
-              parametreyi basıyor. Bu akışı JSON'a çevirmek hata gösterimini
-              ve JS'siz çalışmayı bozardı. */}
-          <form action="/api/auth/register" method="post" onSubmit={() => setGonderiliyor(true)}>
+              parametreyi basıyor. Bu akışı JSON'a çevirmek hem hata gösterimini
+              hem de oturum çerezinin taşınmasını riske atardı (bu tuzağa iki kez
+              düşüldü). Veri kaybı yerine TASLAK ile çözüldü — yukarıya bak. */}
+          <form
+            action="/api/auth/register"
+            method="post"
+            onSubmit={() => {
+              setGonderiliyor(true);
+              // Şifre ve onay BİLEREK dışarıda; gerekçe TASLAK tanımında.
+              try {
+                sessionStorage.setItem(TASLAK, JSON.stringify({
+                  c: cinsiyet, i: ilgiler, g: gun, a: ay, y: yil,
+                  k: kullaniciAdi, e: eposta,
+                }));
+              } catch { /* depolama kapalı — taslaksız devam, akış bozulmaz */ }
+            }}
+          >
             {/* Önceki adımların cevapları — sunucu bunları da doğruluyor. */}
             <input type="hidden" name="gender" value={cinsiyet} />
             <input type="hidden" name="birthdate" value={dogumIso} />
@@ -210,22 +361,35 @@ export default function RegisterWizard() {
             <FloatingInput
               id="reg-username" type="text" name="username" label="Kullanıcı adı" required
               autoComplete="username" value={kullaniciAdi}
+              aria-invalid={!!kullaniciAdi && !adGecerli}
+              aria-describedby={kullaniciAdi && !adGecerli ? 'reg-username-hata' : undefined}
               onChange={(e) => setKullaniciAdi(e.target.value)}
             />
             {kullaniciAdi && !adGecerli && (
-              <Uyari>3–30 karakter; yalnızca harf, rakam ve alt çizgi.</Uyari>
+              <Uyari id="reg-username-hata">3–30 karakter; yalnızca harf, rakam ve alt çizgi.</Uyari>
             )}
 
             <FloatingInput
               id="reg-email" type="email" name="email" label="E-posta" required
-              autoComplete="email" value={eposta} onChange={(e) => setEposta(e.target.value)}
+              autoComplete="email" value={eposta}
+              aria-invalid={!!eposta && !epostaGecerli}
+              aria-describedby={eposta && !epostaGecerli ? 'reg-email-hata' : undefined}
+              onChange={(e) => setEposta(e.target.value)}
             />
+            {eposta && !epostaGecerli && (
+              <Uyari id="reg-email-hata">Geçerli bir e-posta adresi gir (örn. ad@ornek.com).</Uyari>
+            )}
 
             <FloatingInput
               id="reg-password" type="password" name="password" label="Şifre (en az 6 karakter)" required
               autoComplete="new-password" minLength={6} value={sifre}
+              aria-invalid={!!sifre && !sifreGecerli}
+              aria-describedby={sifre && !sifreGecerli ? 'reg-password-hata' : undefined}
               onChange={(e) => setSifre(e.target.value)}
             />
+            {sifre && !sifreGecerli && (
+              <Uyari id="reg-password-hata">Şifre en az 6 karakter olmalı.</Uyari>
+            )}
 
             {/* ⚠ YAŞ BEYANI BURADA KALMALI. Mevcut kayıt formunda vardı ve
                 MIN_AGE hukuki metinlere bağlı (lib/age.ts). Tasarımın yasal
@@ -246,13 +410,29 @@ export default function RegisterWizard() {
               </span>
             </label>
 
+            {/* ⚠ `opacity` SADECE `gonderiliyor`a bakıyordu: kapalı buton etkin
+                butonla PİKSEL PİKSEL aynı görünüyordu (aynı gradyan, aynı gölge,
+                aynı imleç) ve .auth-submit:hover onu parlatıyordu bile. Kullanıcı
+                basıyor, hiçbir şey olmuyor, sebebini gösteren tek işaret yok. */}
             <button
-              type="submit" className="auth-submit"
-              disabled={gonderiliyor || !adGecerli || !epostaGecerli || !sifreGecerli || !onay}
-              style={{ width: '100%', marginTop: 16, opacity: gonderiliyor ? 0.7 : 1 }}
+              type="submit" className="auth-submit" disabled={gonderKapali}
+              style={{
+                width: '100%', marginTop: 16,
+                opacity: gonderiliyor ? 0.7 : gonderKapali ? 0.5 : 1,
+                cursor: gonderKapali ? 'default' : 'pointer',
+              }}
             >
               {gonderiliyor ? 'Oluşturuluyor…' : 'Hesabımı oluştur'}
             </button>
+
+            {eksikOlan && !gonderiliyor && (
+              <p aria-live="polite" style={{
+                margin: '8px 0 0', fontSize: '0.8rem', textAlign: 'center',
+                color: 'var(--color-text-muted)',
+              }}>
+                {eksikOlan}
+              </p>
+            )}
           </form>
           <Geri onClick={() => setAdim(4)} />
         </Ekran>
@@ -267,7 +447,13 @@ const bagStil = { color: 'var(--color-primary)', fontWeight: 600, textDecoration
 
 function IlerlemeCubugu({ adim }: { adim: number }) {
   return (
-    <div style={{ display: 'flex', gap: 6, marginBottom: 22 }} aria-label={`Adım ${adim} / ${TOPLAM_ADIM}`}>
+    // role="progressbar" olmadan aria-label düz bir <div>'de duruyordu ve hiçbir
+    // ekran okuyucu "Adım 3 / 5"i duyurmuyordu.
+    <div
+      role="progressbar" aria-valuenow={adim} aria-valuemin={1} aria-valuemax={TOPLAM_ADIM}
+      aria-label={`Adım ${adim} / ${TOPLAM_ADIM}`}
+      style={{ display: 'flex', gap: 6, marginBottom: 22 }}
+    >
       {Array.from({ length: TOPLAM_ADIM }, (_, i) => (
         <span key={i} style={{
           flex: 1, height: 3, borderRadius: 2,
@@ -289,12 +475,20 @@ function Ekran({ baslik, alt, children }: { baslik: string; alt: string; childre
   );
 }
 
-function SecimKarti({ secili, soluk, onClick, baslik, alt }: {
-  secili: boolean; soluk?: boolean; onClick: () => void; baslik: string; alt?: string;
+function SecimKarti({ secili, soluk, radyo, onClick, onKeyDown, tabIndex, dugmeRef, baslik, alt }: {
+  secili: boolean; soluk?: boolean; radyo?: boolean;
+  onClick: () => void; onKeyDown?: (e: React.KeyboardEvent<HTMLButtonElement>) => void;
+  tabIndex?: number; dugmeRef?: (el: HTMLButtonElement | null) => void;
+  baslik: string; alt?: string;
 }) {
   return (
     <button
-      type="button" onClick={onClick} aria-pressed={secili} disabled={soluk}
+      type="button" onClick={onClick} onKeyDown={onKeyDown} tabIndex={tabIndex} ref={dugmeRef}
+      // Tek seçimli grupta radyo, çok seçimlide basılı-düğme semantiği.
+      role={radyo ? 'radio' : undefined}
+      aria-checked={radyo ? secili : undefined}
+      aria-pressed={radyo ? undefined : secili}
+      aria-disabled={soluk || undefined}
       style={{
         // touch-action: mobilde çift dokunma gerekiyordu (19.08.2026 kullanıcı
         // bildirimi); .auth-submit'te de aynı düzeltme var.
@@ -314,31 +508,44 @@ function SecimKarti({ secili, soluk, onClick, baslik, alt }: {
   );
 }
 
-function TarihKutu({ deger, etiket, enFazla, onDegis, inputRef }: {
+function TarihKutu({ deger, etiket, enFazla, onDegis, onKeyDown, inputRef, otomatik, hatali, tanim }: {
   deger: string; etiket: string; enFazla: number;
-  onDegis: (v: string) => void; inputRef?: React.RefObject<HTMLInputElement | null>;
+  onDegis: (v: string) => void; onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  inputRef?: React.RefObject<HTMLInputElement | null>;
+  otomatik?: string; hatali?: boolean; tanim?: string;
 }) {
   return (
     <label style={{ display: 'block' }}>
       <span style={{ display: 'block', marginBottom: 6, fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{etiket}</span>
       <input
-        ref={inputRef} value={deger} onChange={(e) => onDegis(e.target.value)}
+        ref={inputRef} value={deger} onChange={(e) => onDegis(e.target.value)} onKeyDown={onKeyDown}
         // inputMode="numeric": mobilde sayı klavyesi açar. type="number" DEĞİL —
         // o, artırma okları ve tekerlek kaydırmayla değer değiştirme getiriyor.
+        // autoComplete: eski form <input type="date"> kullandığı için tarayıcı
+        // doğum tarihini dolduruyordu; üç kutuya bölününce o destek kaybolmuştu.
         inputMode="numeric" maxLength={enFazla} placeholder={'0'.repeat(enFazla)}
+        autoComplete={otomatik}
+        aria-invalid={hatali || undefined}
+        aria-describedby={hatali ? tanim : undefined}
         style={{
           width: '100%', padding: '12px 10px', textAlign: 'center',
+          // ⚠ 16px altına DÜŞÜRME: iOS Safari odaklanınca sayfayı zoomlar.
           fontSize: '1.05rem', fontWeight: 700, fontFamily: 'inherit',
           color: 'var(--color-text)', background: 'rgba(255,255,255,.06)',
-          border: '1px solid rgba(255,255,255,.14)', borderRadius: 'var(--radius-md)',
+          border: `1px solid ${hatali ? 'var(--color-danger)' : 'rgba(255,255,255,.14)'}`,
+          borderRadius: 'var(--radius-md)',
         }}
       />
     </label>
   );
 }
 
-function Uyari({ children }: { children: React.ReactNode }) {
-  return <p style={{ margin: '-4px 0 10px', fontSize: '0.8rem', color: 'var(--color-danger)' }}>{children}</p>;
+function Uyari({ id, children }: { id?: string; children: React.ReactNode }) {
+  return (
+    <p id={id} role="alert" style={{ margin: '-4px 0 10px', fontSize: '0.8rem', color: 'var(--color-danger)' }}>
+      {children}
+    </p>
+  );
 }
 
 function Devam({ disabled, onClick, children }: { disabled?: boolean; onClick: () => void; children: React.ReactNode }) {
@@ -357,7 +564,10 @@ function Geri({ onClick }: { onClick: () => void }) {
     <button
       type="button" onClick={onClick}
       style={{
-        touchAction: 'manipulation', display: 'block', margin: '12px auto 0',
+        // padding: dokunma hedefi WCAG 2.5.8'in 24x24 alt sınırının altındaydı
+        // (~20px yükseklik). Görsel olarak aynı, hedef büyüdü.
+        touchAction: 'manipulation', display: 'block', margin: '6px auto 0',
+        padding: '8px 16px',
         background: 'none', border: 0, cursor: 'pointer', fontFamily: 'inherit',
         fontSize: '0.85rem', color: 'var(--color-text-muted)',
       }}
