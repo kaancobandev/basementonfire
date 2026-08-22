@@ -1549,3 +1549,142 @@ body {
     border-top: 1px solid var(--color-border);
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   KAYIT SİHİRBAZI (/register) — kullanıcının Claude Design tasarımı.
+
+   Tasarım TAM EKRAN zemin üzerinde duruyor: buzlu cam kart YOK, aurora YOK
+   (kullanıcı bunu iki kez istedi, 22.08.2026). Ölçülen palet birebir sitenin
+   tokenlarına düşüyor — tasarımın #5b2eef'i zaten --color-primary. Ham hex
+   yazılmadı ki koyu tema da çalışsın.
+
+   ⚠ BURASI CSS, inline stil DEĞİL: tasarım :hover / :focus-visible /
+   prefers-reduced-motion üzerine kurulu ve bunların hiçbiri inline
+   yazılamaz. Ölçüler (52px buton, 4px ilerleme, 16px yarıçap) tasarımdan.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.kw-sutun { width: 100%; margin: 0 auto; display: flex; flex-direction: column; }
+
+/* İlerleme — 4px, tam yuvarlak uç, 6px aralık */
+.kw-ilerleme { display: flex; gap: 6px; }
+.kw-seg { flex: 1; height: 4px; border-radius: 999px; background: var(--color-border); transition: background .2s ease; }
+.kw-seg-dolu { background: var(--color-primary); }
+
+/* Geri — 44x44 dokunma hedefi, tasarımda sola taşıyor (margin-left:-12px) */
+.kw-geri {
+  margin: 16px 0 0 -12px; width: 44px; height: 44px; display: flex; align-items: center;
+  justify-content: center; background: none; border: 0; border-radius: 10px; padding: 0;
+  color: var(--color-text-muted); cursor: pointer; touch-action: manipulation;
+  transition: color .15s ease, background .15s ease;
+}
+.kw-geri:hover { color: var(--color-text); background: var(--color-primary-soft); }
+.kw-geri:active { transform: scale(.94); }
+
+.kw-baslik { margin: 6px 0 0; font-size: 26px; font-weight: 600; line-height: 1.25; letter-spacing: -0.01em; color: var(--color-text); text-wrap: pretty; }
+.kw-alt { margin: 8px 0 0; font-size: 15px; line-height: 1.5; color: var(--color-text-muted); }
+.kw-orta { text-align: center; }
+
+/* Seçim kartı — ikon + başlık + alt metin + sağ üstte onay rozeti */
+.kw-kart {
+  position: relative; display: flex; flex-direction: column; align-items: flex-start;
+  padding: 16px 14px; background: var(--color-surface); color: var(--color-text);
+  border: 1px solid var(--color-border); border-radius: 16px; cursor: pointer;
+  font-family: inherit; text-align: left; touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color .2s ease, background .2s ease, transform .2s ease, box-shadow .2s ease;
+}
+.kw-kart-orta { align-items: center; justify-content: center; text-align: center; padding: 26px 14px 22px; gap: 12px; }
+.kw-kart:hover { border-color: var(--color-primary); transform: translateY(-2px); box-shadow: 0 10px 24px rgba(91, 46, 239, .12); }
+.kw-kart:active { transform: scale(.97); }
+.kw-kart[aria-checked="true"], .kw-kart[aria-pressed="true"] { border-color: var(--color-primary); background: var(--color-primary-soft); }
+.kw-kart[aria-disabled="true"] { opacity: .45; cursor: default; }
+.kw-kart[aria-disabled="true"]:hover { border-color: var(--color-border); transform: none; box-shadow: none; }
+.kw-kart-ikon { display: flex; color: var(--color-primary); }
+.kw-kart-baslik { font-size: 16px; font-weight: 600; color: var(--color-text); }
+.kw-kart-alt { margin-top: 4px; font-size: 13px; line-height: 1.45; color: var(--color-text-muted); }
+
+/* Onay rozeti — seçili değilken ölçekten küçültülüp saklanır */
+.kw-rozet {
+  position: absolute; top: 10px; right: 10px; width: 20px; height: 20px; border-radius: 50%;
+  background: var(--color-primary); display: grid; place-items: center;
+  opacity: 0; transform: scale(.5); transition: opacity .18s ease, transform .18s ease;
+}
+.kw-kart[aria-checked="true"] .kw-rozet, .kw-kart[aria-pressed="true"] .kw-rozet { opacity: 1; transform: scale(1); }
+
+/* Doğum tarihi — tasarımda üç DAİRE */
+.kw-daireler { display: flex; justify-content: center; align-items: flex-start; gap: 14px; margin-top: 36px; }
+.kw-daire {
+  box-sizing: border-box; display: block; width: 84px; height: 84px; border-radius: 50%;
+  background: var(--color-surface); text-align: center; font-family: inherit; font-weight: 600;
+  font-size: 22px; color: var(--color-text); padding: 0; outline: none;
+  border: 2px solid var(--color-border); caret-color: var(--color-primary);
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.kw-daire::placeholder { color: var(--color-text-muted); opacity: .5; font-weight: 600; }
+.kw-daire:focus { border-color: var(--color-primary); box-shadow: 0 0 0 4px var(--color-primary-soft); }
+.kw-daire[aria-invalid="true"] { border-color: var(--color-danger); }
+.kw-daire-yil { width: 108px; }
+.kw-daire-etiket { margin-top: 10px; font-size: 12px; font-weight: 500; color: var(--color-text-muted); text-align: center; }
+
+/* Adım 5 alanları — 52px kutu, 12px yarıçap */
+.kw-etiket { display: block; font-size: 13px; font-weight: 500; color: var(--color-text-muted); margin-bottom: 6px; }
+.kw-kutu {
+  display: flex; align-items: center; height: 52px; border-radius: 12px;
+  background: var(--color-surface); padding: 0 6px 0 16px;
+  border: 1px solid var(--color-border);
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.kw-kutu:focus-within { border-color: var(--color-primary); box-shadow: 0 0 0 4px var(--color-primary-soft); }
+.kw-kutu[data-hatali="1"] { border-color: var(--color-danger); }
+.kw-girdi { flex: 1; min-width: 0; height: 100%; border: 0; outline: none; background: transparent; font-family: inherit; font-size: 15px; color: var(--color-text); padding: 0; }
+.kw-girdi::placeholder { color: var(--color-text-muted); opacity: .7; }
+.kw-onek { color: var(--color-text-muted); font-size: 15px; flex: none; padding-right: 2px; }
+.kw-goz { flex: none; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; background: none; border: 0; padding: 0; border-radius: 8px; color: var(--color-text-muted); cursor: pointer; touch-action: manipulation; }
+.kw-goz:hover { background: var(--color-primary-soft); color: var(--color-text); }
+.kw-hata { font-size: 13px; color: var(--color-danger); margin: 6px 0 0; }
+.kw-guc { height: 3px; border-radius: 2px; margin-top: 8px; transition: background-color .3s ease; }
+
+/* Onay kutusu — NATIVE input (form POST'u bozmadan) tasarımın görünümüne boyandı */
+.kw-onay-satir { display: flex; align-items: flex-start; gap: 12px; margin-top: 20px; font-size: 13px; line-height: 1.5; color: var(--color-text-muted); cursor: pointer; }
+.kw-onay {
+  flex: none; width: 20px; height: 20px; margin: 1px 0 0; appearance: none; -webkit-appearance: none;
+  border: 1.5px solid var(--color-border); border-radius: 6px; background: var(--color-surface);
+  cursor: pointer; display: grid; place-items: center;
+  transition: background-color .15s ease, border-color .15s ease;
+}
+.kw-onay:hover { border-color: var(--color-primary); }
+.kw-onay:checked { background: var(--color-primary); border-color: var(--color-primary); }
+.kw-onay:checked::after {
+  content: ''; width: 10px; height: 5px; margin-top: -3px;
+  border-left: 2px solid #fff; border-bottom: 2px solid #fff; transform: rotate(-45deg);
+}
+
+/* Ana buton — 52px, DÜZ vurgu rengi (.auth-submit'in gradyanı DEĞİL) */
+.kw-buton {
+  display: block; width: 100%; height: 52px; margin-top: 24px; border: 0; border-radius: 12px;
+  background: var(--color-primary); color: #fff; font-family: inherit; font-size: 16px;
+  font-weight: 600; letter-spacing: .01em; cursor: pointer; touch-action: manipulation;
+  transition: background .15s ease, opacity .18s ease, transform .12s ease;
+}
+.kw-buton:hover:not(:disabled) { background: var(--color-primary-hover); }
+.kw-buton:active:not(:disabled) { transform: scale(.98); }
+.kw-buton:disabled { opacity: .5; cursor: default; }
+
+.kw-ipucu { margin: 8px 0 0; font-size: 13px; text-align: center; color: var(--color-text-muted); }
+.kw-not { margin: 10px 0 0; font-size: 13px; line-height: 1.45; color: var(--color-text-muted); }
+.kw-alt-bag { margin: 24px 0 0; text-align: center; font-size: 13px; color: var(--color-text-muted); }
+.kw-alt-bag a { color: var(--color-primary); font-weight: 600; text-decoration: none; }
+
+/* Tasarımın kendi kırılma noktası: 380px altında kartlar tek sütuna iner */
+@media (max-width: 379px) {
+  .kw-izgara-2 { grid-template-columns: 1fr !important; }
+  .kw-baslik { font-size: 22px; }
+  .kw-daire { width: 72px; height: 72px; font-size: 19px; }
+  .kw-daire-yil { width: 92px; }
+  .kw-daireler { gap: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kw-seg, .kw-geri, .kw-kart, .kw-rozet, .kw-daire, .kw-kutu, .kw-onay, .kw-buton { transition: none; }
+  .kw-kart:hover, .kw-kart:active, .kw-buton:active, .kw-geri:active { transform: none; }
+}
