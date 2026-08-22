@@ -128,6 +128,12 @@ export default function RegisterWizard() {
       // Hata mesajı (AuthErrorNotice, page.tsx'te kartın üstünde) 5. adımdaki bir
       // alanı işaret ediyor — kullanıcıyı 1. adımda değil orada karşılamalıyız.
       setAdim(TOPLAM_ADIM);
+      // Geçmişi de kullanıcı adım adım yürümüş gibi kur; yoksa geri tuşu
+      // 5. adımdan doğrudan siteyi terk ederdi.
+      try {
+        for (let n = 2; n <= TOPLAM_ADIM; n++) history.pushState({ bofAdim: n }, '');
+        gecmisCalisiyor.current = true;
+      } catch { /* geçmiş yazılamadı — geri tuşu setAdim'e düşer */ }
     } catch { /* bozuk taslak — yok say */ }
   }, []);
 
@@ -139,6 +145,38 @@ export default function RegisterWizard() {
     window.addEventListener('pageshow', geriGeldi);
     return () => window.removeEventListener('pageshow', geriGeldi);
   }, []);
+
+  /**
+   * ADIM GEÇMİŞİ — tarayıcı geri hareketi "önceki adım" olmalı.
+   *
+   * Adım salt React state olduğu için Android geri jesti / iOS kenar kaydırma /
+   * masaüstü Geri tuşu kullanıcıyı SİTEDEN ATIYOR ve 5 adımın tamamı gidiyordu.
+   * Mobilde bu, hata yoluna göre çok daha sık yaşanan bir kayıp.
+   *
+   * URL DEĞİŞTİRİLMİYOR (`pushState`e yol verilmiyor): `/register` Ads iniş
+   * adresi ve statik prerender — adres satırına `?adim=3` yazmanın hiçbir
+   * faydası yok, riski var.
+   */
+  const gecmisCalisiyor = useRef(false);
+  useEffect(() => {
+    const gerileme = (e: PopStateEvent) => {
+      const n = (e.state as { bofAdim?: number } | null)?.bofAdim;
+      setAdim(typeof n === 'number' && n >= 1 && n <= TOPLAM_ADIM ? n : 1);
+    };
+    window.addEventListener('popstate', gerileme);
+    return () => window.removeEventListener('popstate', gerileme);
+  }, []);
+
+  const ileriGit = (n: number) => {
+    setAdim(n);
+    try { history.pushState({ bofAdim: n }, ''); gecmisCalisiyor.current = true; } catch { /* geçmiş yazılamadı */ }
+  };
+  // Geçmiş yazılabiliyorsa geri gitmeyi TARAYICIYA bırak — yoksa iki yığın
+  // (React state ile history) birbirinden ayrı düşer ve geri tuşu ileri atlar.
+  const geriGit = (n: number) => {
+    if (gecmisCalisiyor.current) history.back();
+    else setAdim(n);
+  };
 
   const gunRef = useRef<HTMLInputElement>(null);
   const ayRef = useRef<HTMLInputElement>(null);
@@ -229,12 +267,24 @@ export default function RegisterWizard() {
               />
             ))}
           </div>
-          <Devam disabled={!cinsiyet} onClick={() => setAdim(2)}>Devam et</Devam>
+          {/* ⚠ KVKK — TOPLAMA ANINDA BİLDİRİM. Eski formda cinsiyet select'inin
+              hemen altında duruyordu (0fb78c2:60-62), sihirbaza taşınırken düştü.
+              "Profilinde gösterilir" ifadesi ölçüldü ve gerçek: cinsiyet
+              /u/<kullanıcı> sunucu HTML'inde ANONİM ziyaretçiye basılıyor
+              (UserProfileClient.tsx). Gizlilik Politikası bağı 4 adım sonra
+              geliyor, yani seçim anındaki tek bildirim bu. ⛔ Silme. */}
+          <p style={{ margin: '10px 0 0', fontSize: '0.78rem', lineHeight: 1.45, color: 'var(--color-text-muted)' }}>
+            Profilinde herkese açık gösterilir; ayarlardan istediğin zaman değiştirebilir ya da kaldırabilirsin.
+          </p>
+          <Devam disabled={!cinsiyet} onClick={() => ileriGit(2)}>Devam et</Devam>
         </Ekran>
       )}
 
       {adim === 2 && (
-        <Ekran baslik="Burada neler yapmak istersin?" alt={`En fazla ${EN_FAZLA_ILGI} tane seç. İstediğin zaman değiştirirsin.`}>
+        // ⚠ ALT METİN "İstediğin zaman değiştirirsin." DEĞİL. Tasarımda öyleydi
+        // ama bu seçimler HİÇBİR YERE yazılmıyor (dosya başındaki 3. nota bak) —
+        // değiştirilecek bir kayıt yok, yani tutulamayacak bir söz olurdu.
+        <Ekran baslik="Burada neler yapmak istersin?" alt={`En fazla ${EN_FAZLA_ILGI} tane seç. Sana neler sunduğumuzu görelim.`}>
           <div role="group" aria-label="İlgi alanları" style={{ display: 'grid', gap: 8 }}>
             {ILGILER.map((it, i) => {
               const secili = ilgiler.includes(i);
@@ -259,8 +309,8 @@ export default function RegisterWizard() {
               En fazla {EN_FAZLA_ILGI} tane seçebilirsin. Değiştirmek için birini geri al.
             </p>
           )}
-          <Devam disabled={ilgiler.length === 0} onClick={() => setAdim(3)}>Devam et</Devam>
-          <Geri onClick={() => setAdim(1)} />
+          <Devam disabled={ilgiler.length === 0} onClick={() => ileriGit(3)}>Devam et</Devam>
+          <Geri onClick={() => geriGit(1)} />
         </Ekran>
       )}
 
@@ -282,13 +332,18 @@ export default function RegisterWizard() {
               </div>
             ))}
           </div>
-          <Devam onClick={() => setAdim(4)}>Devam et</Devam>
-          <Geri onClick={() => setAdim(2)} />
+          <Devam onClick={() => ileriGit(4)}>Devam et</Devam>
+          <Geri onClick={() => geriGit(2)} />
         </Ekran>
       )}
 
       {adim === 4 && (
-        <Ekran baslik="Ne zaman doğdun?" alt="Sadece yaşını doğrulamak için kullanıyoruz.">
+        // ⚠ METİN "Sadece yaşını doğrulamak için kullanıyoruz." DEĞİLDİ ve olmamalı:
+        // doğum tarihinden hesaplanan YAŞ, profilde anonim ziyaretçiye basılıyor
+        // (u/[username] SSR HTML'inde "N yaş" olarak ölçüldü). "Sadece doğrulamak
+        // için" demek yanlış beyan olurdu. Eski formun ifadesi daha doğruydu:
+        // gösterilmeyen şey doğum TARİHİ, görünen şey yaş.
+        <Ekran baslik="Ne zaman doğdun?" alt="Doğum tarihin profilinde gösterilmez; yalnızca yaşın görünür.">
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.3fr', gap: 10 }}>
             <TarihKutu
               deger={gun} etiket="Gün" enFazla={2} inputRef={gunRef} otomatik="bday-day"
@@ -328,8 +383,8 @@ export default function RegisterWizard() {
             </p>
           )}
 
-          <Devam disabled={!tarihGecerli} onClick={() => setAdim(5)}>Devam et</Devam>
-          <Geri onClick={() => setAdim(3)} />
+          <Devam disabled={!tarihGecerli} onClick={() => ileriGit(5)}>Devam et</Devam>
+          <Geri onClick={() => geriGit(3)} />
         </Ekran>
       )}
 
@@ -343,6 +398,11 @@ export default function RegisterWizard() {
           <form
             action="/api/auth/register"
             method="post"
+            // ⚠ ARALIK BURADAN GELİYOR. Eski kayıt formu ve LoginForm ikisi de
+            // `gap:'22px'` kullanıyor; sihirbaza taşınırken düştüğü için alanlar
+            // arasında yalnızca `.ls-field{margin-top:6px}` kalıyordu (ölçüldü:
+            // computed row-gap "normal") ve yüzen etiket üstteki alana yaklaşıyordu.
+            style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}
             onSubmit={() => {
               setGonderiliyor(true);
               // Şifre ve onay BİLEREK dışarıda; gerekçe TASLAK tanımında.
@@ -358,44 +418,50 @@ export default function RegisterWizard() {
             <input type="hidden" name="gender" value={cinsiyet} />
             <input type="hidden" name="birthdate" value={dogumIso} />
 
-            <FloatingInput
-              id="reg-username" type="text" name="username" label="Kullanıcı adı" required
-              autoComplete="username" value={kullaniciAdi}
-              aria-invalid={!!kullaniciAdi && !adGecerli}
-              aria-describedby={kullaniciAdi && !adGecerli ? 'reg-username-hata' : undefined}
-              onChange={(e) => setKullaniciAdi(e.target.value)}
-            />
-            {kullaniciAdi && !adGecerli && (
-              <Uyari id="reg-username-hata">3–30 karakter; yalnızca harf, rakam ve alt çizgi.</Uyari>
-            )}
+            <div>
+              <FloatingInput
+                  id="reg-username" type="text" name="username" label="Kullanıcı adı" required
+                  autoComplete="username" value={kullaniciAdi}
+                  aria-invalid={!!kullaniciAdi && !adGecerli}
+                  aria-describedby={kullaniciAdi && !adGecerli ? 'reg-username-hata' : undefined}
+                  onChange={(e) => setKullaniciAdi(e.target.value)}
+              />
+              {kullaniciAdi && !adGecerli && (
+                  <Uyari id="reg-username-hata">3–30 karakter; yalnızca harf, rakam ve alt çizgi.</Uyari>
+              )}
+            </div>
 
-            <FloatingInput
-              id="reg-email" type="email" name="email" label="E-posta" required
-              autoComplete="email" value={eposta}
-              aria-invalid={!!eposta && !epostaGecerli}
-              aria-describedby={eposta && !epostaGecerli ? 'reg-email-hata' : undefined}
-              onChange={(e) => setEposta(e.target.value)}
-            />
-            {eposta && !epostaGecerli && (
-              <Uyari id="reg-email-hata">Geçerli bir e-posta adresi gir (örn. ad@ornek.com).</Uyari>
-            )}
+            <div>
+              <FloatingInput
+                  id="reg-email" type="email" name="email" label="E-posta" required
+                  autoComplete="email" value={eposta}
+                  aria-invalid={!!eposta && !epostaGecerli}
+                  aria-describedby={eposta && !epostaGecerli ? 'reg-email-hata' : undefined}
+                  onChange={(e) => setEposta(e.target.value)}
+              />
+              {eposta && !epostaGecerli && (
+                  <Uyari id="reg-email-hata">Geçerli bir e-posta adresi gir (örn. ad@ornek.com).</Uyari>
+              )}
+            </div>
 
-            <FloatingInput
-              id="reg-password" type="password" name="password" label="Şifre (en az 6 karakter)" required
-              autoComplete="new-password" minLength={6} value={sifre}
-              aria-invalid={!!sifre && !sifreGecerli}
-              aria-describedby={sifre && !sifreGecerli ? 'reg-password-hata' : undefined}
-              onChange={(e) => setSifre(e.target.value)}
-            />
-            {sifre && !sifreGecerli && (
-              <Uyari id="reg-password-hata">Şifre en az 6 karakter olmalı.</Uyari>
-            )}
+            <div>
+              <FloatingInput
+                  id="reg-password" type="password" name="password" label="Şifre (en az 6 karakter)" required
+                  autoComplete="new-password" minLength={6} value={sifre}
+                  aria-invalid={!!sifre && !sifreGecerli}
+                  aria-describedby={sifre && !sifreGecerli ? 'reg-password-hata' : undefined}
+                  onChange={(e) => setSifre(e.target.value)}
+              />
+              {sifre && !sifreGecerli && (
+                  <Uyari id="reg-password-hata">Şifre en az 6 karakter olmalı.</Uyari>
+              )}
+            </div>
 
             {/* ⚠ YAŞ BEYANI BURADA KALMALI. Mevcut kayıt formunda vardı ve
                 MIN_AGE hukuki metinlere bağlı (lib/age.ts). Tasarımın yasal
                 metninde yoktu — düşseydi KVKK tarafında gerileme olurdu. */}
             <label style={{
-              display: 'flex', alignItems: 'flex-start', gap: 9, marginTop: 14,
+              display: 'flex', alignItems: 'flex-start', gap: 9,
               fontSize: '0.82rem', lineHeight: 1.5, color: 'var(--color-text)', cursor: 'pointer',
             }}>
               <input
@@ -414,27 +480,29 @@ export default function RegisterWizard() {
                 butonla PİKSEL PİKSEL aynı görünüyordu (aynı gradyan, aynı gölge,
                 aynı imleç) ve .auth-submit:hover onu parlatıyordu bile. Kullanıcı
                 basıyor, hiçbir şey olmuyor, sebebini gösteren tek işaret yok. */}
-            <button
-              type="submit" className="auth-submit" disabled={gonderKapali}
-              style={{
-                width: '100%', marginTop: 16,
-                opacity: gonderiliyor ? 0.7 : gonderKapali ? 0.5 : 1,
-                cursor: gonderKapali ? 'default' : 'pointer',
-              }}
-            >
-              {gonderiliyor ? 'Oluşturuluyor…' : 'Hesabımı oluştur'}
-            </button>
+            <div>
+              <button
+                type="submit" className="auth-submit" disabled={gonderKapali}
+                style={{
+                  width: '100%',
+                  opacity: gonderiliyor ? 0.7 : gonderKapali ? 0.5 : 1,
+                  cursor: gonderKapali ? 'default' : 'pointer',
+                }}
+              >
+                {gonderiliyor ? 'Oluşturuluyor…' : 'Hesabımı oluştur'}
+              </button>
 
-            {eksikOlan && !gonderiliyor && (
-              <p aria-live="polite" style={{
-                margin: '8px 0 0', fontSize: '0.8rem', textAlign: 'center',
-                color: 'var(--color-text-muted)',
-              }}>
-                {eksikOlan}
-              </p>
-            )}
+              {eksikOlan && !gonderiliyor && (
+                <p aria-live="polite" style={{
+                  margin: '8px 0 0', fontSize: '0.8rem', textAlign: 'center',
+                  color: 'var(--color-text-muted)',
+                }}>
+                  {eksikOlan}
+                </p>
+              )}
+            </div>
           </form>
-          <Geri onClick={() => setAdim(4)} />
+          <Geri onClick={() => geriGit(4)} />
         </Ekran>
       )}
     </div>
@@ -542,7 +610,7 @@ function TarihKutu({ deger, etiket, enFazla, onDegis, onKeyDown, inputRef, otoma
 
 function Uyari({ id, children }: { id?: string; children: React.ReactNode }) {
   return (
-    <p id={id} role="alert" style={{ margin: '-4px 0 10px', fontSize: '0.8rem', color: 'var(--color-danger)' }}>
+    <p id={id} role="alert" style={{ margin: '6px 0 0', fontSize: '0.8rem', color: 'var(--color-danger)' }}>
       {children}
     </p>
   );
