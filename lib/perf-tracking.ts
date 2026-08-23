@@ -11,7 +11,7 @@ import { BOT_RE } from '@/lib/pageview-tracking';
 export type PerfBody = {
   p?: unknown; ttfb?: unknown; fcp?: unknown; lcp?: unknown; load?: unknown;
   inp?: unknown; cls?: unknown; nav?: unknown; dev?: unknown; conn?: unknown;
-  giz?: unknown; ekip?: unknown; prt?: unknown;
+  giz?: unknown; ekip?: unknown; prt?: unknown; lcpel?: unknown;
 };
 
 // Tarayicidan gelen sayilara GUVENME: govde istemciden, yani disaridan geliyor.
@@ -31,6 +31,13 @@ const BAGLANTILAR = ['slow-2g', '2g', '3g', '4g'] as const;
 // nextHopProtocol ALPN kimligi dondurur. Beyaz liste: govde istemciden geliyor,
 // serbest metin sutunu kardinaliteyi patlatabilir.
 const PROTOKOLLER = ['h3', 'h3-29', 'h2', 'http/1.1', 'http/1.0', ''] as const;
+// LCP ogesinin ETIKETI. ⛔ Yalniz tagName saklanir — id/src/selector ASLA:
+// bir kullanicinin avatar URL'i ya da gonderi gorseli kisisel veridir, bu hat
+// ise cerezsiz/kimliksiz olmak uzere kuruldu. Istemci beyaz liste disini zaten
+// 'DIGER'e indiriyor; burada IKINCI kez suzuyoruz cunku govde disaridan geliyor.
+const LCP_ETIKETLERI = [
+  'IMG', 'VIDEO', 'H1', 'H2', 'H3', 'P', 'DIV', 'SPAN', 'CANVAS', 'svg', 'A', 'SECTION', 'BUTTON', 'DIGER',
+] as const;
 
 const bayrak = (v: unknown): boolean => v === true;
 
@@ -79,6 +86,9 @@ export async function recordPerf(h: HeaderGetter, body: PerfBody): Promise<void>
       gizli: bayrak(body.giz),
       ekip: bayrak(body.ekip),
       proto: secenek(body.prt, PROTOKOLLER),
+      // ⚠ `temel` nesnesine DEGIL buraya: sutun henuz yoksa asagidaki yedek
+      // yol `temel`i sutunsuz yazabilsin, olcum hatti sessizce olmesin.
+      lcp_el: secenek(body.lcpel, LCP_ETIKETLERI),
     });
 
     // YEDEK YOL — sql/fix-web-vitals-olcum.sql henuz kosulmadiysa.
@@ -90,7 +100,7 @@ export async function recordPerf(h: HeaderGetter, body: PerfBody): Promise<void>
     if (error && (error.code === 'PGRST204' || error.code === '42703')) {
       const { error: yedekHata } = await db.from('perf_samples').insert(temel);
       logIfError('recordPerf insert (yedek, isaretsiz)', yedekHata);
-      if (!yedekHata) console.warn('[recordPerf] gizli/ekip/proto sutunlari YOK — sql/fix-web-vitals-olcum.sql calistirilmali');
+      if (!yedekHata) console.warn('[recordPerf] gizli/ekip/proto/lcp_el sutunlarindan biri YOK — sql/fix-web-vitals-olcum.sql ve sql/features-lcp-ogesi.sql calistirilmali');
       return;
     }
     // Tablo (SQL) henuz yoksa sessizce loglanir, hicbir seyi bozmaz.

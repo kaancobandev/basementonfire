@@ -75,7 +75,30 @@ export default function WebVitalsBeacon() {
       }
     };
 
-    gozle('largest-contentful-paint', (e) => { lcp = e.startTime; });
+    // LCP'nin NE OLDUGU. Bugune kadar yalnizca startTime kaydediliyordu; "LCP
+    // muhtemelen video/gorsel" cumlesi bu yuzden hep CIKARIM'di, olcum degil.
+    // Telefonda LCP-TTFB p75 = 1,41 sn (masaustunun iki kati) ve bu BIZIM
+    // payimiz -- neyin boyandigini bilmeden hangi varligi optimize edecegimizi
+    // de bilemiyoruz. Etiket kategorik bir soru oldugu icin (yuzdelik degil)
+    // ~100 ornekle cevaplanir, yani MEVCUT trafikle olculebilir.
+    //
+    // ⛔ YALNIZ tagName. `element.id`, `src`, selector veya outerHTML YAZMA:
+    //    bir kullanicinin avatar URL'i / gonderi gorseli kisisel veridir ve bu
+    //    hat CEREZSIZ, KIMLIKSIZ olmak uzere kuruldu. Etiket adi kimseyi
+    //    isaret etmez.
+    //
+    // ⚠ ETIKET GOZLEMCI GERI CAGRISINDA OKUNUR, gonderim aninda DEGIL:
+    //    gonderim 20 sn sonra ya da pagehide'da olur, o ana kadar oge DOM'dan
+    //    kopmus olabilir ve `e.element` null'a doner.
+    const LCP_ETIKET = ['IMG', 'VIDEO', 'H1', 'H2', 'H3', 'P', 'DIV', 'SPAN', 'CANVAS', 'svg', 'A', 'SECTION', 'BUTTON'];
+    let lcpEtiket: string | null = null;
+    gozle('largest-contentful-paint', (e) => {
+      lcp = e.startTime;
+      const t = (e.element as Element | null)?.tagName ?? null;
+      // Beyaz liste disi her sey 'DIGER': serbest metin sutunu kardinaliteyi
+      // patlatirdi (proto sutununda ayni desen kullanildi).
+      lcpEtiket = t === null ? null : LCP_ETIKET.includes(t) ? t : 'DIGER';
+    });
 
     gozle('layout-shift', (e) => {
       if (e.hadRecentInput) return; // kullanici kaydirdigi icin kayan sey sayilmaz
@@ -145,6 +168,11 @@ export default function WebVitalsBeacon() {
         // gerekiyor; yerel curl derlemesi h2/h3 desteklemedigi icin bunu
         // olcebilecek tek yer yine ziyaretcinin tarayicisi.
         prt: typeof nav.nextHopProtocol === 'string' ? nav.nextHopProtocol : null,
+        // LCP ogesinin etiketi (yalniz tagName; yukaridaki gerekceye bak).
+        // null = oge okunamadi (DOM'dan kopmus ya da capraz-koken iframe) —
+        // panelde AYRI bir "bilinmiyor" kovasi olarak gosterilmeli, yoksa
+        // dagilim oldugundan temiz gorunur.
+        lcpel: lcpEtiket,
       });
 
       try {

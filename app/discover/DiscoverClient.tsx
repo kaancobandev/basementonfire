@@ -178,7 +178,14 @@ export default function DiscoverClient({ users, media, articles, communityArticl
     return (
       <div className="dc-user-row">
         <Link href={`/u/${u.username}`} className="dc-avatar">
-          <Img src={avatarSrc(u.username, u.avatar)} alt="" fixedWidth={128} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          {/* ⚠ loading="lazy" ŞART. React 19, SSR'da lazy OLMAYAN her <img> için
+              head'e preload basıyor: bu sayfada ÖLÇÜLDÜ, 16 preload / ~195 KB
+              (15 avatar + sidebar logosu). Kullanıcı listesi sayfanın EN
+              SONUNDA (üstünde ArticleIndex + Topluluk Makaleleri + Gündem +
+              12 hücreli Son Paylaşımlar var) — katlamanın üstünde SIFIR avatar,
+              yani lazy LCP'yi kötüleştirmiyor. `.dc-avatar` sabit 42/38 px
+              olduğu için CLS de yok. */}
+          <Img src={avatarSrc(u.username, u.avatar)} alt="" fixedWidth={128} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </Link>
         <div className="dc-user-info">
           <Link href={`/u/${u.username}`} className="dc-user-name">{u.display_name}</Link>

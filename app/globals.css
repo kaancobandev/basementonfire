@@ -1728,3 +1728,17 @@ body {
   /* Parlama hareket değil ışıktır; kalır ama yumuşatılır. */
   .kw-parlama { filter: blur(4px); }
 }
+
+/* Gönderi modalı yüklenme iskeleti — app/@modal/(.)p/[id]/loading.tsx.
+   Nabız hareket değil ton değişimi; yine de reduced-motion'da duruyor. */
+.pmload-blok {
+  background: var(--color-border);
+  animation: pmloadNabiz 1.4s ease-in-out infinite;
+}
+@keyframes pmloadNabiz {
+  0%, 100% { opacity: .55; }
+  50%      { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pmload-blok { animation: none; opacity: .7; }
+}
