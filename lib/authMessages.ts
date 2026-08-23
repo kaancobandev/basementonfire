@@ -19,8 +19,14 @@ import { MIN_AGE } from './age';
 
 export const AUTH_MESSAGES: Record<string, string> = {
   // Giriş
-  eksik:        'E-posta ve şifre gerekli.',
-  hatali:       'E-posta veya şifre hatalı.',
+  // ⚠ Giriş artık KULLANICI ADIYLA da yapılabiliyor (api/auth/login) → iki
+  //   mesaj da "e-posta" demekle yetinemez, yoksa adıyla giren kullanıcı
+  //   yanlış alanı düzeltmeye çalışır.
+  // ⚠ `hatali` BİLEREK MUĞLAK: "kullanıcı adı yok" ile "şifre yanlış" AYNI
+  //   mesajı döner. Ayrıştırmak, bir adın hesabı olup olmadığını tek istekte
+  //   doğrulamayı bedava yapardı.
+  eksik:        'E-posta veya kullanıcı adı ve şifre gerekli.',
+  hatali:       'E-posta/kullanıcı adı veya şifre hatalı.',
   onaysiz:      'E-postanı henüz onaylamadın. Kutunu (ve spam klasörünü) kontrol et.',
   cok_deneme:   'Çok fazla deneme yapıldı. Biraz bekleyip tekrar dene.',
 

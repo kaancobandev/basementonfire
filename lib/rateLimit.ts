@@ -64,6 +64,23 @@ export const RATE_LIMITS = {
   comment: { capacity: 8, refillPerSec: 8 / 60 },     // dakikada 8 yorum
   dyk: { capacity: 10, refillPerSec: 10 / 3600 },     // saatte 10 bilgi kartı
   gameScore: { capacity: 10, refillPerSec: 10 / 3600 }, // saatte 10 skor
+
+  // Giriş denemesi. 23.08.2026'da eklendi, sebebi doğrudan "kullanıcı adıyla
+  // giriş" özelliği: KULLANICI ADLARI HERKESE AÇIK (/u/<ad> anonim 200 döner),
+  // yani saldırganın artık e-posta tahmin etmesine gerek yok — geçerli kimlik
+  // listesi zaten elinde. Bu, kaba kuvvetin girdi tarafını ölçülebilir biçimde
+  // kolaylaştırıyor.
+  //
+  // Kova IP başına (identify → IP+gün+salt hash'i). 10 patlama + 5 dakikada 10
+  // sürdürülebilir: bu sitede giriş günde tek haneli, yani meşru kullanıcı bunu
+  // ASLA görmez; kaba kuvvet ise dakikada ~2 denemeye iner.
+  //
+  // ⚠ Cömert tutuldu çünkü mobil operatörlerde (Turkcell/Vodafone CGNAT) çok
+  //   sayıda gerçek kullanıcı TEK IP paylaşabilir — dar bir kova onları kilitler.
+  // ⚠ Fren FAIL-OPEN (dosya başındaki nota bak): DB tökezlerse giriş çalışmaya
+  //   devam eder. Yani bu, tek başına bir güvenlik duvarı DEĞİL, Supabase'in
+  //   kendi auth limitinin önüne konmuş ucuz bir yavaşlatıcı.
+  login: { capacity: 10, refillPerSec: 10 / 300 },
 } satisfies Record<string, Rule>;
 
 export type RuleName = keyof typeof RATE_LIMITS;
