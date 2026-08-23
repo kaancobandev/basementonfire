@@ -233,47 +233,42 @@ export default function RegisterWizard() {
   const sifreGucu = !sifre ? 0 : sifre.length < 6 ? 1 : sifre.length >= 12 || (/\d/.test(sifre) && /[^a-z0-9]/i.test(sifre)) ? 3 : 2;
   const gucRengi = ['transparent', 'var(--color-danger)', 'var(--color-accent)', 'var(--color-success)'][sifreGucu];
 
-  // Son adımın tamamlanma göstergesi: dört koşulun kaçı sağlandı?
-  // (Tasarımda bar burada sıfırlanıp baştan doluyordu; bizde indigo dolgu
-  //  YERİNDE KALIR, amber onun üstünden akar — kullanıcı kararı.)
+  // Son adımın ödül anı — kullanıcı kararı (23.08.2026):
+  //   · 5. adıma gelindiğinde çubuk DİĞER ADIMLARLA AYNI durur: 5 ayrı mavi
+  //     çentik, 6px aralık. Kademeli dolma YOK.
+  //   · Dört koşulun DÖRDÜ birden sağlandığı anda çentikler tek çubuğa
+  //     birleşir ve amber + parlama aynı anda ateşlenir.
+  // Bir koşul geri alınırsa hareket geri sarar; "her bilgi doğru" durumunun
+  // görsel karşılığı olmalı, bir kez yanıp kalan bir rozet değil.
   const sonAdim = adim === TOPLAM_ADIM;
-  const tamamlanan = [adGecerli, epostaGecerli, sifreGecerli, onay].filter(Boolean).length;
-  const doluluk = sonAdim ? tamamlanan / 4 : 0;
-  const hepsiTamam = sonAdim && tamamlanan === 4;
+  const hepsiTamam = sonAdim && adGecerli && epostaGecerli && sifreGecerli && onay;
 
   return (
     <div className="kw-sutun" style={{ maxWidth: GENISLIK[adim] }}>
       <AuthErrorNotice />
 
       <div className="kw-ilerleme-kap">
-        {/* Parlama barın ARKASINDA. Doluluk arttıkça belirir, tamamlanınca
-            tam güce çıkar. aria-hidden: tamamlanma zaten butonun altındaki
-            canlı bölgede sözle duyuruluyor, ikinci kez ilan etmeyelim. */}
-        <div
-          className="kw-parlama" aria-hidden
-          style={{ opacity: hepsiTamam ? 0.9 : doluluk * 0.3 }}
-        />
+        {/* Parlama barın ARKASINDA; yalnızca hepsi tamamken yanar.
+            aria-hidden: tamamlanma zaten butonun altındaki canlı bölgede
+            sözle duyuruluyor, ikinci kez ilan etmeyelim. */}
+        <div className="kw-parlama" aria-hidden data-yanik={hepsiTamam ? '1' : undefined} />
         <div
           className="kw-ilerleme"
-          // Son adımda segmentler birleşip tek şerit olur (tasarım böyle),
-          // ama DOLGU DURMAYA DEVAM EDER — bar sıfırlanmaz.
-          data-birlesik={sonAdim ? '1' : undefined}
-          // ⚠ aria-valuenow ADIM sayısıdır, doluluk değil. Amber şerit görsel
-          // bir tamamlanma sinyali; ekran okuyucuya iki farklı "ilerleme"
-          // anlatmak kafa karıştırır.
+          // ⚠ BİRLEŞME KOŞULU `sonAdim` DEĞİL `hepsiTamam`. 5. adıma gelmek
+          // tek başına çubuğu değiştirmez — diğer adımlarla aynı 5 çentik
+          // durur. Birleşme, dört koşulun tamamlandığı anın ödülüdür.
+          data-birlesik={hepsiTamam ? '1' : undefined}
+          // ⚠ aria-valuenow ADIM sayısıdır. Amber şerit görsel bir tamamlanma
+          // sinyali; ekran okuyucuya iki farklı "ilerleme" anlatmak karıştırır.
           role="progressbar" aria-valuenow={adim} aria-valuemin={1} aria-valuemax={TOPLAM_ADIM}
           aria-label={`Adım ${adim} / ${TOPLAM_ADIM}`}
         >
           {Array.from({ length: TOPLAM_ADIM }, (_, i) => (
             <span key={i} className={i < adim ? 'kw-seg kw-seg-dolu' : 'kw-seg'} />
           ))}
-          {sonAdim && (
-            <span
-              className="kw-amber" aria-hidden
-              data-bitti={hepsiTamam ? '1' : undefined}
-              style={{ width: `${doluluk * 100}%` }}
-            />
-          )}
+          {/* Son adımda hep basılır ama genişliği 0'dır; tamamlanınca soldan
+              sağa süpürerek açılır (mount anında sıçramasın diye önceden var). */}
+          {sonAdim && <span className="kw-amber" aria-hidden data-yanik={hepsiTamam ? '1' : undefined} />}
         </div>
       </div>
 

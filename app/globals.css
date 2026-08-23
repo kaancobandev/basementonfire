@@ -1571,33 +1571,41 @@ body {
 .kw-seg { flex: 1; height: 4px; border-radius: 999px; background: var(--color-border); transition: background .2s ease, border-radius .5s ease-in-out; }
 .kw-seg-dolu { background: var(--color-primary); }
 
-/* ── ADIM 5: TAMAMLANMA GÖSTERGESİ ────────────────────────────────────────
-   Tasarımda son adımda segmentler birleşiyor, bar SIFIRLANIP baştan doluyor
-   ve tamamlanınca amber + bulanık parlama oluyor.
-   ⚠ SIFIRLAMA KISMI KASITLI OLARAK ALINMADI (kullanıcı kararı, 22.08.2026):
-   5 segmentin indigo dolgusu YERİNDE KALIR, amber onun ÜSTÜNDEN akar. Yani
-   kullanıcı geldiği yolu kaybetmez, üstüne tamamlanma sinyali biner.
-   ⛔ Barı adım 5'te boşaltma. */
+/* ── ADIM 5: TAMAMLANMA ÖDÜLÜ ─────────────────────────────────────────────
+   KULLANICI KARARI (23.08.2026) — tasarımdan iki noktada bilerek ayrılıyor:
+
+   1. Tasarım son adımda barı SIFIRLAYIP baştan dolduruyordu. Bizde çubuk
+      5. adıma gelindiğinde DİĞER ADIMLARLA AYNI durur: 5 ayrı mavi çentik,
+      6px aralık. ⛔ Adım 5'te barı boşaltma, kademeli doldurma.
+
+   2. Birleşme + amber + parlama TEK ANDA, dört koşulun (kullanıcı adı,
+      e-posta, şifre, koşul onayı) HEPSİ sağlandığında ateşlenir. Kademeli
+      %25'lik dolma YOK — hepsi ya da hiçbiri.
+
+   Tetikleyici `[data-birlesik="1"]` / `[data-yanik="1"]`, ikisini de
+   `hepsiTamam` sürüyor. Bir koşul geri alınırsa hareket geri sarar. */
 .kw-ilerleme[data-birlesik="1"] { gap: 0; }
 .kw-ilerleme[data-birlesik="1"] .kw-seg { border-radius: 0; }
 .kw-ilerleme[data-birlesik="1"] .kw-seg:first-child { border-radius: 999px 0 0 999px; }
 .kw-ilerleme[data-birlesik="1"] .kw-seg:last-child { border-radius: 0 999px 999px 0; }
 
-/* Amber dolgu — indigonun üstünde, sağa doğru büyür */
+/* Amber — indigonun üstünde, soldan sağa süpürerek açılır */
 .kw-amber {
   position: absolute; left: 0; top: 0; height: 4px; width: 0;
-  border-radius: 999px 0 0 999px; background: var(--color-accent);
-  pointer-events: none; transition: width .3s ease;
+  border-radius: 999px; background: var(--color-accent);
+  pointer-events: none; transition: width .45s ease-out;
 }
-.kw-amber[data-bitti="1"] { border-radius: 999px; }
+.kw-amber[data-yanik="1"] { width: 100%; }
 
 /* Parlama — barın ARKASINDA duran bulanık amber şerit */
 .kw-parlama {
   position: absolute; left: 2%; right: 2%; top: 3px; height: 10px; z-index: 0;
   border-radius: 999px; background: var(--color-accent);
   filter: blur(7px); opacity: 0; pointer-events: none;
-  transition: opacity .4s ease;
+  /* Gecikme: önce amber süpürsün, parlama onun ardından otursun. */
+  transition: opacity .4s ease .15s;
 }
+.kw-parlama[data-yanik="1"] { opacity: .9; }
 
 /* Geri — 44x44 dokunma hedefi, tasarımda sola taşıyor (margin-left:-12px) */
 .kw-geri {
