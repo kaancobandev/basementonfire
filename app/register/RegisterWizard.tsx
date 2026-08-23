@@ -231,20 +231,50 @@ export default function RegisterWizard() {
     : '';
 
   const sifreGucu = !sifre ? 0 : sifre.length < 6 ? 1 : sifre.length >= 12 || (/\d/.test(sifre) && /[^a-z0-9]/i.test(sifre)) ? 3 : 2;
-  const gucRengi = ['transparent', 'var(--color-danger)', '#f59e0b', 'var(--color-success)'][sifreGucu];
+  const gucRengi = ['transparent', 'var(--color-danger)', 'var(--color-accent)', 'var(--color-success)'][sifreGucu];
+
+  // Son adımın tamamlanma göstergesi: dört koşulun kaçı sağlandı?
+  // (Tasarımda bar burada sıfırlanıp baştan doluyordu; bizde indigo dolgu
+  //  YERİNDE KALIR, amber onun üstünden akar — kullanıcı kararı.)
+  const sonAdim = adim === TOPLAM_ADIM;
+  const tamamlanan = [adGecerli, epostaGecerli, sifreGecerli, onay].filter(Boolean).length;
+  const doluluk = sonAdim ? tamamlanan / 4 : 0;
+  const hepsiTamam = sonAdim && tamamlanan === 4;
 
   return (
     <div className="kw-sutun" style={{ maxWidth: GENISLIK[adim] }}>
       <AuthErrorNotice />
 
-      <div
-        className="kw-ilerleme"
-        role="progressbar" aria-valuenow={adim} aria-valuemin={1} aria-valuemax={TOPLAM_ADIM}
-        aria-label={`Adım ${adim} / ${TOPLAM_ADIM}`}
-      >
-        {Array.from({ length: TOPLAM_ADIM }, (_, i) => (
-          <span key={i} className={i < adim ? 'kw-seg kw-seg-dolu' : 'kw-seg'} />
-        ))}
+      <div className="kw-ilerleme-kap">
+        {/* Parlama barın ARKASINDA. Doluluk arttıkça belirir, tamamlanınca
+            tam güce çıkar. aria-hidden: tamamlanma zaten butonun altındaki
+            canlı bölgede sözle duyuruluyor, ikinci kez ilan etmeyelim. */}
+        <div
+          className="kw-parlama" aria-hidden
+          style={{ opacity: hepsiTamam ? 0.9 : doluluk * 0.3 }}
+        />
+        <div
+          className="kw-ilerleme"
+          // Son adımda segmentler birleşip tek şerit olur (tasarım böyle),
+          // ama DOLGU DURMAYA DEVAM EDER — bar sıfırlanmaz.
+          data-birlesik={sonAdim ? '1' : undefined}
+          // ⚠ aria-valuenow ADIM sayısıdır, doluluk değil. Amber şerit görsel
+          // bir tamamlanma sinyali; ekran okuyucuya iki farklı "ilerleme"
+          // anlatmak kafa karıştırır.
+          role="progressbar" aria-valuenow={adim} aria-valuemin={1} aria-valuemax={TOPLAM_ADIM}
+          aria-label={`Adım ${adim} / ${TOPLAM_ADIM}`}
+        >
+          {Array.from({ length: TOPLAM_ADIM }, (_, i) => (
+            <span key={i} className={i < adim ? 'kw-seg kw-seg-dolu' : 'kw-seg'} />
+          ))}
+          {sonAdim && (
+            <span
+              className="kw-amber" aria-hidden
+              data-bitti={hepsiTamam ? '1' : undefined}
+              style={{ width: `${doluluk * 100}%` }}
+            />
+          )}
+        </div>
       </div>
 
       {/* Geri oku tasarımda SOL ÜSTTE (alttaki "← Geri" bağlantısı değil). */}

@@ -1566,9 +1566,38 @@ body {
 .kw-sutun { width: 100%; margin: 0 auto; display: flex; flex-direction: column; }
 
 /* İlerleme — 4px, tam yuvarlak uç, 6px aralık */
-.kw-ilerleme { display: flex; gap: 6px; }
-.kw-seg { flex: 1; height: 4px; border-radius: 999px; background: var(--color-border); transition: background .2s ease; }
+.kw-ilerleme-kap { position: relative; }
+.kw-ilerleme { position: relative; z-index: 1; display: flex; gap: 6px; transition: gap .5s ease-in-out; }
+.kw-seg { flex: 1; height: 4px; border-radius: 999px; background: var(--color-border); transition: background .2s ease, border-radius .5s ease-in-out; }
 .kw-seg-dolu { background: var(--color-primary); }
+
+/* ── ADIM 5: TAMAMLANMA GÖSTERGESİ ────────────────────────────────────────
+   Tasarımda son adımda segmentler birleşiyor, bar SIFIRLANIP baştan doluyor
+   ve tamamlanınca amber + bulanık parlama oluyor.
+   ⚠ SIFIRLAMA KISMI KASITLI OLARAK ALINMADI (kullanıcı kararı, 22.08.2026):
+   5 segmentin indigo dolgusu YERİNDE KALIR, amber onun ÜSTÜNDEN akar. Yani
+   kullanıcı geldiği yolu kaybetmez, üstüne tamamlanma sinyali biner.
+   ⛔ Barı adım 5'te boşaltma. */
+.kw-ilerleme[data-birlesik="1"] { gap: 0; }
+.kw-ilerleme[data-birlesik="1"] .kw-seg { border-radius: 0; }
+.kw-ilerleme[data-birlesik="1"] .kw-seg:first-child { border-radius: 999px 0 0 999px; }
+.kw-ilerleme[data-birlesik="1"] .kw-seg:last-child { border-radius: 0 999px 999px 0; }
+
+/* Amber dolgu — indigonun üstünde, sağa doğru büyür */
+.kw-amber {
+  position: absolute; left: 0; top: 0; height: 4px; width: 0;
+  border-radius: 999px 0 0 999px; background: var(--color-accent);
+  pointer-events: none; transition: width .3s ease;
+}
+.kw-amber[data-bitti="1"] { border-radius: 999px; }
+
+/* Parlama — barın ARKASINDA duran bulanık amber şerit */
+.kw-parlama {
+  position: absolute; left: 2%; right: 2%; top: 3px; height: 10px; z-index: 0;
+  border-radius: 999px; background: var(--color-accent);
+  filter: blur(7px); opacity: 0; pointer-events: none;
+  transition: opacity .4s ease;
+}
 
 /* Geri — 44x44 dokunma hedefi, tasarımda sola taşıyor (margin-left:-12px) */
 .kw-geri {
@@ -1685,6 +1714,9 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .kw-seg, .kw-geri, .kw-kart, .kw-rozet, .kw-daire, .kw-kutu, .kw-onay, .kw-buton { transition: none; }
+  .kw-seg, .kw-geri, .kw-kart, .kw-rozet, .kw-daire, .kw-kutu, .kw-onay, .kw-buton,
+  .kw-ilerleme, .kw-amber, .kw-parlama { transition: none; }
   .kw-kart:hover, .kw-kart:active, .kw-buton:active, .kw-geri:active { transform: none; }
+  /* Parlama hareket değil ışıktır; kalır ama yumuşatılır. */
+  .kw-parlama { filter: blur(4px); }
 }
