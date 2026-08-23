@@ -22,7 +22,7 @@ import FollowListModal from '@/app/components/FollowListModal';
 interface ProfileUser {
   id: number; username: string; display_name: string; bio: string | null; avatar: string | null;
   is_private: boolean; location: string | null; website: string | null; gender: string;
-  birthdate: string | null; interests: string[];
+  interests: string[];
 }
 interface MediaPost { id: number; media_url: string; media_type: string; caption: string; likes: number; created_at: string; media?: { url: string; type: 'image' | 'video' }[] | null; }
 interface Comment { id: number; parent_id: number | null; user_id: number; content: string; created_at: string; display_name: string; username: string; avatar: string | null; likes?: number; liked?: boolean; }
@@ -30,7 +30,6 @@ interface Comment { id: number; parent_id: number | null; user_id: number; conte
 interface Props {
   profileUser: ProfileUser;
   bg: string;
-  age: number | null;
   followersCount: number;
   followingCount: number;
   isFollowing: boolean;
@@ -53,7 +52,7 @@ function timeAgo(iso: string) {
 
 const GENDER_LABEL: Record<string, string> = { erkek: 'Erkek', kadin: 'Kadın', diger: 'Diğer' };
 
-export default function UserProfileClient({ profileUser, bg, age, followersCount, followingCount, isFollowing: initialFollowing, isRequested = false, isHidden, iBlocked, blockedMe, mediaPosts, articles = [], progress = null, badgeKeys = [], highlights = [], me }: Props) {
+export default function UserProfileClient({ profileUser, bg, followersCount, followingCount, isFollowing: initialFollowing, isRequested = false, isHidden, iBlocked, blockedMe, mediaPosts, articles = [], progress = null, badgeKeys = [], highlights = [], me }: Props) {
   const router = useRouter();
   const isMobile = useIsMobile();
   const [following, setFollowing] = useState(initialFollowing);
@@ -323,12 +322,13 @@ export default function UserProfileClient({ profileUser, bg, age, followersCount
               {profileUser.website.replace(/^https?:\/\//, '')}
             </a>
           )}
-          {age !== null && (
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              {age} yaş
-            </span>
-          )}
+          {/* ⛔ YAŞ ROZETİ KALDIRILDI (kullanıcı kararı, 23.08.2026 — etik gerekçe).
+              Buraya `{age} yaş` basılıyordu ve ANONİM ziyaretçiye açıktı: çerezsiz
+              curl ile `/u/<kullanıcı>` sunucu HTML'inde "26 yaş" olarak ölçüldü,
+              yani arama motorları da görüyordu. Kullanıcının bunu kapatma yolu da
+              yoktu — profil formunda gizleme anahtarı yok.
+              Doğum tarihi artık bu sayfanın SORGUSUNDA bile yok (page.tsx BASE_COLS);
+              yalnızca yaş KAPISI için saklanıyor (lib/age.ts). ⛔ Geri ekleme. */}
           {profileUser.gender && <span style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>{GENDER_LABEL[profileUser.gender] ?? ''}</span>}
         </div>
 

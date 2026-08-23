@@ -13,7 +13,11 @@ export const dynamic = 'force-dynamic';
 
 // generateMetadata + sayfa gövdesi aynı kullanıcı satırını ister → React cache()
 // ile istek başına TEK sorgu (getMe deseninin aynısı; iki ayrı select birleşti).
-const BASE_COLS = 'id, username, display_name, bio, avatar, is_private, birthdate, location, website, gender, interests';
+// ⛔ `birthdate` BİLEREK YOK. Eskiden yalnız görüntülenen yaşı hesaplamak için
+// çekiliyordu; yaş herkese açık profilden kaldırıldığı için (kullanıcı kararı,
+// 23.08.2026 — etik gerekçe) artık veriyi sorguya bile almak gereksiz. Doğum
+// tarihi yalnızca yaş KAPISI için var (lib/age.ts); gösterim için değil.
+const BASE_COLS = 'id, username, display_name, bio, avatar, is_private, location, website, gender, interests';
 
 const getProfileUser = cache(async (username: string) => {
   const { data, error } = await db
@@ -66,15 +70,6 @@ export async function generateMetadata({ params }: { params: Promise<{ username:
     openGraph: { type: 'profile', title: `${title} · Basementonfire`, description, url: path, images: ['/opengraph-image'] },
     twitter: { card: 'summary_large_image', title: `${title} · Basementonfire`, description },
   };
-}
-
-function calcAge(bd: string | null): number | null {
-  if (!bd) return null;
-  const d = new Date(bd), t = new Date();
-  let a = t.getFullYear() - d.getFullYear();
-  const m = t.getMonth() - d.getMonth();
-  if (m < 0 || (m === 0 && t.getDate() < d.getDate())) a--;
-  return a;
 }
 
 // Sayfa iki parçaya bölündü ÇÜNKÜ: durum kodu, ilk bayt gönderilirken kilitlenir.
@@ -217,11 +212,9 @@ async function ProfileBody({ profileUser, me }: { profileUser: NonNullable<Await
         location: (profileUser as any).location ?? null,
         website: (profileUser as any).website ?? null,
         gender: (profileUser as any).gender ?? '',
-        birthdate: null, // ham DOB'yi istemciye SIZDIRMA — yaş ayrı `age` prop'uyla gidiyor
         interests: (profileUser as any).interests ?? [],
       }}
       bg={bannerGradient(profileUser.username)}
-      age={calcAge((profileUser as any).birthdate ?? null)}
       followersCount={followersRes.count ?? 0}
       followingCount={followingRes.count ?? 0}
       isFollowing={isFollowing}

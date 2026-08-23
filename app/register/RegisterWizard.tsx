@@ -414,10 +414,15 @@ export default function RegisterWizard() {
       {adim === 4 && (
         <>
           <h1 className="kw-baslik kw-orta" style={{ marginTop: 16 }}>Ne zaman doğdun?</h1>
-          {/* ⚠ "Sadece yaşını doğrulamak için kullanıyoruz." DEĞİL: doğum
-              tarihinden hesaplanan YAŞ profilde anonim ziyaretçiye basılıyor
-              (ölçüldü). Gösterilmeyen şey tarihin kendisi. */}
-          <p className="kw-alt kw-orta">Doğum tarihin profilinde gösterilmez; yalnızca yaşın görünür.</p>
+          {/* ⚠ BU METİN İKİ KEZ DEĞİŞTİ, ÜÇÜNCÜSÜNÜ YAPMADAN ÖNCE OKU.
+              Önce "Sadece yaşını doğrulamak için kullanıyoruz." yazıyordu; ölçüldü
+              ki hesaplanan YAŞ profilde anonim ziyaretçiye basılıyor, yani cümle
+              yanlış beyandı → "yalnızca yaşın görünür" diye düzeltildi.
+              23.08.2026'da yaş rozeti profilden KALDIRILDI (etik gerekçe, kullanıcı
+              kararı) → artık ne tarih ne yaş gösteriliyor, cümle tekrar gerçeğe
+              uyduruldu. ⚠ Profilde yaş yeniden gösterilmeye karar verilirse BURASI
+              ve app/gizlilik/page.tsx BİRLİKTE güncellenmeli. */}
+          <p className="kw-alt kw-orta">Yalnızca yaş sınırını doğrulamak için; profilinde gösterilmez.</p>
 
           <div className="kw-daireler">
             <Daire

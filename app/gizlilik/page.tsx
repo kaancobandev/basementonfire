@@ -46,7 +46,12 @@ export default function GizlilikPage() {
       <ul style={ul}>
         <li><strong>Kullanıcı adı</strong> ve <strong>e-posta</strong> — hesabın ve iletişim için.</li>
         <li><strong>Şifre</strong> — şifrelenmiş (hash) olarak saklanır; düz hâlini <strong>biz de göremeyiz</strong>.</li>
-        <li><strong>Doğum tarihi</strong> — yalnızca <strong>16 yaş sınırını doğrulamak</strong> için. Profilinde ham hâliyle gösterilmez.</li>
+        {/* "ham hâliyle" çekincesi 23.08.2026'da KALDIRILDI: o ifade, doğum
+            tarihinden hesaplanan YAŞ profilde gösterildiği için konmuştu. Yaş
+            rozeti kaldırıldı (etik gerekçe, kullanıcı kararı), dolayısıyla artık
+            ne tarih ne de yaş gösteriliyor — çekinceyi bırakmak, işlenmiş bir
+            hâlinin gösterildiğini ima edip korumayı OLDUĞUNDAN AZ gösterirdi. */}
+        <li><strong>Doğum tarihi</strong> — yalnızca <strong>16 yaş sınırını doğrulamak</strong> için. Profilinde gösterilmez; hesaplanan yaşın da gösterilmez.</li>
       </ul>
 
       <p style={{ ...p, fontWeight: 700, marginBottom: 4 }}>Kullandıkça (hizmetin çalışması için)</p>
