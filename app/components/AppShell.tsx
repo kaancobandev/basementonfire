@@ -99,15 +99,52 @@ export default function AppShell({ children }: AppShellProps) {
     // belirler; sonradan ana sayfaya gidilirse HomeFeed kendi isteğini atar.
     // 2026-08-14: akış `/feed`ten `/`ye taşındı → tek koşul kaldı.
     const feedGerek = pathname === '/';
-    fetch(`/api/nav-state${feedGerek ? '?feed=1' : ''}`, { credentials: 'same-origin' })
-      .then(r => r.json())
-      .then((d: { user?: { id: number; username: string; display_name: string } | null; unreadCount?: number; unreadMsgCount?: number; myId?: number | null; convIds?: number[] }) => {
+
+    /* ⚡ ERKEN İSTEK — layout.tsx'teki satır içi script bu isteği HTML
+       ayrıştırılırken zaten başlattı ve promise'i `window.__bofNav`e koydu.
+       Sebep ölçüldü (canlı, 3 tur): bu efekt TÜM JS inip çalışmadan koşamıyor;
+       ilk istemci isteği son JS parçasının bitişinden 2-6 ms sonra başlıyor ve
+       HTML bittikten sonra 595 / 1663 / 1561 ms bekleniyor. Uç nokta zaten
+       ~285-350 ms — gecikme isteğin KENDİSİNDE değil, ne zaman başladığındaydı.
+       Kullanıcının gördüğü: üst nav + sağ paneldeki öneri avatarları geç geliyor.
+
+       ⚠ STRICTMODE: promise SİLİNMİYOR, olduğu yerde bırakılıyor. Dev'de efekt
+         iki kez koşar; silseydik ikinci koşu onu bulamaz, kendi fetch'ini atar
+         ve ekranı dolduran hep O olurdu → erken yol YERELDE HİÇ çalışmaz, hatası
+         ancak canlıda görünürdü. Aynı promise iki koşuda da kullanılır.
+       ⚠ Satır içi script çalışmadıysa (CSP, eski tarayıcı) `erken` undefined
+         kalır ve aşağıdaki kendi isteğimize düşeriz — davranış eskisiyle aynı. */
+    let erken: Promise<any> | undefined;
+    try { erken = (window as any).__bofNav; } catch { /* yoksay */ }
+
+    const kendiIstegim = () =>
+      fetch(`/api/nav-state${feedGerek ? '?feed=1' : ''}`, { credentials: 'same-origin', keepalive: true })
+        .then(r => r.json());
+
+    (erken ?? kendiIstegim())
+      /* 🚨 BAŞARISIZLIK "ÇIKIŞLI" DEMEK DEĞİLDİR. Erken istek artık 206 KB'lık JS
+         indirmesiyle YARIŞIYOR, yani sayfa yaşam döngüsünün en kırılgan anında
+         uçuyor. Düşerse ve burada çıkışlı desek zincir şu olurdu: navUser=null →
+         HomeFeed'in yedek uç kapısı (`if (!navUser) return`) KAPANIR → kişisel
+         kat HİÇ gelmez → kalpler boş görünür. Ama `girisliOlabilir()` `data-auth`a
+         baktığı için düğmeler CANLI kalır; kullanıcı boş kalbe basınca uç TOGGLE
+         olduğundan MEVCUT BEĞENİ SİLİNİR. Bu, projede daha önce yaşanan hata
+         sınıfının aynısı → düşerse çıkışlı ilan etme, KENDİ isteğini at. */
+      .then((d: any) => (d && !d.__hata) ? d : kendiIstegim())
+      .then((d: { user?: { id: number; username: string; display_name: string } | null; unreadCount?: number; unreadMsgCount?: number; myId?: number | null; convIds?: number[] } | null) => {
         if (!alive) return;
+        if (!d) { setUser(null); return; }
         setUser(d.user ?? null);
         // `feed` alanı yoksa undefined kalır → HomeFeed kendi çeker (geri düşüş).
         if ('feed' in d) setFeedPersonal((d as any).feed ?? null);
-        setNotifCount(d.unreadCount ?? 0);
-        setMsgCount(d.unreadMsgCount ?? 0);
+        /* ⚠ KULLANICI O SAYFADAYSA SAYAÇ 0. `/notifications` okundu-işaretlemesini
+           `after()` içinde yapıyor, yani YANIT BİTTİKTEN SONRA. Erken istek artık
+           o yazmadan ÖNCE sayaç sorgusunu koşabiliyor → uç bayat sayı döner ve
+           aşağıdaki `setNotifCount(0)` efektini MİKROGÖREVDE EZER (rozet '5'te
+           takılı kalır). "Kullanıcı şu an o sayfada" olgusu bayat sayıya karşı
+           HER ZAMAN kazanmalı. */
+        setNotifCount(pathname === '/notifications' ? 0 : (d.unreadCount ?? 0));
+        setMsgCount(pathname === '/messages' ? 0 : (d.unreadMsgCount ?? 0));
         setMyId(d.myId ?? null);
         setConvIds(d.convIds ?? []);
         // Auth-hint'i kesin sonuçla düzelt (ör. çerez vardı ama oturum düşmüş):

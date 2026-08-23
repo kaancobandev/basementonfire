@@ -225,7 +225,35 @@ export default function RootLayout({ children, modal }: { children: React.ReactN
             // aynı metin artık eşleşmez. BACKSLASH KULLANMA: bu bir template
             // literal, `\.` ve `\d` kaçışları emit edilen JS'e ULAŞMADAN düşer ve
             // regex sessizce başka bir şeye dönüşür — bu yüzden [.] ve [0-9] var.
-            __html: `document.documentElement.classList.add('js');try{if(/(?:^|; *)sb-[^=;]+-auth-token(?:[.][0-9]+)?=/.test(document.cookie))document.documentElement.setAttribute('data-auth','in')}catch{}try{if(localStorage.getItem('theme')==='dark')document.documentElement.setAttribute('data-theme','dark')}catch{}try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('reduced')}catch{}`,
+            // ERKEN NAV ISTEGI (2026-08-23): `data-auth` zaten 'in' ise
+            // /api/nav-state'i BURADAN baslat ve promise'i window'a koy.
+            // AppShell ayni istegi mount efektinde atiyordu; efekt ise TUM JS
+            // inip calismadan kosamaz. Olculdu (canli, 3 tur): ilk istemci
+            // istegi son JS parcasinin bitisinden 2-6 ms sonra basliyor ve
+            // HTML bittikten sonra 595 / 1663 / 1561 ms bekleniyor. Uc nokta
+            // zaten ~285-350 ms; yani gecikme ISTEGIN KENDISINDE DEGIL, NE
+            // ZAMAN BASLADIGINDA. Bu satir onu HTML ayristirilirken baslatiyor.
+            // Kullanicinin gordugu: ust nav ve sag paneldeki oneri avatarlari.
+            // ⛔ AppShell bu promise'i TUKETIYOR (window.__bofNav) — burayi
+            //    silersen orada da yedek fetch var, kirilmaz ama kazanc gider.
+            // ⚠ .catch ANINDA bagli: yoksa AppShell tuketene kadar gecen
+            //    surede 'unhandled rejection' uretir.
+            // ⚠ keepalive:true ŞART. Bu istek girisli kullanicida Supabase
+            //    refresh token'ini DONDURUYOR. Kullanici sayfa hidre olmadan
+            //    (olculdu: 595-1663 ms) ayrilirsa istek iptal edilir, donen
+            //    yeni token'in Set-Cookie'si tarayiciya HIC ULASMAZ ve eski
+            //    token tuketilmis kalir → sonraki ziyarette SESSIZ CIKIS.
+            //    keepalive belge bosalsa da istegi tamamlar; cerez deposu
+            //    belgeye degil TARAYICIYA ait, yani Set-Cookie yine islenir.
+            //    (PageviewBeacon.tsx ayni sebeple keepalive kullaniyor.)
+            // ⚠ Hata durumunda null DEGIL {__hata:1} donuyor: AppShell'in
+            //    "cikisli mi, yoksa istek mi dustu" ayrimini yapabilmesi icin.
+            //    null donseydi dusen bir istek kullaniciyi cikisli ilan eder,
+            //    kisisel kat hic gelmez ve bos kalbe basan kullanicinin
+            //    MEVCUT BEGENISI SILINIRDI.
+            // ⚠ if(!window.__bofNav) — idempotent: script dugumu herhangi bir
+            //    sebeple yeniden calisirsa ikinci bir Lambda uyandirmasin.
+            __html: `document.documentElement.classList.add('js');try{if(/(?:^|; *)sb-[^=;]+-auth-token(?:[.][0-9]+)?=/.test(document.cookie)){document.documentElement.setAttribute('data-auth','in');try{if(!window.__bofNav)window.__bofNav=fetch('/api/nav-state'+(location.pathname==='/'?'?feed=1':''),{credentials:'same-origin',keepalive:true}).then(function(r){return r.json()}).catch(function(){return {__hata:1}})}catch{}}}catch{}try{if(localStorage.getItem('theme')==='dark')document.documentElement.setAttribute('data-theme','dark')}catch{}try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('reduced')}catch{}`,
           }}
         />
         {/* ── Google Consent Mode v2 ──
