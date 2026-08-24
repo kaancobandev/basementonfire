@@ -1,6 +1,7 @@
 import { db, getMe } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { isBlockedBetween } from '@/lib/blocks';
+import { audiencePredicate } from '@/lib/storyAudience';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
 
@@ -20,9 +21,27 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
   const storyId = Number((await params).id);
   if (!Number.isInteger(storyId) || storyId < 1) return json({ error: 'Geçersiz id' }, 400);
 
-  const { data: story } = await db.from('stories').select('user_id').eq('id', storyId).maybeSingle();
+  /* 🚨 GÖRÜNÜRLÜK KAPISI — 23.08.2026 denetimi. Bu uç yalnız "giriş var mı" ve
+     "kendi hikâyem mi" diye bakıyordu. Yani ENGELLENEN biri (ya da gizli hesabı
+     takip etmeyen biri) ardışık id'lere POST atarak SAHİBİN İZLEYİCİ LİSTESİNDE
+     görünebiliyordu — istenmeyen temas, üstelik o id'de hikâye olduğunu da
+     doğruluyordu. Kapı `audiencePredicate` ile kuruldu; engel de artık orada,
+     yani hikâye görünürlüğüyle izlenme kaydı AYNI kuralı paylaşıyor.
+     ⚠ `audience` kolonunun canlıda var olduğu 23.08.2026'da ÖLÇÜLDÜ (PostgREST
+       şeması), o yüzden article-poll rotasındaki gibi kolonsuz yedek sorguya
+       gerek yok. Kolon bir gün kaldırılırsa bu select KOMPLE düşer ve izlenme
+       kaydı sessizce durur — o hâlde yedek dalı geri ekle. */
+  const { data: story } = await db
+    .from('stories')
+    .select('user_id, audience, users!stories_user_id_fkey(is_private)')
+    .eq('id', storyId)
+    .maybeSingle();
   if (!story) return json({ ok: false });
   if (story.user_id === me.id) return json({ ok: true, own: true }); // sahibi kendini saymaz
+
+  const canSee = await audiencePredicate(me.id);
+  if (!canSee(story.user_id as number, (story as any).audience, (story as any).users?.is_private))
+    return json({ ok: false });
 
   const { error } = await db.from('story_views').insert({ story_id: storyId, viewer_id: me.id });
   if (error && error.code !== '23505') return json({ available: false }, 503);
