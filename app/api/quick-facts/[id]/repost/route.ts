@@ -1,4 +1,5 @@
 import { db, getMe } from '@/lib/supabase/server';
+import { canViewFact } from '@/lib/visibility';
 import { NextResponse } from 'next/server';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
@@ -28,10 +29,21 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
 
   const { data: existing } = await db.from('fact_reposts').select('fact_id').eq('user_id', me.id).eq('fact_id', factId).maybeSingle();
 
+  // Geri alma kapısız (erişimini kaybeden eski repostunu kaldırabilmeli).
   if (existing) {
     await db.from('fact_reposts').delete().eq('user_id', me.id).eq('fact_id', factId);
     return json({ reposted: false });
   }
+
+  /* 🚨 GÖRÜNÜRLÜK KAPISI — 23.08.2026 denetimi. Bu uç yer imi ucunun ikiziydi:
+     yalnız "giriş yapmış mı" bakıyordu, `db` service-role olduğu için RLS de
+     korumuyordu. Herhangi bir üye ardışık id'leri deneyerek GİZLİ bir hesabın
+     gönderisini repostlayabiliyor, sonra kendi profilindeki "Repostlar"
+     sekmesinde medyasını ve caption'ını okuyabiliyordu — üstelik o gönderi
+     saldırganın profilinde repost olarak da duruyordu.
+     404 (403 değil): "var ama göremiyorsun" demek id aralığını doğrulardı. */
+  if (!(await canViewFact(factId, me.id)))
+    return json({ error: 'Gönderi bulunamadı' }, 404);
 
   const { error } = await db.from('fact_reposts').insert({ user_id: me.id, fact_id: factId });
   if (error) return json({ error: 'Repost başarısız (fact_reposts tablosu kurulu mu?)' }, 500);

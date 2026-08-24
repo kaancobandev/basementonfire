@@ -23,13 +23,29 @@ function mediaPath(url: unknown): string | null {
  */
 export async function purgeAccount(userId: number): Promise<{ ok: boolean; error?: string }> {
   // — 0) Silinecek storage dosyalarının yollarını topla (satırları silmeden ÖNCE) —
-  const [uRes, factsRes, postsRes, storiesRes, articlesRes, archiveRes] = await Promise.all([
+  /* 🚨 23.08.2026 güvenlik denetimi: bu liste EKSİKTİ. DM'de gönderilen medya
+     ve makale GÖVDESİNDEKİ görseller hiç toplanmıyordu. Sonuç: kullanıcı
+     "hesabımı sil" dedikten sonra `messages` satırı silindiği için dosyaya
+     işaret eden hiçbir kayıt kalmıyor, ama dosya `media` bucket'ında (PUBLIC)
+     durmaya devam ediyor — yani artık hiçbir moderasyon/erişim kontrolü
+     TARAFINDAN GÖRÜLEMEYEN, kalıcı ve herkese açık bir dosya. Arayüz
+     "kalıcı olarak silindi" derken bu yanlış beyandı.
+     ⚠ Bulunduğunda medyalı DM sayısı 0'dı, yani bugüne kadar sızan dosya yok.
+     ⛔ YENİ BİR ÖZELLİK STORAGE'A YAZIYORSA BURAYA DA EKLE. Bu liste elle
+        tutuluyor ve her yeni yükleme yüzeyi onu sessizce eskitiyor. */
+  const [uRes, factsRes, postsRes, storiesRes, articlesRes, archiveRes, dmRes, docRes, muzikRes] = await Promise.all([
     db.from('users').select('auth_id, avatar').eq('id', userId).maybeSingle(),
     db.from('quick_facts').select('media_url, media').eq('user_id', userId),
     db.from('posts').select('image_url').eq('user_id', userId),
     db.from('stories').select('media_url').eq('user_id', userId),
     db.from('user_articles').select('cover_url').eq('user_id', userId),
     db.from('deleted_media').select('archive_path').eq('user_id', userId),
+    // DM medyası — mesaj satırı aşağıda siliniyor, dosya yetim kalıyordu.
+    db.from('messages').select('media_url').eq('sender_id', userId),
+    // Makale GÖVDESİ: doc bloklarının içindeki görseller (cover_url ayrı).
+    db.from('user_articles').select('doc').eq('user_id', userId),
+    // Müzik parçaları. Tablo/kolon yoksa hata sessizce yutulur (uykuda özellik).
+    db.from('music_tracks').select('storage_path').eq('user_id', userId),
   ]);
 
   const mediaFiles = new Set<string>();
@@ -43,6 +59,22 @@ export async function purgeAccount(userId: number): Promise<{ ok: boolean; error
   for (const p of postsRes.data ?? []) add(p.image_url);
   for (const s of storiesRes.data ?? []) add(s.media_url);
   for (const a of articlesRes.data ?? []) add(a.cover_url);
+  for (const m of dmRes.data ?? []) add(m.media_url);
+
+  // Makale gövdesi: doc bir blok dizisi; görsel bloklarının `url`'i toplanır.
+  // Şema değişse bile patlamasın diye tip kontrolü gevşek tutuldu.
+  for (const a of docRes.data ?? []) {
+    const bloklar = (a as { doc?: unknown }).doc;
+    if (!Array.isArray(bloklar)) continue;
+    for (const b of bloklar) add((b as { url?: unknown } | null)?.url);
+  }
+
+  // music_tracks.storage_path public URL DEĞİL, doğrudan bucket yolu →
+  // mediaPath()'ten geçmez, listeye olduğu gibi girer.
+  for (const t of muzikRes.data ?? []) {
+    const p = (t as { storage_path?: unknown }).storage_path;
+    if (typeof p === 'string' && p.length > 0) mediaFiles.add(p);
+  }
 
   // Arşiv AYRI (private) bucket.
   const archiveFiles = (archiveRes.data ?? [])

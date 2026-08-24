@@ -1,4 +1,5 @@
 import { db, getMe } from '@/lib/supabase/server';
+import { limit, tooMany } from '@/lib/rateLimit';
 import { NextResponse } from 'next/server';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
@@ -32,6 +33,12 @@ const EXT_BY_TYPE: Record<string, string> = {
 export async function POST(req: Request) {
   const { me } = await getMe();
   if (!me) return json({ error: 'Giriş gerekli' }, 401);
+
+  // ⚠ Bu uç BEDAVA yazma yetkisi dağıtıyor ve `/api/upload`ın frenini ATLIYOR
+  //   (dosya oradan geçmiyor, doğrudan Supabase'e gidiyor). Frensizken tek
+  //   hesapla sınırsız imza alınabiliyordu. Kullanıcı başına sayılır.
+  const fren = await limit('sign', req.headers, me.id);
+  if (!fren.ok) return tooMany('Çok fazla yükleme isteği. Biraz bekleyip tekrar dene.', fren, 'sign');
 
   let body: { kind?: string; ext?: string; contentType?: string; size?: number };
   try { body = await req.json(); } catch { return json({ error: 'Geçersiz istek' }, 400); }

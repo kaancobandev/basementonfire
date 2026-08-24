@@ -2,6 +2,7 @@ import { db, getMe } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { revalidateTag } from 'next/cache';
 import { limit, tooMany } from '@/lib/rateLimit';
+import { isAllowedMediaUrl } from '@/lib/articleSanitize';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
 
@@ -25,8 +26,22 @@ export async function POST(req: Request) {
   // Makale slug'i: yalniz harf/rakam/tire (path enjeksiyonu engellenir).
   const slug = (body.articleSlug ?? '').trim().replace(/[^a-z0-9-]/gi, '').slice(0, 80) || null;
   // Gorsel URL'i de http(s) ile sinirli.
+  /* 🚨 YALNIZ KENDİ DEPOLAMAMIZ — 23.08.2026 güvenlik denetimi.
+     Önceki kural `/^https?:\/\//` idi, yani HERHANGİ bir dış adres kabul
+     ediliyordu. Bilgi kartları onay beklemeden yayına giriyor ve `/` ISR
+     önbelleği `revalidateTag('feed')` ile anında düştüğü için kart ANONİM
+     ziyaretçilere de servis edilen ANA SAYFAYA çıkıyor. Sonuç: herhangi bir
+     üye `imageUrl` olarak kendi sunucusunu verip ana sayfayı açan HER
+     ziyaretçinin (girişsizler dâhil) IP'sini, User-Agent'ını ve Referer'ını
+     kendi sunucusuna düşürebiliyordu — bir izleme pikseli. Üstelik görselin
+     içeriği DB'ye hiç dokunmadan sonradan değiştirilebilirdi (moderasyonun
+     göremeyeceği içerik takası).
+     `lib/img.ts` supabase.co dışını Netlify Image CDN'e sokmadığı için
+     tarayıcıya ORİJİNAL adres veriliyordu, yani proxy koruması da yoktu.
+     Artık makale gövdesiyle AYNI tek kaynak süzgeci: yalnızca kendi public
+     media yolumuz. İstemci görseli /api/storage/sign ile yüklemek zorunda. */
   const rawImg = (body.imageUrl ?? '').trim();
-  const imageUrl = /^https?:\/\//i.test(rawImg) ? rawImg.slice(0, 500) : null;
+  const imageUrl = isAllowedMediaUrl(rawImg) ? rawImg : null;
 
   // Spam freni → lib/rateLimit.ts (token bucket). Hiz eskisiyle AYNI: saatte 10.
   // Bilgi kartlari HERKESIN feed'ine serpistirildigi icin akis postlarindan daha

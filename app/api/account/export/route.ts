@@ -64,8 +64,21 @@ export async function GET() {
     grab('article_saves', byUser('user_id')),
 
     grab('follows', byEither('follower_id', 'following_id')),
-    grab('blocks', byEither('blocker_id', 'blocked_id')),
-    grab('notifications', byEither('user_id', 'actor_id')),
+
+    /* 🚨 YALNIZ `blocker_id` — 23.08.2026 güvenlik denetimi.
+       Önceden `byEither('blocker_id','blocked_id')` idi, yani dosyaya
+       KULLANICIYI ENGELLEYENLERİN id'leri de giriyordu. Engelleme özelliğinin
+       temel sözü "engellediğini karşı taraf öğrenmez"dir; taciz eden biri bu
+       ucu çağırıp "beni kim engelledi" listesini çıkarıp yeni hesapla aynı
+       kişileri hedefleyebilirdi. Kendi kurduğun engeller senin verin,
+       sana kurulan engel KARŞI TARAFIN verisi — yukarıdaki `messages`
+       satırıyla aynı ilke. ⛔ İki yönlü hâline döndürme. */
+    grab('blocks', byUser('blocker_id')),
+
+    /* Aynı gerekçe: `actor_id = ben` olan satırların `user_id`'si BİLDİRİMİ
+       ALAN kişidir, yani başkasının verisi. Kendi eylemlerim zaten fact_likes /
+       follows / comments dışa aktarımlarında var — bu daraltma veri kaybettirmez. */
+    grab('notifications', byUser('user_id')),
 
     grab('conversations', byEither('user1_id', 'user2_id')),
     // SADECE senin gönderdiğin mesajlar — karşı tarafınkiler onun kişisel verisi.

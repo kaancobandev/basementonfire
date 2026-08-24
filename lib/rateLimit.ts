@@ -81,6 +81,20 @@ export const RATE_LIMITS = {
   //   devam eder. Yani bu, tek başına bir güvenlik duvarı DEĞİL, Supabase'in
   //   kendi auth limitinin önüne konmuş ucuz bir yavaşlatıcı.
   login: { capacity: 10, refillPerSec: 10 / 300 },
+
+  // İmzalı yükleme URL'i üretimi (/api/storage/sign). 23.08.2026 güvenlik
+  // denetiminde eklendi: bu uç BEDAVA yazma yetkisi dağıtıyor ve `/api/upload`
+  // frenini tamamen ATLIYOR — dosya bytes'ı o route'tan geçmediği için asıl
+  // yükleme doğrudan Supabase'e gidiyor. Frensizken tek hesapla sınırsız imza
+  // alıp depolama şişirmek (ve yetim dosya biriktirmek) serbestti.
+  //
+  // ⚠ BU FREN BOYUT SORUNUNU ÇÖZMEZ. `size` istemcinin BEYANI; saldırgan
+  //   `size:1` deyip 250 MB PUT edebilir. Gerçek tavan bucket'ın
+  //   `file_size_limit`'idir ve `media` bucket'ında NULL (yani proje geneli
+  //   250 MB) → ilan edilen avatar 10 MB / hikâye 50 MB limitleri ETKİSİZ.
+  //   Kalıcı çözüm Supabase tarafında: kind başına ayrı bucket + bucket
+  //   limiti. Fren yalnızca hacmi sınırlar, tek dosyanın boyutunu değil.
+  sign: { capacity: 20, refillPerSec: 20 / 600 },
 } satisfies Record<string, Rule>;
 
 export type RuleName = keyof typeof RATE_LIMITS;

@@ -1,19 +1,53 @@
 import { db, getMe } from '@/lib/supabase/server';
 import { getHighlights } from '@/lib/storyHighlights';
+import { canViewOwnerContent } from '@/lib/visibility';
+import { isBlockedBetween } from '@/lib/blocks';
 import { NextResponse } from 'next/server';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
 
-/** Bir kullanıcının öne çıkanları. ?userId=… yoksa isteği yapanın kendisi. */
+/**
+ * Bir kullanıcının öne çıkanları. ?userId=… yoksa isteği yapanın kendisi.
+ *
+ * 🚨 23.08.2026 güvenlik denetimi: `?userId=` verildiğinde bu uç `getMe()`'yi
+ * HİÇ ÇAĞIRMIYORDU. Yani ÇIKIŞ YAPMIŞ herhangi biri (curl yeterli) ardışık
+ * id'leri tarayıp GİZLİ hesapların vitrin başlıklarını (kullanıcının kendi
+ * yazdığı metin — "Tatil", "Hastane" gibi) ve `cover_url`'ünü — yani gerçek
+ * bir hikâye karesinin public adresini — toplayabiliyordu. Engel de
+ * uygulanmıyordu: seni engelleyenin vitrini yine görünüyordu.
+ *
+ * AYNI VERİNİN SSR YOLU DOĞRUYDU (app/u/[username]/page.tsx:165 `isHidden`
+ * kapısı) — yani bu uç, sayfanın kurduğu kuralın etrafından dolaşan ikinci
+ * bir kapıydı. Klasik desen: aynı veriye iki yol, biri korumasız.
+ *
+ * ⚠ Bulunduğu anda tabloda 0 satır vardı, yani sızan veri olmadı; özellik
+ *   kullanılmaya başlansaydı sızacaktı.
+ */
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const q = url.searchParams.get('userId');
+  const { me } = await getMe();
+
   let userId = q ? Number(q) : NaN;
-  if (!Number.isInteger(userId)) {
-    const { me } = await getMe();
+  if (!Number.isInteger(userId) || userId < 1) {
     if (!me) return json({ highlights: [] });
     userId = me.id;
   }
+
+  // Kendi vitrinim → kapı yok.
+  if (me?.id !== userId) {
+    // Engel: profilin tamamı yokmuş gibi davran (SSR'daki `isHidden` ile aynı).
+    if (me && (await isBlockedBetween(me.id, userId))) return json({ highlights: [] });
+
+    const { data: sahip } = await db
+      .from('users').select('id, is_private').eq('id', userId).maybeSingle();
+    // Var olmayan kullanıcı ile göremediğin kullanıcı AYNI yanıtı verir:
+    // aksi hâlde hangi id'lerin var olduğu doğrulanabilirdi.
+    if (!sahip) return json({ highlights: [] });
+    if (!(await canViewOwnerContent(sahip.id, sahip.is_private, me?.id ?? null)))
+      return json({ highlights: [] });
+  }
+
   return json({ highlights: await getHighlights(userId) });
 }
 
