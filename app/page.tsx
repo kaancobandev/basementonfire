@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { audiencePredicate } from '@/lib/storyAudience';
+import { storyUserlariImzala, IMZA } from '@/lib/storyMedia';
 import { getHomeContent, getDidYouKnow, buildFeedItems, buildStoryUsers } from '@/lib/feedData';
 import { jsonLdScript } from '@/lib/seo';
 import { ARTICLE_COUNT } from '@/lib/landing';
@@ -123,7 +124,19 @@ export default async function HomePage() {
   // yakın-arkadaş hikâyeleri + "gördüm" halkaları + kendi hikâyen) istemcide
   // /api/feed/personal ile bunun YERİNE geçer.
   const canSeeAnon = await audiencePredicate(null);
-  const publicStoryUsers = [...buildStoryUsers(storiesRaw ?? [], canSeeAnon).values()];
+  /* 🔐 IMZA OMRU BURADA UZUN (IMZA.ISR) — SEBEBI ONEMLI:
+     bu sayfa ISR ile 1 SAAT onbellekte duruyor ve ayni HTML herkese
+     servis ediliyor. Kisa imza koysaydik onbellek daha yasarken adresler
+     olur ve serit KIRIK gorsel gosterirdi.
+     Guvenli olmasinin sebebi: buradaki icerik `audiencePredicate(null)`dan
+     gecmis, yani ACIK hesabin ACIK hikayesi. Gizli hesap / followers /
+     close hikayeleri bu kabuga HIC girmiyor — onlar yalniz istek basina
+     uretilen kisisel katta (lib/feedPersonal.ts, kisa imza).
+     ⛔ Sayfanin `revalidate` degerini degistirirsen IMZA.ISR'i de gozden gecir. */
+  const publicStoryUsers = await storyUserlariImzala(
+    [...buildStoryUsers(storiesRaw ?? [], canSeeAnon).values()],
+    IMZA.ISR,
+  );
 
   return (
     <>

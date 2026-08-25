@@ -67,16 +67,30 @@ export async function POST(req: Request) {
   // depolanmış XSS'e dönüşebiliyordu. Tür zaten yukarıda izin listesinde.
   const ext = EXT_BY_TYPE[ct] ?? (isImg ? 'jpg' : isVid ? 'mp4' : 'mp3');
   const rand = Math.random().toString(36).slice(2, 8);
+
+  /* 🚨 HİKÂYELER AYRI, PRIVATE KOVADA — 23.08.2026 güvenlik denetimi.
+     Önceden hepsi `media` (PUBLIC) kovasına gidiyordu ve hikâyenin adresi
+     KALICI bir public URL oluyordu. Ölçüldü: süresi dolmuş 6 hikâyenin 6'sı
+     da anonim isteğe HTTP 206 dönüyordu, üçü gizli hesaba ait. Yani "yakın
+     arkadaşlar"a attığın hikâye, onu bir kez gören herkeste sonsuza dek
+     kalıyordu — listeden çıkarsan da, engellesen de, süresi dolsa da.
+     Artık dosya private kovaya yazılır ve okuma yüzeyleri kısa ömürlü imzalı
+     URL üretir (lib/storyMedia.ts).
+     ⚠ `stories` kovasının KENDİ 50 MB limiti var → aşağıdaki `LIMIT.story`
+       artık tek başına dekoratif değil, bucket sunucuda da zorluyor. */
+  const kova = kind === 'story' ? 'stories' : 'media';
   const storagePath =
-    kind === 'story'  ? `stories/${me.id}-${Date.now()}-${rand}.${ext}` :
+    kind === 'story'  ? `${me.id}/${Date.now()}-${rand}.${ext}` :
     kind === 'avatar' ? `avatars/${me.id}-${Date.now()}-${rand}.${ext}` :
     `${me.id}/${Date.now()}-${rand}.${ext}`;
 
-  const { data, error } = await db.storage.from('media').createSignedUploadUrl(storagePath);
+  const { data, error } = await db.storage.from(kova).createSignedUploadUrl(storagePath);
   if (error || !data) return json({ error: 'İmzalı URL alınamadı.' }, 500);
 
   // signedUrl = token'ı da taşıyan TAM URL. İstemci buna düz XHR PUT atıp yükleme
   // ilerlemesini okuyabiliyor (bkz. lib/upload.ts); token ayrıca dönüyor çünkü
   // supabase-js ile yükleyen eski bir çağıran kalırsa kırılmasın.
-  return json({ path: data.path, token: data.token, signedUrl: data.signedUrl, mediaType: isImg ? 'image' : isVid ? 'video' : 'audio' });
+  // `bucket` de dönüyor: hikâye yüklemesinde istemci public URL KURMAMALI,
+  // yolu olduğu gibi /api/stories'e vermeli (orada media_path olarak saklanır).
+  return json({ path: data.path, token: data.token, signedUrl: data.signedUrl, bucket: kova, mediaType: isImg ? 'image' : isVid ? 'video' : 'audio' });
 }

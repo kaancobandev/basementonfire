@@ -26,7 +26,11 @@ export type FeedItem = (QuickFact & { kind: 'fact' }) | (Post & { kind: 'post' }
 
 // `music` opsiyonel — SQL çalıştırılana kadar hiç gelmez (bkz. aşağıdaki geri düşüş).
 export interface StoryItem {
-  id: number; mediaUrl: string; mediaType: string; createdAt: string;
+  id: number; mediaUrl: string;
+  /** Private `stories` kovasindaki yol. Imzalama icin tasinir, ISTEMCIYE
+   *  GONDERILMEZ (storyUserlariImzala onu duserek `mediaUrl`e cevirir). */
+  mediaPath?: string | null;
+  mediaType: string; createdAt: string;
   music?: { title: string; artist: string | null; src: string; startSec: number } | null;
   linkUrl?: string | null; linkLabel?: string | null;
   poll?: { question: string; options: string[]; correct?: number | null } | null;
@@ -52,7 +56,7 @@ export const getHomeContent = unstable_cache(
       // tablosu stories↔users arasında ikinci bir ilişki yolu açtığından PostgREST
       // gömmeyi belirsiz sayıp hata veriyor; sonuç sessizce BOŞ hikâye şeridi olur.
       db.from('stories')
-        .select('id, media_url, media_type, created_at, expires_at, user_id, music_track_id, music_start_sec, link_url, link_label, poll_question, poll_options, poll_correct, audience, caption, music:music_tracks(id, title, artist, src), users!stories_user_id_fkey(id, username, display_name, avatar, is_private)')
+        .select('id, media_path, media_url, media_type, created_at, expires_at, user_id, music_track_id, music_start_sec, link_url, link_label, poll_question, poll_options, poll_correct, audience, caption, music:music_tracks(id, title, artist, src), users!stories_user_id_fkey(id, username, display_name, avatar, is_private)')
         // ⚠ Bu zaman damgası unstable_cache'in İÇİNDE donuyor: girdi üretildiği
         // anki `now` ile karşılaştırılıyor, sonraki 1 saat boyunca aynı kalıyor.
         // Yani bu filtre KABA bir ön eleme; kesin süre kontrolü cache DIŞINDA,
@@ -77,7 +81,7 @@ export const getHomeContent = unstable_cache(
     let storiesFinal = storiesRaw;
     if (storiesErr && /music_track_id|music_start_sec|music_tracks|link_url|link_label|poll_question|poll_options|poll_correct|audience|caption/i.test(storiesErr.message)) {
       const { data: sade } = await db.from('stories')
-        .select('id, media_url, media_type, created_at, expires_at, user_id, users!stories_user_id_fkey(id, username, display_name, avatar, is_private)')
+        .select('id, media_path, media_url, media_type, created_at, expires_at, user_id, users!stories_user_id_fkey(id, username, display_name, avatar, is_private)')
         // ⚠ Bu zaman damgası unstable_cache'in İÇİNDE donuyor: girdi üretildiği
         // anki `now` ile karşılaştırılıyor, sonraki 1 saat boyunca aynı kalıyor.
         // Yani bu filtre KABA bir ön eleme; kesin süre kontrolü cache DIŞINDA,
@@ -246,7 +250,7 @@ export function buildStoryUsers(
     const uid: number = s.user_id;
     if (!storyMap.has(uid)) storyMap.set(uid, { userId: uid, username: u.username, displayName: u.display_name, avatar: u.avatar ?? null, stories: [] });
     storyMap.get(uid)!.stories.push({
-      id: s.id, mediaUrl: s.media_url, mediaType: s.media_type, createdAt: s.created_at,
+      id: s.id, mediaUrl: s.media_url, mediaPath: s.media_path ?? null, mediaType: s.media_type, createdAt: s.created_at,
       music: s.music ? { title: s.music.title, artist: s.music.artist ?? null, src: s.music.src, startSec: s.music_start_sec ?? 0 } : null,
       linkUrl: s.link_url ?? null,
       linkLabel: s.link_label ?? null,

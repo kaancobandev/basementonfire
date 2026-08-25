@@ -1,5 +1,6 @@
 import { db } from '@/lib/supabase/server';
 import { audiencePredicate } from '@/lib/storyAudience';
+import { storyUserlariImzala, IMZA } from '@/lib/storyMedia';
 import { getHomeContent, getDidYouKnow, getSuggestedUsers, buildFeedItems, buildStoryUsers } from '@/lib/feedData';
 import { MATCH_MIN_AGE, isAtLeast } from '@/lib/age';
 import { MATCHING_ENABLED } from '@/lib/features';
@@ -141,8 +142,19 @@ export async function buildFeedPersonal(me: any, onIcerik?: Promise<IcerikYuku>)
   for (const u of storyMap.values()) for (const st of u.stories) st.seen = seenStoryIds.has(st.id);
 
   // İzlenmemiş hikâyesi olan kullanıcılar ÖNE; kendi aralarında mevcut sıra korunur.
-  const otherStoryUsers = [...storyMap.values()].sort((a, b) =>
+  const otherStoryUsersHam = [...storyMap.values()].sort((a, b) =>
     (a.stories.some((st) => !st.seen) ? 0 : 1) - (b.stories.some((st) => !st.seen) ? 0 : 1));
+
+  /* 🔐 HİKÂYE MEDYASI İMZALAMA — 23.08.2026 güvenlik denetimi.
+     Hikâye dosyaları artık private `stories` kovasında; satırda yalnız YOL var.
+     Burası `no-store` (istek başına üretiliyor) → kısa imza yeter.
+     ⚠ İMZALAMA KİTLE FİLTRESİNDEN SONRA: `buildStoryUsers` yukarıda zaten
+       `canSeeStory` ile süzdü, yani göremeyeceği bir hikâyeye imza üretilmiyor.
+     ⚠ Bu, kullanıcının ŞERİDİNDEKİ hikâyeler kadar tur atar (tek toplu çağrı). */
+  const [ownStoryImzali, otherStoryUsers] = await Promise.all([
+    ownStoryUser ? storyUserlariImzala([ownStoryUser], IMZA.ISTEK).then((r) => r[0] ?? null) : Promise.resolve(null),
+    storyUserlariImzala(otherStoryUsersHam, IMZA.ISTEK),
+  ]);
 
   return {
       user: { id: me.id, username: me.username, display_name: me.display_name, avatar: me.avatar ?? null },
@@ -159,7 +171,7 @@ export async function buildFeedPersonal(me: any, onIcerik?: Promise<IcerikYuku>)
         dykLikes: sayiHaritasi(tdRes, gomuluSayi('dyk_likes')),
       },
       suggestedUsers,
-      ownStoryUser,
+      ownStoryUser: ownStoryImzali,
       otherStoryUsers,
       sure: { icerik: icerikMs, sorgu: sorguMs },
   };

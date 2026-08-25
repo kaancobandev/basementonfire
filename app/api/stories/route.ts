@@ -2,6 +2,7 @@ import { db, getMe, logIfError } from '@/lib/supabase/server';
 import { normalizeStoryLink, normalizeStoryLabel } from '@/lib/storyLink';
 import { normalizePollOptions } from '@/lib/polls';
 import { audiencePredicate } from '@/lib/storyAudience';
+import { hikayeleriImzala } from '@/lib/storyMedia';
 import { NextResponse } from 'next/server';
 import { revalidateTag } from 'next/cache';
 
@@ -9,7 +10,7 @@ const json = (data: object, status = 200) => NextResponse.json(data, { status })
 
 // `users!stories_user_id_fkey` — ÇIPLAK `users(...)` YAZMA (bkz. GET'teki not).
 const SELECT_BASE =
-  'id, media_url, media_type, created_at, expires_at, user_id, users!stories_user_id_fkey(id, username, display_name, avatar, is_private)';
+  'id, media_path, media_url, media_type, created_at, expires_at, user_id, users!stories_user_id_fkey(id, username, display_name, avatar, is_private)';
 const SELECT_WITH_MUSIC =
   SELECT_BASE + ', music_track_id, music_start_sec, link_url, link_label, poll_question, poll_options, poll_correct, audience, caption, music:music_tracks(id, title, artist, src)';
 /** Kolon/ilişki henüz yoksa PostgREST böyle söyler (42703 / şema önbelleği). */
@@ -56,7 +57,11 @@ export async function GET() {
   // uygulanır. audience/close_friends kolonları yoksa uykuda güvenli (public sayılır).
   const { me } = await getMe();
   const canSee = await audiencePredicate(me?.id ?? null);
-  const stories = ((data ?? []) as any[]).filter((s) => canSee(s.user_id, s.audience, s.users?.is_private));
+  const gorunur = ((data ?? []) as any[]).filter((s) => canSee(s.user_id, s.audience, s.users?.is_private));
+
+  // ⚠ IMZALAMA KITLE SUZGECINDEN SONRA. Once suz, sonra imzala: goremeyecegi
+  //   bir hikayeye imza uretmek, o adresi yanitta gondermek demekti.
+  const stories = await hikayeleriImzala(gorunur);
 
   return NextResponse.json({ stories });
 }
@@ -74,8 +79,16 @@ export async function POST(req: Request) {
 
   const path = body.path ?? '';
   const mediaType = body.mediaType === 'video' ? 'video' : 'image';
-  // Yol bu kullanıcıya ait olmalı (imza route'u "stories/{me.id}-..." üretir).
-  if (!path.startsWith(`stories/${me.id}-`)) return json({ error: 'Geçersiz dosya yolu.' }, 400);
+  /* SAHİPLİK: yol bu kullanıcıya ait olmalı — istemci `path`i kendisi
+     gönderiyor, doğrulanmazsa başkasının klasörüne kayıt yazılabilirdi.
+     ⚠ BİÇİM 23.08.2026'DA DEĞİŞTİ. Hikâyeler artık PRIVATE `stories` kovasında,
+       yani yol `stories/` önekini TAŞIMIYOR (kovanın adı zaten o):
+         eski: media kovasında  `stories/<id>-<ts>-<rand>.<ext>`
+         yeni: stories kovasında `<id>/<ts>-<rand>.<ext>`
+       Eski kontrol (`stories/${me.id}-`) yeni biçimi REDDEDERDİ.
+     ⚠ Sondaki `/` ŞART: `2/` kontrolü olmadan kullanıcı 2, kullanıcı 22'nin
+       klasörünü (`22/...`) geçirebilirdi. */
+  if (!path.startsWith(`${me.id}/`)) return json({ error: 'Geçersiz dosya yolu.' }, 400);
 
   // MÜZİK: yalnızca `story_approved` işaretli parça kabul edilir. İstemciye
   // güvenmiyoruz — seçici zaten onaylı listeyi gösteriyor ama id elle de
@@ -121,12 +134,19 @@ export async function POST(req: Request) {
   // CAPTION — medya üstü yazı; kırp (DB kısıtı 200).
   const caption = typeof body.caption === 'string' && body.caption.trim() ? body.caption.trim().slice(0, 200) : null;
 
-  const mediaUrl  = db.storage.from('media').getPublicUrl(path).data.publicUrl;
+  /* 🚨 ARTIK PUBLIC URL ÜRETİLMİYOR — 23.08.2026 güvenlik denetimi.
+     Önceden burada `getPublicUrl(path)` çağrılıyor ve satıra KALICI bir public
+     adres yazılıyordu. Dosya `media` (public) kovasındaydı, yani hikâyeyi bir
+     kez gören o adrese sonsuza dek sahip oluyordu — yakın arkadaş listesinden
+     çıkarılsa da, engellense de, süre dolsa da. Ölçüldü: süresi dolmuş 6
+     hikâyenin 6'sı da anonime HTTP 206 dönüyordu.
+     Artık YOL saklanıyor; okuma yüzeyleri lib/storyMedia.ts ile kısa ömürlü
+     imzalı URL üretiyor. ⛔ Buraya `getPublicUrl` geri koyma. */
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 saat
 
   const row: Record<string, unknown> = {
     user_id:    me.id,
-    media_url:  mediaUrl,
+    media_path: path,
     media_type: mediaType,
     expires_at: expiresAt,
     ...(musicTrackId ? { music_track_id: musicTrackId, music_start_sec: musicStartSec } : {}),
@@ -136,7 +156,11 @@ export async function POST(req: Request) {
     ...(audience !== 'public' ? { audience } : {}), // varsayılanı yazma (kolon yoksa da çalışsın)
     ...(caption ? { caption } : {}),
   };
-  const COLS = 'id, media_url, media_type, created_at, expires_at';
+  // ⚠ `media_path` BİLEREK `OPTIONAL` listesinde DEĞİL: kolon yoksa retry onu
+  //   düşürüp medyasız bir hikâye yazardı. Şimdi insert gürültülü şekilde
+  //   başarısız oluyor (500) ve dosya aşağıda temizleniyor — sessiz bozukluk yok.
+  //   Kolon `sql/features-story-private-media.sql` ile geliyor.
+  const COLS = 'id, media_path, media_url, media_type, created_at, expires_at';
   let { data: story, error } = await db.from('stories').insert(row).select(COLS).single();
   // Opsiyonel kolonlar (müzik/link/anket/kitle/caption) ilgili SQL çalıştırılana
   // kadar YOK olabilir. Retry'ı KOLON-BAZLI yürüt: yalnız hata mesajında ADI GEÇEN
@@ -152,10 +176,14 @@ export async function POST(req: Request) {
   }
 
   if (error) {
-    await db.storage.from('media').remove([path]);
+    // ⚠ Hikâye dosyası artık PRIVATE `stories` kovasında — temizlik oraya
+    //   bakmalı. `media`ya bakmak dosyayı sessizce yetim bırakırdı.
+    await db.storage.from('stories').remove([path]);
     return json({ error: error.message }, 500);
   }
 
   revalidateTag('feed'); // yeni hikaye → home stories önbelleğini hemen tazele
-  return json({ story }, 201);
+  // İstemci hemen gösterebilsin diye yanıtı da imzala (satırda yalnız yol var).
+  const [imzali] = await hikayeleriImzala([story as Record<string, any>]);
+  return json({ story: imzali }, 201);
 }

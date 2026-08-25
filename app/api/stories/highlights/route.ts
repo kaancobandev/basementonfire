@@ -67,17 +67,25 @@ export async function POST(req: Request) {
   if (ids.length > 50) return json({ error: 'En fazla 50 hikaye' }, 400);
 
   // Seçilen hikayeler GERÇEKTEN bu kullanıcıya ait olmalı — istemciye güvenme.
-  const { data: owned } = await db.from('stories').select('id, media_url, created_at').eq('user_id', me.id).in('id', ids);
+  const { data: owned } = await db.from('stories').select('id, media_path, media_url, created_at').eq('user_id', me.id).in('id', ids);
   const ownedIds = (owned ?? []).map((s: any) => s.id);
   if (!ownedIds.length) return json({ error: 'Geçerli hikaye yok' }, 400);
 
   // Kapak = en eski seçilen hikayenin görseli (kronolojik ilk kare).
   const sorted = [...(owned ?? [])].sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-  const cover = sorted[0]?.media_url ?? null;
+  /* 🔐 KAPAK ARTIK YOL OLARAK SAKLANIYOR — 23.08.2026 guvenlik denetimi.
+     Onceden kapak, hikayenin PUBLIC `media_url`u kopyalaniyordu; yani one cikan
+     vitrin, hikaye suresi dolduktan sonra bile kalici bir public adres tasiyordu
+     ve /api/stories/highlights anonime acikti. Artik private kovadaki YOL
+     saklanir, okuma tarafi imzalar (lib/storyHighlights.ts).
+     ⚠ Eski hikayeden (media_path'i olmayan) vitrin kurulursa `cover_url`e
+       geri duseriz — kirilmaz, sadece o kapak eski public adres kalir. */
+  const kapakYol = sorted[0]?.media_path ?? null;
+  const kapakUrl = kapakYol ? null : (sorted[0]?.media_url ?? null);
 
   const { data: hl, error } = await db
     .from('story_highlights')
-    .insert({ user_id: me.id, title, cover_url: cover })
+    .insert({ user_id: me.id, title, cover_path: kapakYol, cover_url: kapakUrl })
     .select('id')
     .single();
   // Tablo yoksa (SQL çalışmadıysa) sessiz 503 — istemci "özellik hazır değil" der.
