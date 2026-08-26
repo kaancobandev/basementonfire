@@ -44,7 +44,7 @@ export async function purgeAccount(userId: number): Promise<{ ok: boolean; error
     db.from('user_articles').select('cover_url').eq('user_id', userId),
     db.from('deleted_media').select('archive_path').eq('user_id', userId),
     // DM medyası — mesaj satırı aşağıda siliniyor, dosya yetim kalıyordu.
-    db.from('messages').select('media_url').eq('sender_id', userId),
+    db.from('messages').select('media_path, media_url').eq('sender_id', userId),
     // Makale GÖVDESİ: doc bloklarının içindeki görseller (cover_url ayrı).
     db.from('user_articles').select('doc').eq('user_id', userId),
     // Müzik parçaları. Tablo/kolon yoksa hata sessizce yutulur (uykuda özellik).
@@ -68,7 +68,12 @@ export async function purgeAccount(userId: number): Promise<{ ok: boolean; error
     if (typeof s.media_path === 'string' && s.media_path) storyFiles.add(s.media_path);
   }
   for (const a of articlesRes.data ?? []) add(a.cover_url);
-  for (const m of dmRes.data ?? []) add(m.media_url);
+  // Eskiler public `media` kovasında, yeniler private `dm` kovasında → ayrı liste.
+  const dmFiles = new Set<string>();
+  for (const m of dmRes.data ?? []) {
+    add(m.media_url);
+    if (typeof m.media_path === 'string' && m.media_path) dmFiles.add(m.media_path);
+  }
 
   // Makale gövdesi: doc bir blok dizisi; görsel bloklarının `url`'i toplanır.
   // Şema değişse bile patlamasın diye tip kontrolü gevşek tutuldu.
@@ -104,6 +109,11 @@ export async function purgeAccount(userId: number): Promise<{ ok: boolean; error
   if (storyFiles.size > 0) {
     const { error } = await db.storage.from('stories').remove([...storyFiles]);
     logIfError('purge: stories storage remove', error);
+  }
+  // DM ekleri AYRI (private) `dm` kovasında.
+  if (dmFiles.size > 0) {
+    const { error } = await db.storage.from('dm').remove([...dmFiles]);
+    logIfError('purge: dm storage remove', error);
   }
 
   // — 2) users'a FK'sı OLMAYAN tablo → cascade etmez, elle sil —

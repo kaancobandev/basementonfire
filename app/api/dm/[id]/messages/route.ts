@@ -31,13 +31,14 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   // düşürürdü). Kademeli dene, HANGİ parça eksikse SADECE onu çıkar; böylece
   // örn. story CANLI ama media SQL beklerken hikaye-yanıt rozeti KAYBOLMAZ.
   const BASE = 'id, content, sender_id, is_read, created_at, users:sender_id(id, username, display_name, avatar)';
-  const MEDIA = `${BASE}, media_url, media_type`;
+  // `media_path` ŞART: DM eki artık private `dm` kovasında, `media_url` boş.
+  const MEDIA = `${BASE}, media_path, media_url, media_type`;
   // ⚠ `media_path` DE SEÇİLİYOR: hikâye medyası artık private `stories` kovasında
   //   ve `media_url` yeni satırlarda BOŞ. Yalnız media_url seçilirse bu önizleme
   //   sessizce kırık görsel gösterir (23.08.2026'da tam bu şekilde kırıldı).
   const withStory = (b: string) => `${b}, story_id, story:stories!messages_story_id_fkey(media_path, media_url, media_type)`;
   const isStoryErr = (m: string) => /story_id|messages_story_id_fkey|stories/i.test(m);
-  const isMediaErr = (m: string) => /media_url|media_type/i.test(m);
+  const isMediaErr = (m: string) => /media_path|media_url|media_type/i.test(m);
   const run = (sel: string) => db.from('messages').select(sel)
     .eq('conversation_id', convId).order('created_at', { ascending: false }).limit(500) as any;
 
@@ -63,6 +64,21 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
      istemciye GÖNDERME (yol dışarı çıkmasın — lib/storyMedia.ts'teki kuralın
      aynısı). Yol yoksa eski public `media_url`e düşülür. */
   const sirali = (messages ?? []).reverse();
+
+  /* DM eki: private `dm` kovasındaki yolu İMZALA, `media_path`i istemciye GÖNDERME.
+     Bu rota zaten katılımcı kapısından geçiyor (yukarıdaki 403), yani imza yalnız
+     konuşmanın taraflarına verilir — public adresin hiç sorulmayan sorusu buydu. */
+  const dmYollari = sirali
+    .map((m: any) => m?.media_path)
+    .filter((y: any): y is string => typeof y === 'string' && !!y);
+  if (dmYollari.length) {
+    const dmHarita = await imzaHaritasi(dmYollari, IMZA.ISTEK, 'dm');
+    for (const m of sirali as any[]) {
+      if (!m?.media_path) continue;
+      m.media_url = adresSec(m.media_path, m.media_url, dmHarita);
+      delete m.media_path;
+    }
+  }
   const yollar = sirali
     .map((m: any) => m?.story?.media_path)
     .filter((y: any): y is string => typeof y === 'string' && !!y);

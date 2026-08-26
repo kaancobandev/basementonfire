@@ -12,7 +12,11 @@ import { db } from './supabase/server';
  * Artık yeni dosyalar private `stories` kovasında; okuma yüzeyleri buradan
  * kısa ömürlü imzalı URL alır.
  *
- * ⛔ HİKÂYE MEDYASINI BAŞKA HİÇBİR YERDE İMZALAMA. Bu dosyayı atlayan bir
+ * 23.08.2026'da AYNI açık DM eklerinde de bulundu (`messages.media_url` kalıcı
+ * bir public adresti) → `imzaHaritasi` artık kova parametresi alıyor ve private
+ * `dm` kovasını da imzalıyor. İki yüzey, TEK imzalama yolu.
+ *
+ * ⛔ HİKÂYE VEYA DM MEDYASINI BAŞKA HİÇBİR YERDE İMZALAMA. Bu dosyayı atlayan bir
  *    yüzey ya kırık görsel gösterir ya da (eski satırlarda) public adresi
  *    sızdırmaya devam eder. `lib/storyAudience.ts` ile aynı disiplin.
  */
@@ -33,7 +37,9 @@ export const IMZA = {
   ISR: 60 * 60 * 3,
 } as const;
 
-const KOVA = 'stories';
+/** İmzalanabilen private kovalar. Varsayılan hikâye kovası. */
+export type Kova = 'stories' | 'dm';
+const VARSAYILAN_KOVA: Kova = 'stories';
 
 /** Public URL biçimindeki eski değer mi? (göç öncesi satırlar) */
 function eskiPublicUrl(v: unknown): v is string {
@@ -45,12 +51,16 @@ function eskiPublicUrl(v: unknown): v is string {
  * kullanılıyor — hikâye başına ayrı tur atmak şeridi yavaşlatırdı.
  * Dönen harita: yol → imzalı URL. İmzalanamayan yol haritaya girmez.
  */
-export async function imzaHaritasi(yollar: string[], omur: number): Promise<Map<string, string>> {
+export async function imzaHaritasi(
+  yollar: string[],
+  omur: number,
+  kova: Kova = VARSAYILAN_KOVA,
+): Promise<Map<string, string>> {
   const harita = new Map<string, string>();
   const benzersiz = [...new Set(yollar.filter((y) => typeof y === 'string' && y.length > 0))];
   if (!benzersiz.length) return harita;
 
-  const { data, error } = await db.storage.from(KOVA).createSignedUrls(benzersiz, omur);
+  const { data, error } = await db.storage.from(kova).createSignedUrls(benzersiz, omur);
   // Kova henüz yoksa / SQL çalışmadıysa: sessizce boş dön. Çağıran eski
   // `media_url`e düşer, yani özellik uykudayken de hikâye görünmeye devam eder.
   if (error || !data) return harita;

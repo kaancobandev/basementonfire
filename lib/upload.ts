@@ -9,7 +9,7 @@
  */
 export async function uploadToStorage(
   file: File,
-  kind: 'media' | 'story' | 'avatar',
+  kind: 'media' | 'story' | 'avatar' | 'dm',
   /** Yükleme ilerlemesi (bayt). 250 MB'lık bir video dakikalar sürebiliyor —
    *  çağıran taraf bunu yüzdeye çevirip ekranda gösterir. */
   onProgress?: (loaded: number, total: number) => void,

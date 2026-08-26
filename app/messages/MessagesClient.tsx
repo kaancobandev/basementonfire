@@ -127,7 +127,21 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
               avatar: other?.avatar ?? null,
             },
           };
-          setMessages(prev => [...prev, incoming]);
+          /* 🚨 MEDYALI MESAJI HAM HÂLİYLE EKLEME — 23.08.2026 denetimi.
+             Realtime yükü doğrudan DB satırıdır: DM eki artık private kovada
+             durduğu için `media_url` BOŞ, gerçek yer `media_path`te. Ham satır
+             eklenirse alıcıda kırık görsel çıkar. İmzayı yalnız sunucu üretir
+             (katılımcı kapısının arkasında), o yüzden sohbeti tazeliyoruz.
+             Metin mesajlarında eski davranış aynen korunuyor — tazeleme YOK. */
+          const medyali = !!((msg as any).media_path || msg.media_type);
+          if (medyali) {
+            fetch(`/api/dm/${activeConvId}/messages`)
+              .then(r => r.json())
+              .then(d => { if (Array.isArray(d?.messages)) setMessages(d.messages); })
+              .catch(() => {});
+          } else {
+            setMessages(prev => [...prev, incoming]);
+          }
           // Okundu işaretle (arka planda). ESKİDEN `/messages` çağrılıyor ve
           // yanıt çöpe atılıyordu → her gelen mesajda tüm sohbet geçmişi
           // yeniden iniyordu. Bu uç yalnızca UPDATE çalıştırır, gövde taşımaz.
@@ -236,7 +250,9 @@ export default function MessagesClient({ conversations: initialConvs, me }: Prop
     setMediaSending(true);
     setMediaUpload({ id: tempId, pct: 0 });
     try {
-      const { path, mediaType } = await uploadToStorage(file, 'media', (loaded, total) => {
+      // 'dm' → private `dm` kovası (bkz. api/storage/sign). Eskiden 'media' idi
+      // ve özel mesaj eki kalıcı bir PUBLIC adres alıyordu.
+      const { path, mediaType } = await uploadToStorage(file, 'dm', (loaded, total) => {
         setMediaUpload({ id: tempId, pct: total ? Math.min(100, Math.round((loaded / total) * 100)) : 0 });
       });
       const res = await fetch(`/api/dm/${convId}/send`, {

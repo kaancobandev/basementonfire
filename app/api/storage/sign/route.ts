@@ -16,7 +16,7 @@ const VID = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'];
 // miras alır). 2026-07-28'de ölçüldü: 250 MB'lık gerçek bir yükleme HTTP 200
 // döndü, yani proje ayarı yeterli. Bu sayıyı yükseltirsen ölçümü TEKRARLA —
 // yalnız buradaki rakamı büyütmek Storage'ın 413'ünü kaldırmaz.
-const LIMIT = { media: 250 * 1024 * 1024, story: 50 * 1024 * 1024, avatar: 10 * 1024 * 1024 } as const;
+const LIMIT = { media: 250 * 1024 * 1024, story: 50 * 1024 * 1024, avatar: 10 * 1024 * 1024, dm: 50 * 1024 * 1024 } as const;
 
 // Uzantı → contentType eşlemesi. İstemcinin gönderdiği `ext` ARTIK KULLANILMIYOR.
 const EXT_BY_TYPE: Record<string, string> = {
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
   let body: { kind?: string; ext?: string; contentType?: string; size?: number };
   try { body = await req.json(); } catch { return json({ error: 'Geçersiz istek' }, 400); }
 
-  const kind = body.kind === 'story' ? 'story' : body.kind === 'avatar' ? 'avatar' : 'media';
+  const kind = body.kind === 'story' ? 'story' : body.kind === 'avatar' ? 'avatar' : body.kind === 'dm' ? 'dm' : 'media';
   const ct = body.contentType ?? '';
   const isImg = IMG.includes(ct);
   const isVid = VID.includes(ct);
@@ -78,9 +78,13 @@ export async function POST(req: Request) {
      URL üretir (lib/storyMedia.ts).
      ⚠ `stories` kovasının KENDİ 50 MB limiti var → aşağıdaki `LIMIT.story`
        artık tek başına dekoratif değil, bucket sunucuda da zorluyor. */
-  const kova = kind === 'story' ? 'stories' : 'media';
+  /* 🚨 DM MEDYASI DA PRIVATE — 23.08.2026 denetimi, hikâyenin ikizi.
+     Özel mesaj eki `media` (PUBLIC) kovasına gidiyordu ve adresi kalıcıydı:
+     engel, dm_privacy, konuşmanın tarafı olmak — hiçbiri sorulmuyordu, mesajı
+     silmek bile dosyayı kaldırmıyordu. Ölçüldü: o an medyalı DM sayısı 0,
+     yani sızan dosya yok; ilk paylaşımda sızacaktı. */
+  const kova = kind === 'story' ? 'stories' : kind === 'dm' ? 'dm' : 'media';
   const storagePath =
-    kind === 'story'  ? `${me.id}/${Date.now()}-${rand}.${ext}` :
     kind === 'avatar' ? `avatars/${me.id}-${Date.now()}-${rand}.${ext}` :
     `${me.id}/${Date.now()}-${rand}.${ext}`;
 
