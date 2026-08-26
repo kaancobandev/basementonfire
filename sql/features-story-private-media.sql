@@ -24,6 +24,25 @@
 alter table public.stories
   add column if not exists media_path text;
 
+-- 🚨 SÜRÜM 2 — `media_url` NOT NULL'DAN ÇIKARILIYOR.
+--
+-- Sürüm 1'i çalıştırdıysan BU DOSYAYI TEKRAR ÇALIŞTIR (hepsi idempotent).
+--
+-- SEBEP: yeni hikâyeler artık `media_path` yazıyor ve `media_url` BOŞ kalıyor.
+-- Kolon NOT NULL kaldığı sürece:
+--   · göç betiği eski satırların `media_url`ünü temizleyemez
+--     ("null value in column media_url violates not-null constraint"),
+--   · daha kötüsü YENİ HİKÂYE OLUŞTURMA da aynı kısıtla patlar.
+-- Ölçüldü (23.08.2026): göç 6 satırın 6'sında da bu hatayla durdu — betik
+-- doğru davranıp public kopyaları SİLMEDİ, yani hiçbir hikâye bozulmadı.
+--
+-- ⚠ DERS: bir kolonu "artık yazmıyoruz" diye bırakmadan ÖNCE null'lanabilir
+--   olup olmadığını ÖLÇ. Bu projede aynı tuzağa `users.gender` ile de düşüldü
+--   (orada NOT NULL + varsayılan '' idi ve e-posta onayını komple düşürüyordu).
+--   Ölçmenin en hızlı yolu: `/rest/v1/` OpenAPI şemasındaki `required` dizisi.
+alter table public.stories
+  alter column media_url drop not null;
+
 comment on column public.stories.media_path is
   'Private `stories` kovasındaki dosya yolu. Doluysa okuma tarafı İMZALI URL üretir; boşsa eski `media_url` (public kova) kullanılır. Yeni yüklemeler her zaman bunu doldurur.';
 
