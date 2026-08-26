@@ -95,6 +95,31 @@ export const RATE_LIMITS = {
   //   Kalıcı çözüm Supabase tarafında: kind başına ayrı bucket + bucket
   //   limiti. Fren yalnızca hacmi sınırlar, tek dosyanın boyutunu değil.
   sign: { capacity: 20, refillPerSec: 20 / 600 },
+
+  // Ölçüm beacon'ları (/api/hit + /api/perf). 23.08.2026 denetiminde eklendi.
+  //
+  // İkisi de KİMLİKSİZ yazma ucu ve hiç freni yoktu. Zarar veri sızıntısı değil,
+  // ALETİN KENDİSİ: bu iki uç trafik panelini ve RUM'u besliyor, yani kararların
+  // dayandığı sayıları.
+  //
+  // 🚨 ASIL MESELE `uniques`. Ölçüldü: `traffic_dashboard`
+  //    `count(distinct visitor_hash)` sayıyor ve `visitor_hash` =
+  //    sha256(ip|USER-AGENT|gün|salt). Yani sadece UA başlığını değiştirerek
+  //    atılan istekler HER SEFERİNDE YENİ BİR "tekil ziyaretçi" üretiyordu.
+  //    "Günlük 13,4 tekil, düşüşte" gibi bir sayıya bakarak karar veriliyor;
+  //    o sayı dışarıdan serbestçe oynatılabiliyordu.
+  //
+  // Fren IP başına (identify → UA'ya BAKMAZ), yani UA çevirerek kaçmak
+  // işe yaramaz: bir IP tek kova.
+  //
+  // Kova bilerek ÇOK cömert: sitenin tüm günlük trafiği ~13 tekil (2026-08-07).
+  // Saatte 600, tek IP için o trafiğin ~46 katı → gerçek ziyaretçi (paylaşılan
+  // ofis/CGNAT IP'si dahil) bunu görmez, sel ise saatte 600 satırla sınırlanır.
+  //
+  // ⚠ AŞILDIĞINDA 429 DEĞİL 204 DÖNER ve ölçüm sessizce düşer. Beacon'ın
+  //   yanıtı zaten okunmuyor (sendBeacon/keepalive); 429 dönmek hem işe
+  //   yaramaz hem de frenin varlığını ilan ederdi.
+  beacon: { capacity: 600, refillPerSec: 600 / 3600 },
 } satisfies Record<string, Rule>;
 
 export type RuleName = keyof typeof RATE_LIMITS;
@@ -118,12 +143,21 @@ export type Verdict = {
  * burada kötüye kullanımı durdurmak. UA hash'e girseydi, saldırgan her istekte
  * user-agent'ı değiştirerek kendine sınırsız yeni kova açardı.
  */
+/**
+ * `identify()` IP başlığı hiç yoksa bunu döner — ve o hâlde HERKES TEK KOVAYA
+ * düşer. Yazma uçlarında bu doğru davranış (kimliksiz sel yine sınırlanmalı),
+ * ama ÖLÇÜM uçlarında tam tersi: tek kova, tüm sitenin analitiğini sessizce
+ * kısar ve panel "trafik düştü" der. Beacon rotaları bu değeri görürse freni
+ * ATLAR — aleti bozmaktansa sınırsız bırakmak yeğdir.
+ */
+export const KIMLIKSIZ = 'ip:bilinmiyor';
+
 export function identify(h: HeaderGetter, userId?: number | string | null): string {
   if (userId != null && userId !== '') return `user:${userId}`;
   const ip = clientIp(h);
   // IP okunamazsa (yerel geliştirme, eksik başlık) tüm anonimler tek kovayı
   // paylaşır. Üretimde Netlify x-nf-client-connection-ip'yi her zaman basar.
-  if (!ip) return 'ip:bilinmiyor';
+  if (!ip) return KIMLIKSIZ;
   const salt = process.env.SUPABASE_SERVICE_KEY || 'basements-salt';
   const day = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Istanbul' });
   const hash = crypto.createHash('sha256').update(`${ip}|${day}|${salt}`).digest('hex').slice(0, 32);
