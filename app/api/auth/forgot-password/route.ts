@@ -1,4 +1,5 @@
 import { createAuthClient } from '@/lib/supabase/server';
+import { authCodeFromError } from '@/lib/authMessages';
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
@@ -9,13 +10,21 @@ export async function POST(req: Request) {
 
   const form = await req.formData();
   const email = (form.get('email') as string)?.trim();
-  if (!email) return redir('/forgot-password?error=E-posta+gerekli');
+  /* 🚨 URL'E ARTIK YALNIZ KOD YAZILIYOR — 23.08.2026 denetimi.
+     Eskiden buradan `?error=E-posta+gerekli` ve daha kötüsü
+     `?error=${error.message}` (Supabase'in ham İngilizce metni) gidiyordu.
+     Sayfa da onu olduğu gibi basıyordu → saldırgan kendi cümlesini sitenin
+     hata kutusunda gösterebiliyordu. lib/authMessages.ts bu kararı /login için
+     zaten almıştı; burası atlanmıştı. */
+  if (!email) return redir('/forgot-password?error=eposta_gerekli');
 
   const client = await createAuthClient();
   const { error } = await client.auth.resetPasswordForEmail(email, {
     redirectTo: `${siteUrl}/reset-password`,
   });
 
-  if (error) return redir(`/forgot-password?error=${encodeURIComponent(error.message)}`);
+  // Ham `error.message` kullanıcıya GİTMEZ: hem dil (İngilizce) hem enjeksiyon
+  // sebebiyle. Eşleşmeyen hata 'bilinmeyen' genel mesajına düşer.
+  if (error) return redir(`/forgot-password?error=${authCodeFromError(error.message)}`);
   return redir('/forgot-password?sent=1');
 }

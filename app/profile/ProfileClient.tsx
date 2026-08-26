@@ -18,6 +18,7 @@ import type { DbUser, UserProgress } from '@/lib/types';
 import { BADGE_MAP, levelFromXp } from '@/lib/badges';
 import { toast } from 'sonner';
 import { uploadToStorage } from '@/lib/upload';
+import { profilMesaji } from '@/lib/profileMessages';
 
 const AVATAR_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const AVATAR_MAX = 10 * 1024 * 1024; // 10 MB (GIF dahil)
@@ -51,11 +52,13 @@ interface Props {
   badgeKeys: string[];
   highlights: { id: number; title: string; cover_url: string | null; count: number }[];
   error: string | null;
+  /** Sayı taşıyan mesajlar için (ör. "5 saat sonra"). Bkz. lib/profileMessages.ts */
+  hataSayisi: string | null;
 }
 
 const GENDER_LABEL: Record<string, string> = { erkek: 'Erkek', kadin: 'Kadın', diger: 'Diğer' };
 
-export default function ProfileClient({ user, bg, age, followersCount, followingCount, mediaPosts, savedPosts, savedArticleCount, repostedPosts, myArticles, isAdmin, progress, badgeKeys, highlights, error }: Props) {
+export default function ProfileClient({ user, bg, age, followersCount, followingCount, mediaPosts, savedPosts, savedArticleCount, repostedPosts, myArticles, isAdmin, progress, badgeKeys, highlights, error, hataSayisi }: Props) {
   const isMobile = useIsMobile();
   const [tab, setTab] = useState<'posts' | 'saved' | 'reposts' | 'articles'>('posts');
   const [followModal, setFollowModal] = useState<'followers' | 'following' | null>(null);
@@ -159,7 +162,11 @@ export default function ProfileClient({ user, bg, age, followersCount, following
 
   return (
     <main className="main-content">
-      {error && <div style={{ background: '#fee2e2', color: '#dc2626', padding: '10px 20px', fontSize: '0.85rem', borderBottom: '1px solid #fecaca' }}>{decodeURIComponent(error)}</div>}
+      {/* 🚨 KOD → METİN. Eskiden `?error=` içeriği OLDUĞU GİBİ basılıyordu:
+          saldırgan girişli kullanıcıya sitenin kendi uyarı kutusunda istediği
+          cümleyi gösterebiliyordu. `decodeURIComponent` de çift çözmeydi ve
+          `?error=%25` sayfayı 500'e düşürüyordu. Bkz. lib/profileMessages.ts */}
+      {profilMesaji(error ?? undefined, hataSayisi ?? undefined) && <div style={{ background: '#fee2e2', color: '#dc2626', padding: '10px 20px', fontSize: '0.85rem', borderBottom: '1px solid #fecaca' }}>{profilMesaji(error ?? undefined, hataSayisi ?? undefined)}</div>}
 
       {/* Banner */}
       <div style={{ height: 160, width: '100%', background: bg }} />

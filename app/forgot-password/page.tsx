@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getMe } from '@/lib/supabase/server';
 import ForgotPasswordForm from './ForgotPasswordForm';
+import { authMessage } from '@/lib/authMessages';
 
 export default async function ForgotPasswordPage({
   searchParams,
@@ -59,7 +60,7 @@ export default async function ForgotPasswordPage({
           </div>
         )}
 
-        {error && (
+        {authMessage(error) && (
           <div
             role="alert"
             style={{
@@ -71,7 +72,7 @@ export default async function ForgotPasswordPage({
               marginBottom: '16px',
             }}
           >
-            {decodeURIComponent(error)}
+            {authMessage(error)}
           </div>
         )}
 

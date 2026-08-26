@@ -6,8 +6,20 @@ import { NextResponse } from 'next/server';
 const DAY = 24 * 60 * 60 * 1000;
 const USERNAME_DAYS = 30;
 
-function fail(req: Request, msg: string) {
-  return NextResponse.redirect(new URL(`/profile?error=${encodeURIComponent(msg)}`, req.url), { status: 303 });
+/**
+ * Hata KODU ile geri dön — URL'e ASLA serbest metin yazma.
+ *
+ * 🚨 23.08.2026 denetimi: burası `?error=${msg}` ile ham cümle yazıyordu ve
+ *    /profile onu olduğu gibi basıyordu. Yani saldırganın hazırladığı bir
+ *    bağlantı, GİRİŞ YAPMIŞ kullanıcıya sitenin kendi uyarı kutusunda istediği
+ *    metni gösteriyordu (kimlik avı için en ikna edici zemin). lib/authMessages.ts
+ *    aynı kararı /login için çoktan almıştı; bu rota atlanmıştı.
+ *    Metinler artık lib/profileMessages.ts'te; `sayi` yalnız tam sayı olarak
+ *    taşınır ve orada sınırlanır.
+ */
+function fail(req: Request, kod: string, sayi?: number) {
+  const ek = sayi === undefined ? '' : `&s=${encodeURIComponent(String(sayi))}`;
+  return NextResponse.redirect(new URL(`/profile?error=${encodeURIComponent(kod)}${ek}`, req.url), { status: 303 });
 }
 
 export async function POST(req: Request) {
@@ -24,8 +36,8 @@ export async function POST(req: Request) {
   const birthdateRaw = (form.get('birthdate') as string)?.trim() ?? '';
   const interestsRaw = (form.get('interests') as string)?.trim() ?? '';
 
-  if (!display_name || display_name.length > 50) return fail(req, 'İsim 1-50 karakter olmalı');
-  if (bio.length > 160) return fail(req, 'Bio en fazla 160 karakter');
+  if (!display_name || display_name.length > 50) return fail(req, 'ad_uzunluk');
+  if (bio.length > 160) return fail(req, 'bio_uzun');
 
   // Mevcut değerler + değişim zamanları. Sütunlar henüz eklenmemişse (SQL çalıştırılmadıysa)
   // limitsiz çalış ki mevcut profil düzenleme bozulmasın.
@@ -39,7 +51,7 @@ export async function POST(req: Request) {
   } else {
     cur = full.data;
   }
-  if (!cur) return fail(req, 'Kullanıcı bulunamadı');
+  if (!cur) return fail(req, 'kullanici_yok');
 
   const now = new Date().toISOString();
   const update: Record<string, unknown> = {};
@@ -50,7 +62,7 @@ export async function POST(req: Request) {
       const elapsed = Date.now() - new Date(cur.name_changed_at).getTime();
       if (elapsed < DAY) {
         const hrs = Math.max(1, Math.ceil((DAY - elapsed) / (60 * 60 * 1000)));
-        return fail(req, `Adını günde bir kez değiştirebilirsin. ${hrs} saat sonra tekrar deneyebilirsin.`);
+        return fail(req, 'ad_limit', hrs);
       }
     }
     update.display_name = display_name;
@@ -60,17 +72,17 @@ export async function POST(req: Request) {
   // --- Kullanıcı adı (username): 30 günde 1 + format + benzersizlik ---
   if (username !== cur.username) {
     if (!/^[a-z0-9_]{3,30}$/.test(username))
-      return fail(req, 'Kullanıcı adı 3-30 karakter olmalı; sadece küçük harf, rakam ve alt çizgi (_) içerebilir.');
+      return fail(req, 'ad_format');
     if (hasLimitCols && cur.username_changed_at) {
       const elapsed = Date.now() - new Date(cur.username_changed_at).getTime();
       if (elapsed < USERNAME_DAYS * DAY) {
         const days = Math.max(1, Math.ceil((USERNAME_DAYS * DAY - elapsed) / DAY));
-        return fail(req, `Kullanıcı adını ${USERNAME_DAYS} günde bir değiştirebilirsin. ${days} gün sonra tekrar deneyebilirsin.`);
+        return fail(req, 'ad_limit_gun', days);
       }
     }
     // Başkası bu kullanıcı adını almış mı?
     const { data: taken } = await db.from('users').select('id').eq('username', username).neq('id', me.id).maybeSingle();
-    if (taken) return fail(req, 'Bu kullanıcı adı zaten alınmış. Başka birini dene.');
+    if (taken) return fail(req, 'ad_alinmis');
     update.username = username;
     if (hasLimitCols) update.username_changed_at = now;
   }
@@ -106,19 +118,19 @@ export async function POST(req: Request) {
     if (!birthdateRaw) {
       // Boşaltmak yaş beyanını NULL'a çekip kapıyı belirsizleştirirdi
       // (isAtLeast(null) false döner → kullanıcı sessizce eşleştirmeden düşerdi).
-      return fail(req, 'Doğum tarihi boş bırakılamaz.');
+      return fail(req, 'dogum_bos');
     }
     const age = ageFromBirthdate(birthdateRaw);
-    if (age === null) return fail(req, 'Geçerli bir doğum tarihi gir');
-    if (age < MIN_AGE) return fail(req, `En az ${MIN_AGE} yaşında olmalısın`);
+    if (age === null) return fail(req, 'dogum_gecersiz');
+    if (age < MIN_AGE) return fail(req, 'yas_kucuk');
     if (!isAllowedBirthdateEdit(curBirthdate, birthdateRaw))
-      return fail(req, 'Doğum tarihini yalnızca daha küçük bir yaşa doğru düzeltebilirsin. Yaşını büyütmen gerekiyorsa bizimle iletişime geç.');
+      return fail(req, 'dogum_yon');
 
     update.birthdate = birthdateRaw;
   }
 
   const { error } = await db.from('users').update(update).eq('id', me.id);
-  if (error) return fail(req, 'Kaydedilemedi');
+  if (error) return fail(req, 'kaydedilemedi');
 
   return NextResponse.redirect(new URL('/profile', req.url), { status: 303 });
 }

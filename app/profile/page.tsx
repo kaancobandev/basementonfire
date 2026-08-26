@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic';
 const ARTICLE_COLS_ESKI = 'id, slug, title, status, cover_url, reject_reason';
 const ARTICLE_COLS = `${ARTICLE_COLS_ESKI}, pending_at, pending_reject_reason`;
 
-export default async function ProfilePage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+export default async function ProfilePage({ searchParams }: { searchParams: Promise<{ error?: string; s?: string }> }) {
   const { me } = await getMe();
   if (!me) redirect('/login');
 
@@ -20,7 +20,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
   // tekrar çekmeye gerek yok (bir DB turu eksilir).
   const user = me as DbUser;
 
-  const { error } = await searchParams;
+  const { error, s: hataSayisi } = await searchParams;
 
   // Alan seçimi (select('*') yerine yalnızca kullanılan kolonlar) → daha küçük
   // satırlar, daha hızlı transfer. Limit yok: ızgara sayısı (.length) doğru kalsın
@@ -110,6 +110,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
       badgeKeys={badgeKeys}
       highlights={highlights}
       error={error ?? null}
+      hataSayisi={hataSayisi ?? null}
     />
   );
 }
