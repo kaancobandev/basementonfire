@@ -1,5 +1,6 @@
 import { db, getMe } from '@/lib/supabase/server';
 import { markConversationRead } from '@/lib/dm';
+import { imzaHaritasi, adresSec, IMZA } from '@/lib/storyMedia';
 import { NextResponse } from 'next/server';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
@@ -31,7 +32,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   // örn. story CANLI ama media SQL beklerken hikaye-yanıt rozeti KAYBOLMAZ.
   const BASE = 'id, content, sender_id, is_read, created_at, users:sender_id(id, username, display_name, avatar)';
   const MEDIA = `${BASE}, media_url, media_type`;
-  const withStory = (b: string) => `${b}, story_id, story:stories!messages_story_id_fkey(media_url, media_type)`;
+  // ⚠ `media_path` DE SEÇİLİYOR: hikâye medyası artık private `stories` kovasında
+  //   ve `media_url` yeni satırlarda BOŞ. Yalnız media_url seçilirse bu önizleme
+  //   sessizce kırık görsel gösterir (23.08.2026'da tam bu şekilde kırıldı).
+  const withStory = (b: string) => `${b}, story_id, story:stories!messages_story_id_fkey(media_path, media_url, media_type)`;
   const isStoryErr = (m: string) => /story_id|messages_story_id_fkey|stories/i.test(m);
   const isMediaErr = (m: string) => /media_url|media_type/i.test(m);
   const run = (sel: string) => db.from('messages').select(sel)
@@ -55,5 +59,21 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     console.warn(`[dm] sohbet ${convId}: ${messages?.length} mesaj — 500 sınırına yaklaşıldı, sayfalama gerekiyor`);
   }
 
-  return json({ messages: (messages ?? []).reverse(), mediaEnabled });
+  /* Hikâye yanıtı önizlemesi: private kovadaki yolu İMZALA ve `media_path`i
+     istemciye GÖNDERME (yol dışarı çıkmasın — lib/storyMedia.ts'teki kuralın
+     aynısı). Yol yoksa eski public `media_url`e düşülür. */
+  const sirali = (messages ?? []).reverse();
+  const yollar = sirali
+    .map((m: any) => m?.story?.media_path)
+    .filter((y: any): y is string => typeof y === 'string' && !!y);
+  if (yollar.length) {
+    const harita = await imzaHaritasi(yollar, IMZA.ISTEK);
+    for (const m of sirali as any[]) {
+      if (!m?.story) continue;
+      const { media_path, ...kalan } = m.story;
+      m.story = { ...kalan, media_url: adresSec(media_path, m.story.media_url, harita) };
+    }
+  }
+
+  return json({ messages: sirali, mediaEnabled });
 }

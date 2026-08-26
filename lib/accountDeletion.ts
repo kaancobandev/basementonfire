@@ -37,7 +37,10 @@ export async function purgeAccount(userId: number): Promise<{ ok: boolean; error
     db.from('users').select('auth_id, avatar').eq('id', userId).maybeSingle(),
     db.from('quick_facts').select('media_url, media').eq('user_id', userId),
     db.from('posts').select('image_url').eq('user_id', userId),
-    db.from('stories').select('media_url').eq('user_id', userId),
+    // ⚠ `media_path` ŞART: hikâye dosyaları 23.08.2026'da private `stories`
+    //   kovasına taşındı ve `media_url` yeni satırlarda BOŞ. Yalnız media_url
+    //   okunursa "hesabımı sil" hikâye dosyalarının HİÇBİRİNİ silmez.
+    db.from('stories').select('media_path, media_url').eq('user_id', userId),
     db.from('user_articles').select('cover_url').eq('user_id', userId),
     db.from('deleted_media').select('archive_path').eq('user_id', userId),
     // DM medyası — mesaj satırı aşağıda siliniyor, dosya yetim kalıyordu.
@@ -57,7 +60,13 @@ export async function purgeAccount(userId: number): Promise<{ ok: boolean; error
     if (Array.isArray(f.media)) for (const m of f.media) add(m?.url); // media jsonb: [{url,type,w,h}]
   }
   for (const p of postsRes.data ?? []) add(p.image_url);
-  for (const s of storiesRes.data ?? []) add(s.media_url);
+  // Eski (göç edilmemiş) satırlar public `media` kovasında, yenileri private
+  // `stories` kovasında → ikisi AYRI listede toplanır, ayrı kovadan silinir.
+  const storyFiles = new Set<string>();
+  for (const s of storiesRes.data ?? []) {
+    add(s.media_url);
+    if (typeof s.media_path === 'string' && s.media_path) storyFiles.add(s.media_path);
+  }
   for (const a of articlesRes.data ?? []) add(a.cover_url);
   for (const m of dmRes.data ?? []) add(m.media_url);
 
@@ -90,6 +99,11 @@ export async function purgeAccount(userId: number): Promise<{ ok: boolean; error
   if (archiveFiles.length > 0) {
     const { error } = await db.storage.from('archive').remove(archiveFiles);
     logIfError('purge: archive storage remove', error);
+  }
+  // Hikâye medyası AYRI (private) `stories` kovasında.
+  if (storyFiles.size > 0) {
+    const { error } = await db.storage.from('stories').remove([...storyFiles]);
+    logIfError('purge: stories storage remove', error);
   }
 
   // — 2) users'a FK'sı OLMAYAN tablo → cascade etmez, elle sil —
