@@ -31,6 +31,16 @@ export default async function NotificationsPage() {
   // ateşle-unut yerine after(): Netlify yanıt bitince fonksiyonu dondurabilir,
   // after/waitUntil yazmanın tamamlanmasını garanti eder (upload route emsali).
   // Liste yukarıda çekildi → "yeni" vurgusu bozulmaz.
+  /* DENETİM NOTU (24.08.2026) — "GET yan etkili" bulgusu ÇÜRÜDÜ, kayda geçsin.
+     Bu sayfayı açmak tüm bildirimleri okundu işaretliyor, yani bir GET veri
+     değiştiriyor. CSRF gibi görünür ama BU KURULUMDA sömürülemez:
+     oturum çerezi `SameSite=Lax` (lib/supabase/cookieOptions.ts) → siteler arası
+     ALT KAYNAK isteklerinde (`<img src="/notifications">`, fetch, iframe) çerez
+     GÖNDERİLMEZ; istek anonim gider ve /login'e döner. Lax'in çerez gönderdiği
+     tek yol üst düzey GET gezinmesidir, o da kullanıcının sayfayı gerçekten
+     AÇMASI demektir — zaten amaçlanan davranış.
+     ⛔ `sameSite` 'none'a çekilirse bu gerekçe ÇÖKER ve buraya bir POST+token
+        gerekir. Çerez ayarını değiştiren bu satırı da gözden geçirsin. */
   after(async () => {
     const { error } = await db.from('notifications').update({ is_read: true }).eq('user_id', me.id).eq('is_read', false);
     logIfError('notifications mark-read', error);
