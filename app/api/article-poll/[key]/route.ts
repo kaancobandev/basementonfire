@@ -6,6 +6,7 @@ import { POLLS, isPollKey, isPollChoice, postIdFromPollKey, storyIdFromPollKey, 
 import { isArticleSlug } from '@/lib/articles';
 import { audiencePredicate } from '@/lib/storyAudience';
 import { isBlockedBetween } from '@/lib/blocks';
+import { canViewPost } from '@/lib/visibility';
 
 /**
  * Hikaye anketi GÖRÜNÜRLÜK kapısı. Anket ucu makale/gönderi anketleri için giriş
@@ -130,6 +131,21 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ key:
     const { me } = await getMe();
     if (!(await storyPollVisible(sid, me?.id ?? null))) return json({ available: false });
   }
+
+  /* 🚨 GÖNDERİ ANKETİ KAPISI — 23.08.2026 denetimi, İKİNCİ TUR.
+     Yukarıdaki hikâye kapısı vardı, gönderi kapısı YOKTU — aynı dosyada, yan
+     yana. `post-<id>` anahtarıyla çıkışlı biri bile ardışık id deneyerek gizli
+     bir hesabın gönderisinde anket olup olmadığını (available:true) ve tam oy
+     dağılımını okuyabiliyor, POST'ta göremediği ankete OY VEREBİLİYORDU.
+     Ölçüldü: `post_polls` o an 0 satır — sızan veri yok, özellik kullanılmaya
+     başlansaydı sızacaktı (`/api/stories/highlights` ile aynı hikâye).
+     Makale karar noktası ve quiz anahtarları bu kapıdan geçmez: onlar herkese
+     açık editöryel içerik ve giriş bile gerektirmiyor. */
+  const pid = postIdFromPollKey(key);
+  if (pid !== null) {
+    const { me } = await getMe();
+    if (!(await canViewPost(pid, me?.id ?? null))) return json({ available: false });
+  }
   try {
     // `mine` gerçek (head'siz) bir select → tablo yoksa hatayı GÜVENİLİR yüzeye
     // çıkarır (head:true count'un aksine); tally de null count'a karşı korumalı.
@@ -159,6 +175,21 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ key
   if (sid !== null) {
     const { me } = await getMe();
     if (!(await storyPollVisible(sid, me?.id ?? null))) return json({ available: false });
+  }
+
+  /* 🚨 GÖNDERİ ANKETİ KAPISI — 23.08.2026 denetimi, İKİNCİ TUR.
+     Yukarıdaki hikâye kapısı vardı, gönderi kapısı YOKTU — aynı dosyada, yan
+     yana. `post-<id>` anahtarıyla çıkışlı biri bile ardışık id deneyerek gizli
+     bir hesabın gönderisinde anket olup olmadığını (available:true) ve tam oy
+     dağılımını okuyabiliyor, POST'ta göremediği ankete OY VEREBİLİYORDU.
+     Ölçüldü: `post_polls` o an 0 satır — sızan veri yok, özellik kullanılmaya
+     başlansaydı sızacaktı (`/api/stories/highlights` ile aynı hikâye).
+     Makale karar noktası ve quiz anahtarları bu kapıdan geçmez: onlar herkese
+     açık editöryel içerik ve giriş bile gerektirmiyor. */
+  const pid = postIdFromPollKey(key);
+  if (pid !== null) {
+    const { me } = await getMe();
+    if (!(await canViewPost(pid, me?.id ?? null))) return json({ available: false });
   }
 
   let choice = '';

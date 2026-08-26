@@ -1,4 +1,5 @@
 import { db } from './supabase/server';
+import { isBlockedBetween } from './blocks';
 
 type NotifType = 'follow' | 'comment' | 'like' | 'mention' | 'follow_request' | 'follow_accepted';
 
@@ -14,6 +15,25 @@ interface NotifPayload {
 
 export async function createNotification(p: NotifPayload) {
   if (p.userId === p.actorId) return;
+
+  /* 🚨 ENGEL KAPISI — 23.08.2026 denetimi, İKİNCİ TUR.
+     Engelleme akış/arama/DM/takip/yorum yüzeylerinde uygulanıyordu ama
+     BİLDİRİM ÜRETİMİNDE hiç bakılmıyordu. Ölçüldü: 8 çağrı noktasının 2'sinde
+     (`/api/dyk/[id]/like`, `/api/follow-requests`) hiçbir engel kontrolü yoktu
+     ve diğerlerindeki kontroller rotaya ELLE yazılmıştı — yani her yeni bildirim
+     türü aynı hatayı yeniden yapmaya açıktı.
+
+     Sonuç: engellediğin kişi bilgi kartını beğenerek sana bildirim
+     düşürebiliyordu. Engellemenin kullanıcıya verdiği söz "bu kişi bana
+     ulaşamaz"; bildirim tam olarak ulaşmaktır.
+
+     Kapı ROTAYA DEĞİL BURAYA konuldu: tek geçit olduğu için like/comment/
+     mention/follow/follow_request/follow_accepted'ın ALTISI birden kapanıyor
+     ve sonradan eklenecek türler de otomatik kapsanıyor.
+
+     `isBlockedBetween` iki yönlü ve defansif (blocks tablosu yoksa "engel yok"
+     döner) → özellik uykudayken bildirimler çalışmaya devam eder. */
+  if (await isBlockedBetween(p.userId, p.actorId)) return;
 
   // BEĞENİ BİLDİRİMİ — aynı kişi aynı gönderiyi tekrar beğenirse yeni satır
   // değil, mevcut satır tazelenir ("okunmadı"ya döner ve başa gelir).
