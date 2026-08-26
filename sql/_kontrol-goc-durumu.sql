@@ -13,6 +13,7 @@
 --   Dört bölümü sırayla seç, dört sonucu ayrı ayrı al.
 --
 --   Bölümler: 1) göç dosyaları  2) veri durumu  3) indeksler  4) temizlik+korumalar
+--             5) KOLON TARAMASI  6) REALTIME + RLS
 --
 -- NEDEN: sql/ altındaki dosyalar elle çalıştırılıyor ve hangisinin
 --        çalıştırıldığını tutan bir kayıt yok. Bu dosya kaydın yerine geçer:
@@ -270,3 +271,71 @@ where conname in (
   'post_likes_pkey',
   'users_username_key'
 );
+
+
+-- ═══════════════ 5 · KOLON TARAMASI ═══════════════
+--
+-- 🚨 NEDEN EKLENDİ (26.08.2026 denetimi — denetimin EN DEĞERLİ çıktısı):
+-- `messages.media_path` eksikliği üç denetim turu boyunca gözden kaçtı ve
+-- sonunda TESADÜFEN, bir select hatasından bulundu. Tarama yapılınca 47/47
+-- tablo canlıda çıktı ama `add column` ile eklenen 31 kolonun 30'u vardı,
+-- biri yoktu. Yani boşluk tam olarak birdi — ve onu bilmenin yolu, kimsenin
+-- çalıştırmadığı 30 saniyelik bu sorguydu.
+--
+-- ⛔ NEDEN ÖNEMLİ: bir kolonu SELECT'e eklemek, kolon YOKKEN supabase-js'te
+--    sorgunun TAMAMINI düşürür ve `data` NULL olur — hata fırlatmaz. Yani
+--    "kolonu ekledim, kod da okuyor" demek, kolon canlıda yoksa özelliğin
+--    SESSİZCE ölü olması demektir. Bu şekilde iki regresyon üretildi:
+--    hesap silmede DM medyası hiç toplanmadı, DM'de hikâye önizlemesi kırıldı.
+--
+-- ⚠ HER GÜVENLİK GÖÇÜNDEN SONRA BUNU ÇALIŞTIR. "Kapatıldı" beyanı kod
+--   okumasına dayanıyorsa güvenilir değildir.
+select
+  b.tablo,
+  b.kolon,
+  case when c.column_name is null then '❌ YOK — göç bekliyor' else '✅ var' end as durum,
+  b.hangi_dosya
+from (values
+  ('stories',          'media_path',   'sql/features-story-private-media.sql'),
+  ('story_highlights', 'cover_path',   'sql/features-story-private-media.sql'),
+  ('messages',         'media_path',   'sql/features-dm-private-media.sql'),
+  ('messages',         'media_url',    'sql/features-dm-media.sql'),
+  ('messages',         'story_id',     'sql/features-story-highlights-reply.sql'),
+  ('stories',          'audience',     'sql/features-story-audience.sql'),
+  ('stories',          'poll_options', 'sql/features-story-poll.sql'),
+  ('users',            'gender',       'sql/features-gender.sql'),
+  ('users',            'birthdate',    'sql/features-age-gate.sql'),
+  ('users',            'dm_privacy',   'sql/features-dm-privacy.sql'),
+  ('did_you_know',     'active',       'sql/features-dyk-quiz.sql'),
+  ('quiz_questions',   'correct_index','sql/features-dyk-quiz.sql')
+) as b(tablo, kolon, hangi_dosya)
+left join information_schema.columns c
+  on c.table_schema = 'public' and c.table_name = b.tablo and c.column_name = b.kolon
+order by durum desc, b.tablo;
+
+
+-- ═══════════════ 6 · REALTIME + RLS ═══════════════
+--
+-- 🚨 NEDEN: 19.08.2026'da gerçek bir sızıntı yaşandı — RLS AÇIK ama POLİTİKA
+-- YOKSA realtime satırları SÜZMEDEN yayınlıyor; her tarayıcı tüm DM'leri
+-- alıyordu. O olay kapatıldı, ama yayına SONRADAN eklenen bir tablo hiçbir
+-- denetimde görünmez. Bu sorgu tam olarak o kör noktayı kapatır.
+--
+-- OKUMA: `politika_sayisi = 0` olan HER satır o günkü sızıntının aynısıdır.
+select
+  t.tablename                                    as tablo,
+  case when c.relrowsecurity then 'açık' else '❌ KAPALI' end as rls,
+  (select count(*) from pg_policies p
+    where p.schemaname = 'public' and p.tablename = t.tablename) as politika_sayisi,
+  case
+    when not c.relrowsecurity                    then '🔴 RLS KAPALI — yayında herkese açık'
+    when (select count(*) from pg_policies p
+          where p.schemaname = 'public' and p.tablename = t.tablename) = 0
+                                                 then '🔴 RLS açık ama 0 POLİTİKA — SÜZMEDEN yayınlar'
+    else '✅ politikalı'
+  end as durum
+from pg_publication_tables t
+join pg_class c on c.relname = t.tablename
+join pg_namespace n on n.oid = c.relnamespace and n.nspname = t.schemaname
+where t.pubname = 'supabase_realtime' and t.schemaname = 'public'
+order by durum desc, tablo;
