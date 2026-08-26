@@ -1,3 +1,11 @@
+// ╔═══════════════════════════════════════════════════════════════════════╗
+// ║  ⛔ BU BİR SQL DOSYASI DEĞİL. Supabase SQL editörüne YAPIŞTIRMA.       ║
+// ║     (Yapıştırılırsa: `ERROR: 42601 syntax error at or near "{"`)      ║
+// ║                                                                       ║
+// ║  TERMİNALDE, proje klasöründe çalıştır:                               ║
+// ║    node --env-file=.env.local scripts/kova-guvenlik-ayarlari.mjs --kuru║
+// ╚═══════════════════════════════════════════════════════════════════════╝
+
 /**
  * `media` kovasını sertleştirir: MIME izin listesi + gerçek boyut limiti.
  *
