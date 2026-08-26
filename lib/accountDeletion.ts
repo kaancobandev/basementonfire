@@ -33,6 +33,26 @@ export async function purgeAccount(userId: number): Promise<{ ok: boolean; error
      ⚠ Bulunduğunda medyalı DM sayısı 0'dı, yani bugüne kadar sızan dosya yok.
      ⛔ YENİ BİR ÖZELLİK STORAGE'A YAZIYORSA BURAYA DA EKLE. Bu liste elle
         tutuluyor ve her yeni yükleme yüzeyi onu sessizce eskitiyor. */
+/**
+ * DM medyası — `media_path` kolonu YOKSA `media_url`e düş.
+ *
+ * 🚨 26.08.2026'da ÖLÇÜLDÜ: `select('media_path, media_url')` kolon yokken 42703
+ *    döndürüyor ve supabase-js `data`yı NULL yapıyor → aşağıdaki döngü hiç
+ *    çalışmıyor, yani DM medyası HİÇ toplanmıyordu. `media_path`i eklerken bu
+ *    dosyanın çözmek için var olduğu artık-dosya sorununu geri getirmişim.
+ *    (Kanıt: eski `select('media_url')` aynı anda 13 satır dönüyordu.)
+ * ⛔ DERS: bu dosyada "yeni kolonu da seç" yapan her değişiklik, kolon canlıda
+ *    YOKKEN sorgunun TAMAMINI düşürür — sessizce ve tam da silme anında.
+ */
+type DmMedya = { media_path?: string | null; media_url?: string | null };
+// Dönüş tipi ELLE: iki dalın satır şekli farklı, TS birleşimi yedek dala daraltıp
+// `media_path` erişimini hata yapıyor.
+async function dmMedyasiniSec(userId: number): Promise<{ data: DmMedya[] | null }> {
+  const r = await db.from('messages').select('media_path, media_url').eq('sender_id', userId);
+  if (!r.error) return r;
+  return db.from('messages').select('media_url').eq('sender_id', userId);
+}
+
   const [uRes, factsRes, postsRes, storiesRes, articlesRes, archiveRes, dmRes, docRes, muzikRes] = await Promise.all([
     db.from('users').select('auth_id, avatar').eq('id', userId).maybeSingle(),
     db.from('quick_facts').select('media_url, media').eq('user_id', userId),
@@ -44,7 +64,7 @@ export async function purgeAccount(userId: number): Promise<{ ok: boolean; error
     db.from('user_articles').select('cover_url').eq('user_id', userId),
     db.from('deleted_media').select('archive_path').eq('user_id', userId),
     // DM medyası — mesaj satırı aşağıda siliniyor, dosya yetim kalıyordu.
-    db.from('messages').select('media_path, media_url').eq('sender_id', userId),
+    dmMedyasiniSec(userId),
     // Makale GÖVDESİ: doc bloklarının içindeki görseller (cover_url ayrı).
     db.from('user_articles').select('doc').eq('user_id', userId),
     // Müzik parçaları. Tablo/kolon yoksa hata sessizce yutulur (uykuda özellik).
@@ -97,8 +117,36 @@ export async function purgeAccount(userId: number): Promise<{ ok: boolean; error
 
   // — 1) Storage: dosyaları sil. DB cascade'i storage'a DOKUNMAZ → bunu yapmazsak
   //      fotoğraflar silinmeden public URL'de erişilebilir kalır (ciddi açık).
-  if (mediaFiles.size > 0) {
-    const { error } = await db.storage.from('media').remove([...mediaFiles]);
+  /* 🚨 SAHİPLİK SÜZGECİ — 26.08.2026 denetimi (KRİTİK, ÇAPRAZ KULLANICI YIKIM).
+     Yukarıdaki listenin bir kısmı KULLANICININ YAZDIĞI URL'lerden geliyor:
+     `user_articles.cover_url` ve makale gövdesindeki görsel blokları. O URL'ler
+     yalnızca `isAllowedMediaUrl` ile (yani "bizim depomuz mu" diye) süzülüyor,
+     SAHİPLİK sorulmuyor. Sonuç: bir üye kendi makalesinin kapağına BAŞKASININ
+     dosya adresini yazar, sonra kendi hesabını siler, ve `remove()` kurbanın
+     dosyasını kalıcı olarak siler. `media` kovası public ve `/u/<ad>` anonim
+     200 döndüğü için hedef adresleri toplamak tahmin bile gerektirmiyor.
+
+     Kapı YAZMA tarafına değil SİLME tarafına konuldu, bilerek: mevcut satırları
+     da kapsar ve ileride doc'a yabancı URL yazan BAŞKA bir yüzey açılsa da korur.
+
+     ⚠ ÖLÇÜLDÜ (canlı veri, 26.08.2026): meşru yolların TAMAMI bu iki şekle uyuyor
+       — 4 avatar, 12 gönderi medyası, 38 jsonb medya girdisi, 19 müzik dosyası,
+       sıfır istisna. Yani süzgeç hiçbir meşru silmeyi kaybetmiyor.
+     ⚠ `avatars/` ORTAK klasör (2-, 3-, 7-, 8- yan yana) → orada önek eşleşmesi
+       ŞART, klasör adı yetmez. */
+  const banaAit = (yol: string) =>
+    yol.startsWith(`${userId}/`) || yol.startsWith(`avatars/${userId}-`);
+
+  const yabanci = [...mediaFiles].filter((y) => !banaAit(y));
+  if (yabanci.length) {
+    // SESSİZ KALMA: yabancı yol demek, birinin başkasının dosyasını kendi
+    // içeriğine iliştirdiği demektir. Silinmiyor ama iz bırakıyor.
+    console.warn(`[purge] kullanıcı ${userId}: ${yabanci.length} YABANCI yol atlandı → ${yabanci.slice(0, 5).join(', ')}`);
+  }
+
+  const silinecek = [...mediaFiles].filter(banaAit);
+  if (silinecek.length > 0) {
+    const { error } = await db.storage.from('media').remove(silinecek);
     logIfError('purge: media storage remove', error);
   }
   if (archiveFiles.length > 0) {

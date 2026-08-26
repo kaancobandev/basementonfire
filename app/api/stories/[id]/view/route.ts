@@ -112,9 +112,37 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     content = `Hikayene tepki verdi: ${emoji}`;
   }
 
-  const { data: story } = await db.from('stories').select('user_id').eq('id', storyId).maybeSingle();
+  /* 🚨 KİTLE KAPISI — 26.08.2026 denetimi (KRİTİK).
+     Bu PUT yalnızca `user_id` seçiyor, sonra engel + dm_privacy bakıyordu:
+     `audience`, `is_private` ve `expires_at` HİÇ sorulmuyordu. Aynı dosyanın
+     POST'unda (izlenme kaydı) tam kapı zaten duruyordu — yani aynı veriye iki
+     yol, biri korumasız; bu oturumda üçüncü kez çıkan desen.
+
+     ZİNCİR: metin yanıtı mesaja `story_id` yazıyor → `/api/dm/[id]/messages`
+     konuşmanın tarafı olan herkese o hikâyenin `media_path`ini İMZALIYOR.
+     Yani giriş yapmış biri ardışık id deneyip PUT atarak, GÖREMEDİĞİ (gizli
+     hesabın, yakın-arkadaş kitleli, hatta SÜRESİ DOLMUŞ) bir hikâyenin private
+     dosyasına kendine imzalı adres ürettirebiliyordu. Hikâye medyasını private
+     kovaya taşımak bu kapı olmadan hiçbir şey ifade etmiyor.
+
+     404 (403 değil): var olmayan id ile AYNI yanıt → varlık kehaneti de kapanır.
+     ⚠ Süre kontrolü de ŞART: vitrine alınmış eski kareler kalıcı, ve süresi
+       dolmuş hikâyeye yanıt zaten arayüzde mümkün değil (ölçüldü: PUT'un tek
+       çağıranı HomeFeed'in canlı görüntüleyicisi; StoryHighlights yanıt atmaz). */
+  const { data: story } = await db
+    .from('stories')
+    .select('user_id, audience, expires_at, users!stories_user_id_fkey(is_private)')
+    .eq('id', storyId)
+    .maybeSingle();
   if (!story) return json({ error: 'Hikaye bulunamadı' }, 404);
   if (story.user_id === me.id) return json({ error: 'Kendi hikayene yanıt veremezsin' }, 400);
+  if (new Date((story as any).expires_at).getTime() <= Date.now())
+    return json({ error: 'Hikaye bulunamadı' }, 404);
+  {
+    const canSee = await audiencePredicate(me.id);
+    if (!canSee(story.user_id as number, (story as any).audience, (story as any).users?.is_private))
+      return json({ error: 'Hikaye bulunamadı' }, 404);
+  }
 
   const targetId = story.user_id as number;
   if (await isBlockedBetween(me.id, targetId)) return json({ error: 'Gönderilemedi' }, 403);
