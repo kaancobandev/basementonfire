@@ -8,6 +8,7 @@ import { Toaster, toast } from 'sonner';
 import Logo from './Logo';
 import DesktopCreateMenu from './DesktopCreateMenu';
 import { NavUserProvider, FeedPersonalProvider } from './NavUserContext';
+import OturumBekcisi from './OturumBekcisi';
 
 const RealtimeProvider = dynamic(() => import('./RealtimeProvider'), { ssr: false });
 // Mobil paylaş-sheet'i (framer-motion) ayrı parça olarak yüklenir → framer-motion ANA bundle'dan çıkar.
@@ -462,6 +463,11 @@ export default function AppShell({ children }: AppShellProps) {
           zaten yalnız düğmeye BASILINCA true olur ve düğme çıkışlı ziyaretçide
           CSS ile gizli → chunk hâlâ boşuna inmez. */}
       {sheetEverOpened && <MobileCreateSheet open={sheetOpen} onClose={closeSheet} />}
+
+      {/* Sekme geri geldiginde cerezdeki kimlik degistiyse sayfayi tazeler.
+          Girisli/cikisli AYRIMI YOK: cikisliyken baska sekmede giris yapilirsa
+          bu sekme de bayat kalir. Bkz. OturumBekcisi.tsx. */}
+      <OturumBekcisi />
 
       {/* Toasts — sonner */}
       {/* mobileOffset: bildirimler alt-orta 16px ofsetle doğrudan cam dock'un
