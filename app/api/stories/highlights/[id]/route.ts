@@ -1,5 +1,6 @@
 import { db, getMe } from '@/lib/supabase/server';
 import { audiencePredicate } from '@/lib/storyAudience';
+import { isBlockedBetween } from '@/lib/blocks';
 import { imzaHaritasi, adresSec, IMZA } from '@/lib/storyMedia';
 import { NextResponse } from 'next/server';
 
@@ -25,6 +26,20 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const ownerId = (hl as any).user_id as number;
   const isPrivate = !!(hl as any).users?.is_private;
   const { me } = await getMe();
+
+  /* 🚨 ENGEL KAPISI — 26.08.2026 denetimi.
+     Bu uç kareleri `audiencePredicate` ile süzüyordu ama `title` hiçbir kapıdan
+     geçmiyordu: seni engelleyenin vitrin başlığı (kullanıcının KENDİ yazdığı
+     metin — "Hastane", "Tatil") yine görünüyordu. Liste ucu (../route.ts:40) ve
+     profil SSR'ı bu kapıyı zaten kuruyor → burası aynı verinin korumasız
+     ÜÇÜNCÜ yoluydu. Gizli hesapta sızıntı yoktu (engelleme iki yöndeki takibi
+     siliyor → aşağıdaki follows kontrolü zaten 403 üretiyor), açık hesapta vardı.
+     ⛔ "kare kalmadıysa reddet" kısayolunu YAPMA: 'close' kitleli bir vitrini
+        görmeye hakkı olan ama listede olmayan takipçi bugün başlığı ve BOŞ kare
+        listesini görüyor — bu meşru davranış, o kısayol onu kırardı. */
+  if (me && ownerId !== me.id && (await isBlockedBetween(me.id, ownerId)))
+    return json({ error: 'Bulunamadı' }, 404);
+
   if (isPrivate) {
     const isOwner = me?.id === ownerId;
     let allowed = isOwner;

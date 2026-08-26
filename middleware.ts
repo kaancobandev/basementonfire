@@ -122,7 +122,24 @@ export async function middleware(request: NextRequest) {
   response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), browsing-topics=()');
 
-  const path = request.nextUrl.pathname;
+  /* 🚨 YOL NORMALİZASYONU — 26.08.2026 denetimi (yetki kapısı baypası).
+     ÖLÇÜLDÜ (canlı, `curl --path-as-is` ile — DÜZ curl `.` segmentlerini KENDİ
+     normalize ettiği için o istekleri hiç göndermez ve sorun görünmez olur;
+     ilk ölçümüm tam bu yüzden yanlış çıktı):
+       /bilgi-karti        → 307 /login  ✓
+       //bilgi-karti       → 200, korumalı sayfanın TAM içeriği  🔴
+       ///gonderi-olustur  → 200  🔴
+     Sebep: `PROTECTED.some(p => path.startsWith(p))` HAM yola bakıyordu ve
+     `'//bilgi-karti'.startsWith('/bilgi-karti')` FALSE. Tek fazladan karakterle
+     kimlik kapısı atlanıyordu.
+
+     Boş ve `.` segmentleri atılıyor. Aşağıdaki ALTI karar da (feed 301'i,
+     PROTECTED ×2, STATIC_NO_AUTH_SSR, login/register) bu yoldan besleniyor ve
+     hepsi için normalize hâl daha doğru (`/login/` de artık `/login` sayılır).
+     ⚠ YENİ YÖNLENDİRME EKLENMEDİ, bilerek: 308 basmak kanonik URL/SEO
+       davranışını değiştirirdi. Değişen tek şey kararların GÖRDÜĞÜ yol.
+     ⚠ `%2e` ölçüldü: `/%2e/bilgi-karti` zaten 307 dönüyor, ek iş gerekmiyor. */
+  const path = '/' + request.nextUrl.pathname.split('/').filter((s) => s !== '' && s !== '.').join('/');
 
   // ════════════════════════════════════════════════════════════════════
   // /feed → / (301). 2026-08-14: TEK ANA SAYFA.
@@ -223,9 +240,19 @@ export async function middleware(request: NextRequest) {
   return response;
 }
 
+/* MATCHER DESENI DEGISTI - 26.08.2026 denetimi.
+   Eski `.*\\..*` NEREDE olursa olsun her noktayi "uzantili dosya" sayip istegi
+   middleware'den TAMAMEN disliyordu. OLCULDU: `/./bilgi-karti` yanitinda CSP
+   basligi YOKTU (yani middleware hic kosmadi) ve korumali sayfa anonime 200 ile
+   servis edildi. Yani asagidaki yol normalizasyonu TEK BASINA yetmezdi - bu
+   istek normalize edilecegi yere hic ULASMIYORDU. Iki ayri mekanizma, iki ayri
+   duzeltme; birini yapip digerini atlamak acigin yarisini acik birakirdi.
+   Yeni desen yalnizca SON segmentte nokta varsa dislar (gercek uzanti):
+   `/robots.txt`, `/icon.svg`, `/a/b.png` hala disarida; `/./x` artik iceride.
+   Ek maliyet ~sifir: gercek trafikte noktadan sonra egik cizgi gelen yol yok. */
 export const config = {
   // `.*\\..*` → uzantılı dosyalar (public/ görselleri, icon.svg, robots.txt vb.)
   // middleware'e hiç girmez: bu isteklerde ne auth kararı ne kanonik yönlendirme
   // gerekiyor, edge fonksiyon maliyeti tamamen düşer. Sayfa yollarında nokta yok.
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|uploads|logo_basement3|.*\\..*).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|uploads|logo_basement3|.*\\.[^/]*$).*)'],
 };

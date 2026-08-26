@@ -1,5 +1,6 @@
 import { createAuthClient } from '@/lib/supabase/server';
 import { authCodeFromError } from '@/lib/authMessages';
+import { limit } from '@/lib/rateLimit';
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
@@ -17,6 +18,12 @@ export async function POST(req: Request) {
      hata kutusunda gösterebiliyordu. lib/authMessages.ts bu kararı /login için
      zaten almıştı; burası atlanmıştı. */
   if (!email) return redir('/forgot-password?error=eposta_gerekli');
+
+  /* 🚨 FREN — 26.08.2026 denetimi. Kimliksiz, frensiz, doğrudan
+     `resetPasswordForEmail`. Hedefin gelen kutusu doldurulabiliyordu.
+     `cok_deneme` kodu lib/authMessages.ts'te giriş için zaten var. */
+  const fren = await limit('forgot', req.headers);
+  if (!fren.ok) return redir('/forgot-password?error=cok_deneme');
 
   const client = await createAuthClient();
   const { error } = await client.auth.resetPasswordForEmail(email, {

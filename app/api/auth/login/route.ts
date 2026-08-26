@@ -2,6 +2,7 @@ import { createAuthClientForResponse, db } from '@/lib/supabase/server';
 import { recordLogin } from '@/lib/login-tracking';
 import { authCodeFromError } from '@/lib/authMessages';
 import { limit } from '@/lib/rateLimit';
+import { caprazKokenPost } from '@/lib/sameOrigin';
 import { NextResponse, type NextRequest } from 'next/server';
 
 const hata = (req: NextRequest, kod: string) =>
@@ -24,6 +25,9 @@ const hata = (req: NextRequest, kod: string) =>
  *    "bu ada şifre denemeye değer mi" sinyalini bedava vermek olurdu.)
  */
 export async function POST(req: NextRequest) {
+  // Siteler arası POST bekçisi — bkz. lib/sameOrigin.ts (giriş CSRF'i).
+  if (caprazKokenPost(req)) return hata(req, 'hatali');
+
   const form = await req.formData();
 
   // ⚠ İKİ ALAN ADI DA KABUL EDİLİYOR. Yeni form `kimlik` gönderiyor, ama

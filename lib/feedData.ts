@@ -17,6 +17,7 @@
 // ════════════════════════════════════════════════════════════════════════
 
 import { unstable_cache } from 'next/cache';
+import { getBlockedUserIds } from './blocks';
 import { db, logIfError } from '@/lib/supabase/server';
 import { flattenFacts, flattenPosts, type QuickFact, type Post, type DidYouKnow } from '@/lib/types';
 
@@ -166,7 +167,13 @@ export const getSuggestedUsers = unstable_cache(
     let suggestedUsers: SuggestedUser[] = [];
     const { data: myFollows } = await db.from('follows').select('following_id').eq('follower_id', meId);
     const myFollowIds: number[] = (myFollows ?? []).map((f: any) => f.following_id);
-    const excludeIds = [meId, ...myFollowIds];
+    /* Engel: `/api/feed` bunu uyguluyordu, öneri yolu ATLAMIŞTI (26.08.2026).
+       Engellediğin kişi "Tanıyor olabilirsin" kartında adı, avatarı ve "Takip Et"
+       düğmesiyle karşına çıkıyordu — engellemenin verdiği sözün tam tersi.
+       İKİ YÖNLÜ: seni engelleyen de çıkmaz. Tek noktada yeter, çünkü yedek
+       "yeni kullanıcılar" dalı da `existingIds`i buradan türetiyor. */
+    const engelli = await getBlockedUserIds(meId);
+    const excludeIds = [meId, ...myFollowIds, ...engelli];
     const excludeStr = `(${excludeIds.join(',')})`;
 
     if (myFollowIds.length > 0) {

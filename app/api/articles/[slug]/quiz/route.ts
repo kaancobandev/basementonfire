@@ -1,4 +1,5 @@
 import { db, getMe } from '@/lib/supabase/server';
+import { limit, tooMany } from '@/lib/rateLimit';
 import { NextResponse } from 'next/server';
 import { unstable_cache } from 'next/cache';
 import { isArticleSlug } from '@/lib/articles';
@@ -93,6 +94,20 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   if (!Number.isInteger(questionId) || !Number.isInteger(selectedIndex) || selectedIndex < 0 || selectedIndex > 9) {
     return json({ error: 'Geçersiz istek' }, 400);
   }
+
+  /* 🚨 FREN — 26.08.2026 denetimi. Bu POST giriş YAPMAMIŞ çağırana da sorunun
+     DOĞRU ŞIKKINI döndürüyor (anonim öğrenme akışının kasıtlı parçası) ve hiç
+     freni yoktu: ölçüldü, 12 ardışık anonim POST 12/12 200 döndü. Yani 307
+     sorunun cevap anahtarı tek geçişte toplanıp sonra giriş yapılarak XP'ye
+     çevrilebiliyordu.
+     ⛔ ANONİME `correctIndex` DÖNDÜRMEYİ KESMEDİM, bilerek: istemci
+        (ArticleBlocks.tsx:518) `correctIndex` sayı değilse seçimi sessizce
+        sıfırlıyor → anonim quiz arayüzü KOMPLE kırılırdı. İfşanın kendisini
+        değiştirmek istemci değişikliğiyle birlikte ele alınmalı; fren, UX'e
+        dokunmadan toplu çekmeyi bitiriyor.
+     Kimliksizken IP anahtarlı sayılır (`limit` userId olmadan öyle davranır). */
+  const fren = await limit('quiz', req.headers, me?.id ?? null);
+  if (!fren.ok) return tooMany('Çok hızlısın, biraz bekle.', fren, 'quiz');
 
   try {
     // Soru BU makaleye ait ve aktif olmalı (başka slug'ın sorusuna cevap yazılamaz).

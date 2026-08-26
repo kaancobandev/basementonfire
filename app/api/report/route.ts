@@ -1,5 +1,6 @@
 import { db, getMe } from '@/lib/supabase/server';
 import { REPORT_TARGET_TYPES, REPORT_REASON_VALUES } from '@/lib/reports';
+import { limit, tooMany } from '@/lib/rateLimit';
 import { NextResponse } from 'next/server';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
@@ -11,6 +12,10 @@ const REASONS = new Set<string>(REPORT_REASON_VALUES);
 export async function POST(req: Request) {
   const { me } = await getMe();
   if (!me) return json({ error: 'Giriş gerekli' }, 401);
+
+  // Fren → RATE_LIMITS.report gerekçesi: kuyruk doldurulup moderasyon körleştirilebiliyordu.
+  const fren = await limit('report', req.headers, me.id);
+  if (!fren.ok) return tooMany('Çok fazla şikayet gönderdin. Biraz bekleyip tekrar dene.', fren, 'report');
 
   let body: { targetType?: string; targetId?: number | string; reason?: string; note?: string };
   try { body = await req.json(); } catch { return json({ error: 'Geçersiz istek' }, 400); }

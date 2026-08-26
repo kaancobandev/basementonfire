@@ -1,6 +1,7 @@
 import { db, getMe } from '@/lib/supabase/server';
 import { isBlockedBetween } from '@/lib/blocks';
 import { imzaHaritasi, adresSec, IMZA } from '@/lib/storyMedia';
+import { limit, tooMany } from '@/lib/rateLimit';
 import { NextResponse } from 'next/server';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
@@ -19,6 +20,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   // Var olan sohbette bile: taraflardan biri diğerini engellediyse mesaj gönderilemez.
   const otherId = conv.user1_id === me.id ? conv.user2_id : conv.user1_id;
   if (await isBlockedBetween(me.id, otherId)) return json({ error: 'Bu kullanıcıya mesaj gönderemezsiniz' }, 403);
+
+  // Fren: engel + dm_privacy kapıları vardı ama hız yoktu (bkz. RATE_LIMITS.dm).
+  const fren = await limit('dm', req.headers, me.id);
+  if (!fren.ok) return tooMany('Çok hızlı mesaj gönderiyorsun, biraz bekle.', fren, 'dm');
 
   const body = await req.json();
   const content = (body.content ?? '').trim();

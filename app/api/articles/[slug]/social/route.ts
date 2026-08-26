@@ -1,6 +1,7 @@
 import { db, getMe } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { isArticleSlug } from '@/lib/articles';
+import { getBlockedUserIds } from '@/lib/blocks';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
 
@@ -28,7 +29,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
         .eq('user_id', me.id).eq('article_slug', slug).maybeSingle();
       saved = !!s;
     }
-    const comments = (rawComments ?? []).map((c: any) => ({
+    /* Engel süzgeci — quick_facts yorumlarında zaten var, bu uç atlamıştı
+       (26.08.2026). Engellediğin kişinin makale yorumu sana görünmeye devam
+       ediyordu, üstelik @adı ve avatarıyla. */
+    const engelli = me ? await getBlockedUserIds(me.id) : new Set<number>();
+    const comments = (rawComments ?? []).filter((c: any) => !engelli.has(c.user_id)).map((c: any) => ({
       id: c.id, content: c.content, created_at: c.created_at,
       username: c.users?.username ?? '', display_name: c.users?.display_name ?? '',
       avatar: c.users?.avatar ?? null,

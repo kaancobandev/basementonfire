@@ -3,6 +3,8 @@ import { recordLogin } from '@/lib/login-tracking';
 import { MIN_AGE, ageFromBirthdate } from '@/lib/age';
 import { isGender } from '@/lib/types';
 import { authCodeFromError } from '@/lib/authMessages';
+import { limit } from '@/lib/rateLimit';
+import { caprazKokenPost } from '@/lib/sameOrigin';
 import { PENDING_EMAIL_COOKIE, PENDING_EMAIL_COOKIE_OPTIONS } from '@/lib/pendingEmail';
 import { NextResponse, type NextRequest } from 'next/server';
 
@@ -82,6 +84,20 @@ export async function POST(req: NextRequest) {
   // sunucuya ulaşmadığı için oturum HİÇ kurulmuyordu. Bkz. app/auth/confirm.
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || new URL(req.url).origin).replace(/\/$/, '');
   const onayZamani = new Date().toISOString();
+
+  /* 🚨 FREN — 26.08.2026 denetimi. Bu uç kimliksiz ve frensizdi, `signUp` de
+     GERÇEKTEN onay postası tetikliyor (canlı GoTrue ayarı ölçüldü:
+     mailer_autoconfirm=false). Yani biri istediği adrese sınırsız posta
+     yollatabilir, üstelik kullanıcı adını da onaya kadar rezerve edebilirdi.
+
+     ⚠ KASITLI OLARAK BURADA, rotanın başında DEĞİL: zarar posta göndermekte,
+       form doğrulamasında değil. Başa konsaydı formu 8 kez yanlış dolduran
+       gerçek bir kullanıcı bir saat kilitlenirdi — düzeltmenin kendisi bir
+       kullanılabilirlik hatası olurdu. */
+  if (caprazKokenPost(req)) return fail(req, 'hatali');
+
+  const fren = await limit('register', req.headers);
+  if (!fren.ok) return fail(req, 'cok_deneme');
 
   const { data, error } = await client.auth.signUp({
     email,

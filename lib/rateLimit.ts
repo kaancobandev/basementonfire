@@ -120,6 +120,41 @@ export const RATE_LIMITS = {
   //   yanıtı zaten okunmuyor (sendBeacon/keepalive); 429 dönmek hem işe
   //   yaramaz hem de frenin varlığını ilan ederdi.
   beacon: { capacity: 600, refillPerSec: 600 / 3600 },
+
+  // ── 26.08.2026 denetimi: frensiz kalmış dört yazma ucu ──────────────────
+  //
+  // ⚠ HEPSİ CGNAT'A GÖRE CÖMERT. `login` kuralının gerekçesindeki uyarı burada
+  //   da geçerli: Türkiye'de mobil operatörler tek IP'nin arkasına çok sayıda
+  //   gerçek kullanıcı koyar, dar kova onları kilitler. Amaç meşru kullanımı
+  //   sınırlamak DEĞİL, sınırsız seli sonlu yapmak.
+
+  // Şikayet. Hedefin var olup olmadığı sorulmuyor ve `uq_reports_once` kısıtı
+  // (reporter, tür, hedef) target_id değiştikçe devreye girmiyor → tek hesap
+  // ardışık id'lerle sınırsız satır üretebiliyordu. Yönetim kuyruğu `limit(200)`
+  // ve sayfalama YOK → 200'ün altındaki gerçek şikayetler ULAŞILAMAZ olurdu.
+  // Zarar veri değil MODERASYON KÖRLÜĞÜ.
+  report: { capacity: 5, refillPerSec: 5 / 3600 },
+
+  // Kayıt. Kimliksiz ve `signUp` gerçekten onay postası tetikliyor (ölçüldü:
+  // canlı GoTrue ayarlarında mailer_autoconfirm=false) → istenen adrese
+  // sınırsız posta yollatılabiliyordu. Bu sitede kayıt günde tek haneli.
+  register: { capacity: 8, refillPerSec: 8 / 3600 },
+
+  // Şifre sıfırlama. Aynı sınıf: kimliksiz, frensiz, doğrudan
+  // resetPasswordForEmail. Hedefin gelen kutusu doldurulabiliyordu.
+  forgot: { capacity: 5, refillPerSec: 5 / 3600 },
+
+  // DM yazma. Engel + dm_privacy kapıları VAR ama hız freni yoktu: kapıdan
+  // geçebilen biri (takipçi, ya da dm_privacy='everyone' olan herkes — canlıda
+  // 15/15 kullanıcı öyle) sınırsız mesaj basabiliyordu. Sohbet hızı için 20
+  // patlama + dakikada 20 fazlasıyla yeterli (canlı toplam mesaj sayısı 21).
+  dm: { capacity: 20, refillPerSec: 20 / 60 },
+
+  // Makale quizi. Uç, giriş yapmamış çağırana da doğru şıkkı dönüyor (anonim
+  // öğrenme akışı) ve frensizdi → 307 sorunun anahtarı tek geçişte toplanıp
+  // sonra giriş yapılarak XP'ye çevrilebiliyordu. 40 patlama, dakikada 20:
+  // en uzun makalede ~12 soru var, yani meşru okuyucu bunu görmez.
+  quiz: { capacity: 40, refillPerSec: 20 / 60 },
 } satisfies Record<string, Rule>;
 
 export type RuleName = keyof typeof RATE_LIMITS;

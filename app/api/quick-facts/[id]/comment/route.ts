@@ -4,6 +4,7 @@ import { isBlockedBetween } from '@/lib/blocks';
 import { canViewOwnerContent } from '@/lib/visibility';
 import { NextResponse, after } from 'next/server';
 import { notifyMentions } from '@/lib/mentions';
+import { limit, tooMany } from '@/lib/rateLimit';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
 
@@ -37,6 +38,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       if (!follows) return json({ error: 'Yorum yapabilmek için takip etmelisiniz' }, 403);
     }
   }
+
+  /* Fren: makale yorumundaki kuralın AYNISI (RATE_LIMITS.comment, dakikada 8).
+     Bu uç atlanmıştı; istek başına 1 yorum + 1 bildirim + 10'a kadar mention
+     bildirimi yazıyor, yani frensizken tek istekle 12 satıra kadar üretiyordu. */
+  const fren = await limit('comment', req.headers, me.id);
+  if (!fren.ok) return tooMany('Çok hızlı yorum yapıyorsun, biraz bekle.', fren, 'comment');
 
   const body = await req.json();
   const content = (body.content ?? '').trim();

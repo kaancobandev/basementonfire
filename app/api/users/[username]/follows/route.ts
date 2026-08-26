@@ -57,7 +57,21 @@ export async function GET(req: Request, { params }: { params: Promise<{ username
   const byId = new Map((users ?? []).map((u: any) => [u.id as number, u]));
   const out = ids
     .map((id) => byId.get(id))
+    /* 🔒 GİZLİ HESAP, KENARIN KARŞI UCUNDAN SIZIYORDU — 26.08.2026 denetimi.
+       Bu ucun kendi kapısı DOĞRU çalışıyor: gizli hesabın kendi listesi
+       `{visible:false}` dönüyor. Ama AYNI KENAR açık hesabın listesinden
+       çıkıyordu: ölçüldü, `/api/users/kaancoban/follows?type=followers`
+       oturumsuz bir istekle gizli @osx3452'yi (avatarıyla) döndürüyordu ve
+       DB'deki 4 kenarın 4'ü de bu yolla yeniden kuruldu.
+       ⚠ Sektör davranışı olduğunu biliyorum (Instagram'da da gizli hesaplar
+         açık hesapların listesinde görünür); yine de burada kapatmak ucuz ve
+         ek SORGU GEREKTİRMİYOR — `iFollow` zaten yukarıda çekiliyor.
+       Kural: gizli bir kullanıcı listede yalnızca izleyici onu ONAYLI TAKİP
+       EDİYORSA, kendisiyse, ya da listenin sahibiyse kalır.
+       ⚠ Liste/sayı uyuşmazlığı YENİ bir sorun değil: engelli kullanıcılar da
+         listeden düşürülüp sayıdan düşürülmüyor — aynı kabul edilmiş desen. */
     .filter((u): u is any => !!u && !u.is_deleted && !blocked.has(u.id))
+    .filter((u: any) => !u.is_private || u.id === me?.id || iFollow.has(u.id) || me?.id === target.id)
     .map((u: any) => ({
       id: u.id,
       username: u.username,

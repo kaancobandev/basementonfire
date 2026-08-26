@@ -187,6 +187,14 @@ async function dmMedyasiniSec(userId: number): Promise<{ data: DmMedya[] | null 
     ['comments', 'user_id'],
     ['article_comments', 'user_id'],
     ['messages', 'sender_id'],   // ← YALNIZ kendi mesajları (karşı tarafınki kalır)
+    /* Müzik parçaları — 26.08.2026 denetimi. DOSYALARI zaten yukarıda siliniyordu
+       (`music_tracks.storage_path` → media kovası) ama SATIR kalıyordu: sonuç,
+       /muzik listesinde kaynağı olmayan ölü kayıtlar. Üstelik sahibi silindiği
+       için kimse kaldıramıyordu (DELETE ucu `eq('user_id', me.id)` istiyor).
+       ⚠ `youtube_items` / `spotify_playlists` BİLEREK BURADA DEĞİL: onlar dosya
+         taşımıyor, dış bağlantı; site geneli listede kalmaları veri kaybı değil
+         ve silmek başkasının eklediği içerikle karışabilir. */
+    ['music_tracks', 'user_id'],
     ['fact_likes', 'user_id'],
     ['post_likes', 'user_id'],
     ['fact_reposts', 'user_id'],
