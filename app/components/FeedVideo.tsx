@@ -49,17 +49,51 @@ export function IconSound() {
 
 /** Izgara hücresinde video kapağı — tek bir <video> döner (drop-in: çağıranın
  *  mevcut style/className'i aynen geçer, hücre CSS'i değişmez). */
+/**
+ * Metadata'yı YAKLAŞINCA aç.
+ *
+ * 🚨 NEDEN (26.08.2026 ölçümü): `preload="metadata"` sayfa yüklenirken TÜM
+ * videolar için çalışıyordu — ekranın iki ekran altındakiler dahil. Ölçüldü:
+ * ana sayfada 3 video var, yalnız birincisi ilk ekranda (311 px); diğerleri
+ * 1,3 ve 2,3 ekran aşağıda. Metadata maliyeti dosya başına 33-58 KB.
+ *
+ * ⛔ `preload="none"` TEK BAŞINA OLMAZ: kapak karesi `#t=0.001` ile metadata'dan
+ *    boyanıyor, none olursa SİYAH KUTU kalır (bu tuzağa daha önce düşülmüş,
+ *    dosyanın başındaki nota bak). O yüzden kapatmıyoruz, ERTELİYORUZ.
+ *
+ * 600 px'lik pay: kullanıcı oraya kaydırmadan çok önce yüklenir, yani kapak
+ * göründüğünde zaten boyanmış olur. Bir kez açılınca gözlemci kapanır.
+ * IntersectionObserver yoksa (çok eski tarayıcı) ESKİ davranışa döner.
+ */
+function useYaklasincaYukle(ref: React.RefObject<Element | null>) {
+  const [ac, setAc] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === 'undefined') { setAc(true); return; }
+    const io = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setAc(true); io.disconnect(); } },
+      { rootMargin: '600px' },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [ref]);
+  return ac ? 'metadata' as const : 'none' as const;
+}
+
 export function VideoThumb({ src, style, className }: {
   src: string;
   style?: React.CSSProperties;
   className?: string;
 }) {
+  const kucukRef = useRef<HTMLVideoElement>(null);
+  const preload = useYaklasincaYukle(kucukRef);
   return (
     <video
+      ref={kucukRef}
       src={firstFrameSrc(src)}
       muted
       playsInline
-      preload="metadata"
+      preload={preload}
       onLoadedMetadata={e => seekToFirstFrame(e.currentTarget)}
       className={className}
       style={style}
@@ -99,6 +133,8 @@ export default function FeedVideo({ src, ariaLabel, variant, onLoadedMetadata }:
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const vidRef = useRef<HTMLVideoElement>(null);
+  // Kapak karesi için metadata gerekli ama SADECE yaklaşınca (bkz. kanca notu).
+  const preload = useYaklasincaYukle(wrapRef);
   const soloId = useId();
   const [muted, setMuted] = useState(true);
   const [playing, setPlaying] = useState(false);
@@ -170,7 +206,7 @@ export default function FeedVideo({ src, ariaLabel, variant, onLoadedMetadata }:
         loop
         muted
         playsInline
-        preload="metadata"
+        preload={preload}
         aria-label={ariaLabel}
         onClick={togglePlay}
         onPlay={() => setPlaying(true)}

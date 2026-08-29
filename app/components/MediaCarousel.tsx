@@ -91,7 +91,14 @@ function MusicLayer({ url, targetRef, shift = false }: {
 
   return (
     <>
-      <audio ref={audioRef} src={url} loop playsInline preload="metadata" style={{ display: 'none' }} />
+      {/* 🚨 preload="none" — 26.08.2026 ölçümü.
+          Bu <audio> GİZLİ (display:none) ve süresini kimse okumuyor; tek işi
+          gönderi görününce `play()` ile çalmak. `play()` çağrısı tarayıcıya
+          zaten yükletir, yani metadata'yı ÖNCEDEN çekmenin karşılığı yok.
+          Ölçüldü: ana sayfada 5 gizli ses öğesi var, biri tek başına 306 KB
+          `moov` taşıyor; toplam medya metadata'sı ~486 KB, yani düzeltilmiş
+          uygulama kabuğunun (~410 KB) tamamından büyük. */}
+      <audio ref={audioRef} src={url} loop playsInline preload="none" style={{ display: 'none' }} />
       <button
         type="button"
         onClick={toggle}
