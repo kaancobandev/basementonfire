@@ -339,3 +339,34 @@ join pg_class c on c.relname = t.tablename
 join pg_namespace n on n.oid = c.relnamespace and n.nspname = t.schemaname
 where t.pubname = 'supabase_realtime' and t.schemaname = 'public'
 order by durum desc, tablo;
+
+
+-- ═══════════════ 6b · POLİTİKALARIN İÇERİĞİ ═══════════════
+--
+-- 🚨 6. BÖLÜM TEK BAŞINA YETMEZ — 26.08.2026'da fark edildi.
+-- O sorgu politika SAYISINI veriyor, İÇERİĞİNİ değil. `using (true)` diye bir
+-- politika da "1 politika" olarak sayılır ve Temmuz'daki sızıntının AYNISINI
+-- üretir: realtime satırları süzmeden yayınlar.
+--
+-- OKUMA: `ifade` sütununda `true` yazan HER satır, politikası yokmuş gibidir.
+-- Beklenen: her politika `auth.uid()` (veya eşdeğeri) ile satırı ÇAĞIRANA
+-- bağlamalı. `messages` için "konuşmanın tarafı mıyım", `notifications` için
+-- "bildirim bana mı ait" anlamına gelen bir ifade görmelisin.
+select
+  p.tablename                                  as tablo,
+  p.policyname                                 as politika,
+  p.cmd                                        as islem,
+  coalesce(p.qual, '(yok)')                    as ifade,
+  case
+    when p.qual is null                        then '⚠ USING yok (INSERT politikası olabilir)'
+    when btrim(lower(p.qual)) in ('true', '(true)') then '🔴 using(true) — SÜZMÜYOR, politikasız gibi'
+    when p.qual ilike '%auth.uid()%'           then '✅ çağırana bağlı'
+    else '⚠ elle oku — auth.uid() geçmiyor'
+  end                                          as durum
+from pg_policies p
+where p.schemaname = 'public'
+  and p.tablename in (
+    select t.tablename from pg_publication_tables t
+    where t.pubname = 'supabase_realtime' and t.schemaname = 'public'
+  )
+order by p.tablename, p.policyname;

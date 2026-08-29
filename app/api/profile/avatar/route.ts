@@ -13,6 +13,14 @@ const json = (data: object, status = 200) => NextResponse.json(data, { status })
  *                    storage'ımıza koyar (kalıcı + kendi CDN'imiz; her render'da
  *                    Giphy'ye gidilmez). SSRF koruması: yalnızca giphy.com host'ları.
  */
+/** https + *.giphy.com mu? İSTEK ÖNCESİ ve YÖNLENDİRME SONRASI aynı kural.
+ *  Tek fonksiyon: iki kontrolün ayrışması tam da kapatılan açığı geri getirirdi. */
+function giphyHostuMu(ham: string): boolean {
+  let u: URL;
+  try { u = new URL(ham); } catch { return false; }
+  return u.protocol === 'https:' && /(^|\.)giphy\.com$/i.test(u.hostname);
+}
+
 export async function POST(req: Request) {
   const { me } = await getMe();
   if (!me) return json({ error: 'Giriş yapılmamış' }, 401);
@@ -27,16 +35,31 @@ export async function POST(req: Request) {
   let avatarUrl: string;
 
   if (giphyUrl) {
-    // SSRF koruması: sadece https + *.giphy.com
-    let u: URL;
-    try { u = new URL(giphyUrl); } catch { return json({ error: 'Geçersiz GIF adresi.' }, 400); }
-    if (u.protocol !== 'https:' || !/(^|\.)giphy\.com$/i.test(u.hostname)) {
+    // SSRF koruması: sadece https + *.giphy.com (kural giphyHostuMu'da, TEK yer).
+    if (!giphyHostuMu(giphyUrl)) {
       return json({ error: 'Yalnızca GIPHY GIF\'leri kabul edilir.' }, 400);
     }
 
     let resp: Response;
-    try { resp = await fetch(giphyUrl); } catch { return json({ error: 'GIF indirilemedi.' }, 502); }
+    try {
+      // ⏱ Zaman aşımı: hedefi saldırgan seçiyor — cevap vermeyen bir adres
+      //    fonksiyonu asılı bırakırdı.
+      resp = await fetch(giphyUrl, { signal: AbortSignal.timeout(8000) });
+    } catch { return json({ error: 'GIF indirilemedi.' }, 502); }
     if (!resp.ok) return json({ error: 'GIF indirilemedi.' }, 502);
+
+    /* 🚨 YÖNLENDİRME SONRASI TEKRAR DOĞRULA — 26.08.2026 denetimi.
+       Host kontrolü isteğin BAŞINDA yapılıyordu, ama `fetch` yönlendirmeleri
+       varsayılan olarak TAKİP EDER. Ölçüldü: yönlendirme zincirinin sonunda
+       `resp.url` bambaşka bir adres gösteriyor. Yani giphy.com üzerinde açık
+       yönlendirme bulan biri sunucuya İSTEDİĞİ adresi çektirebilirdi — iç ağ
+       dahil (SSRF). Üstelik gelen baytlar avatar olarak SAKLANIP sonra
+       görüntülenebildiği için bu 'kör' bir SSRF bile olmazdı.
+       `content-type: image/*` şartı yaygın metadata uçlarını eliyordu ama
+       garanti değil: SON adres de aynı kuraldan geçmeli. */
+    if (!giphyHostuMu(resp.url)) {
+      return json({ error: 'Yalnızca GIPHY GIF\'leri kabul edilir.' }, 400);
+    }
     const ct = resp.headers.get('content-type') ?? '';
     if (!ct.startsWith('image/')) return json({ error: 'Geçersiz GIF.' }, 400);
 
