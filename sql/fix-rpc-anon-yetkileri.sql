@@ -1,0 +1,74 @@
+-- ═══════════════════════════════════════════════════════════════════════════
+-- ANON'A AÇIK KALMIŞ RPC'LERİ KAPAT
+--
+-- BULGU (26.08.2026 denetimi): 16 RPC anon anahtarla tarandı. Üçü anon'a AÇIK:
+--   · app_delete_user(text)      — YÖNETİMSEL SİLME. Uygulamada SIFIR çağrısı var.
+--   · increment_post_likes(bigint) — ölü (toggle_post_like ile değiştirildi)
+--   · increment_fact_likes(bigint) — ölü (toggle_fact_like ile değiştirildi)
+-- Ölçüldü: anon ile app_delete_user çağrısı HTTP 200 döndü ve gerçek bir
+-- kullanıcı-adı araması çalıştırdı ("Kullanıcı bulunamadı: <sahte-ad>").
+--
+-- 🚨 KÖK NEDEN — TEKRARLANABİLİR HATA:
+--   `revoke ... from public` Supabase'in anon/authenticated rollerine verdiği
+--   DEFAULT EXECUTE grant'ini KALDIRMAZ. Bu depoda `aktif_kullanici_id` de
+--   yalnız `from public` revoke edilmiş ve hâlâ anon-callable (ölçüldü: 200, null).
+--   Doğrusu rolleri AÇIKÇA yazmaktır. Yeni bir fonksiyon eklerken bunu unutma.
+--
+-- ⚠ BUGÜNKÜ SÖMÜRÜLEBİLİRLİK: goc-dokum/schema.sql:55-65'teki tanımda
+--   `SECURITY DEFINER` YOK → varsayılan INVOKER → fonksiyonun içindeki
+--   `select ... from public.users` anon'un RLS'i altında koşar. Ölçüldü:
+--   anon `users` tablosundan 0 satır okuyor, yani fonksiyon kullanıcıyı
+--   BULAMAZ ve silme adımına hiç ulaşmaz.
+--   AMA döküm bayat olabilir ve yanılmanın bedeli bir hesabın silinmesi.
+--   Bu yüzden önce kapı kapatılıyor, teşhis sonra (aşağıdaki 2. sorgu).
+--
+-- ⚠ DROP DEĞİL REVOKE, bilerek: geri alınabilir ve bir çağıran varsa (service-role
+--   ile bakım betiği) onu kırmaz — service-role revoke'tan etkilenmez.
+--   Kalıcı temizlik istersen aşağıdaki DROP'ları yorumdan çıkar.
+-- ═══════════════════════════════════════════════════════════════════════════
+
+revoke execute on function public.app_delete_user(text)      from anon, authenticated, public;
+revoke execute on function public.increment_post_likes(bigint) from anon, authenticated, public;
+revoke execute on function public.increment_fact_likes(bigint) from anon, authenticated, public;
+
+-- ⛔ `aktif_kullanici_id` ve `konusma_katilimcisi` BİLEREK DIŞARIDA BIRAKILDI.
+--    Onlar da yalnız `from public` revoke edilmiş, yani anon hâlâ çağırabiliyor —
+--    ama ölçüldü: anon çağrısı `null` / `false` dönüyor, çünkü ikisi de
+--    `auth.uid()`e bağlı ve kimliksizken boş kalıyor. Yani sızan bilgi YOK.
+--    Buna karşılık o iki fonksiyon realtime RLS politikalarının İÇİNDEN
+--    çağrılıyor (sql/realtime-rls-sizinti.sql); yetkileriyle oynamak DM
+--    realtime'ını kırma riski taşıyor. Sıfır kazanç için o riski almıyorum.
+--    Hijyen olarak kapatmak istersen ayrı bir adımda, realtime'ı test ederek yap.
+
+-- ── İSTEĞE BAĞLI KALICI TEMİZLİK ─────────────────────────────────────────
+-- Üçü de uygulamada kullanılmıyor. Silmek yüzeyi tamamen kaldırır.
+-- drop function if exists public.app_delete_user(text);
+-- drop function if exists public.increment_post_likes(bigint);
+-- drop function if exists public.increment_fact_likes(bigint);
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- DOĞRULAMA
+--
+-- 1) Yetkiler gitti mi (anon artık çağıramamalı):
+--      select p.proname,
+--             has_function_privilege('anon',          p.oid, 'execute') as anon,
+--             has_function_privilege('authenticated', p.oid, 'execute') as uye
+--      from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+--      where n.nspname = 'public'
+--        and p.proname in ('app_delete_user','increment_post_likes',
+--                          'increment_fact_likes','aktif_kullanici_id',
+--                          'konusma_katilimcisi')
+--      order by p.proname;
+--    Beklenen: app_delete_user/increment_* → anon=false, uye=false
+--              aktif_kullanici_id/konusma_katilimcisi → DEĞİŞMEMİŞ (dokunulmadı)
+--
+-- 2) TEŞHİS (merak için — düzeltme buna bağlı DEĞİL):
+--      select proname, prosecdef as security_definer from pg_proc
+--      where proname = 'app_delete_user';
+--    prosecdef=true çıkarsa: kapı kapanmadan ÖNCE anon herhangi bir hesabı
+--    kullanıcı adıyla silebiliyordu. false çıkarsa RLS zaten engelliyordu.
+--    Hangisi olursa olsun fonksiyonun anon'a açık olmaması gerekiyordu.
+--
+-- 3) Anon gerçekten kapandı mı — uygulama tarafından:
+--      node --env-file=.env.local -e "..."  (anon anahtarla rpc çağrısı → 42501)
+-- ═══════════════════════════════════════════════════════════════════════════
