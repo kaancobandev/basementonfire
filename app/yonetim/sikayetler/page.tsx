@@ -35,14 +35,14 @@ export default async function SikayetYonetimPage() {
   const reports = (rows ?? []) as any[];
 
   // Hedefleri türe göre topla → tek sorguda çöz (polimorfik target_id).
-  const byType: Record<ReportTargetType, Set<number>> = { post: new Set(), comment: new Set(), user: new Set(), article: new Set(), article_comment: new Set() };
+  const byType: Record<ReportTargetType, Set<number>> = { post: new Set(), comment: new Set(), user: new Set(), article: new Set(), article_comment: new Set(), dyk: new Set() };
   for (const r of reports) {
     const t = r.target_type as ReportTargetType;
     if (byType[t]) byType[t].add(Number(r.target_id));
   }
   const ids = (t: ReportTargetType) => Array.from(byType[t]);
 
-  const [postsRes, commentsRes, usersRes, articlesRes, articleCommentsRes] = await Promise.all([
+  const [postsRes, commentsRes, usersRes, articlesRes, articleCommentsRes, dykRes] = await Promise.all([
     ids('post').length
       ? db.from('quick_facts').select('id, caption, media_url, media_type, users!quick_facts_user_id_fkey(username, display_name)').in('id', ids('post'))
       : Promise.resolve({ data: [] as any[] }),
@@ -63,9 +63,13 @@ export default async function SikayetYonetimPage() {
       // (comments'ta olan bu); ad şimdiden sabitlendi.
       ? db.from('article_comments').select('id, content, article_slug, users!article_comments_user_id_fkey(username, display_name)').in('id', ids('article_comment'))
       : Promise.resolve({ data: [] as any[] }),
+    ids('dyk').length
+      ? db.from('did_you_know').select('id, title, body, active, users!did_you_know_user_id_fkey(username, display_name)').in('id', ids('dyk'))
+      : Promise.resolve({ data: [] as any[] }),
   ]);
 
   const postMap = new Map<number, any>((postsRes.data ?? []).map((p: any) => [p.id, p]));
+  const dykMap = new Map<number, any>((dykRes.data ?? []).map((d: any) => [d.id, d]));
   const commentMap = new Map<number, any>((commentsRes.data ?? []).map((c: any) => [c.id, c]));
   const userMap = new Map<number, any>((usersRes.data ?? []).map((u: any) => [u.id, u]));
   const articleMap = new Map<number, any>((articlesRes.data ?? []).map((a: any) => [a.id, a]));
@@ -87,6 +91,14 @@ export default async function SikayetYonetimPage() {
       const u = userMap.get(id);
       if (!u) return { kind: 'user', missing: true, preview: '', href: null };
       return { kind: 'user', preview: `${u.display_name || u.username} (@${u.username})`, href: `/u/${u.username}`, author: u.username, authorName: u.display_name };
+    }
+    if (type === 'dyk') {
+      const d = dykMap.get(id);
+      if (!d) return { kind: 'dyk', missing: true, preview: '', href: null };
+      /* Kart SİLİNMİYOR, `active=false` oluyor → satır durmaya devam eder.
+         `missing` demek yanıltıcı olurdu; onun yerine durumu önizlemeye yaz. */
+      const onek = d.active === false ? '(yayından kaldırıldı) ' : '';
+      return { kind: 'dyk', preview: onek + snip(d.title || d.body), href: '/', author: d.users?.username ?? null, authorName: d.users?.display_name ?? null };
     }
     if (type === 'article_comment') {
       const ac = articleCommentMap.get(id);

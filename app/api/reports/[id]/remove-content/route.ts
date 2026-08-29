@@ -1,11 +1,12 @@
 import { db, getMe, isAdmin } from '@/lib/supabase/server';
 import { archiveAndDeleteFact } from '@/lib/deleteFact';
+import { revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
 
 // POST /api/reports/[id]/remove-content — şikayet edilen içeriği admin olarak sil.
-// Sadece silinebilir türler: post (quick_facts), comment, article_comment.
+// Sadece silinebilir türler: post (quick_facts), comment, article_comment, dyk.
 // Silince şikayet 'reviewed' olur. Yalnız admin.
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { me } = await getMe();
@@ -41,6 +42,15 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
   } else if (t === 'article_comment') {
     const { error } = await db.from('article_comments').delete().eq('id', tid);
     if (error) return json({ error: 'Yorum silinemedi' }, 500);
+  } else if (t === 'dyk') {
+    /* Bilgi kartı — 26.08.2026. SİLMİYOR, `active=false` yapıyor:
+       `getDidYouKnow` zaten `.eq('active', true)` süzdüğü için kart anında
+       akıştan düşer, ama karar geri alınabilir kalır ve `dyk_likes` gibi bağlı
+       satırlar cascade ile uçmaz. `DELETE /api/dyk/[id]` ile aynı davranış. */
+    const { error } = await db.from('did_you_know').update({ active: false }).eq('id', tid);
+    if (error) return json({ error: 'Kart kaldırılamadı' }, 500);
+    // Kart ANA SAYFADA; önbellek tazelenmezse bir saat daha görünür.
+    revalidateTag('feed');
   } else {
     return json({ error: 'Bu tür için silme desteklenmiyor' }, 400);
   }

@@ -1,7 +1,7 @@
 // Şikayet (report) sistemi için ortak sabitler — modal, /api/report doğrulaması
 // ve /yonetim/sikayetler kuyruğu hep buradan okur ki sebep/tür listeleri sapmasın.
 
-export type ReportTargetType = 'post' | 'comment' | 'user' | 'article' | 'article_comment';
+export type ReportTargetType = 'post' | 'comment' | 'user' | 'article' | 'article_comment' | 'dyk';
 export type ReportReason =
   | 'spam' | 'taciz' | 'nefret' | 'uygunsuz' | 'siddet' | 'yanlis_bilgi' | 'diger';
 
@@ -20,13 +20,17 @@ export const REASON_LABEL: Record<string, string> = Object.fromEntries(
   REPORT_REASONS.map((r) => [r.value, r.label]),
 );
 
-export const REPORT_TARGET_TYPES: ReportTargetType[] = ['post', 'comment', 'user', 'article', 'article_comment'];
+/* ⚠ 'dyk' EKLERKEN SQL ŞART: canlı `reports_target_type_check` türleri sabitliyor.
+   Yalnız bu satırı değiştirmek insert'i 23514 ile düşürür (ölçüldü, 26.08.2026).
+   Bkz. sql/features-dyk-report.sql */
+export const REPORT_TARGET_TYPES: ReportTargetType[] = ['post', 'comment', 'user', 'article', 'article_comment', 'dyk'];
 export const TARGET_LABEL: Record<ReportTargetType, string> = {
   post: 'Gönderi',
   comment: 'Yorum',
   user: 'Kullanıcı',
   article: 'Makale',
   article_comment: 'Makale yorumu',
+  dyk: 'Bilgi kartı',
 };
 
 export const REPORT_STATUS_LABEL: Record<string, string> = {

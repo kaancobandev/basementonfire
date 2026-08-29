@@ -5,6 +5,8 @@ import Img from '@/app/components/Img';
 import Link from 'next/link';
 import type { DidYouKnow } from '@/lib/types';
 import { avatarSrc } from '@/lib/avatar';
+import ReportButton from '@/app/components/ReportButton';
+import { useNavUser } from '@/app/components/NavUserContext';
 
 /**
  * "Bunu biliyor muydun?" bilgi karti. Feed'e serpistirilir (kind:'dyk').
@@ -20,6 +22,11 @@ export default function DidYouKnowCard({ item, initialLiked = false, guncelLikes
   const [liked, setLiked] = useState(initialLiked);
   const [likes, setLikes] = useState(guncelLikes ?? item.likes ?? 0);
   const [busy, setBusy] = useState(false);
+
+  /* Şikayet düğmesi — 26.08.2026 denetimi. Kart onaysız yayına giriyor ve
+     anonim ana sayfaya çıkıyor; şikayet edilemiyor olması moderasyonun tek
+     giriş kapısını kapatıyordu. Kendi kartını şikayet edemezsin. */
+  const navUser = useNavUser();
 
   /* ⚠ `useState(initialLiked)` prop'u YALNIZ ilk render'da okur; sonradan
      gelen değeri sonsuza kadar görmez. Bu kartta o dilim ölümcüldü:
@@ -153,6 +160,13 @@ export default function DidYouKnowCard({ item, initialLiked = false, guncelLikes
           >
             {liked ? '❤️' : '🤍'}{likes > 0 && <span>{likes}</span>}
           </button>
+          <ReportButton
+            targetType="dyk"
+            targetId={item.id}
+            subtitle={item.title ? `"${item.title.slice(0, 60)}" bilgi kartı` : 'Bilgi kartı'}
+            variant="inline"
+            canReport={!!navUser && navUser.id !== (item as { user_id?: number }).user_id}
+          />
         </div>
       </div>
     </article>

@@ -27,10 +27,13 @@ export type QueueItem = {
 
 const BADGE_BG: Record<ReportTargetType, string> = {
   post: '#6366f1', comment: '#0ea5e9', user: '#f59e0b', article: '#10b981', article_comment: '#8b5cf6',
+  dyk: '#ec4899',
 };
 
 // Admin olarak doğrudan silinebilen içerik türleri (kullanıcı/makale hariç).
-const DELETABLE = new Set<ReportTargetType>(['post', 'comment', 'article_comment']);
+// 'dyk' 26.08.2026'da eklendi: kart SİLİNMEZ, `active=false` ile yayından
+// düşürülür (geri alınabilir) — bkz. api/reports/[id]/remove-content.
+const DELETABLE = new Set<ReportTargetType>(['post', 'comment', 'article_comment', 'dyk']);
 
 export default function ReportsClient({ items: initial }: { items: QueueItem[] }) {
   const [items, setItems] = useState(initial);
