@@ -151,6 +151,11 @@ export default function WebVitalsBeacon() {
       const govde = JSON.stringify({
         p: yol,
         ttfb: yuvarla(nav.responseStart),
+        // İSTEĞİN TARAYICIDAN ÇIKTIĞI AN. `ttfb` tek başına yönlendirme + DNS +
+        // TCP + TLS + sunucu işini TOPLUYOR; bu sayı olmadan hangisinin baskın
+        // olduğu ölçülemez ve 21-22.08 teşhisi tam bu yüzden "atfedilemedi"
+        // diye kapandı. `ttfb - req` = sunucu işi + bir ağ turu.
+        req: yuvarla(nav.requestStart),
         fcp: yuvarla(fcp?.startTime),
         lcp: yuvarla(lcp),
         load: yuvarla(nav.loadEventEnd),

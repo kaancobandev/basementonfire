@@ -9,7 +9,7 @@ import { BOT_RE } from '@/lib/pageview-tracking';
 // yalniz Netlify'in geo basligi icin okunur, o da saklanmaz.
 
 export type PerfBody = {
-  p?: unknown; ttfb?: unknown; fcp?: unknown; lcp?: unknown; load?: unknown;
+  p?: unknown; ttfb?: unknown; req?: unknown; fcp?: unknown; lcp?: unknown; load?: unknown;
   inp?: unknown; cls?: unknown; nav?: unknown; dev?: unknown; conn?: unknown;
   giz?: unknown; ekip?: unknown; prt?: unknown; lcpel?: unknown;
 };
@@ -89,6 +89,9 @@ export async function recordPerf(h: HeaderGetter, body: PerfBody): Promise<void>
       // ⚠ `temel` nesnesine DEGIL buraya: sutun henuz yoksa asagidaki yedek
       // yol `temel`i sutunsuz yazabilsin, olcum hatti sessizce olmesin.
       lcp_el: secenek(body.lcpel, LCP_ETIKETLERI),
+      // ⚠ `temel`e DEĞİL buraya — aynı gerekçe: sütun yoksa yedek yol yazsın.
+      //   TTFB'yi bağlantı ve sunucu diye ayırmak için (features-ttfb-ayristirma.sql).
+      req_ms: sure(body.req),
     });
 
     // YEDEK YOL — sql/fix-web-vitals-olcum.sql henuz kosulmadiysa.
@@ -100,7 +103,7 @@ export async function recordPerf(h: HeaderGetter, body: PerfBody): Promise<void>
     if (error && (error.code === 'PGRST204' || error.code === '42703')) {
       const { error: yedekHata } = await db.from('perf_samples').insert(temel);
       logIfError('recordPerf insert (yedek, isaretsiz)', yedekHata);
-      if (!yedekHata) console.warn('[recordPerf] gizli/ekip/proto/lcp_el sutunlarindan biri YOK — sql/fix-web-vitals-olcum.sql ve sql/features-lcp-ogesi.sql calistirilmali');
+      if (!yedekHata) console.warn('[recordPerf] gizli/ekip/proto/lcp_el/req_ms sutunlarindan biri YOK — sql/fix-web-vitals-olcum.sql, sql/features-lcp-ogesi.sql ve sql/features-ttfb-ayristirma.sql calistirilmali');
       return;
     }
     // Tablo (SQL) henuz yoksa sessizce loglanir, hicbir seyi bozmaz.
