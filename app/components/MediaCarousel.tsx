@@ -246,7 +246,7 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
       return (
         <div ref={containerRef} style={{ position: 'relative', width: '100%', aspectRatio: feedAspect, maxHeight: '100%', overflow: 'hidden', background }}>
           {m.type === 'video'
-            ? <FeedVideo src={m.url} ariaLabel={caption} variant="feed" onLoadedMetadata={onFeedVideoMeta} />
+            ? <FeedVideo src={m.url} ariaLabel={caption} variant="feed" onLoadedMetadata={onFeedVideoMeta} oncelikli={priority} />
             : <Img src={m.url} alt={caption || ''} sizes={sizes} onLoad={onFeedImgLoad} loading={priority ? undefined : 'lazy'} fetchPriority={priority ? 'high' : undefined} style={st} />}
           {audio && <MusicLayer url={audio} targetRef={containerRef} shift={m.type === 'video'} />}
         </div>
@@ -446,7 +446,7 @@ export default function MediaCarousel({ media, sizes, background = '#000', varia
           // — telefonda yeterli olmadığı ölçüldü.)
           <div key={i} style={{ flex: `0 0 ${100 / visuals.length}%`, width: `${100 / visuals.length}%`, height: '100%', scrollSnapAlign: 'center', scrollSnapStop: 'always', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {m.type === 'video'
-              ? <FeedVideo src={m.url} ariaLabel={caption} variant={variant} onLoadedMetadata={variant === 'feed' && i === 0 ? onFeedVideoMeta : undefined} />
+              ? <FeedVideo src={m.url} ariaLabel={caption} variant={variant} onLoadedMetadata={variant === 'feed' && i === 0 ? onFeedVideoMeta : undefined} oncelikli={priority && i === 0} />
               // KOMŞU SLAYT ÖNCEDEN YÜKLENİR (|i - idx| <= 1).
               // Neden: yatay kaydırma kapsayıcısında tarayıcı `loading="lazy"`
               // görseli ancak belirgin şekilde görünür olunca yüklemeye

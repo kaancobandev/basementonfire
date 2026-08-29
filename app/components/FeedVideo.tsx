@@ -64,10 +64,18 @@ export function IconSound() {
  * 600 px'lik pay: kullanıcı oraya kaydırmadan çok önce yüklenir, yani kapak
  * göründüğünde zaten boyanmış olur. Bir kez açılınca gözlemci kapanır.
  * IntersectionObserver yoksa (çok eski tarayıcı) ESKİ davranışa döner.
+ *
+ * 🚨 `oncelikli` NEDEN VAR: ertelemenin bir bedeli var — kapak artık JS'e
+ *    BAĞIMLI. Eskiden HTML'deki `preload="metadata"` tarayıcıya yeterdi, JS
+ *    hiç koşmasa bile kapak boyanırdı. Akışın İLK medyası (LCP adayı) için bu
+ *    kabul edilemez, o yüzden orada gözlemci beklenmez: `useState(oncelikli)`
+ *    sunucuda da 'metadata' üretir. Kalan medya ertelenir.
+ *    ⚠ Bu kusuru canlıda ölçerken fark ettim; erteleme tek başına yanlıştı.
  */
-function useYaklasincaYukle(ref: React.RefObject<Element | null>) {
-  const [ac, setAc] = useState(false);
+function useYaklasincaYukle(ref: React.RefObject<Element | null>, oncelikli = false) {
+  const [ac, setAc] = useState(oncelikli);
   useEffect(() => {
+    if (oncelikli) return;
     const el = ref.current;
     if (!el || typeof IntersectionObserver === 'undefined') { setAc(true); return; }
     const io = new IntersectionObserver(
@@ -76,7 +84,7 @@ function useYaklasincaYukle(ref: React.RefObject<Element | null>) {
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [ref]);
+  }, [ref, oncelikli]);
   return ac ? 'metadata' as const : 'none' as const;
 }
 
@@ -123,18 +131,20 @@ export function PlayBadge() {
  * eder, sağ altta sesi aç/kapat, altta ince ilerleme çubuğu. Erişilebilirlik
  * `aria-label` ile korunur — `title` KULLANILMAZ (balon metnin kaynağı oydu).
  */
-export default function FeedVideo({ src, ariaLabel, variant, onLoadedMetadata }: {
+export default function FeedVideo({ src, ariaLabel, variant, onLoadedMetadata, oncelikli = false }: {
   src: string;
   /** Gönderi açıklaması — yalnız aria-label olarak kullanılır (balon YOK). */
   ariaLabel?: string;
   variant: 'feed' | 'lightbox';
   /** Feed en–boy oranı ölçümü için MediaCarousel'in kancası. */
   onLoadedMetadata?: React.ReactEventHandler<HTMLVideoElement>;
+  /** Akışın ilk medyası: kapak SSR'dan boyansın, gözlemci beklenmesin. */
+  oncelikli?: boolean;
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const vidRef = useRef<HTMLVideoElement>(null);
   // Kapak karesi için metadata gerekli ama SADECE yaklaşınca (bkz. kanca notu).
-  const preload = useYaklasincaYukle(wrapRef);
+  const preload = useYaklasincaYukle(wrapRef, oncelikli);
   const soloId = useId();
   const [muted, setMuted] = useState(true);
   const [playing, setPlaying] = useState(false);
