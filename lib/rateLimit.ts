@@ -155,6 +155,12 @@ export const RATE_LIMITS = {
   // sonra giriş yapılarak XP'ye çevrilebiliyordu. 40 patlama, dakikada 20:
   // en uzun makalede ~12 soru var, yani meşru okuyucu bunu görmez.
   quiz: { capacity: 40, refillPerSec: 20 / 60 },
+
+  // GIPHY arama vekili. Uç kimliksiz ve frensizdi; sunucunun GIPHY_API_KEY'ini
+  // harcıyor. Zarar veri değil KOTA: anahtar tükenirse GIF seçici gerçek
+  // kullanıcılarda çalışmaz. Arama yazarken tetikleniyor, o yüzden cömert:
+  // 60 patlama + dakikada 12 sürdürülebilir.
+  giphy: { capacity: 60, refillPerSec: 60 / 300 },
 } satisfies Record<string, Rule>;
 
 export type RuleName = keyof typeof RATE_LIMITS;
