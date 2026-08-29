@@ -1,4 +1,4 @@
-import { createAuthClientForResponse } from '@/lib/supabase/server';
+import { createAuthClientForResponse, db } from '@/lib/supabase/server';
 import { PENDING_EMAIL_COOKIE } from '@/lib/pendingEmail';
 import { NextResponse, type NextRequest } from 'next/server';
 
@@ -54,6 +54,34 @@ export async function GET(req: NextRequest) {
     // hata ekranında bırakma: onay ekranına gönder, oradan yeniden gönderebilir.
     return NextResponse.redirect(new URL('/eposta-onayi?suresi_doldu=1', req.url), { status: 303 });
   }
+
+  /* Kayıtta yazılan ad ile GERÇEKTEN açılan ad farklıysa kullanıcıya söyle.
+     Ad onaya kadar rezerve edilmiyor (profil satırı ancak burada doğuyor), o
+     yüzden arada başkası aynı adı almış olabilir; tetikleyici kaydı düşürmüyor
+     ama sessizce `ad2` yapıyordu. Bayrağı istemci okuyup bildirim gösteriyor.
+
+     ⛔ URL'E AD YAZILMIYOR, yalnız bayrak. Serbest metni sorgu dizesine koymak
+        bu oturumda kapatılan kimlik avı yüzeyinin ta kendisiydi; gerçek adı
+        istemci kendi oturumundan (nav-state) okuyor.
+     🚨 YENİ RESPONSE ÜRETİLMİYOR, sadece `location` başlığı değiştiriliyor:
+        oturum çerezleri `ok`a yazıldı, yeni bir yanıt kurmak onları düşürür ve
+        kullanıcı onaylamış ama giriş yapmamış olurdu (bu tuzağa daha önce
+        düşüldü — bkz. auth-redirect-cookie-gotcha).
+     Tümü try/catch: bu bir KONFOR bildirimi, onay akışını asla düşürmemeli. */
+  try {
+    const { data: { user } } = await client.auth.getUser();
+    const istenen = String((user?.user_metadata as Record<string, unknown> | undefined)?.username ?? '')
+      .trim().toLowerCase();
+    if (user && istenen) {
+      const { data: profil } = await db
+        .from('users').select('username').eq('auth_id', user.id).maybeSingle();
+      const gercek = String(profil?.username ?? '').toLowerCase();
+      // `gercek` boşsa tetikleyici henüz koşmamış olabilir → sessiz kal.
+      if (gercek && gercek !== istenen) {
+        ok.headers.set('location', new URL('/?welcome=1&ad_degisti=1', req.url).toString());
+      }
+    }
+  } catch { /* bildirim kaybolur, onay çalışmaya devam eder */ }
 
   // Onay tamam → bekleyen e-posta çerezine artık gerek yok.
   ok.cookies.set(PENDING_EMAIL_COOKIE, '', { path: '/', maxAge: 0 });

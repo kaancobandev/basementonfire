@@ -9,6 +9,7 @@ import Logo from './Logo';
 import DesktopCreateMenu from './DesktopCreateMenu';
 import { NavUserProvider, FeedPersonalProvider } from './NavUserContext';
 import OturumBekcisi from './OturumBekcisi';
+import AdDegistiUyarisi from './AdDegistiUyarisi';
 
 const RealtimeProvider = dynamic(() => import('./RealtimeProvider'), { ssr: false });
 // Mobil paylaş-sheet'i (framer-motion) ayrı parça olarak yüklenir → framer-motion ANA bundle'dan çıkar.
@@ -468,6 +469,11 @@ export default function AppShell({ children }: AppShellProps) {
           Girisli/cikisli AYRIMI YOK: cikisliyken baska sekmede giris yapilirsa
           bu sekme de bayat kalir. Bkz. OturumBekcisi.tsx. */}
       <OturumBekcisi />
+
+      {/* Kayıttaki ad alınmışsa "hesabın @x adıyla açıldı" bildirimi.
+          AppShell'in İÇİNDE olmak ZORUNDA: gerçek adı `useNavUser()`ten okuyor
+          ve o context burada kuruluyor (CelebrateOnParam layout'ta, DIŞARIDA). */}
+      <AdDegistiUyarisi />
 
       {/* Toasts — sonner */}
       {/* mobileOffset: bildirimler alt-orta 16px ofsetle doğrudan cam dock'un
