@@ -1,4 +1,4 @@
-import { db, getMe } from '@/lib/supabase/server';
+import { db, getMe, isAdmin } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { revalidateTag } from 'next/cache';
 
@@ -59,20 +59,29 @@ export async function DELETE(req: Request) {
   const id = Number(body.id);
   if (!id) return json({ error: 'Geçersiz id' }, 400);
 
-  // Önce kaydı SAHİPLİK ŞARTIYLA çek: storage yolunu öğrenmeden silersek
-  // dosya kovada yetim kalır.
-  const { data: row } = await db
-    .from('music_tracks')
-    .select('storage_path')
-    .eq('id', id)
-    .eq('user_id', me.id)
-    .maybeSingle();
 
-  const { error } = await db
-    .from('music_tracks')
-    .delete()
-    .eq('id', id)
-    .eq('user_id', me.id);
+/* 🚨 YÖNETİCİ KALDIRAMIYORDU — 26.08.2026 denetimi.
+   /muzik SİTE GENELİ bir liste: kimin eklediğine bakılmaksızın herkese (anonim
+   ziyaretçiye de) gösteriliyor. Ama silme koşulu `eq('user_id', me.id)` idi ve
+   üç uçta da `isAdmin` geçişi YOKTU (ölçüldü: 0). Yani biri kötü bir içerik
+   eklerse yöneticinin uygulama içinde hiçbir çaresi yoktu.
+
+   ⚠ İKİNCİ HATA, aynı satırda: `delete().eq(...)` hiçbir satır eşleşmese bile
+     HATA DÖNDÜRMEZ. Başkasının içeriğini silmeye çalışan `{success:true}`
+     alıyordu — hiçbir şey silinmemişken. `.select()` ekleyip gerçekten satır
+     dönüp dönmediğine bakıyoruz; dönmediyse 404.
+   404 (403 değil): var olmayan id ile yetkisiz id AYNI yanıtı verir. */
+  // Önce kaydı çek: storage yolunu öğrenmeden silersek dosya kovada yetim kalır.
+  // ⚠ SAHİPLİK ŞARTI BURAYA DA UYGULANMALI — admin silerken bu select boş
+  //   dönseydi dosya kovada kalırdı (satır gider, ses dosyası kalır).
+  let sec = db.from('music_tracks').select('storage_path').eq('id', id);
+  if (!isAdmin(me)) sec = sec.eq('user_id', me.id);
+  const { data: row } = await sec.maybeSingle();
+
+  let sil = db.from('music_tracks').delete().eq('id', id);
+  if (!isAdmin(me)) sil = sil.eq('user_id', me.id);
+  const { data: silinen, error } = await sil.select('id');
+  if (!error && !(silinen ?? []).length) return json({ error: 'Parça bulunamadı' }, 404);
 
   if (error) return json({ error: error.message }, 500);
 

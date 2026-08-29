@@ -1,5 +1,5 @@
 import { NextResponse, after } from 'next/server';
-import { db, getMe, logIfError } from '@/lib/supabase/server';
+import { db, getMe, isAdmin, logIfError } from '@/lib/supabase/server';
 import { buildFeedPersonal, icerikDalgasiniBaslat } from '@/lib/feedPersonal';
 import { CEREZ_KAPSAMI } from '@/lib/supabase/cookieOptions';
 
@@ -133,7 +133,14 @@ export async function GET(req: Request) {
 
   return NextResponse.json(
     {
-      user: { id: me.id, username: me.username, display_name: me.display_name },
+      /* `isAdmin` YALNIZCA ARAYÜZ AFFORDANSI İÇİN — 26.08.2026.
+         /muzik gibi STATİK sayfalar sunucuda getMe() çağırmıyor, kimliği bu
+         uçtan alıyor. Yönetici silme düğmesini görebilsin diye bayrak burada
+         taşınıyor (ek sorgu YOK, `me` satırı zaten elde).
+         ⛔ BU BAYRAK YETKİ VERMEZ. Her yönetici işlemi sunucuda ayrıca
+            `isAdmin(me)` ile doğrulanır; istemcide true'ya çevirmek hiçbir
+            şeye izin vermez, yalnızca çalışmayan bir düğme gösterir. */
+      user: { id: me.id, username: me.username, display_name: me.display_name, isAdmin: isAdmin(me) },
       unreadCount: notifRes.count ?? 0,
       unreadMsgCount,
       myId: me.id,

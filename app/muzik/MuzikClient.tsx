@@ -77,7 +77,14 @@ const cardStyle: React.CSSProperties = {
 export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: initialYt, trackItems: initialTr }: Props) {
   // Sayfa ISR (paylaşılan HTML) — kimlik NavUserContext'ten. Yalnız ekle/sil
   // butonlarının görünürlüğü için; asıl yetki kontrolü API'larda (sunucuda).
-  const currentUserId = useNavUser()?.id ?? null;
+  const navUser = useNavUser();
+  const currentUserId = navUser?.id ?? null;
+  /* Yönetici site geneli listeden BAŞKASININ içeriğini de kaldırabilir.
+     26.08.2026 denetimi: uçlar `eq('user_id', me.id)` istiyordu ve düğme yalnız
+     sahibine çiziliyordu → kötü bir içerik eklendiğinde uygulama içinde hiçbir
+     çare yoktu. Uçlar da aynı gün admin'i tanıyacak şekilde düzeltildi; bu satır
+     olmadan düzeltme görünmez kalırdı. */
+  const silebilir = (sahipId: number) => currentUserId === sahipId || navUser?.isAdmin === true;
   // Gömülü içerik artık sayfada değil DOCK'ta açılır → başka sayfaya
   // geçince çalmaya devam eder (sayfa içi iframe sökülürdü).
   const dock = useMediaDock();
@@ -462,7 +469,7 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
                           <TimeAgo iso={t.created_at} />{t.duration ? ` · ${Math.floor(t.duration / 60)}:${String(Math.floor(t.duration % 60)).padStart(2, '0')}` : ''}
                         </span>
                       </button>
-                      {currentUserId === t.user_id && (
+                      {silebilir(t.user_id) && (
                         <button onClick={() => deleteTrack(t.id)}
                           aria-label="Parçayı sil"
                           style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, borderRadius: '50%', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', flexShrink: 0 }}
@@ -520,7 +527,7 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
                             <PlayIcon />
                             Dinle
                           </button>
-                          {currentUserId === item.user_id && (
+                          {silebilir(item.user_id) && (
                             <button onClick={() => deleteSpotify(item.id)}
                               style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, borderRadius: '50%', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', transition: 'all 0.15s' }}
                               onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(239,68,68,0.1)'; (e.currentTarget as HTMLElement).style.color = '#ef4444'; }}
@@ -612,7 +619,7 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
                             <PlayIcon />
                             İzle
                           </button>
-                          {currentUserId === item.user_id && (
+                          {silebilir(item.user_id) && (
                             <button onClick={() => deleteYouTube(item.id)}
                               style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, borderRadius: '50%', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', transition: 'all 0.15s' }}
                               onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(239,68,68,0.1)'; (e.currentTarget as HTMLElement).style.color = '#ef4444'; }}

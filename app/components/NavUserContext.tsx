@@ -6,7 +6,9 @@ import { createContext, useContext } from 'react';
 // Amaç: ISR/statik sayfaların (akis, muzik, hashtag) kimlik için sunucuda getMe()
 // çağırmak zorunda kalmaması — kimlik zaten istemcide nav için çekiliyor.
 // undefined = henüz bilinmiyor (nav-state cevabı gelmedi), null = çıkışlı.
-export type NavUser = { id: number; username: string; display_name: string } | null | undefined;
+// `isAdmin` yalnız arayüz affordansı (silme düğmesini göster) — yetki değil,
+// her yönetici işlemi sunucuda ayrıca doğrulanır. Eski cevaplarda yok → opsiyonel.
+export type NavUser = { id: number; username: string; display_name: string; isAdmin?: boolean } | null | undefined;
 
 const NavUserContext = createContext<NavUser>(undefined);
 

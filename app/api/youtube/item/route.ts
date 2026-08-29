@@ -1,4 +1,4 @@
-import { db, getMe } from '@/lib/supabase/server';
+import { db, getMe, isAdmin } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { revalidateTag } from 'next/cache';
 
@@ -65,11 +65,22 @@ export async function DELETE(req: Request) {
   const id = Number(body.id);
   if (!id) return json({ error: 'Geçersiz id' }, 400);
 
-  const { error } = await db
-    .from('youtube_items')
-    .delete()
-    .eq('id', id)
-    .eq('user_id', me.id);
+
+/* 🚨 YÖNETİCİ KALDIRAMIYORDU — 26.08.2026 denetimi.
+   /muzik SİTE GENELİ bir liste: kimin eklediğine bakılmaksızın herkese (anonim
+   ziyaretçiye de) gösteriliyor. Ama silme koşulu `eq('user_id', me.id)` idi ve
+   üç uçta da `isAdmin` geçişi YOKTU (ölçüldü: 0). Yani biri kötü bir içerik
+   eklerse yöneticinin uygulama içinde hiçbir çaresi yoktu.
+
+   ⚠ İKİNCİ HATA, aynı satırda: `delete().eq(...)` hiçbir satır eşleşmese bile
+     HATA DÖNDÜRMEZ. Başkasının içeriğini silmeye çalışan `{success:true}`
+     alıyordu — hiçbir şey silinmemişken. `.select()` ekleyip gerçekten satır
+     dönüp dönmediğine bakıyoruz; dönmediyse 404.
+   404 (403 değil): var olmayan id ile yetkisiz id AYNI yanıtı verir. */
+  let sil = db.from('youtube_items').delete().eq('id', id);
+  if (!isAdmin(me)) sil = sil.eq('user_id', me.id);
+  const { data: silinen, error } = await sil.select('id');
+  if (!error && !(silinen ?? []).length) return json({ error: 'Video bulunamadı' }, 404);
 
   if (error) return json({ error: error.message }, 500);
   revalidateTag('muzik');
