@@ -54,3 +54,8 @@ next-env.d.ts
 
 # Göç dökümleri — kullanıcı e-postaları ve tüm veri burada, ASLA commitlenmez
 /goc-dokum/
+
+# Denetim/olcum betiklerinin biraktigi gecici indirmeler
+*.bin
+_t.mjs
+_tt/
