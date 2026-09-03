@@ -59,3 +59,13 @@ next-env.d.ts
 *.bin
 _t.mjs
 _tt/
+
+# İş belgeleri — DEPODA DURMAZ.
+# 26.08.2026: gelir/gider planı, BTM görüşme metni, fikri mülkiyet stratejisi ve
+# proje özeti herkese açık depoda ANONİM OKUNABILIYORDU (dördü de HTTP 200 ile
+# doğrulandı). Kod açık kalabilir — onu klonlayan yine kendi Supabase projesini,
+# kendi içeriğini ve kendi topluluğunu kurmak zorunda. Ama iş planı bir rakibin
+# gerçekten isteyeceği tek şey ve bir kod deposunda durması için sebep yok.
+# ⚠ Bu satır yalnızca BUNDAN SONRASINI kapatır; eski commit'lerde okunabilir
+#   kalırlar. Geçmişten silmek force-push ister (ayrı karar).
+belgeler/
