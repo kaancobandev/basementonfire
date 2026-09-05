@@ -210,6 +210,18 @@ function yuzdelik(ham: (number | null | undefined)[], q: number): number | null 
 // tek bir yavaş açılış p75'i tamamen ele geçirmesin diye 20'de tutuyoruz.
 const GUVENILIR_N = 20;
 
+// BOYA GEÇERLİLİĞİ — `sql/fix-web-vitals-olcum.sql:75` ile AYNI kural, elle
+// tekrarlanıyor. İki koşul: satır gizli sekmede ölçülmemiş olacak, ve fiziksel
+// imkânsızlık testini geçecek (fcp > load + 200 ise boya zamanlaması bozuk).
+// ⚠ YALNIZ BOYA metriklerine (FCP/LCP) uygulanır. TTFB'ye UYGULAMA: ölçüldü,
+// gizli satırları TTFB'den elemek p75'i 2503 → 2970'e KÖTÜLEŞTİRİYOR, çünkü
+// gizli sekme ilk baytı şişirmiyor, yalnız boyamayı bastırıyor.
+function boyaGecerli(r: HamSatir): boolean {
+  if (r.gizli) return false;
+  if (r.fcp_ms != null && r.load_ms != null && r.fcp_ms > r.load_ms + 200) return false;
+  return true;
+}
+
 // Tabloya kaç satır basılır. ⚠ 05.09.2026: önce tavan yoktu (400 satır x 17
 // hücre) ve sayfa o kadar ağırlaştı ki tarayıcının ekran görüntüsü alması
 // 30 sn'de zaman aşımına uğradı — yani panel kendi ölçtüğü şeyi bozuyordu.
@@ -400,17 +412,28 @@ export default async function GirisIstatistikPage() {
       (a, r) => (a == null || r.ttfb_ms! - r.req_ms! > a.ttfb_ms! - a.req_ms! ? r : a), null),
   };
 
-  // Gezinme türü: back_forward = geri/ileri (bfcache olabilir, çok hızlı görünür),
-  // reload = yenileme (önbellek atlanır, en kötü hâl), navigate = normal açılış.
-  // Bunları ayırmadan bakınca bfcache açılışları ortalamayı yapay olarak iyileştirir.
+  // Gezinme türü. ⚠ `back_forward` satırları bfcache İSABETİ DEĞİLDİR — tam
+  // tersi. WebVitalsBeacon'da `pageshow` dinleyicisi yok ve `gonderildi` mandalı
+  // `pagehide`'da kapanıyor (sayfa tam da bfcache'e girerken), üstelik nav türü
+  // bfcache dönüşünde yenilenmeyen Navigation Timing girdisinden okunuyor.
+  // Yani bfcache'ten dönen bir açılış HİÇ satır yazmıyor; buradaki her
+  // back_forward satırı bfcache'in ISKALADIĞI bir gezinmedir.
+  //
+  // ⚠ n METRİK BAŞINA sayılıyor, satır başına değil. 05.09.2026'da bu yüzden
+  // yanlış alarm verdim: bf havuzunda 22 satır vardı ama yalnız 14'ünde LCP,
+  // rozet 22'ye baktığı için GUVENILIR_N eşiğini geçmiş görünüp susuyordu.
   const gezinmeler = ['navigate', 'reload', 'back_forward']
     .map((tur) => {
       const g = hamTemiz.filter((r) => r.nav_type === tur);
+      const boya = g.filter(boyaGecerli).map((r) => r.lcp_ms).filter((v) => v != null);
+      const ttfb = g.map((r) => r.ttfb_ms).filter((v) => v != null);
       return {
         tur,
         n: g.length,
-        ttfb_p75: yuzdelik(g.map((r) => r.ttfb_ms), 0.75),
-        lcp_p75: yuzdelik(g.map((r) => r.lcp_ms), 0.75),
+        lcp_n: boya.length,
+        ttfb_n: ttfb.length,
+        ttfb_p75: yuzdelik(ttfb, 0.75),
+        lcp_p75: yuzdelik(boya, 0.75),
       };
     })
     .filter((g) => g.n > 0);
@@ -721,20 +744,25 @@ export default async function GirisIstatistikPage() {
               </Section>
 
               {gezinmeler.length > 0 && (
-                /* Bu ayrım olmadan bfcache (geri/ileri) açılışları ortalamayı
-                   yapay olarak iyi gösteriyordu: onlar ağdan hiç geçmiyor. */
-                <Section title="Gezinme türüne göre — geri/ileri ile ilk açılış aynı şey değil">
+                /* 🚨 BURADA YANLIŞ BİR CÜMLE VARDI (05.09.2026'da silindi):
+                   "bfcache açılışları ortalamayı yapay olarak iyi gösteriyordu:
+                   onlar ağdan hiç geçmiyor." Gerçeğin tersi — bfcache'ten dönen
+                   açılış bu tabloya HİÇ girmiyor (beacon'da pageshow yok). */
+                <Section title="Gezinme türüne göre — geri/ileri = bfcache ISKALADIĞINDA">
                   <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: '0.8rem' }}>
                     {gezinmeler.map((g) => (
                       <div key={g.tur} style={{ border: '1px solid var(--color-border)', borderRadius: 10, padding: '8px 12px' }}>
                         <div style={{ fontWeight: 700, color: 'var(--color-text)' }}>
                           {g.tur === 'navigate' ? 'İlk açılış' : g.tur === 'reload' ? 'Yenileme' : 'Geri / ileri'}
                           <span style={{ color: 'var(--color-text-muted)', fontWeight: 400 }}> · {g.n} açılış</span>
-                          <ZayifN n={g.n} />
                         </div>
                         <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: 2 }}>
+                          {/* Rozetler METRİĞİN kendi n'ine bağlı: LCP satırların
+                              yalnız bir kısmında dolu, TTFB neredeyse hepsinde. */}
                           p75 LCP <b style={{ color: perfRenk(g.lcp_p75, 2500, 4000) }}>{ms(g.lcp_p75)}</b>
+                          <span style={{ opacity: 0.7 }}> (n={g.lcp_n})</span><ZayifN n={g.lcp_n} />
                           {' · '}p75 TTFB <b style={{ color: perfRenk(g.ttfb_p75, 800, 1800) }}>{ms(g.ttfb_p75)}</b>
+                          <span style={{ opacity: 0.7 }}> (n={g.ttfb_n})</span><ZayifN n={g.ttfb_n} />
                         </div>
                       </div>
                     ))}
