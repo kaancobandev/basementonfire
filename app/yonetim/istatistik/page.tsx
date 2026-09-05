@@ -188,6 +188,89 @@ function LcpDagilim({ d }: { d: { iyi: number; orta: number; kotu: number } }) {
 }
 
 // Son 14 günün ekseni (YYYY-MM-DD, Istanbul) + gün etiketi.
+type HamSatir = {
+  created_at: string; path: string | null;
+  ttfb_ms: number | null; req_ms: number | null; fcp_ms: number | null; lcp_ms: number | null;
+  load_ms: number | null; inp_ms: number | null; cls_x1000: number | null;
+  device: string | null; conn: string | null; proto: string | null; country_code: string | null;
+  nav_type: string | null; lcp_el: string | null; gizli: boolean | null; ekip: boolean | null;
+};
+
+// ⚠ percentile_DISC: her zaman GERÇEKTEN ÖLÇÜLMÜŞ bir değer döner, ara değer
+// hesaplamaz. RPC'deki percentile_cont'tan bilerek farklı — bu bölümlerdeki n
+// çok küçük (çoğu zaman < 20) ve orada uydurma bir ara değer göstermek yanıltır.
+function yuzdelik(ham: (number | null | undefined)[], q: number): number | null {
+  const s = ham.filter((v): v is number => typeof v === 'number' && Number.isFinite(v)).sort((a, b) => a - b);
+  if (!s.length) return null;
+  return s[Math.min(s.length - 1, Math.max(0, Math.ceil(q * s.length) - 1))];
+}
+
+// n kaçtan sonra bir yüzdeliğe bakmaya değer? Alt sınır keyfi değil: p75'in
+// SIRALAMADA gerçek bir gözleme denk gelmesi için en az 4 satır lazım, ama
+// tek bir yavaş açılış p75'i tamamen ele geçirmesin diye 20'de tutuyoruz.
+const GUVENILIR_N = 20;
+
+function ZayifN({ n }: { n: number }) {
+  if (n >= GUVENILIR_N) return null;
+  return (
+    <span
+      title={`Yalnızca ${n} ölçüm var. p75 için en az ${GUVENILIR_N} gerekiyor; bu rakam tek bir açılışla zıplar, eğilim olarak okuma.`}
+      style={{ marginLeft: 4, fontSize: '0.68rem', fontWeight: 800, color: 'var(--color-warning, #d97706)', cursor: 'help' }}
+    >
+      ?
+    </span>
+  );
+}
+
+function HamTablo({ rows }: { rows: HamSatir[] }) {
+  const hucre: React.CSSProperties = { padding: '5px 8px', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' };
+  const bas: React.CSSProperties = { ...hucre, fontWeight: 700, textAlign: 'left', color: 'var(--color-text-muted)', position: 'sticky', top: 0, background: 'var(--color-surface, #fff)' };
+  if (!rows.length) return <div style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>Henüz veri yok.</div>;
+  return (
+    <div style={{ overflowX: 'auto', maxHeight: 460, overflowY: 'auto', border: '1px solid var(--color-border)', borderRadius: 10 }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.72rem' }}>
+        <thead>
+          <tr>
+            {['Zaman', 'Yol', 'TTFB', 'Bağlantı', 'Sunucu+taşıma', 'FCP', 'LCP', 'LCP−TTFB', 'INP', 'CLS', 'Cihaz', 'Bağ.', 'Proto', 'Ülke', 'Gezinme', 'LCP ögesi', 'İşaret'].map((h) => (
+              <th key={h} style={bas}>{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => {
+            const sunucu = r.ttfb_ms != null && r.req_ms != null && r.ttfb_ms >= r.req_ms ? r.ttfb_ms - r.req_ms : null;
+            const lcpTtfb = r.lcp_ms != null && r.ttfb_ms != null && r.lcp_ms >= r.ttfb_ms ? r.lcp_ms - r.ttfb_ms : null;
+            const isaret = [r.ekip ? 'ekip' : '', r.gizli ? 'gizli sekme' : ''].filter(Boolean).join(' · ');
+            return (
+              <tr key={`${r.created_at}-${i}`} style={{ borderTop: '1px solid var(--color-border)', opacity: r.ekip || r.gizli ? 0.5 : 1 }}>
+                <td style={{ ...hucre, color: 'var(--color-text-muted)' }}>
+                  {new Date(r.created_at).toLocaleString('tr-TR', { timeZone: 'Europe/Istanbul', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                </td>
+                <td style={{ ...hucre, maxWidth: 190, overflow: 'hidden', textOverflow: 'ellipsis' }} title={r.path ?? ''}>{r.path ?? '—'}</td>
+                <td style={{ ...hucre, fontWeight: 800, color: perfRenk(r.ttfb_ms, 800, 1800) }}>{ms(r.ttfb_ms)}</td>
+                <td style={{ ...hucre, color: 'var(--color-text-muted)' }}>{ms(r.req_ms)}</td>
+                <td style={{ ...hucre, color: 'var(--color-text-muted)' }}>{ms(sunucu)}</td>
+                <td style={hucre}>{ms(r.fcp_ms)}</td>
+                <td style={{ ...hucre, fontWeight: 800, color: perfRenk(r.lcp_ms, 2500, 4000) }}>{ms(r.lcp_ms)}</td>
+                <td style={{ ...hucre, color: 'var(--color-text-muted)' }}>{ms(lcpTtfb)}</td>
+                <td style={hucre}>{ms(r.inp_ms)}</td>
+                <td style={hucre}>{r.cls_x1000 == null ? '—' : (r.cls_x1000 / 1000).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td style={hucre}>{r.device === 'mobil' ? '📱' : r.device === 'masaustu' ? '🖥️' : '❔'}</td>
+                <td style={hucre}>{r.conn ?? '—'}</td>
+                <td style={hucre}>{r.proto || '—'}</td>
+                <td style={hucre}>{r.country_code ? `${flag(r.country_code)} ${r.country_code}` : '—'}</td>
+                <td style={hucre}>{r.nav_type ?? '—'}</td>
+                <td style={hucre}>{r.lcp_el ?? '—'}</td>
+                <td style={{ ...hucre, color: 'var(--color-warning, #d97706)' }}>{isaret || '—'}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function buildAxis(): { day: string; label: string }[] {
   const now = Date.now();
   return Array.from({ length: 14 }, (_, i) => {
@@ -205,7 +288,7 @@ export default async function GirisIstatistikPage() {
   if (!isAdmin(me as any)) redirect('/');
 
   // İki özet + son girişler tek turda paralel.
-  const [trafficRes, loginRes, perfRes, recentRes] = await Promise.all([
+  const [trafficRes, loginRes, perfRes, recentRes, hamRes] = await Promise.all([
     db.rpc('traffic_dashboard'),
     db.rpc('login_dashboard'),
     db.rpc('perf_dashboard'),
@@ -213,6 +296,18 @@ export default async function GirisIstatistikPage() {
       .select('id, created_at, method, country_code, country_name, city, users!login_events_user_id_fkey(username, display_name)')
       .order('created_at', { ascending: false })
       .limit(50),
+    // HAM ÖLÇÜMLER — RPC'nin YANINDA, onun yerine değil.
+    // Gerekçe: 2026-09-05'te ölçüldü, 30 günlük pencerede yalnız ~160 temiz satır
+    // var. Bu hacimde yüzdelik özeti bilgiden çok gürültü taşıyor; satırların
+    // kendisi okunabilir. Ayrıca req_ms / nav_type / lcp_el TOPLANIYOR ama
+    // perf_dashboard() bunları hiç döndürmüyordu — veri yazılıp çöpe gidiyordu.
+    // ⚠ SELECT'e olmayan bir kolon eklersen PostgREST sorguyu SESSİZCE düşürür
+    // (data: null döner, hata fırlatmaz). Bu liste 05.09.2026'da tek tek doğrulandı.
+    db.from('perf_samples')
+      .select('created_at, path, ttfb_ms, req_ms, fcp_ms, lcp_ms, load_ms, inp_ms, cls_x1000, device, conn, proto, country_code, nav_type, lcp_el, gizli, ekip')
+      .gte('created_at', new Date(Date.now() - 30 * 86_400_000).toISOString())
+      .order('created_at', { ascending: false })
+      .limit(400),
   ]);
 
   const trafficDormant = !!trafficRes.error;
@@ -260,6 +355,50 @@ export default async function GirisIstatistikPage() {
     const v = d?.lcp_p75 ?? 0;
     return { day: a.day, label: a.label, value: v, title: `${a.label}: p75 LCP ${ms(d?.lcp_p75)} · ${d?.n ?? 0} açılış` };
   });
+
+  // ---- Ham ölçümlerden türetilenler ----
+  const hamHepsi: HamSatir[] = (hamRes.data ?? []) as HamSatir[];
+  // Panelin geri kalanıyla aynı kural: ekip trafiği yüzdeliklere GİRMEZ.
+  // (Satırlar silinmiyor; ham tabloda soluk gösteriliyor ki kirliliğin
+  //  büyüklüğü de görünsün.)
+  const hamTemiz = hamHepsi.filter((r) => !r.ekip);
+
+  // TTFB'nin iki yarısı. req_ms = isteğin ÇIKMASINA kadar (yönlendirme+DNS+TCP+TLS),
+  // ttfb_ms − req_ms = istek çıktıktan sonrası (taşıma turu + sunucu işi).
+  const ayrisanSatirlar = hamTemiz.filter(
+    (r) => r.ttfb_ms != null && r.req_ms != null && r.ttfb_ms >= r.req_ms,
+  );
+  const ayrisma = {
+    n: ayrisanSatirlar.length,
+    baglanti_p50: yuzdelik(ayrisanSatirlar.map((r) => r.req_ms), 0.5),
+    baglanti_p75: yuzdelik(ayrisanSatirlar.map((r) => r.req_ms), 0.75),
+    sunucu_p50: yuzdelik(ayrisanSatirlar.map((r) => r.ttfb_ms! - r.req_ms!), 0.5),
+    sunucu_p75: yuzdelik(ayrisanSatirlar.map((r) => r.ttfb_ms! - r.req_ms!), 0.75),
+    en_kotu: ayrisanSatirlar.reduce<HamSatir | null>(
+      (a, r) => (a == null || r.ttfb_ms! - r.req_ms! > a.ttfb_ms! - a.req_ms! ? r : a), null),
+  };
+
+  // Gezinme türü: back_forward = geri/ileri (bfcache olabilir, çok hızlı görünür),
+  // reload = yenileme (önbellek atlanır, en kötü hâl), navigate = normal açılış.
+  // Bunları ayırmadan bakınca bfcache açılışları ortalamayı yapay olarak iyileştirir.
+  const gezinmeler = ['navigate', 'reload', 'back_forward']
+    .map((tur) => {
+      const g = hamTemiz.filter((r) => r.nav_type === tur);
+      return {
+        tur,
+        n: g.length,
+        ttfb_p75: yuzdelik(g.map((r) => r.ttfb_ms), 0.75),
+        lcp_p75: yuzdelik(g.map((r) => r.lcp_ms), 0.75),
+      };
+    })
+    .filter((g) => g.n > 0);
+
+  const hamSayim = {
+    toplam: hamHepsi.length,
+    ekip: hamHepsi.filter((r) => r.ekip).length,
+    gizli: hamHepsi.filter((r) => r.gizli).length,
+    temiz: hamTemiz.length,
+  };
   const loginDaily = new Map((l.daily ?? []).map((d) => [String(d.day), d.count]));
   const loginSeries = axis.map((a) => {
     const c = loginDaily.get(a.day) ?? 0;
@@ -385,7 +524,7 @@ export default async function GirisIstatistikPage() {
                 </Section>
               )}
 
-              <Section title="Metrikler — p75, sıralamada üstten dördüncü değer (tahmin değil)">
+              <Section title="Metrikler — p75: açılışların dörtte üçü bundan hızlıydı">
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.84rem', minWidth: 460 }}>
                     <thead>
@@ -438,7 +577,7 @@ export default async function GirisIstatistikPage() {
                     {perf.cihazlar.map((c) => (
                       <div key={c.cihaz} style={{ border: '1px solid var(--color-border)', borderRadius: 12, padding: '12px 14px' }}>
                         <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', fontWeight: 700 }}>
-                          {c.cihaz === 'mobil' ? '📱 Telefon' : c.cihaz === 'masaustu' ? '🖥️ Masaüstü' : '❔ Bilinmiyor'} · {c.n.toLocaleString('tr-TR')} açılış
+                          {c.cihaz === 'mobil' ? '📱 Telefon' : c.cihaz === 'masaustu' ? '🖥️ Masaüstü' : '❔ Bilinmiyor'} · {c.n.toLocaleString('tr-TR')} açılış<ZayifN n={c.n} />
                         </div>
                         <div style={{ fontSize: '1.35rem', fontWeight: 900, marginTop: 4, color: perfRenk(c.lcp_p75, 2500, 4000) }}>{ms(c.lcp_p75)}</div>
                         <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>
@@ -453,7 +592,7 @@ export default async function GirisIstatistikPage() {
                   <div style={{ marginTop: 12, display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
                     <span style={{ fontWeight: 700 }}>Bağlantı:</span>
                     {perf.baglantilar.map((b) => (
-                      <span key={b.tur}>{b.tur} → <b style={{ color: perfRenk(b.lcp_p75, 2500, 4000) }}>{ms(b.lcp_p75)}</b> ({b.n})</span>
+                      <span key={b.tur}>{b.tur} → <b style={{ color: perfRenk(b.lcp_p75, 2500, 4000) }}>{ms(b.lcp_p75)}</b> ({b.n}<ZayifN n={b.n} />)</span>
                     ))}
                   </div>
                 )}
@@ -465,7 +604,7 @@ export default async function GirisIstatistikPage() {
                   <div style={{ marginTop: 8, display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
                     <span style={{ fontWeight: 700 }}>Protokol:</span>
                     {perf.protokoller.map((p) => (
-                      <span key={p.ad}>{p.ad} → <b style={{ color: perfRenk(p.ttfb_p75, 800, 1800) }}>{ms(p.ttfb_p75)}</b> ({p.n})</span>
+                      <span key={p.ad}>{p.ad} → <b style={{ color: perfRenk(p.ttfb_p75, 800, 1800) }}>{ms(p.ttfb_p75)}</b> ({p.n}<ZayifN n={p.n} />)</span>
                     ))}
                   </div>
                 )}
@@ -507,6 +646,75 @@ export default async function GirisIstatistikPage() {
                 </Section>
               )}
 
+              {/* TTFB'nin iki yarısı. Bu ayrımı yapamadığımız sürece "yavaş" bir
+                  açılışın suçlusu bilinemiyordu: bağlantı kurmak mı uzun sürdü,
+                  yoksa istek gittikten SONRASI mı? req_ms bunu ayırıyor. */}
+              <Section title="İlk bayt nereye gidiyor? — bağlantı mı, sunucu mu">
+                {ayrisma.n === 0 ? (
+                  <div style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
+                    Henüz ayrıştırılmış ölçüm yok. <code>req_ms</code> alanı yeni eklendi; yalnızca o tarihten
+                    sonraki açılışlarda dolu.
+                  </div>
+                ) : (
+                  <>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10 }}>
+                      <div style={{ border: '1px solid var(--color-border)', borderRadius: 12, padding: '12px 14px' }}>
+                        <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', fontWeight: 700 }}>
+                          🔌 Bağlantı kurmak
+                        </div>
+                        <div style={{ fontSize: '1.35rem', fontWeight: 900, marginTop: 4, color: 'var(--color-text)' }}>{ms(ayrisma.baglanti_p75)}</div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>
+                          p75 · ortanca {ms(ayrisma.baglanti_p50)}
+                          <br />yönlendirme + DNS + TCP + TLS
+                        </div>
+                      </div>
+                      <div style={{ border: '1px solid var(--color-border)', borderRadius: 12, padding: '12px 14px' }}>
+                        <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', fontWeight: 700 }}>
+                          📡 İstek çıktıktan sonrası
+                        </div>
+                        <div style={{ fontSize: '1.35rem', fontWeight: 900, marginTop: 4, color: 'var(--color-text)' }}>{ms(ayrisma.sunucu_p75)}</div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>
+                          p75 · ortanca {ms(ayrisma.sunucu_p50)}
+                          <br />taşıma turu + sunucu işi
+                        </div>
+                      </div>
+                    </div>
+                    <p style={{ margin: '10px 0 0', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                      {ayrisma.n} açılışta ölçüldü<ZayifN n={ayrisma.n} />.
+                      {ayrisma.en_kotu && (
+                        <> En kötüsü: <code>{ayrisma.en_kotu.path}</code> — istek çıktıktan sonra{' '}
+                        <b>{ms(ayrisma.en_kotu.ttfb_ms! - ayrisma.en_kotu.req_ms!)}</b> beklendi.</>
+                      )}
+                      {' '}Sağdaki rakam <b>yalnız uygulama hesabı değildir</b>: kenar sunucudan origin&apos;e
+                      gidiş-dönüş de burada. Uygulamanın kendi payı ayrıca ölçüldüğünde 75–282 ms çıkmıştı,
+                      yani bu kutudaki sürenin büyük kısmı <b>taşıma</b>.
+                    </p>
+                  </>
+                )}
+              </Section>
+
+              {gezinmeler.length > 0 && (
+                /* Bu ayrım olmadan bfcache (geri/ileri) açılışları ortalamayı
+                   yapay olarak iyi gösteriyordu: onlar ağdan hiç geçmiyor. */
+                <Section title="Gezinme türüne göre — geri/ileri ile ilk açılış aynı şey değil">
+                  <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: '0.8rem' }}>
+                    {gezinmeler.map((g) => (
+                      <div key={g.tur} style={{ border: '1px solid var(--color-border)', borderRadius: 10, padding: '8px 12px' }}>
+                        <div style={{ fontWeight: 700, color: 'var(--color-text)' }}>
+                          {g.tur === 'navigate' ? 'İlk açılış' : g.tur === 'reload' ? 'Yenileme' : 'Geri / ileri'}
+                          <span style={{ color: 'var(--color-text-muted)', fontWeight: 400 }}> · {g.n} açılış</span>
+                          <ZayifN n={g.n} />
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: 2 }}>
+                          p75 LCP <b style={{ color: perfRenk(g.lcp_p75, 2500, 4000) }}>{ms(g.lcp_p75)}</b>
+                          {' · '}p75 TTFB <b style={{ color: perfRenk(g.ttfb_p75, 800, 1800) }}>{ms(g.ttfb_p75)}</b>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </Section>
+              )}
+
               <Section title="Sayfa bazında p75 (uzun = yavaş)">
                 {perf.sayfalar.length === 0 ? (
                   <div style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>Henüz veri yok.</div>
@@ -517,7 +725,7 @@ export default async function GirisIstatistikPage() {
                         {/* prefetch KAPALI — yukaridaki "en cok gezilen sayfalar"
                             listesiyle ayni gerekce: yol veriden geliyor, hedef yeni sekme. */}
                         <Link href={p.path} target="_blank" prefetch={false} style={{ flex: 1, minWidth: 0, fontSize: '0.85rem', color: 'var(--color-primary)', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.path}</Link>
-                        <span style={{ flexShrink: 0, fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{p.n.toLocaleString('tr-TR')} açılış</span>
+                        <span style={{ flexShrink: 0, fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{p.n.toLocaleString('tr-TR')} açılış<ZayifN n={p.n} /></span>
                         <span style={{ flexShrink: 0, width: 76, textAlign: 'right', fontSize: '0.85rem', fontWeight: 800, color: perfRenk(p.lcp_p75, 2500, 4000) }} title="p75 LCP">{ms(p.lcp_p75)}</span>
                         <span style={{ flexShrink: 0, width: 68, textAlign: 'right', fontSize: '0.78rem', color: perfRenk(p.ttfb_p75, 800, 1800) }} title={`p75 sunucu · en kötü ${ms(p.ttfb_max)}`}>{ms(p.ttfb_p75)}</span>
                       </div>
@@ -532,6 +740,23 @@ export default async function GirisIstatistikPage() {
                   fmt={(v) => (v / 1000).toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
                   renk={(v) => perfRenk(v, 2500, 4000)}
                 />
+              </Section>
+
+              {/* HAM SATIRLAR. Bu bölüm bilerek en altta ve bilerek özetsiz.
+                  Gerekçe (05.09.2026 ölçümü): 30 günlük pencerede ~160 temiz
+                  satır var, günlerin çoğunda 1-8 açılış. Bu hacimde yukarıdaki
+                  yüzdelikler tek bir yavaş açılışla zıplıyor; asıl bilgi
+                  satırların kendisinde ve hepsi tek ekrana sığıyor. Trafik
+                  büyüyünce bu bölüm gereksizleşir — o zaman kaldırılabilir. */}
+              <Section title="Ham ölçümler — her açılış tek tek">
+                <p style={{ margin: '0 0 10px', fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+                  Son 30 günde <b>{hamSayim.toplam}</b> satır: <b>{hamSayim.temiz}</b> tanesi yüzdeliklere giriyor,{' '}
+                  {hamSayim.ekip} tanesi ekip trafiği (elendi), {hamSayim.gizli} tanesi gizli sekmede ölçüldü.
+                  Soluk satırlar yukarıdaki rakamlara <b>dahil değil</b>. Bu trafikte tek bir yavaş açılış
+                  p75&apos;i tek başına belirleyebiliyor; <b style={{ color: 'var(--color-warning, #d97706)' }}>?</b> işareti
+                  olan her yerde önce buraya bak.
+                </p>
+                <HamTablo rows={hamHepsi} />
               </Section>
             </>
           )}
