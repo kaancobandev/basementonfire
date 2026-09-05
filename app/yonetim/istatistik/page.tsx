@@ -216,6 +216,10 @@ const GUVENILIR_N = 20;
 // Yüzdelikler yine TÜM pencereden hesaplanıyor, kısıtlanan yalnız DOM.
 const HAM_TABLO_TAVAN = 80;
 
+// Sorgudan kaç satır çekilir. Yüzdelikler bunun ÜZERİNDEN hesaplandığı için
+// pencereyi rahatça aşmalı; tabloya inen satır sayısıyla ilgisi yok.
+const HAM_SORGU_TAVAN = 2000;
+
 function ZayifN({ n }: { n: number }) {
   if (n >= GUVENILIR_N) return null;
   return (
@@ -313,7 +317,12 @@ export default async function GirisIstatistikPage() {
       .select('created_at, path, ttfb_ms, req_ms, fcp_ms, lcp_ms, load_ms, inp_ms, cls_x1000, device, conn, proto, country_code, nav_type, lcp_el, gizli, ekip')
       .gte('created_at', new Date(Date.now() - 30 * 86_400_000).toISOString())
       .order('created_at', { ascending: false })
-      .limit(400),
+      // ⚠ 400'dü ve PENCEREYİ KIRPIYORDU: 05.09.2026'da 30 günlük pencerede 434
+      // satır vardı, en eski 34'ü sessizce düşüyordu — üstelik başlık "son 30
+      // günde 400 satır" diye YANLIŞ sayı yazıyordu. Tavana dayanırsa artık
+      // söylüyoruz (bkz. hamSayim.kirpildi). Yalnız 80 satır DOM'a basıldığı
+      // için buradaki büyük sayının render maliyeti yok.
+      .limit(HAM_SORGU_TAVAN),
   ]);
 
   const trafficDormant = !!trafficRes.error;
@@ -371,16 +380,23 @@ export default async function GirisIstatistikPage() {
 
   // TTFB'nin iki yarısı. req_ms = isteğin ÇIKMASINA kadar (yönlendirme+DNS+TCP+TLS),
   // ttfb_ms − req_ms = istek çıktıktan sonrası (taşıma turu + sunucu işi).
-  const ayrisanSatirlar = hamTemiz.filter(
-    (r) => r.ttfb_ms != null && r.req_ms != null && r.ttfb_ms >= r.req_ms,
-  );
+  const ayristirilabilir = (r: HamSatir) => r.ttfb_ms != null && r.req_ms != null && r.ttfb_ms >= r.req_ms;
+  const ayrismaHesapla = (rows: HamSatir[]) => ({
+    n: rows.length,
+    baglanti_p50: yuzdelik(rows.map((r) => r.req_ms), 0.5),
+    baglanti_p75: yuzdelik(rows.map((r) => r.req_ms), 0.75),
+    sunucu_p50: yuzdelik(rows.map((r) => r.ttfb_ms! - r.req_ms!), 0.5),
+    sunucu_p75: yuzdelik(rows.map((r) => r.ttfb_ms! - r.req_ms!), 0.75),
+  });
+  // İKİ KÜME BİLEREK. req_ms yeni bir alan ve dolu satırların çoğu ekip
+  // trafiği: 05.09.2026'da 22 satırın 16'sı ekipti, ziyaretçi tarafında
+  // yalnız 6 kalıyordu. Ekibi elemek doğru kural ama bu n'de tek başına
+  // gösterilirse bölüm boş görünür; havuzlanmış rakam da ziyaretçiyi temsil
+  // etmez. İkisi ayrı ayrı yazılıyor ki hangisine baktığın belli olsun.
   const ayrisma = {
-    n: ayrisanSatirlar.length,
-    baglanti_p50: yuzdelik(ayrisanSatirlar.map((r) => r.req_ms), 0.5),
-    baglanti_p75: yuzdelik(ayrisanSatirlar.map((r) => r.req_ms), 0.75),
-    sunucu_p50: yuzdelik(ayrisanSatirlar.map((r) => r.ttfb_ms! - r.req_ms!), 0.5),
-    sunucu_p75: yuzdelik(ayrisanSatirlar.map((r) => r.ttfb_ms! - r.req_ms!), 0.75),
-    en_kotu: ayrisanSatirlar.reduce<HamSatir | null>(
+    ziyaretci: ayrismaHesapla(hamTemiz.filter(ayristirilabilir)),
+    hepsi: ayrismaHesapla(hamHepsi.filter(ayristirilabilir)),
+    en_kotu: hamHepsi.filter(ayristirilabilir).reduce<HamSatir | null>(
       (a, r) => (a == null || r.ttfb_ms! - r.req_ms! > a.ttfb_ms! - a.req_ms! ? r : a), null),
   };
 
@@ -400,6 +416,7 @@ export default async function GirisIstatistikPage() {
     .filter((g) => g.n > 0);
 
   const hamSayim = {
+    kirpildi: hamHepsi.length >= HAM_SORGU_TAVAN,
     toplam: hamHepsi.length,
     ekip: hamHepsi.filter((r) => r.ekip).length,
     gizli: hamHepsi.filter((r) => r.gizli).length,
@@ -656,44 +673,48 @@ export default async function GirisIstatistikPage() {
                   açılışın suçlusu bilinemiyordu: bağlantı kurmak mı uzun sürdü,
                   yoksa istek gittikten SONRASI mı? req_ms bunu ayırıyor. */}
               <Section title="İlk bayt nereye gidiyor? — bağlantı mı, sunucu mu">
-                {ayrisma.n === 0 ? (
+                {ayrisma.hepsi.n === 0 ? (
                   <div style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
                     Henüz ayrıştırılmış ölçüm yok. <code>req_ms</code> alanı yeni eklendi; yalnızca o tarihten
                     sonraki açılışlarda dolu.
                   </div>
                 ) : (
                   <>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10 }}>
-                      <div style={{ border: '1px solid var(--color-border)', borderRadius: 12, padding: '12px 14px' }}>
-                        <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', fontWeight: 700 }}>
-                          🔌 Bağlantı kurmak
-                        </div>
-                        <div style={{ fontSize: '1.35rem', fontWeight: 900, marginTop: 4, color: 'var(--color-text)' }}>{ms(ayrisma.baglanti_p75)}</div>
-                        <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>
-                          p75 · ortanca {ms(ayrisma.baglanti_p50)}
-                          <br />yönlendirme + DNS + TCP + TLS
-                        </div>
-                      </div>
-                      <div style={{ border: '1px solid var(--color-border)', borderRadius: 12, padding: '12px 14px' }}>
-                        <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', fontWeight: 700 }}>
-                          📡 İstek çıktıktan sonrası
-                        </div>
-                        <div style={{ fontSize: '1.35rem', fontWeight: 900, marginTop: 4, color: 'var(--color-text)' }}>{ms(ayrisma.sunucu_p75)}</div>
-                        <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>
-                          p75 · ortanca {ms(ayrisma.sunucu_p50)}
-                          <br />taşıma turu + sunucu işi
-                        </div>
-                      </div>
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+                        <thead>
+                          <tr style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', textAlign: 'left' }}>
+                            <th style={{ fontWeight: 700, paddingBottom: 6 }}>Kimin açılışı</th>
+                            <th style={{ fontWeight: 700, paddingBottom: 6, textAlign: 'right' }}>Ölçüm</th>
+                            <th style={{ fontWeight: 700, paddingBottom: 6, textAlign: 'right' }} title="yönlendirme + DNS + TCP + TLS">🔌 Bağlantı p75</th>
+                            <th style={{ fontWeight: 700, paddingBottom: 6, textAlign: 'right' }} title="taşıma turu + sunucu işi">📡 İstek sonrası p75</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {([
+                            ['Ziyaretçiler (ekip hariç)', ayrisma.ziyaretci, true],
+                            ['Ekip dahil hepsi', ayrisma.hepsi, false],
+                          ] as const).map(([ad, a, asil]) => (
+                            <tr key={ad} style={{ borderTop: '1px solid var(--color-border)', opacity: asil ? 1 : 0.72 }}>
+                              <td style={{ padding: '7px 0', fontWeight: asil ? 800 : 600, color: 'var(--color-text)' }}>{ad}</td>
+                              <td style={{ textAlign: 'right', color: 'var(--color-text-muted)' }}>{a.n}<ZayifN n={a.n} /></td>
+                              <td style={{ textAlign: 'right', fontWeight: 800 }}>{ms(a.baglanti_p75)}</td>
+                              <td style={{ textAlign: 'right', fontWeight: 800 }}>{ms(a.sunucu_p75)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
                     <p style={{ margin: '10px 0 0', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                      {ayrisma.n} açılışta ölçüldü<ZayifN n={ayrisma.n} />.
+                      <code>req_ms</code> yeni bir alan; dolu satırların çoğu şu an <b>ekip trafiği</b>, o yüzden iki
+                      satır ayrı yazıldı — üstteki asıl rakam, alttaki yalnızca bir fikir verir.
                       {ayrisma.en_kotu && (
                         <> En kötüsü: <code>{ayrisma.en_kotu.path}</code> — istek çıktıktan sonra{' '}
                         <b>{ms(ayrisma.en_kotu.ttfb_ms! - ayrisma.en_kotu.req_ms!)}</b> beklendi.</>
                       )}
-                      {' '}Sağdaki rakam <b>yalnız uygulama hesabı değildir</b>: kenar sunucudan origin&apos;e
+                      {' '}Sağdaki sütun <b>yalnız uygulama hesabı değildir</b>: kenar sunucudan origin&apos;e
                       gidiş-dönüş de burada. Uygulamanın kendi payı ayrıca ölçüldüğünde 75–282 ms çıkmıştı,
-                      yani bu kutudaki sürenin büyük kısmı <b>taşıma</b>.
+                      yani o sürenin büyük kısmı <b>taşıma</b>.
                     </p>
                   </>
                 )}
@@ -756,7 +777,7 @@ export default async function GirisIstatistikPage() {
                   büyüyünce bu bölüm gereksizleşir — o zaman kaldırılabilir. */}
               <Section title="Ham ölçümler — her açılış tek tek">
                 <p style={{ margin: '0 0 10px', fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
-                  Son 30 günde <b>{hamSayim.toplam}</b> satır: <b>{hamSayim.temiz}</b> tanesi yüzdeliklere giriyor,{' '}
+                  Son 30 günde <b>{hamSayim.toplam}</b> satır{hamSayim.kirpildi ? ' (sorgu tavanına dayandı — pencerede daha fazlası var)' : ''}: <b>{hamSayim.temiz}</b> tanesi yüzdeliklere giriyor,{' '}
                   {hamSayim.ekip} tanesi ekip trafiği (elendi), {hamSayim.gizli} tanesi gizli sekmede ölçüldü.
                   Soluk satırlar yukarıdaki rakamlara <b>dahil değil</b>. Aşağıda en yeni{' '}
                   {Math.min(HAM_TABLO_TAVAN, hamSayim.toplam)} satır listeleniyor (yüzdelikler yine tüm pencereden). Bu trafikte tek bir yavaş açılış
