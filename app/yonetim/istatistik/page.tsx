@@ -369,9 +369,12 @@ export default async function GirisIstatistikPage() {
                     <span>LCP'ye giren: <b style={{ color: 'var(--color-success)' }}>{perf.kirlilik.boya_sayilan.toLocaleString('tr-TR')}</b></span>
                   </div>
                   <p style={{ margin: '8px 0 0', fontSize: '0.74rem', color: 'var(--color-text-muted)' }}>
-                    ⚠ Yol (sayfa) ataması <b>2026-08-09'a kadar hatalıydı</b> — o tarihten önceki
-                    sayfa bazlı kırılıma güvenme. TTFB, sunucu payı değil: yönlendirme + DNS + TCP +
-                    TLS + sunucu <b>toplamı</b>. Origin payı ayrıca ölçüldü, 105-180 ms.
+                    TTFB sunucu payı <b>değildir</b>: yönlendirme + DNS + TCP + TLS + istek + sunucu
+                    <b> toplamıdır</b>. Sunucunun kendi payı 05.09.2026'da <code>/api/nav-state</code>
+                    Server-Timing başlığıyla ölçüldü: 10 ardışık çağrıda <b>75–282 ms</b> (medyan 120),
+                    ağ farkı ise medyan 303 ms, birinde 2419 ms. Yani <b>tek bir sayı yok</b> ve
+                    TTFB'nin içindeki sunucu payı bu panelden okunamaz — ayrım için aşağıdaki
+                    <b> bağlantı</b> ve <b>bekleme</b> sütunlarına bak.
                   </p>
                 </Section>
               )}
@@ -382,7 +385,7 @@ export default async function GirisIstatistikPage() {
                 </Section>
               )}
 
-              <Section title="Metrikler — p75 asıl rakam (ziyaretçilerin %75'i bundan hızlı gördü)">
+              <Section title="Metrikler — p75, sıralamada üstten dördüncü değer (tahmin değil)">
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.84rem', minWidth: 460 }}>
                     <thead>
@@ -469,13 +472,23 @@ export default async function GirisIstatistikPage() {
               </Section>
 
               {perf.soguk && perf.soguk.toplam > 0 && (
-                <Section title="Soğuk vuruşlar — önbellek bayatken gelen ziyaretçiler">
+                <Section title="Yavaş açılışlar — ilk bayt 1 sn'yi geçti">
                   <div style={{ fontSize: '0.85rem', color: 'var(--color-text)' }}>
-                    {perf.soguk.toplam.toLocaleString('tr-TR')} açılışın <b style={{ color: perfRenk(perf.soguk.adet, 0, Math.max(1, perf.soguk.toplam * 0.05)) }}>{perf.soguk.adet.toLocaleString('tr-TR')} tanesinde</b> sunucu
-                    1 sn'den geç yanıt verdi (%{perf.soguk.toplam ? Math.round((perf.soguk.adet / perf.soguk.toplam) * 100) : 0}).
+                    {perf.soguk.toplam.toLocaleString('tr-TR')} açılışın <b style={{ color: perfRenk(perf.soguk.adet, 0, Math.max(1, perf.soguk.toplam * 0.05)) }}>{perf.soguk.adet.toLocaleString('tr-TR')} tanesinde</b> <b>ilk bayt</b>
+                    1 sn'den geç geldi (%{perf.soguk.toplam ? Math.round((perf.soguk.adet / perf.soguk.toplam) * 100) : 0}).
+                    {/* 🚨 NEDENSELLİK CÜMLESİ KALDIRILDI — 05.09.2026.
+                        Buraya "ISR süresi dolmuş sayfaya denk gelip yeniden üretimi bekledi,
+                        çare düzenli ısıtma ya da revalidate penceresini genişletmek" yazıyordu.
+                        O açıklama ÖLÇÜMLE İKİ KEZ ÇÜRÜDÜ: keep-warm cron'u 28.07'de "hiç
+                        koşmadı" diye kaldırıldı, deploy süpürgesi 07.08'de çürüdü (8 yeniden
+                        üretim 0,18-0,98 sn). 05.09'da üçüncü kez ölçüldü: uygulama hesabı
+                        75-282 ms, yani yeniden üretim yavaş DEĞİL.
+                        ⛔ ISITMA / revalidate GENİŞLETME BİR DAHA ÖNERME — üç ölçüm elendi.
+                        Değerli olan bu bölümün LİSTESİ; sebep iddiası değil. */}
                     <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: 4 }}>
-                      Bu ziyaretçiler ISR süresi dolmuş bir sayfaya denk gelip yeniden üretimi <b>bekledi</b>. Sık tekrarlıyorsa çare
-                      düzenli ısıtma ya da <code>revalidate</code> penceresini genişletmek.
+                      İlk bayt = yönlendirme + DNS + TCP + TLS + istek + sunucu toplamı.
+                      <b> Nedeni bu panelden okunamaz</b> — hangi kalemde geçtiğini görmek için
+                      satırın bağlantı/bekleme ayrımına bakmak gerekir.
                     </div>
                   </div>
                   {perf.soguk.ornekler.length > 0 && (
@@ -552,7 +565,13 @@ export default async function GirisIstatistikPage() {
 
         <p style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', textAlign: 'center', margin: 0 }}>
           Sunucu tarafı sayım — çerez onayından bağımsız, tüm ziyaretçileri kapsar. Ham IP saklanmaz. Sayfa 30 sn'de bir yenilenir.
-          <br />Hız ölçümü ziyaretçinin tarayıcısından gelir; kimlik veya çerez taşımaz, yalnızca süre ve sayfa yolu kaydedilir.
+          {/* 🚨 05.09.2026: burada "yalnızca süre ve sayfa yolu kaydedilir" yazıyordu ve bu
+              YANLIŞTI — tablo ayrıca device, conn, proto, country_code, lcp_el, nav_type de
+              saklıyor. Panelin kendi beyanı topladığı veriyi eksik anlatıyordu; aynı düzeltme
+              app/aydinlatma ve app/gizlilik metinlerine de girdi. */}
+          <br />Hız ölçümü ziyaretçinin tarayıcısından gelir; kimlik veya çerez taşımaz.
+          Kaydedilenler: süre metrikleri, sayfa yolu, cihaz sınıfı, bağlantı türü, protokol,
+          ülke kodu ve LCP öğesinin etiket adı.
         </p>
       </div>
     </main>

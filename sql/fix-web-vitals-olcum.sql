@@ -124,9 +124,19 @@ as $$
       from (
         -- ⚠ ETIKET DUZELTILDI. Eskiden "Sunucu ilk baytı" yaziyordu ve bu YANLIS
         -- teshise yol acti: beacon nav.responseStart yaziyor, yani YONLENDIRME +
-        -- DNS + TCP + TLS + istek + sunucu TOPLAMI. Origin isleme payi olculdu,
-        -- yalniz 105-180 ms. Ikisi ayni sey sanildigi icin aylarca "sunucu yavas"
-        -- diye arandi. (Hedef ag: Turkcell/Istanbul, 30 taze baglanti, p75 = 300 ms.)
+        -- DNS + TCP + TLS + istek + sunucu TOPLAMI. Ikisi ayni sey sanildigi icin
+        -- aylarca "sunucu yavas" diye arandi.
+        --
+        -- ⚠ 2026-09-05'te ESKI RAKAM SILINDI. Burada "origin payi 105-180 ms"
+        -- yaziyordu; tek bir olcumden geliyordu ve artik dogru degil. Olculen:
+        -- uygulama isleme payi 75-282 ms (medyan ~120), TTFB ile arasindaki fark
+        -- medyan ~303 ms, bir ornekte 2419 ms. Yani baskin kalem uygulama
+        -- HESABI degil, kenar->origin TASIMA suresi. Tek bir sayi vermeye
+        -- calisma; degisken.
+        --
+        -- Bu kolonu asil olcen alan artik req_ms (nav.requestStart):
+        -- ttfb_ms - req_ms = istek gonderildikten sonra gecen sure.
+        -- (Hedef ag: Turkcell/Istanbul, 30 taze baglanti, p75 = 300 ms.)
         select 1 as sira, 'TTFB' as ad, 'İlk bayta kadar TÜM süre (ağ + sunucu)' as aciklama, 800 as iyi, 1800 as kotu,
                (percentile_cont(0.50) within group (order by ttfb_ms))::int as p50,
                (percentile_cont(0.75) within group (order by ttfb_ms))::int as p75,

@@ -83,6 +83,13 @@ export default function GizlilikPage() {
           <em> her gün değişen</em> bir özet (hash) ile yaklaşık sayarız — ertesi gün eşleşmez, yani seni günler
           boyunca takip etmez. (Plausible tarzı, gizlilik dostu yöntem.)
         </li>
+        <li>
+          <strong>Sayfa hızı ölçümü:</strong> tarayıcının kendi ölçtüğü açılış süreleri (ilk bayt, ilk
+          boyama, en büyük içeriğin gelme süresi, tıklama gecikmesi, kayma miktarı) ile birlikte sayfa
+          yolu, cihaz sınıfı (mobil/masaüstü), bağlantı türü, bağlantı protokolü ve ülke kodu.
+          <strong> Çerez kullanmaz; IP adresini, kimliğini ve hesabını kaydetmez.</strong> Amaç:
+          sitenin yavaş açıldığı sayfaları bulup düzeltmek.
+        </li>
       </ul>
 
       <h2 style={h2}>3. Çerezler</h2>
@@ -126,6 +133,7 @@ export default function GizlilikPage() {
         <li><strong>Hesabın, içeriğin ve mesajların:</strong> hesabını silene kadar.</li>
         <li><strong>Giriş kayıtları:</strong> en fazla 12 ay.</li>
         <li><strong>Sayfa görüntüleme istatistiği:</strong> en fazla 12 ay (toplu, kimliğinle ilişkilendirilmez).</li>
+        <li><strong>Sayfa hızı ölçümü:</strong> en fazla 12 ay (kimliğinle ilişkilendirilmez).</li>
         <li><strong>Google Analytics çerezleri:</strong> ~2 yıl; onayını geri çekersen işleme durur.</li>
       </ul>
 

@@ -115,6 +115,18 @@ export default function AydinlatmaPage() {
               <td style={td}>m. 5/2-f — meşru menfaat</td>
             </tr>
             <tr>
+              <td style={td}>Sayfa hızı ölçümü (açılış süreleri, cihaz sınıfı, bağlantı türü, ülke)</td>
+              <td style={td}>
+                Sitenin yavaş açıldığı yerleri bulup düzeltmek. Tarayıcının kendi ölçtüğü süreler
+                (ilk bayt, ilk boyama, en büyük içerik, gecikme) ile birlikte <em>sayfa yolu</em>,
+                <em> cihaz sınıfı</em> (mobil/masaüstü), <em>bağlantı türü</em> (4g vb.),
+                <em> bağlantı protokolü</em> ve <em>ülke kodu</em> tutulur.
+                <strong> Çerez kullanılmaz; IP adresin, kimliğin ve hesabın kaydedilmez</strong> —
+                kayıtlar seninle ilişkilendirilemez.
+              </td>
+              <td style={td}>m. 5/2-f — meşru menfaat</td>
+            </tr>
+            <tr>
               <td style={td}>Google Analytics çerezleri</td>
               <td style={td}>Detaylı ziyaret istatistiği. <strong>Sadece onay verirsen</strong> çalışır; reddedersen hiç kurulmaz.</td>
               <td style={td}>m. 5/1 — <a href="/acik-riza" style={linkStyle}>açık rıza</a></td>
@@ -153,6 +165,7 @@ export default function AydinlatmaPage() {
         <li><strong>Hesap bilgilerin, içeriğin ve mesajların:</strong> hesabını silene kadar. Hesabını sildiğinde bu veriler silinir.</li>
         <li><strong>Giriş kayıtları:</strong> güvenlik amacıyla en fazla 12 ay.</li>
         <li><strong>Sayfa görüntüleme istatistiği:</strong> en fazla 12 ay (toplu istatistik; kimliğinle ilişkilendirilmez).</li>
+        <li><strong>Sayfa hızı ölçümü:</strong> en fazla 12 ay (kimliğinle ilişkilendirilmez).</li>
         <li><strong>Google Analytics çerezleri:</strong> tipik olarak ~2 yıl; onayını geri çektiğinde işleme durur.</li>
         <li>Hukuken saklamamız gereken bir durum varsa (örn. yasal talep), ilgili süre boyunca sınırlı olarak saklanabilir.</li>
       </ul>
