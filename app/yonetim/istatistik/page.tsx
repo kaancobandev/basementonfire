@@ -210,6 +210,12 @@ function yuzdelik(ham: (number | null | undefined)[], q: number): number | null 
 // tek bir yavaş açılış p75'i tamamen ele geçirmesin diye 20'de tutuyoruz.
 const GUVENILIR_N = 20;
 
+// Tabloya kaç satır basılır. ⚠ 05.09.2026: önce tavan yoktu (400 satır x 17
+// hücre) ve sayfa o kadar ağırlaştı ki tarayıcının ekran görüntüsü alması
+// 30 sn'de zaman aşımına uğradı — yani panel kendi ölçtüğü şeyi bozuyordu.
+// Yüzdelikler yine TÜM pencereden hesaplanıyor, kısıtlanan yalnız DOM.
+const HAM_TABLO_TAVAN = 80;
+
 function ZayifN({ n }: { n: number }) {
   if (n >= GUVENILIR_N) return null;
   return (
@@ -752,11 +758,12 @@ export default async function GirisIstatistikPage() {
                 <p style={{ margin: '0 0 10px', fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
                   Son 30 günde <b>{hamSayim.toplam}</b> satır: <b>{hamSayim.temiz}</b> tanesi yüzdeliklere giriyor,{' '}
                   {hamSayim.ekip} tanesi ekip trafiği (elendi), {hamSayim.gizli} tanesi gizli sekmede ölçüldü.
-                  Soluk satırlar yukarıdaki rakamlara <b>dahil değil</b>. Bu trafikte tek bir yavaş açılış
+                  Soluk satırlar yukarıdaki rakamlara <b>dahil değil</b>. Aşağıda en yeni{' '}
+                  {Math.min(HAM_TABLO_TAVAN, hamSayim.toplam)} satır listeleniyor (yüzdelikler yine tüm pencereden). Bu trafikte tek bir yavaş açılış
                   p75&apos;i tek başına belirleyebiliyor; <b style={{ color: 'var(--color-warning, #d97706)' }}>?</b> işareti
                   olan her yerde önce buraya bak.
                 </p>
-                <HamTablo rows={hamHepsi} />
+                <HamTablo rows={hamHepsi.slice(0, HAM_TABLO_TAVAN)} />
               </Section>
             </>
           )}
