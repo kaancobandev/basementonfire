@@ -143,10 +143,18 @@ export default async function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(websiteJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(organizationJsonLd) }} />
 
-      {/* Feed'deki GIF'ler Giphy CDN'inden gelir — DNS+TLS'i önden aç.
-          React bu link'i head'e taşır; yalnız bu sayfada emit edilir. */}
-      <link rel="dns-prefetch" href="https://media3.giphy.com" />
-      <link rel="preconnect" href="https://media3.giphy.com" crossOrigin="anonymous" />
+      {/* 🚫 GIPHY PRECONNECT KALDIRILDI — 29.08.2026, ölçümle.
+          Buradaki eski yorum "feed'deki GIF'ler Giphy CDN'inden gelir" diyordu;
+          o öncül artık DOĞRU DEĞİL. Ölçüldü: quick_facts, posts, stories ve
+          did_you_know satırlarının HİÇBİRİNDE giphy adresi yok (0/27); avatarlarda
+          0, DM'lerde 0. `GiphyPicker` yalnızca profil avatarı seçiminde kullanılıyor
+          (app/profile/ProfileClient.tsx) ve orada bile sunucu GIF'i indirip KENDİ
+          kovamıza kopyalıyor (api/profile/avatar) — yani Giphy CDN'ine istek
+          yapısal olarak da çıkmıyor.
+          Yani sitenin en çok ziyaret edilen sayfası, hiç kullanılmayan bir hosta
+          DNS + TCP + TLS el sıkışması açıyordu. Üstelik `dns-prefetch` gereksizdi:
+          `preconnect` DNS'i zaten kapsıyor, ikisi birlikte aynı hosta iki ipucu.
+          ⚠ Feed'e gerçekten Giphy görseli girerse GERİ EKLE — ama o gün ölçerek. */}
 
       <h1 style={gizliBaslik}>Basementonfire — bilim, tarih ve kültür</h1>
 
