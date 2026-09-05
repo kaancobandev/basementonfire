@@ -55,7 +55,49 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL('/eposta-onayi?suresi_doldu=1', req.url), { status: 303 });
   }
 
-  /* Kayıtta yazılan ad ile GERÇEKTEN açılan ad farklıysa kullanıcıya söyle.
+  /* ═══ TEK `getUser()` — iki kapı da aynı sonucu kullanır ═══
+     Aşağıda iki iş var ve ikisi de doğrulanmış kullanıcıya bakıyor:
+       1) OTURUM SABİTLEME KAPISI (güvenlik) — önce koşar, çünkü reddederse
+          ikincisinin ürettiği bayrağın hiçbir anlamı kalmaz.
+       2) Kullanıcı adı değişti bildirimi (konfor).
+     Ayrı ayrı çağırmak fazladan bir Supabase turu demekti. */
+  let user: Awaited<ReturnType<typeof client.auth.getUser>>['data']['user'] = null;
+  try { ({ data: { user } } = await client.auth.getUser()); } catch { /* aşağıda güvenli tarafa düşer */ }
+
+  /* 🚨 1) OTURUM SABİTLEME KAPISI — 26.08.2026 denetimi.
+     Bu uç KÖKEN KONTROLÜ OLMAYAN, OTURUM KURAN bir GET'ti. Saldırgan kendi
+     adresiyle kayıt olur, kendi gelen kutusundaki onay bağlantısını kurbana
+     yollar; kurban tıklayınca SALDIRGANIN oturumu kurbanın tarayıcısına
+     yazılıyordu. Kurbanın o oturumda yazdığı DM, gönderi, yüklediği medya ve
+     kazandığı XP saldırganın hesabına düşüyor ve saldırgan hepsini okuyor.
+
+     ⛔ `Sec-Fetch-Site` ile KAPATILAMAZ — diğer kimlik uçlarında kullandığım
+        kapı burada işe yaramaz, çünkü MEŞRU e-posta bağlantısı da çapraz
+        kökenden gelir. Ayrım köken değil, KİMİN BAŞLATTIĞIDIR.
+
+     KAPI: onay bağlantısını açan tarayıcı, kaydı BAŞLATAN tarayıcı mı?
+     `bo-pending-email` kayıtta yazılıyor (httpOnly, 24 saat) ve kişinin KENDİ
+     adresini taşıyor. Onaylanan hesabın adresiyle eşleşiyorsa aynı tarayıcıdır
+     → oturum kurulur, bugünkü akış hiç değişmez.
+
+     Eşleşmezse oturum KURULMAZ; hesap yine onaylanır, kişi /login'e gider.
+       · Saldırı: kurbanın tarayıcısında saldırganın adresi YOK → oturum yok.
+       · Meşru fark: masaüstünde kayıt olup postayı telefonda açan kullanıcı
+         bir kez şifre girer — zaten o cihazda giriş yapması gerekiyordu.
+
+     🚨 `ok` DÖNDÜRÜLMEZSE oturum çerezleri HİÇ GÖNDERİLMEZ: `verifyOtp` onları
+        `ok` NESNESİNE yazıyor (createAuthClientForResponse), yanıtın kendisine
+        değil. Yeni bir yanıt döndürmek, oturumu kurmamanın doğru yolu. */
+  const bekleyen = (req.cookies.get(PENDING_EMAIL_COOKIE)?.value ?? '').trim().toLowerCase();
+  const onaylanan = String(user?.email ?? '').trim().toLowerCase();
+  // Kullanıcı okunamadıysa (`user` null) GÜVENLİ tarafta kal: oturum kurma.
+  if (!bekleyen || !onaylanan || bekleyen !== onaylanan) {
+    const gir = NextResponse.redirect(new URL('/login?error=onaylandi_giris_yap', req.url), { status: 303 });
+    gir.cookies.set(PENDING_EMAIL_COOKIE, '', { path: '/', maxAge: 0 });
+    return gir;
+  }
+
+  /* 2) Kayıtta yazılan ad ile GERÇEKTEN açılan ad farklıysa kullanıcıya söyle.
      Ad onaya kadar rezerve edilmiyor (profil satırı ancak burada doğuyor), o
      yüzden arada başkası aynı adı almış olabilir; tetikleyici kaydı düşürmüyor
      ama sessizce `ad2` yapıyordu. Bayrağı istemci okuyup bildirim gösteriyor.
@@ -65,11 +107,9 @@ export async function GET(req: NextRequest) {
         istemci kendi oturumundan (nav-state) okuyor.
      🚨 YENİ RESPONSE ÜRETİLMİYOR, sadece `location` başlığı değiştiriliyor:
         oturum çerezleri `ok`a yazıldı, yeni bir yanıt kurmak onları düşürür ve
-        kullanıcı onaylamış ama giriş yapmamış olurdu (bu tuzağa daha önce
-        düşüldü — bkz. auth-redirect-cookie-gotcha).
+        kullanıcı onaylamış ama giriş yapmamış olurdu (bkz. auth-redirect-cookie-gotcha).
      Tümü try/catch: bu bir KONFOR bildirimi, onay akışını asla düşürmemeli. */
   try {
-    const { data: { user } } = await client.auth.getUser();
     const istenen = String((user?.user_metadata as Record<string, unknown> | undefined)?.username ?? '')
       .trim().toLowerCase();
     if (user && istenen) {

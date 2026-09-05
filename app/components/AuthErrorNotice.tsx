@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { authMessage } from '@/lib/authMessages';
+import { authMessage, BASARI_KODLARI } from '@/lib/authMessages';
 
 // `?error=<kod>` kutusu — İSTEMCİDE okunur ki login/register sayfaları statik
 // kalabilsin (sunucuda searchParams okumak sayfayı dinamik yapar). Güvenlik
@@ -16,10 +16,11 @@ export default function AuthErrorNotice() {
   }, []);
 
   const message = authMessage(code ?? undefined);
+  const basarili = !!code && BASARI_KODLARI.has(code);
   if (!message) return null;
 
   return (
-    <div role="alert" style={{ background: 'var(--color-danger-soft)', color: 'var(--color-danger)', padding: '10px 14px', borderRadius: '10px', fontSize: '0.85rem', marginBottom: '16px' }}>
+    <div role="alert" style={{ background: basarili ? 'var(--color-success-soft, #dcfce7)' : 'var(--color-danger-soft)', color: basarili ? 'var(--color-success, #15803d)' : 'var(--color-danger)', padding: '10px 14px', borderRadius: '10px', fontSize: '0.85rem', marginBottom: '16px' }}>
       {message}
       {/* Onaysız hesap giriş yapamaz. Kullanıcının burada SIKIŞMASININ
           sebebi buydu: hatayı görüyor ama ne yapacağını bilmiyordu. */}

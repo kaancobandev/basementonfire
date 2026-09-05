@@ -47,11 +47,17 @@ export const AUTH_MESSAGES: Record<string, string> = {
   sifirlama_gonderildi: 'Şifre sıfırlama bağlantısı gönderildi. E-postanı kontrol et.',
 
   // E-posta onayı
+  onaylandi_giris_yap: 'E-postan onaylandı. Şimdi giriş yapabilirsin.',
   onay_gecersiz: 'Onay bağlantısı geçersiz. E-postandaki bağlantıya tekrar tıkla.',
 
   // Genel
   bilinmeyen:   'Bir şeyler ters gitti. Lütfen tekrar dene.',
 };
+
+/** Hata DEĞİL, iyi haber olan kodlar — kutu kırmızı yerine yeşil çizilir.
+ *  (Bu mekanizma zaten `sifirlama_gonderildi` ile başarı metni taşıyordu ama
+ *   kutu hep kırmızıydı; onay mesajını kırmızı göstermek yanlış olurdu.) */
+export const BASARI_KODLARI = new Set(['onaylandi_giris_yap', 'sifirlama_gonderildi']);
 
 /** Kod → Türkçe metin. Bilinmeyen/uydurma kod genel mesaja düşer. */
 export function authMessage(code: string | undefined): string | null {

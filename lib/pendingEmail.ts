@@ -15,7 +15,14 @@ export const PENDING_EMAIL_COOKIE_OPTIONS = {
   secure: process.env.NODE_ENV === 'production',
   sameSite: 'lax' as const,
   path: '/',
-  maxAge: 60 * 60, // 1 saat — onay ekranını tazeleyip yeniden göndermeye yeter
+  /* 24 saat. ESKİDEN 1 SAATTI ve yalnız "onay ekranını tazele + yeniden gönder"
+     içindi. 26.08.2026'da İKİNCİ bir görev üstlendi: `/auth/confirm` bu çerezle
+     "onay bağlantısını açan tarayıcı, kaydı BAŞLATAN tarayıcı mı?" sorusunu
+     cevaplıyor (oturum sabitleme kapısı). İnsanlar e-postasını bir saat içinde
+     okumayabilir; süre kısa kalırsa kendi hesabını onaylayan kullanıcı da
+     giriş yapmak zorunda kalır — güvenlik kazancı yok, sürtünme var.
+     Çerez httpOnly + SameSite=Lax ve yalnız kişinin KENDİ adresini taşıyor. */
+  maxAge: 60 * 60 * 24,
 };
 
 /** Ekranda gösterim için adresi maskeler: kaan@gmail.com → k***@gmail.com */
