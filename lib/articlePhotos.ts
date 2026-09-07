@@ -18,6 +18,7 @@ export const ARTICLE_PHOTOS: Record<string, string[]> = {
     "/articles/atilla/deforme-kafatasi.webp",
     "/articles/atilla/honoria-sikkesi.webp",
     "/articles/atilla/hun-kazani.webp",
+    "/articles/atilla/leo-atilla-muzakere.webp",
     "/articles/atilla/raphael-mincio.webp",
     "/articles/atilla/romulus-augustulus.webp",
     "/articles/atilla/solidus-theodosius.webp",
@@ -356,5 +357,12 @@ export const ARTICLE_PHOTOS: Record<string, string[]> = {
     "/articles/turkler/fatih-portre.webp",
     "/articles/turkler/kultigin-basi.webp",
     "/articles/turkler/malazgirt.webp"
+  ],
+  "zihin-yukleme": [
+    "/articles/zihin-yukleme/c-elegans-ag.webp",
+    "/articles/zihin-yukleme/c-elegans-mikroskop.webp",
+    "/articles/zihin-yukleme/cajal-hipokampus.webp",
+    "/articles/zihin-yukleme/frontier-superbilgisayar.webp",
+    "/articles/zihin-yukleme/piramidal-noron.webp"
   ]
 };

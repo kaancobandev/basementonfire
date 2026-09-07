@@ -1,0 +1,31 @@
+{
+  "slug": "zihin-yukleme",
+  "note": "Makalenin üç soruluk omurgasına göre yerleştirildi: (1) HARİTALAMA bölümü elle çizimle açılıyor — Cajal 1911 — sonra bugünkü petabaytlık ölçek anlatılıyor; (2) ÇALIŞTIRMA bölümünde solucanın kendisi ve bütün sinir ağı YAN YANA duruyor, çünkü bölümün tezi tam olarak bu: hayvan da elimizde, haritası da, yine çalıştıramıyoruz; (3) 'bir nöron bir düğüm değildir' kutusunda Golgi boyalı piramidal nöron, dendritik dikenleri görünür halde; (4) KURUNTU bölümünün 'yeterli hesap gücü olsa' maddesinde Frontier. GÖRSEL YOK: Matrix/kültür bölümü (film kareleri telifli), kimlik bölümü (soyut, illüstrasyon uydurma olurdu). SETTEN ÇIKARILDI: 'Connectome extraction procedure' (Hagmann ve ark.) — görsel güzel ve koyu zeminli ama MRI/traktografi düzeyinde bir konnektom anlatıyor; makale sinaps düzeyini konu ediyor ve arada milyon kat çözünürlük farkı var. Almak, makalenin hiç açmadığı bir konuyu altyazıyla açmayı gerektirirdi. HEPSİ GÖZLE DOĞRULANDI 07.09.2026 — dosya adına güvenilmedi; Cajal karesi 'CajalHippocampus' adını taşıyor ama Commons kaynak metni KEMİRGEN hipokampüsü diyor (insan değil), altyazı buna göre yazıldı.",
+  "files": [
+    {
+      "title": "File:CajalHippocampus.jpeg",
+      "as": "cajal-hipokampus",
+      "note": "1. SORU (Haritalama) açılışı — 'beyin ilk kez elle haritalandı' fikri. KAYNAK METNİ DOĞRULANDI: Santiago Ramón y Cajal, Histologie du Système Nerveux de l'Homme et des Vertébrés, A. Maloine, Paris, 1911. ALTYAZI SINIRI: çizim KEMİRGEN hipokampüsü, insan DEĞİL — 'insan beyni' yazma. Oklar Cajal'ın imzası: sinyalin hangi yöne aktığını gösteriyorlar, yani daha o zaman soru 'bağlantı nerede' değil 'bilgi nereye gidiyor'du. PD-old (Cajal 1934'te öldü)."
+    },
+    {
+      "title": "File:Caenorhabditis elegans under a light microscope 01.jpg",
+      "as": "c-elegans-mikroskop",
+      "note": "2. SORU (Çalıştırma) — solucanın kendisi. Aydınlık alan mikroskobu, okülerden çekilmiş (dairesel vinyet gerçek, kırpma değil). Wiki Science Competition 2025 India. ALTYAZI SINIRI: karede ONLARCA birey var, tek bir hayvan değil; 'işte 302 nöronlu hayvan' derken çoğul kurmaya dikkat. Çok uzun dikey kare (2252×4000) → ağ görseliyle çift sütunda eşlenirken narrow kullan."
+    },
+    {
+      "title": "File:C.elegans-brain-network.jpg",
+      "as": "c-elegans-ag",
+      "note": "2. SORU (Çalıştırma) — solucanın BÜTÜN sinir ağı tek karede; mikroskop karesiyle YAN YANA duracak, bölümün tezi bu eşleşmede: hayvan da elimizde, haritası da, yine çalıştıramıyoruz. ALTYAZI SINIRI: Gephi ile çizilmiş, veri Watts & Strogatz derlemesinden — bu 1986 konnektomunun kendisi DEĞİL, ondan türetilen ağ; 'White 1986' diye künyeleme. Beyaz zeminli (makale koyu) — bilerek, diyagramlar beyazda okunuyor. Görselde Gephi logosu var, kırpma."
+    },
+    {
+      "title": "File:Pyramidal hippocampal neuron 40x.jpg",
+      "as": "piramidal-noron",
+      "note": "2. SORU — 'bir nöron bir düğüm değildir' kutusu (Beniaguev 2021: tek nöron için 5-8 katmanlı ağ). Golgi boyası, 40x. Dallar boyunca DENDRİTİK DİKENLER çıplak gözle seçiliyor — görselin işi tam olarak bu, karmaşıklığı göstermek. KAYNAK METNİ: epilepsi hastasının hipokampüsü. ALTYAZI FIRSATI: makaledeki 1,4 petabaytlık insan korteksi örneği de epilepsi ameliyatından geliyordu — aynı sağlanma hikâyesi, bağla."
+    },
+    {
+      "title": "File:Frontier supercomputer (6).jpg",
+      "as": "frontier-superbilgisayar",
+      "note": "KURUNTU bölümü — 'yeterli hesap gücü olsa yapardık' maddesi. Oak Ridge National Laboratory. ALTYAZI SINIRI: yalnız DOĞRULANMIŞ rakamı kullan — Frontier Haziran 2022'de 1,102 exaFLOPS ile ilk gerçek exascale sistem oldu. 2026 sıralamasını buraya YAZMA (o rakam ayrı doğrulama ister). Görselin işi makinenin büyüklüğünü değil, YETMEDİĞİNİ göstermek: darboğaz hesap değil, veri ve model. Koyu zeminli kare, makaleyle uyumlu."
+    }
+  ]
+}

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import {
   ArticleShell, ArticleHero, ArticleLede, ArticleSection, CardGrid, HorizontalTimeline, ArticleQuiz, ArticleBibliography, ArticleFooter,
 } from '@/app/components/article/ArticleBlocks';
+import ArticleImage from '@/app/components/article/ArticleImage';
 import { OlcekMerdiveni, IddiaAyraci, timeline, kultur } from './widgets';
 import { refs } from './refs';
 
@@ -50,6 +51,18 @@ function Etiket({ tur, children }: { tur: 'hakemli' | 'onbaski' | 'rapor' | 'hab
 export default function ZihinClient() {
   return (
     <ArticleShell accent={ACCENT} title="Zihnini Yükleyebilir misin?">
+      <style>{`
+        .zy-img {
+          --ai-caption: #cbd5e1;
+          --ai-credit: #8b93c4;
+          --ai-border: rgba(129,140,248,0.22);
+          --ai-fill: rgba(129,140,248,0.05);
+          --ai-mark: rgba(129,140,248,0.28);
+        }
+        .zy-img-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+        @media (max-width: 700px) { .zy-img-pair { grid-template-columns: 1fr; } }
+      `}</style>
+
       <ArticleHero
         title="Zihnini Yükleyebilir misin?"
         fullTitle="Zihnini Yükleyebilir misin? — Tek Soru Sandığın Üç Ayrı Soru"
@@ -139,6 +152,15 @@ export default function ZihinClient() {
           Doku “tipik bir insan beyni” de değil: 45 yaşında bir kadının, altındaki epileptik odağa ulaşmak için ameliyatla çıkarılan sol ön orta temporal girusu. Bilim çoğu zaman ideal örnekle değil, eline geçenle çalışır.
         </p>
 
+        <ArticleImage narrow
+          className="zy-img mx-auto max-w-[340px]"
+          src="/articles/zihin-yukleme/cajal-hipokampus.webp"
+          ratio="687 / 1280"
+          alt="Elle çizilmiş siyah beyaz anatomik şema: kıvrımlı bir yapı boyunca dizilmiş dallı budaklı sinir hücreleri ve aralarında yön okları taşıyan uzun lifler."
+          caption="Beyin ilk kez böyle haritalandı: Santiago Ramón y Cajal’ın 1911’de elle çizdiği kemirgen hipokampüsü. Oklar onun imzasıdır — daha o zaman sorduğu şey “ne nereye bağlı” değil, “bilgi hangi yöne akıyor”du. Bugün aynı işi bir milimetreküp için yapmak 1,4 petabayt tutuyor."
+          credit="Wikimedia Commons · kamu malı"
+        />
+
         <OlcekMerdiveni />
 
         <p className="mb-4 leading-relaxed text-slate-300">
@@ -179,9 +201,37 @@ export default function ZihinClient() {
           </p>
         </FunFact>
 
+        <ArticleImage
+          className="zy-img mt-6"
+          src="/articles/zihin-yukleme/piramidal-noron.webp"
+          ratio="1344 / 1024"
+          alt="Gri tonlu mikroskop görüntüsü: koyu boyanmış tek bir sinir hücresi, gövdesinden çıkan uzun dallar ve dalların üzerine sıralanmış minik çıkıntılar."
+          caption="Golgi boyasıyla görünür kılınmış tek bir piramidal nöron. Dalların üzerindeki o minik çıkıntılar dendritik dikenler — bağlantıların kurulduğu yer. Tek bu hücrenin girdi-çıktı davranışını taklit etmek 5–8 katmanlı bir yapay ağ gerektiriyor. Doku, makaledeki 1,4 petabaytlık insan korteksi örneği gibi, bir epilepsi ameliyatından geliyor."
+          credit="Wikimedia Commons kullanıcısı MethoxyRoxy · CC BY-SA 2.5"
+        />
+
         <p className="mt-6 mb-4 leading-relaxed text-slate-300">
           Peki solucan? Tam konnektomu 1986’dan beri elimizde. Aralık 2024’te kapalı döngü, gövdeli bir C. elegans modeli gerçekçi zigzag hareketi ve kimyasal iz sürmeyi yeniden üretti — yani <strong className="text-white">kısmi ve davranışa özel bir sanal solucan artık var.</strong> Tam bir emülasyon ise yok. Ve eksik olan şey hâlâ harita değil: o modelde 302 nöronun yalnızca <strong className="text-indigo-300">beşinin</strong> gerçek elektriksel parametresi ölçülmüş durumda. Gerisi türetildi.
         </p>
+
+        <div className="zy-img-pair mt-6">
+          <ArticleImage narrow
+            className="zy-img"
+            src="/articles/zihin-yukleme/c-elegans-mikroskop.webp"
+            ratio="1600 / 2842"
+            alt="Mikroskop okülerinden çekilmiş dairesel görüntü: açık renkli besiyeri üzerinde kıvrılarak duran onlarca ince, saydam solucan."
+            caption="Caenorhabditis elegans. Hermafroditinde tam 302 nöron var — ve bütün bağlantı şeması 1986’dan beri elimizde."
+            credit="Wikimedia Commons kullanıcısı Gannu03 · CC BY-SA 4.0"
+          />
+          <ArticleImage narrow
+            className="zy-img"
+            src="/articles/zihin-yukleme/c-elegans-ag.webp"
+            ratio="1024 / 768"
+            alt="Beyaz zeminde ağ diyagramı: yüzlerce turuncu ve mor daire ince çizgilerle birbirine bağlanmış; ortadaki birkaç düğüm belirgin biçimde daha büyük."
+            caption="Aynı solucanın bütün sinir ağı tek karede; her daire bir nöron. Şema kırk yıldır elimizde ama hayvanın tamamı hâlâ simüle edilemiyor. Eksik olan harita değil, haritanın üstündeki her şey."
+            credit="Mentatseb · CC BY-SA 3.0"
+          />
+        </div>
         <p className="mb-4 leading-relaxed text-slate-300">
           Konnektom kampının en güçlü sonucu bile aynı sınırı kendi ağzıyla söylüyor. 2024’te bir ekip sineğin görme sisteminin bağlantı haritasını aldı, 45.669 nöron ve 1,5 milyon sinapsla model kurdu, bilinmeyen <strong className="text-indigo-300">734 parametreyi</strong> derin öğrenmeyle uydurdu — ve ortaya çıkan öngörüler 26 ayrı çalışmanın ölçtüğü aktiviteyle uyuştu. Gerçek bir başarı.
         </p>
@@ -335,6 +385,15 @@ export default function ZihinClient() {
               Bunun tersi (“hiçbir bilgisayar asla yetmez”) de aynı ölçüde dayanaksız — çünkü soru yanlış kurulmuş. Gereken güç tahminleri 10¹⁵ ile 10³⁰ FLOPS arasında değişiyor: <strong className="text-white">on beş büyüklük mertebesi</strong> belirsizlik. Alt uç bugün elimizde. Üst uç bugünkü en hızlı makinenin bir trilyon katı. Hangisinin doğru olduğu tamamen “hangi biyolojik ayrıntı gerekli?” sorusuna bağlı — ve o soru cevapsız. Üstelik memeli ölçeğindeki simülasyonlarda asıl darboğaz artık ham işlemci gücü bile değil, bellek ve bağlantı bant genişliği. <strong className="text-white">Ana engel hesap değil, veri ve model.</strong>
             </p>
           </div>
+
+          <ArticleImage
+            className="zy-img"
+            src="/articles/zihin-yukleme/frontier-superbilgisayar.webp"
+            ratio="1600 / 1067"
+            alt="Veri merkezinde sıra hâlinde duran siyah bilgisayar dolapları; yüzeylerinde yıldız deseni ve büyük harflerle FRONTIER yazısı, tavandan inen kalın kablolar."
+            caption="Frontier, Haziran 2022’de 1,102 exaFLOPS ile ilk gerçek exascale sistem oldu. Ama bu fotoğrafın anlattığı şey gücün büyüklüğü değil, yetmemesi: darboğaz makine değil, hangi biyolojik ayrıntının gerekli olduğunu bilmememiz."
+            credit="Oak Ridge National Laboratory · CC BY 2.0"
+          />
 
           <div className="rounded-xl border border-rose-400/25 bg-rose-400/[0.05] px-5 py-4">
             <div className="mb-2 text-sm font-bold text-rose-200">🧊 “Beynini yedeklet, gelecekte geri yüklerler”</div>

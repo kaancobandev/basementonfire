@@ -1,0 +1,39 @@
+<ArticleImage
+  src="/articles/zihin-yukleme/cajal-hipokampus.webp"
+  ratio="687 / 1280"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Wikimedia Commons · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/zihin-yukleme/c-elegans-mikroskop.webp"
+  ratio="1600 / 2842"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Wikimedia Commons kullanıcısı Gannu03 · CC BY-SA 4.0"
+/>
+
+<ArticleImage
+  src="/articles/zihin-yukleme/c-elegans-ag.webp"
+  ratio="1024 / 768"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Mentatseb · CC BY-SA 3.0"
+/>
+
+<ArticleImage
+  src="/articles/zihin-yukleme/piramidal-noron.webp"
+  ratio="1344 / 1024"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Wikimedia Commons kullanıcısı MethoxyRoxy · CC BY-SA 2.5"
+/>
+
+<ArticleImage
+  src="/articles/zihin-yukleme/frontier-superbilgisayar.webp"
+  ratio="1600 / 1067"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Oak Ridge National Laboratory · CC BY 2.0"
+/>
