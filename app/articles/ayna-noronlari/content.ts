@@ -274,10 +274,11 @@ export const HTML = `
   <section class="sec tinted"><div class="shell"><div class="read">
     <div class="eyebrow reveal"><span class="kick">İlgili konular</span><span class="ln"></span></div>
     <h2 class="reveal">İpi ucundan çek</h2>
-    <p class="reveal">Ayna sisteminin bir <em>evrimsel uyarlama mı yoksa öğrenilmiş bir çağrışım mı</em> olduğu tartışması, doğrudan doğal seçilimin ne yapıp ne yapamayacağıyla ilgili. Ve "ikinci beyin" dediğimiz bağırsak sinir sistemi, beynin tek karar merkezi olmadığını hatırlatıyor.</p>
+    <p class="reveal">Ayna sisteminin bir <em>evrimsel uyarlama mı yoksa öğrenilmiş bir çağrışım mı</em> olduğu tartışması, doğrudan doğal seçilimin ne yapıp ne yapamayacağıyla ilgili. Ve "ikinci beyin" dediğimiz bağırsak sinir sistemi, beynin tek karar merkezi olmadığını hatırlatıyor. Ayna nöronlarının başına gelen şey — gerçek bir bulgunun taşıyamayacağı iddialara taşınması — beyni bilgisayara aktarma tartışmasının tamamında yaşanıyor.</p>
     <div class="related reveal">
       <a class="ayn-ilink-card" href="/articles/dogal-secilim"><div class="rl-k">Biyoloji</div><div class="rl-t">Doğal Seçilim →</div></a>
       <a class="ayn-ilink-card" href="/articles/bagirsak"><div class="rl-k">Biyoloji</div><div class="rl-t">Bağırsak — İkinci Beyin →</div></a>
+      <a class="ayn-ilink-card" href="/articles/zihin-yukleme"><div class="rl-k">Biyoloji</div><div class="rl-t">Zihnini Yükleyebilir misin? →</div></a>
     </div>
   </div></div></section>
 </main>
