@@ -73,6 +73,14 @@ export const QUESTIONS: Record<string, string> = {
   // → tartışma nasıl sonuçlanırsa sonuçlansın soru geçerli kalır.
   'ayna-noronlari': `Birini izlerken beynin sessizce ne yapıyor?`,
 
+  // KANIT ZihinClient.tsx — 3. SORU bölümünün açılışı: «Diyelim ki ilk iki soru
+  // çözüldü: harita çıktı, model çalışıyor, ekrandaki şey senin gibi konuşuyor,
+  // senin anılarını anlatıyor. O sen misin?»
+  // ⚠ Bilerek "yüklenebilir miyiz?" DEMİYOR: makalenin tezi o sorunun tek soru
+  // OLMADIĞI. Üç sorudan yalnız bu üçüncüsü okuru doğrudan ilgilendiriyor ve
+  // makale ona kesin bir cevap veriyor — ölçüye kapalı olduğu cevabını.
+  'zihin-yukleme': `Zihninin kopyası uyanırsa, o sen olur musun?`,
+
   // KANIT BakteriyofajClient.tsx:182 — makalenin AÇILIŞ cümlesi: «Şu an okuduğunuz
   // cümleyi bitirene kadar, dünya okyanuslarında yaklaşık 10²³ kez bir virüs bir
   // bakteriye saldırıp onu öldürdü.»
