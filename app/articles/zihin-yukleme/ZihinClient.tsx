@@ -59,7 +59,10 @@ export default function ZihinClient() {
           --ai-fill: rgba(129,140,248,0.05);
           --ai-mark: rgba(129,140,248,0.28);
         }
-        .zy-img-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+        /* align-items: center — start DEĞİL. Çiftteki iki kare farklı oranda
+           (solucan 1600x2842 dikey, ağ 1024x768 yatay); start ile hizalanınca
+           kısa olanın altında büyük bir boşluk kalıyordu. Ortalamak dengeliyor. */
+        .zy-img-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: center; }
         @media (max-width: 700px) { .zy-img-pair { grid-template-columns: 1fr; } }
       `}</style>
 
