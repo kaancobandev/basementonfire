@@ -128,6 +128,9 @@ export default function KuantumClient() {
         <p className="leading-relaxed text-slate-300">
           Peki neden fincanı, kediyi, kendimizi hiç “bulanık” görmüyoruz? Çünkü büyük nesneler çevreleriyle o kadar çok etkileşir ki süperpozisyonları anında <strong className="text-violet-300">dekoherans</strong> denen süreçle dağılır — sanki hemen çökmüş gibi. Kuantum tuhaflığı yok olmaz; sadece gözden saklanacak bir yer bulur.
         </p>
+        <p className="mt-4 leading-relaxed text-slate-300">
+          Ölçümün ne yaptığı sorusu iki parçacık birden söz konusu olduğunda daha da keskinleşir: <Link href="/articles/kuantum-dolaniklik" className="article-ilink">kuantum dolanıklıkta</Link> birbirinden kilometrelerce uzaktaki iki ölçüm uyumlu çıkar, ama aralarında hiçbir şey gidip gelmez — ve bu uyum, cevapların baştan yazılmış olmasıyla da açıklanamaz.
+        </p>
       </ArticleSection>
 
       {/* 3. Çok Dünyalı Yorum */}

@@ -81,6 +81,12 @@ export const QUESTIONS: Record<string, string> = {
   // makale ona kesin bir cevap veriyor — ölçüye kapalı olduğu cevabını.
   'zihin-yukleme': `Zihninin kopyası uyanırsa, o sen olur musun?`,
 
+  // KANIT DolaniklikClient.tsx — makalenin tezi: uyum gerçek, iletişim yok.
+  // Gövde bu soruyu doğrudan cevaplıyor: "anlaşmıyorlar" bile denemez, çünkü
+  // cevaplar baştan da yazılmamış. ⚠ "konuşmadan" bilerek seçildi: soru
+  // ışıktan hızlı iletişim kuruntusunu daha başlıkta eliyor.
+  'kuantum-dolaniklik': `İki parçacık konuşmadan nasıl anlaşıyor?`,
+
   // KANIT BakteriyofajClient.tsx:182 — makalenin AÇILIŞ cümlesi: «Şu an okuduğunuz
   // cümleyi bitirene kadar, dünya okyanuslarında yaklaşık 10²³ kez bir virüs bir
   // bakteriye saldırıp onu öldürdü.»
