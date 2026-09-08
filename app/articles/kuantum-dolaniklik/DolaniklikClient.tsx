@@ -5,6 +5,7 @@ import Link from 'next/link';
 import {
   ArticleShell, ArticleHero, ArticleLede, ArticleSection, CardGrid, HorizontalTimeline, ArticleQuiz, ArticleBibliography, ArticleFooter,
 } from '@/app/components/article/ArticleBlocks';
+import ArticleImage from '@/app/components/article/ArticleImage';
 import { TerimMerdiveni, MerminKutulari, timeline, kultur, dusunurler } from './widgets';
 import { refs } from './refs';
 
@@ -44,6 +45,20 @@ function Quote({ children, by }: { children: ReactNode; by?: string }) {
 export default function DolaniklikClient() {
   return (
     <ArticleShell accent={ACCENT} title="Kuantum Dolanıklık">
+      <style>{`
+        .kd-img {
+          --ai-caption: #cbd5e1;
+          --ai-credit: #b98aa4;
+          --ai-border: rgba(244,114,182,0.22);
+          --ai-fill: rgba(244,114,182,0.05);
+          --ai-mark: rgba(244,114,182,0.28);
+        }
+        /* align-items: center — iki kare farklı oranda (Einstein-Bohr 1467x2123,
+           Aspect 1600x2400); start ile hizalanınca kısa olanın altı boş kalıyor. */
+        .kd-img-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: center; }
+        @media (max-width: 700px) { .kd-img-pair { grid-template-columns: 1fr; } }
+      `}</style>
+
       <ArticleHero
         title="Kuantum Dolanıklık"
         fullTitle="Kuantum Dolanıklık: Mesaj Göndermeyen Bağ"
@@ -76,6 +91,14 @@ export default function DolaniklikClient() {
             Ve ekler: zevkler tartışılmaz, ama bunun dışında burada bir gizem yok. Peki EPR meselesi de aynen bu değil mi?
           </p>
         </Kutu>
+        <ArticleImage
+          className="kd-img mt-6"
+          src="/articles/kuantum-dolaniklik/bell-karatahta.webp"
+          ratio="1600 / 1622"
+          alt="Siyah beyaz fotoğraf: gözlüklü, sakallı bir adam karatahtanın önünde duruyor, bir eli tahtaya doğru kalkık, öbür elinde sigara. Tahtada tebeşirle çizilmiş bir şema var."
+          caption="John Bell, CERN, Haziran 1982. Arkasındaki tahtada iki kollu bir deney şeması duruyor: ortada kaynak, iki yana giden dalgalı çizgiler, her kolda eğik çizgili birer kare — yani ayarı değiştirilebilen analizörler — ve uçlarda dedektörler. Tartışmayı felsefeden laboratuvara taşıyan adam, taşıdığı düzeneğin önünde."
+          credit="CERN · CC BY 4.0"
+        />
         <p className="mt-6 leading-relaxed text-slate-300">
           Burada rahatladıysanız iyi. <strong className="text-white">Rahatlamanız gerekiyordu</strong> — bu yazının bütün işi o rahatlığın nasıl yıkıldığını göstermek. Çünkü Bell mecazı savunmak için değil, <em>yıkmak</em> için kurmuştu.
         </p>
@@ -148,6 +171,27 @@ export default function DolaniklikClient() {
         </Kutu>
       </ArticleSection>
 
+      <ArticleSection max="max-w-4xl">
+        <div className="kd-img-pair">
+          <ArticleImage narrow
+            className="kd-img"
+            src="/articles/kuantum-dolaniklik/einstein-bohr.webp"
+            ratio="1467 / 2123"
+            alt="Siyah beyaz fotoğraf: koltukta yan yana oturan iki adam. Soldaki öne eğilmiş, ağzı açık, konuşuyor. Sağdaki arkaya yaslanmış, elini havaya kaldırmış, dinliyor."
+            caption="Solda Bohr, sağda Einstein — Ehrenfest’in Leiden’daki evinde, 11 Aralık 1925. Dikkat: bu kare EPR makalesinden on yıl önce çekildi. Tartışma, “dolanıklık” kelimesi daha doğmadan başlamıştı."
+            credit="Paul Ehrenfest · kamu malı"
+          />
+          <ArticleImage narrow
+            className="kd-img"
+            src="/articles/kuantum-dolaniklik/aspect.webp"
+            ratio="1600 / 2400"
+            alt="Renkli stüdyo portresi: takım elbiseli, bıyıklı, gözlüklü bir adam gülümsüyor. Kravatı sarı ve üzerinde küçük kedi desenleri var."
+            caption="Alain Aspect. 1981–82’deki deneyleri analizörleri fotonlar yoldayken değiştirdi ve tartışmayı sayıya bağladı; 2022 Nobel’ini Clauser ve Zeilinger’le paylaştı. Kravatındaki desen kedi — bir kuantum fizikçisi için fazla uygun bir tesadüf."
+            credit="Royal Society · CC BY-SA 4.0"
+          />
+        </div>
+      </ArticleSection>
+
       <HorizontalTimeline heading="Bir itirazdan Nobel’e" kicker="ZAMAN ÇİZELGESİ" items={timeline} />
 
       {/* ══════════ MESAJ YOK ══════════ */}
@@ -198,6 +242,14 @@ export default function DolaniklikClient() {
             </div>
           ))}
         </div>
+        <ArticleImage narrow
+          className="kd-img mx-auto mt-6 max-w-[320px]"
+          src="/articles/kuantum-dolaniklik/leibniz.webp"
+          ratio="1600 / 1737"
+          alt="Yağlıboya portre: uzun, kıvırcık siyah peruk takan orta yaşlı bir adam hafifçe gülümseyerek izleyiciye bakıyor."
+          caption="Leibniz, Christoph Bernhard Francke’nin yaklaşık 1695 tarihli portresi. “Önceden kurulmuş uyum” fikrini iki parçacık için değil, ruh ile beden arasındaki ilişki için kurmuştu; biz yalnızca kurgusunu ödünç alıyoruz."
+          credit="Christoph Bernhard Francke · kamu malı"
+        />
         <Kutu icon="⚖️" title="Leibniz’in ironisi — bu yazının en güzel fikri">
           <p className="m-0">
             Leibniz’in “önceden kurulmuş uyum”u, fiziğin diline çevrilince <strong className="text-white">tam olarak bir yerel gizli değişken modelidir</strong>: kaynakta yazılmış talimat, yalnız yerel okuma.

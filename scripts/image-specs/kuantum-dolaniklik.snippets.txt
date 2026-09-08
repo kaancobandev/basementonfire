@@ -1,0 +1,31 @@
+<ArticleImage
+  src="/articles/kuantum-dolaniklik/bell-karatahta.webp"
+  ratio="1600 / 1622"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="CERN · CC BY 4.0"
+/>
+
+<ArticleImage
+  src="/articles/kuantum-dolaniklik/einstein-bohr.webp"
+  ratio="1467 / 2123"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Paul Ehrenfest Original uploader was Graf at de.wikipedia · kamu malı"
+/>
+
+<ArticleImage
+  src="/articles/kuantum-dolaniklik/aspect.webp"
+  ratio="1600 / 2400"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Royal Society uploader · CC BY-SA 4.0"
+/>
+
+<ArticleImage
+  src="/articles/kuantum-dolaniklik/leibniz.webp"
+  ratio="1600 / 1737"
+  alt="TODO — görseli gören biri için betimle"
+  caption="TODO — anlatıya bağla"
+  credit="Christoph Bernhard Francke · kamu malı"
+/>

@@ -1,0 +1,26 @@
+{
+  "slug": "kuantum-dolaniklik",
+  "note": "Makalenin üç dönemecine göre yerleştirildi: (1) AÇILIŞ — Bertlmann'ın çorapları anlatıldıktan hemen sonra, mecazı kuran adamın kendisi; (2) TARİH — zaman çizelgesinden hemen önce ÇİFT hâlinde: tartışmayı başlatanlar (Einstein & Bohr, 1925) ve tartışmayı laboratuvara taşıyan (Aspect); (3) ESKİ DÜŞÜNÜRLER — Leibniz portresi. GÖRSEL YOK: Mermin bölümü (zaten oynanabilir widget var, üstüne görsel kalabalık eder), kuruntu bölümü (yalanlanan iddiaların görselini basmak onları görünür kılar), kültür bölümü (film kareleri telifli). ARANIP BULUNAMADI: gerçek bir Bell testi düzeneği fotoğrafı ve Micius uydusu — Commons'ta ikisi de yok; Malus yasası ve SPDC şemaları yalnız SVG olarak var, hat rasterle çalışıyor. Uydurma bir kare koymak yerine görsel konmadı. HEPSİ GÖZLE DOĞRULANDI 08.09.2026.",
+  "files": [
+    {
+      "title": "File:John Bell commenting the famous Bell's inequalities (8206244).jpg",
+      "as": "bell-karatahta",
+      "note": "AÇILIŞ — Bertlmann'ın çorapları kutusundan sonra. GÖZLE DOĞRULANDI: dosya adının iddiası içerikle DESTEKLENİYOR — karatahtada tam olarak iki kollu bir dolanıklık deneyi şeması var (ortada kaynak, iki yana giden dalgalı çizgiler, her kolda eğik çizgili kareler yani analizörler, uçlarda dedektörler). Yine de ALTYAZI SINIRI: Commons açıklaması yalnız 'portre, CERN, Haziran 1982' diyor; 'tam eşitsizliğini yazarken' gibi bir sahne iddiası KURMA, tahtadaki şemayı TARİF ET. Tarih ikramiyesi: Haziran 1982 — Aspect'in deneylerini yayımladığı yıl."
+    },
+    {
+      "title": "File:Niels Bohr Albert Einstein by Ehrenfest.jpg",
+      "as": "einstein-bohr",
+      "note": "TARİH ÇİFTİNİN SOL YARISI, zaman çizelgesinden önce. 🚨 YÖN TUZAĞI: BOHR SOLDA (konuşuyor, ağzı açık), EINSTEIN SAĞDA (arkaya yaslanmış, elinde bir şey tutuyor). Ters yazmak çok kolay, gözle doğrulandı. Commons: Ehrenfest'in Leiden'daki evinde, 11 Aralık 1925; vesile büyük olasılıkla Lorentz'in doktorasının 50. yılı. ⚠ ALTYAZI SINIRI: bu kare EPR'den ON YIL ÖNCE çekildi — 'EPR'yi tartışıyorlar' YAZMA. Doğru kullanım: tartışmanın ne kadar eski olduğunu göstermek."
+    },
+    {
+      "title": "File:Alain-Aspect-ForMemRS.jpg",
+      "as": "aspect",
+      "note": "TARİH ÇİFTİNİN SAĞ YARISI. Royal Society portresi, 2015. Commons açıklaması Bell eşitsizliği testlerini ve dolanık foton çiftlerini açıkça anıyor, yani makaledeki rolüyle örtüşüyor. GÖZLE DOĞRULANDI: kravatı KEDİ desenli — kuantum fizikçisi için hoş bir tesadüf, altyazıda hafifçe anılabilir ama Aspect'in niyetine dair iddia KURMA (deseni görüyoruz, şakayı biz okuyoruz). 2022 Nobel'ini Clauser ve Zeilinger'le paylaştı."
+    },
+    {
+      "title": "File:Christoph Bernhard Francke - Bildnis des Philosophen Leibniz (ca. 1695) (cropped).jpg",
+      "as": "leibniz",
+      "note": "ESKİ DÜŞÜNÜRLER bölümü, Leibniz ironisi kutusunun yanında. Christoph Bernhard Francke, yak. 1695, kamu malı. ALTYAZI SINIRI: 'önceden kurulmuş uyum'u Leibniz iki PARÇACIK için değil RUH-BEDEN birliği için kurdu — makale kurgusunu ödünç alıyor, bunu altyazı da tekrarlamalı. Ve 'Leibniz kuantumu önceden bildi' izlenimi VERME; makalenin açıkça yalanladığı kalıp bu."
+    }
+  ]
+}

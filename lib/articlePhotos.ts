@@ -230,6 +230,12 @@ export const ARTICLE_PHOTOS: Record<string, string[]> = {
     "/articles/kanuni/tugra.jpg",
     "/articles/kanuni/venedik-migferi.jpg"
   ],
+  "kuantum-dolaniklik": [
+    "/articles/kuantum-dolaniklik/aspect.webp",
+    "/articles/kuantum-dolaniklik/bell-karatahta.webp",
+    "/articles/kuantum-dolaniklik/einstein-bohr.webp",
+    "/articles/kuantum-dolaniklik/leibniz.webp"
+  ],
   "kuantum-olumsuzlugu": [
     "/articles/kuantum-olumsuzlugu/cift-yarik-tonomura.webp",
     "/articles/kuantum-olumsuzlugu/mobius-heykeli.webp",
