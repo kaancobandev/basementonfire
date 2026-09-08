@@ -242,8 +242,14 @@ export default function DolaniklikClient() {
             </div>
           ))}
         </div>
-        <ArticleImage narrow
-          className="kd-img mx-auto mt-6 max-w-[320px]"
+        {/* ⚠ `narrow` YOK ve `max-w-*` YOK — ikisi de burada yanlış olurdu.
+            ArticleImage.tsx:72 SATIR İÇİ stille `maxWidth: calc(78vh * oran)`
+            veriyor; satır içi stil Tailwind sınıfını her zaman yener, yani
+            max-w-[320px] hiç çalışmıyordu (ölçüldü: sınıf duruyor ama
+            hesaplanan değer 529,88px). Görsel 530px basılacaksa `narrow`
+            koymak 360px'lik dosya indirtip onu büyütür — bulanıklık. */}
+        <ArticleImage
+          className="kd-img mx-auto mt-6"
           src="/articles/kuantum-dolaniklik/leibniz.webp"
           ratio="1600 / 1737"
           alt="Yağlıboya portre: uzun, kıvırcık siyah peruk takan orta yaşlı bir adam hafifçe gülümseyerek izleyiciye bakıyor."
