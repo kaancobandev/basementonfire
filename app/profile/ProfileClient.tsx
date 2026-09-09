@@ -179,7 +179,7 @@ export default function ProfileClient({ user, bg, age, followersCount, following
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             {isAdmin && (
-              <Link href="/yonetim/makaleler" title="Makale onay paneli" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 14px', height: 38, borderRadius: '9999px', border: '2px solid var(--color-primary)', background: 'var(--color-primary)', color: '#fff', textDecoration: 'none', fontSize: '0.85rem', fontWeight: 700 }}>
+              <Link href="/yonetim/makaleler" title="Makale onay paneli" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 14px', height: 38, borderRadius: '9999px', border: '2px solid var(--color-primary)', background: 'var(--color-primary)', color: 'var(--color-on-primary)', textDecoration: 'none', fontSize: '0.85rem', fontWeight: 700 }}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 Yönetim
               </Link>

@@ -165,7 +165,7 @@ export default function CarouselStudio() {
           {(Object.keys(SIZES) as Format[]).map((f) => (
             <button key={f} onClick={() => setFormat(f)}
               className="rounded-lg px-3 py-1.5 text-sm font-semibold"
-              style={f === format ? { background: 'var(--color-primary)', color: '#fff' } : { color: 'var(--color-text-muted)' }}>
+              style={f === format ? { background: 'var(--color-primary)', color: 'var(--color-on-primary)' } : { color: 'var(--color-text-muted)' }}>
               {f === 'carousel' ? 'Carousel' : 'Reel kapağı'}
             </button>
           ))}

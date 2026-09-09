@@ -94,7 +94,7 @@ export default function DesktopCreateMenu() {
         .dcm-item:hover { background: var(--color-hover); }
         .dcm-label { flex: 1; }
         .dcm-item--new { color: var(--color-primary); }
-        .dcm-badge { font-size: 0.62rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: #fff; background: var(--color-primary); padding: 2px 7px; border-radius: 9999px; }
+        .dcm-badge { font-size: 0.62rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--color-on-primary); background: var(--color-primary); padding: 2px 7px; border-radius: 9999px; }
       `}</style>
     </div>
   );

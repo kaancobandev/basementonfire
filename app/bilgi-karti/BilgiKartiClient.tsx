@@ -87,7 +87,7 @@ export default function BilgiKartiClient() {
           <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', marginTop: 3 }}>Karttaki &ldquo;Devamını oku&rdquo; bu makaleye gider.</div>
         </div>
 
-        <button type="submit" disabled={!canSubmit} style={{ marginTop: 4, padding: '12px 18px', borderRadius: 9999, border: 'none', background: 'var(--color-primary)', color: '#fff', fontSize: '0.95rem', fontWeight: 800, cursor: canSubmit ? 'pointer' : 'not-allowed', opacity: canSubmit ? 1 : 0.5, fontFamily: 'inherit' }}>
+        <button type="submit" disabled={!canSubmit} style={{ marginTop: 4, padding: '12px 18px', borderRadius: 9999, border: 'none', background: 'var(--color-primary)', color: 'var(--color-on-primary)', fontSize: '0.95rem', fontWeight: 800, cursor: canSubmit ? 'pointer' : 'not-allowed', opacity: canSubmit ? 1 : 0.5, fontFamily: 'inherit' }}>
           {submitting ? 'Paylaşılıyor…' : 'Paylaş'}
         </button>
       </form>

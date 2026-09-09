@@ -190,7 +190,7 @@ export default function CollectionPicker({ postId, open, currentCollectionId = n
                   style={{ flex: 1, minWidth: 0, padding: '10px 12px', borderRadius: 12, border: '1px solid var(--color-border)', background: 'var(--color-bg)', color: 'var(--color-text)', fontFamily: 'inherit', fontSize: '0.88rem', outline: 'none' }}
                 />
                 <button type="button" onClick={createCollection} disabled={busy || !newName.trim()}
-                  style={{ border: 'none', borderRadius: 12, padding: '10px 14px', background: 'var(--color-primary)', color: '#fff', fontWeight: 700, fontSize: '0.85rem', fontFamily: 'inherit', cursor: (busy || !newName.trim()) ? 'not-allowed' : 'pointer', opacity: (busy || !newName.trim()) ? 0.5 : 1, flexShrink: 0 }}>
+                  style={{ border: 'none', borderRadius: 12, padding: '10px 14px', background: 'var(--color-primary)', color: 'var(--color-on-primary)', fontWeight: 700, fontSize: '0.85rem', fontFamily: 'inherit', cursor: (busy || !newName.trim()) ? 'not-allowed' : 'pointer', opacity: (busy || !newName.trim()) ? 0.5 : 1, flexShrink: 0 }}>
                   Oluştur
                 </button>
               </div>

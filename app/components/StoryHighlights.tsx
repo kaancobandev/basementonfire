@@ -211,7 +211,7 @@ function CreateHighlight({ onClose, onCreated }: { onClose: () => void; onCreate
                       {s.media_type === 'video'
                         ? <video src={s.media_url} muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         : <img src={s.media_url} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
-                      {on && <span style={{ position: 'absolute', top: 4, right: 4, width: 20, height: 20, borderRadius: '50%', background: 'var(--color-primary)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: '0.75rem' }}>✓</span>}
+                      {on && <span style={{ position: 'absolute', top: 4, right: 4, width: 20, height: 20, borderRadius: '50%', background: 'var(--color-primary)', color: 'var(--color-on-primary)', display: 'grid', placeItems: 'center', fontSize: '0.75rem' }}>✓</span>}
                       {!s.active && <span style={{ position: 'absolute', bottom: 4, left: 4, fontSize: '0.6rem', color: '#fff', background: 'rgba(0,0,0,0.55)', padding: '1px 5px', borderRadius: 4 }}>arşiv</span>}
                     </button>
                   );
@@ -224,7 +224,7 @@ function CreateHighlight({ onClose, onCreated }: { onClose: () => void; onCreate
         {err && <p style={{ color: 'var(--color-danger)', fontSize: '0.82rem', margin: 0, padding: '0 16px 6px' }}>{err}</p>}
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--color-border)' }}>
           <button type="button" onClick={create} disabled={busy || !title.trim() || !picked.size}
-            style={{ width: '100%', padding: 12, border: 'none', borderRadius: 9999, background: 'var(--color-primary)', color: '#fff', fontWeight: 700, cursor: busy || !title.trim() || !picked.size ? 'default' : 'pointer', opacity: busy || !title.trim() || !picked.size ? 0.5 : 1 }}>
+            style={{ width: '100%', padding: 12, border: 'none', borderRadius: 9999, background: 'var(--color-primary)', color: 'var(--color-on-primary)', fontWeight: 700, cursor: busy || !title.trim() || !picked.size ? 'default' : 'pointer', opacity: busy || !title.trim() || !picked.size ? 0.5 : 1 }}>
             {busy ? 'Oluşturuluyor…' : `Oluştur${picked.size ? ` (${picked.size})` : ''}`}
           </button>
         </div>

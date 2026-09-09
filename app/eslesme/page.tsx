@@ -41,7 +41,7 @@ function KapiEkrani({ dogumTarihiYok }: { dogumTarihiYok: boolean }) {
             </p>
             <Link
               href="/profile"
-              style={{ display: 'inline-block', padding: '12px 22px', borderRadius: 10, textDecoration: 'none', fontWeight: 700, background: 'var(--color-primary)', color: '#fff' }}
+              style={{ display: 'inline-block', padding: '12px 22px', borderRadius: 10, textDecoration: 'none', fontWeight: 700, background: 'var(--color-primary)', color: 'var(--color-on-primary)' }}
             >
               Profilime doğum tarihi ekle
             </Link>
@@ -55,7 +55,7 @@ function KapiEkrani({ dogumTarihiYok }: { dogumTarihiYok: boolean }) {
             </p>
             <Link
               href="/"
-              style={{ display: 'inline-block', padding: '12px 22px', borderRadius: 10, textDecoration: 'none', fontWeight: 700, background: 'var(--color-primary)', color: '#fff' }}
+              style={{ display: 'inline-block', padding: '12px 22px', borderRadius: 10, textDecoration: 'none', fontWeight: 700, background: 'var(--color-primary)', color: 'var(--color-on-primary)' }}
             >
               Ana sayfaya dön
             </Link>

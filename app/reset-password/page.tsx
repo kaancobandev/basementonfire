@@ -233,7 +233,7 @@ export default function ResetPasswordPage() {
               style={{
                 background: 'var(--color-primary)',
                 opacity: submitting ? 0.6 : 1,
-                color: 'white',
+                color: 'var(--color-on-primary)',
                 fontWeight: 700,
                 fontSize: '1rem',
                 padding: '12px',

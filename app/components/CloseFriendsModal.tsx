@@ -61,7 +61,7 @@ export default function CloseFriendsModal({ onClose }: { onClose: () => void }) 
                 <button type="button" onClick={() => toggle(f)} disabled={saving === f.id}
                   style={{ flexShrink: 0, padding: '7px 14px', borderRadius: 9999, fontFamily: 'inherit', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer',
                     border: f.close ? 'none' : '1px solid var(--color-border)',
-                    background: f.close ? 'var(--color-primary)' : 'transparent', color: f.close ? '#fff' : 'var(--color-text)' }}>
+                    background: f.close ? 'var(--color-primary)' : 'transparent', color: f.close ? 'var(--color-on-primary)' : 'var(--color-text)' }}>
                   {saving === f.id ? '…' : f.close ? 'Ekli' : 'Ekle'}
                 </button>
               </div>

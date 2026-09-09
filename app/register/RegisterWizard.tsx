@@ -596,7 +596,7 @@ function Rozet() {
   return (
     <span className="kw-rozet" aria-hidden>
       <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
-        <path d="M4.5 12.5l5 5 10-11" stroke="#fff" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M4.5 12.5l5 5 10-11" stroke="var(--color-on-primary)" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     </span>
   );

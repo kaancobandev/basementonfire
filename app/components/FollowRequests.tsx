@@ -48,7 +48,7 @@ export default function FollowRequests() {
             <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>@{u.username}</div>
           </Link>
           <button type="button" onClick={() => act(u.id, 'accept')} disabled={busy === u.id}
-            style={{ flexShrink: 0, padding: '7px 14px', borderRadius: 8, border: 'none', background: 'var(--color-primary)', color: '#fff', fontFamily: 'inherit', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer' }}>
+            style={{ flexShrink: 0, padding: '7px 14px', borderRadius: 8, border: 'none', background: 'var(--color-primary)', color: 'var(--color-on-primary)', fontFamily: 'inherit', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer' }}>
             {busy === u.id ? '…' : 'Onayla'}
           </button>
           <button type="button" onClick={() => act(u.id, 'reject')} disabled={busy === u.id}

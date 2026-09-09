@@ -426,7 +426,7 @@ export default function ArticleEditor({ initial }: { initial: Initial | null }) 
 
         .ed-toolbar { position: sticky; top: 0; z-index: 20; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 8px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 12px; }
         .ed-toolbar > button { min-width: 32px; height: 32px; border: 1px solid var(--color-border); background: var(--color-bg); border-radius: 8px; cursor: pointer; font-size: 0.85rem; color: var(--color-text); padding: 0 7px; font-family: inherit; }
-        .ed-toolbar > button:hover { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+        .ed-toolbar > button:hover { background: var(--color-primary); color: var(--color-on-primary); border-color: var(--color-primary); }
         .ed-sep { width: 1px; height: 22px; background: var(--color-border); margin: 0 3px; }
         .ed-font { height: 32px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-bg); color: var(--color-text); font-size: 0.8rem; font-family: inherit; max-width: 130px; }
         .ed-swatches { display: inline-flex; align-items: center; gap: 2px; }
@@ -529,7 +529,7 @@ function EmbedEditor({ block, onChange }: { block: EmbedB; onChange: (patch: Par
         .emb-lib input { margin: 0; }
         .emb-tabs { display: flex; align-items: center; gap: 5px; }
         .emb-tabs > button { padding: 5px 12px; border: 1px solid var(--color-border); background: var(--color-bg); border-radius: 8px; cursor: pointer; font-size: 0.78rem; font-weight: 700; color: var(--color-text-muted); font-family: inherit; }
-        .emb-tabs > button.on { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+        .emb-tabs > button.on { background: var(--color-primary); color: var(--color-on-primary); border-color: var(--color-primary); }
         .emb-h { font-size: 0.74rem; color: var(--color-text-muted); display: inline-flex; align-items: center; gap: 5px; }
         .emb-h input { width: 64px; border: 1px solid var(--color-border); border-radius: 7px; padding: 4px 6px; font-family: inherit; background: var(--color-bg); color: var(--color-text); }
         .emb-code { width: 100%; font-family: ui-monospace, "Space Mono", monospace; font-size: 0.82rem; line-height: 1.5; border: 1px solid var(--color-border); border-radius: 10px; padding: 10px 12px; background: #0c0e1d; color: #e9ecf8; resize: vertical; outline: none; }

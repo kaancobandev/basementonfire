@@ -96,7 +96,7 @@ export default async function EpostaOnayiPage({
 
         <a
           href="/login"
-          style={{ display: 'block', width: '100%', padding: '12px', borderRadius: '10px', background: 'var(--color-primary)', color: '#fff', fontWeight: 700, fontSize: '0.9rem', textAlign: 'center', textDecoration: 'none', boxSizing: 'border-box' }}
+          style={{ display: 'block', width: '100%', padding: '12px', borderRadius: '10px', background: 'var(--color-primary)', color: 'var(--color-on-primary)', fontWeight: 700, fontSize: '0.9rem', textAlign: 'center', textDecoration: 'none', boxSizing: 'border-box' }}
         >
           Onayladım, giriş yap
         </a>

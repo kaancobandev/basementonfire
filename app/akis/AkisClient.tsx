@@ -206,7 +206,7 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
               <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>
               Reels
             </Link>
-            <button onClick={() => setUploadOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '9999px', padding: '8px 16px', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', transition: 'background 0.15s' }}>
+            <button onClick={() => setUploadOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--color-primary)', color: 'var(--color-on-primary)', border: 'none', borderRadius: '9999px', padding: '8px 16px', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', transition: 'background 0.15s' }}>
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
               Yeni Paylaş
             </button>

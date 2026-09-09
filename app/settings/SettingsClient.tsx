@@ -136,7 +136,7 @@ export default function SettingsClient({ user }: Props) {
             </div>
           </div>
           <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-            <button onClick={savePrivacy} disabled={saving} style={{ padding: '12px 24px', background: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '9999px', fontWeight: 700, fontSize: '0.9rem', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1, fontFamily: 'inherit', transition: 'background 0.15s' }}>
+            <button onClick={savePrivacy} disabled={saving} style={{ padding: '12px 24px', background: 'var(--color-primary)', color: 'var(--color-on-primary)', border: 'none', borderRadius: '9999px', fontWeight: 700, fontSize: '0.9rem', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1, fontFamily: 'inherit', transition: 'background 0.15s' }}>
               {saving ? 'Kaydediliyor…' : 'Ayarları Kaydet'}
             </button>
             <span role="status" aria-live="polite" style={{ fontSize: '0.85rem', fontWeight: 600 }}>

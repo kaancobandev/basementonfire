@@ -136,7 +136,7 @@ export default async function LigPage() {
                   <span style={{ display: 'block', fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>@{r.username} · {r.answered} soru</span>
                 </span>
                 <span style={{ textAlign: 'right', flexShrink: 0 }}>
-                  <span style={{ display: 'block', fontWeight: 800, color: 'var(--color-success)', fontSize: '1.05rem' }}>{r.correct}</span>
+                  <span style={{ display: 'block', fontWeight: 800, color: 'var(--color-success-ink)', fontSize: '1.05rem' }}>{r.correct}</span>
                   <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>doğru</span>
                 </span>
               </Link>

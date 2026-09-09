@@ -106,7 +106,7 @@ export default function FeedComposer({
             type="button"
             onClick={submit}
             disabled={!canSubmit}
-            style={{ marginLeft: 'auto', padding: '7px 18px', borderRadius: 9999, border: 'none', background: canSubmit ? 'var(--color-primary)' : 'var(--color-border)', color: canSubmit ? '#fff' : 'var(--color-text-muted)', fontWeight: 800, fontSize: '0.85rem', fontFamily: 'inherit', cursor: canSubmit ? 'pointer' : 'default' }}
+            style={{ marginLeft: 'auto', padding: '7px 18px', borderRadius: 9999, border: 'none', background: canSubmit ? 'var(--color-primary)' : 'var(--color-border)', color: canSubmit ? 'var(--color-on-primary)' : 'var(--color-text-muted)', fontWeight: 800, fontSize: '0.85rem', fontFamily: 'inherit', cursor: canSubmit ? 'pointer' : 'default' }}
           >
             {busy ? '…' : 'Paylaş'}
           </button>

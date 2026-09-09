@@ -150,7 +150,7 @@ export default function ArticleView({ a, isOwner = false }: { a: ArticleRow; isO
         .ua-view { padding-bottom: 64px; }
         @media (max-width: 699px) { .ua-view { padding-bottom: 0; } }
         .ua-banner { display:flex; align-items:center; gap:12px; flex-wrap:wrap; background: var(--color-surface); border-bottom: 1px solid var(--color-border); color: var(--color-text); padding: 12px 16px; font-size: 0.88rem; }
-        .ua-banner-edit { margin-left:auto; background: var(--color-primary); color:#fff; padding: 5px 14px; border-radius: 9999px; font-weight:700; font-size:0.8rem; text-decoration:none; }
+        .ua-banner-edit { margin-left:auto; background: var(--color-primary); color: var(--color-on-primary); padding: 5px 14px; border-radius: 9999px; font-weight:700; font-size:0.8rem; text-decoration:none; }
         .ua-article { max-width: 820px; margin: 0 auto; padding: 28px 16px 0; }
         .ua-cat { display:inline-block; font-size:0.72rem; font-weight:800; letter-spacing:0.05em; text-transform:uppercase; color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 12%, transparent); padding: 4px 10px; border-radius:9999px; margin-bottom: 14px; }
         .ua-title { font-size: clamp(1.7rem, 4.5vw, 2.6rem); font-weight: 800; line-height: 1.12; letter-spacing: -0.02em; margin: 0 0 12px; color: var(--color-text); }

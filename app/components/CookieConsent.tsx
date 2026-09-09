@@ -132,7 +132,7 @@ export default function CookieConsent({ gaId }: { gaId?: string }) {
             <button
               type="button"
               onClick={() => decide('accepted')}
-              style={{ padding: '9px 18px', borderRadius: 9999, border: 'none', background: 'var(--color-primary)', color: '#fff', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'inherit' }}
+              style={{ padding: '9px 18px', borderRadius: 9999, border: 'none', background: 'var(--color-primary)', color: 'var(--color-on-primary)', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'inherit' }}
             >
               Kabul Et
             </button>

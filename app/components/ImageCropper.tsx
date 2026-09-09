@@ -139,7 +139,7 @@ export default function ImageCropper({ file, onCancel, onCropped, aspects = ASPE
         <input type="range" min={1} max={3} step={0.01} value={zoom} onChange={e => setZoom(Number(e.target.value))} aria-label="Yakınlaştır" style={{ width: '100%' }} />
         <div style={{ display: 'flex', gap: 10 }}>
           <button type="button" onClick={cancel} disabled={busy} style={{ flex: 1, padding: 12, borderRadius: 10, border: '1px solid #555', background: 'transparent', color: '#fff', fontWeight: 700, cursor: busy ? 'default' : 'pointer', fontFamily: 'inherit' }}>İptal</button>
-          <button type="button" onClick={apply} disabled={busy} style={{ flex: 1, padding: 12, borderRadius: 10, border: 'none', background: 'var(--color-primary)', color: '#fff', fontWeight: 700, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.7 : 1, fontFamily: 'inherit' }}>{busy ? 'İşleniyor…' : 'Uygula'}</button>
+          <button type="button" onClick={apply} disabled={busy} style={{ flex: 1, padding: 12, borderRadius: 10, border: 'none', background: 'var(--color-primary)', color: 'var(--color-on-primary)', fontWeight: 700, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.7 : 1, fontFamily: 'inherit' }}>{busy ? 'İşleniyor…' : 'Uygula'}</button>
         </div>
       </div>
     </div>

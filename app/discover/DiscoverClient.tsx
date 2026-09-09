@@ -390,7 +390,7 @@ export default function DiscoverClient({ users, media, articles, communityArticl
         .dc-search-btn {
           flex-shrink: 0;
           background: var(--color-primary);
-          color: white;
+          color: var(--color-on-primary);
           border: none;
           border-radius: 9999px;
           padding: 5px 14px;

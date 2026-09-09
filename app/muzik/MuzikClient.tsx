@@ -416,7 +416,7 @@ export default function MuzikClient({ spotifyItems: initialSp, youtubeItems: ini
                       {/* Ad boşken düğme KAPALI: eskiden basılabiliyor ve hata veriyordu. */}
                       <button
                         onClick={addTrack} disabled={trLoading || !trTitle.trim()}
-                        style={{ border: 'none', borderRadius: 10, padding: '11px 20px', fontSize: '0.86rem', fontWeight: 700, fontFamily: 'inherit', color: '#fff', background: 'var(--color-primary)', cursor: (trLoading || !trTitle.trim()) ? 'not-allowed' : 'pointer', opacity: (trLoading || !trTitle.trim()) ? 0.5 : 1, transition: 'opacity 0.15s' }}
+                        style={{ border: 'none', borderRadius: 10, padding: '11px 20px', fontSize: '0.86rem', fontWeight: 700, fontFamily: 'inherit', color: 'var(--color-on-primary)', background: 'var(--color-primary)', cursor: (trLoading || !trTitle.trim()) ? 'not-allowed' : 'pointer', opacity: (trLoading || !trTitle.trim()) ? 0.5 : 1, transition: 'opacity 0.15s' }}
                       >
                         {trLoading ? `Yükleniyor… %${trPct}` : 'Yükle'}
                       </button>

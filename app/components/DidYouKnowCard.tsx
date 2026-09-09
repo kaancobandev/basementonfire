@@ -138,7 +138,7 @@ export default function DidYouKnowCard({ item, initialLiked = false, guncelLikes
           {item.article_slug && (
             <Link
               href={`/articles/${item.article_slug}`}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.82rem', fontWeight: 700, color: '#fff', background: 'var(--color-primary)', padding: '7px 15px', borderRadius: '9999px', textDecoration: 'none' }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-on-primary)', background: 'var(--color-primary)', padding: '7px 15px', borderRadius: '9999px', textDecoration: 'none' }}
             >
               Devamını oku →
             </Link>

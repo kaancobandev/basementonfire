@@ -997,7 +997,7 @@ export default function HomeFeed({
                   {basHarf(currentUser.display_name)}
                 </div>}
                 {!ownStoryUser && (
-                  <span style={{ position: 'absolute', bottom: -1, right: -1, width: 20, height: 20, borderRadius: '50%', background: 'var(--color-primary)', color: '#fff', fontSize: '1rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid white', lineHeight: 1 }}>+</span>
+                  <span style={{ position: 'absolute', bottom: -1, right: -1, width: 20, height: 20, borderRadius: '50%', background: 'var(--color-primary)', color: 'var(--color-on-primary)', fontSize: '1rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid white', lineHeight: 1 }}>+</span>
                 )}
               </div>
               <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', maxWidth: 64, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'center' }}>
@@ -1066,7 +1066,7 @@ export default function HomeFeed({
                 : 'Takip ettiklerin bir süredir paylaşmamış. Herkes sekmesinde yeni içerikler var.'}
             </p>
             <div style={{ display: 'flex', gap: 10, marginTop: 4, flexWrap: 'wrap', justifyContent: 'center' }}>
-              <button type="button" onClick={() => switchTab('all')} style={{ padding: '8px 16px', borderRadius: 9999, border: 'none', background: 'var(--color-primary)', color: '#fff', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'inherit' }}>
+              <button type="button" onClick={() => switchTab('all')} style={{ padding: '8px 16px', borderRadius: 9999, border: 'none', background: 'var(--color-primary)', color: 'var(--color-on-primary)', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'inherit' }}>
                 Herkes akışına dön
               </button>
               <Link href="/discover" style={{ padding: '8px 16px', borderRadius: 9999, border: '1px solid var(--color-border)', color: 'var(--color-text)', fontWeight: 700, fontSize: '0.85rem', textDecoration: 'none' }}>

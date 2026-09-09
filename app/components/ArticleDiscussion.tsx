@@ -195,7 +195,7 @@ export default function ArticleDiscussion({ slug }: { slug: string }) {
         .as-input { flex: 1; resize: vertical; min-height: 44px; padding: 10px 12px; border-radius: 12px; font-family: inherit; font-size: .9rem; line-height: 1.4; color: inherit; border: 1px solid color-mix(in srgb, currentColor 22%, transparent); background: color-mix(in srgb, currentColor 5%, transparent); box-sizing: border-box; }
         .as-input::placeholder { color: inherit; opacity: .5; }
         .as-input:focus { outline: none; border-color: var(--color-primary); }
-        .as-send { flex-shrink: 0; padding: 10px 18px; border-radius: 9999px; border: none; background: var(--color-primary); color: #fff; font-weight: 700; font-size: .88rem; font-family: inherit; cursor: pointer; }
+        .as-send { flex-shrink: 0; padding: 10px 18px; border-radius: 9999px; border: none; background: var(--color-primary); color: var(--color-on-primary); font-weight: 700; font-size: .88rem; font-family: inherit; cursor: pointer; }
         .as-send:disabled { opacity: .45; cursor: not-allowed; }
         .as-list { display: flex; flex-direction: column; gap: 16px; padding-bottom: 8px; }
         .as-empty { opacity: .55; font-size: .9rem; margin: 4px 0 8px; }

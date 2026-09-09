@@ -49,7 +49,7 @@ export default function ForgotPasswordForm() {
         type="submit"
         style={{
           background: 'var(--color-primary)',
-          color: 'white',
+          color: 'var(--color-on-primary)',
           fontWeight: 700,
           fontSize: '1rem',
           padding: '12px',
