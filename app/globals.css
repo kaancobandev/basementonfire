@@ -611,6 +611,20 @@ body {
 /* Basınca gerçekten çöker: 4px iner, kenar sıfırlanır — toplam yükseklik sabit. */
 .post-btn:active { transform: translateY(4px); box-shadow: 0 0 0 var(--bof-edge-primary); }
 
+/* ── AKIŞ SEKMESİ GÖSTERGESİ ──────────────────────────────────────────────
+   Her sekmenin KENDİ alt kenarlığı yerine TEK bir çubuk: o yüzden kayabiliyor.
+   İki sekme de `flex: 1` (basis 0) olduğu için genişlik tam %50 ve ikinci
+   sekmeye geçiş tam `translateX(100%)` — ölçüm, ref ve resize dinleyicisi
+   GEREKMİYOR.
+   Geçiş burada, satır içi stilde değil: `prefers-reduced-motion` bir inline
+   style'a yazılamaz. (globals.css:353'teki küresel kapatma zaten süreyi
+   kesiyor, bu kural onunla tutarlı kalsın diye burada duruyor.) */
+.bof-tab-ind {
+  position: absolute; bottom: 0; left: 0; width: 50%; height: 2px;
+  background: var(--color-primary); border-radius: 2px 2px 0 0;
+  transition: transform 260ms var(--bof-ease-spring);
+}
+
 /* ── BEĞENİ KALBİ ─────────────────────────────────────────────────────────
    Tek çizim, tek kural. Önceden 13 ayrı yerde aynı path elle kopyalanmıştı
    (5 farklı boyut, 3'ünde token yerine sabit #ef4444) ve dolu/boş geçişi

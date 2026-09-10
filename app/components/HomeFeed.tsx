@@ -952,23 +952,33 @@ export default function HomeFeed({
 
         {/* Akış sekmeleri — yalnız girişli kullanıcıya (takip grafiği olmayanda anlamsız) */}
         {currentUser && (
-          <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)' }}>
+          <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', position: 'relative' }}>
             {([['all', 'Herkes'], ['following', 'Takip Ettiklerin']] as const).map(([key, label]) => (
               <button
                 key={key}
                 type="button"
                 onClick={() => switchTab(key)}
+                aria-pressed={tab === key}
                 style={{
                   flex: 1, padding: '11px 8px', background: 'none', border: 'none', cursor: 'pointer',
                   fontFamily: 'inherit', fontSize: '0.88rem',
                   fontWeight: tab === key ? 800 : 600,
                   color: tab === key ? 'var(--color-text)' : 'var(--color-text-muted)',
-                  borderBottom: tab === key ? '2px solid var(--color-primary)' : '2px solid transparent',
+                  /* Kenarlık artık göstergede; burada YALNIZ yer tutuyor ki
+                     satır yüksekliği eskisiyle birebir aynı kalsın. */
+                  borderBottom: '2px solid transparent',
                 }}
               >
                 {label}
               </button>
             ))}
+            {/* Tek gösterge — kayar. Süslemedir, ekran okuyucuya durum
+                `aria-pressed`ten gider. */}
+            <span
+              className="bof-tab-ind"
+              aria-hidden
+              style={{ transform: tab === 'all' ? 'translateX(0)' : 'translateX(100%)' }}
+            />
           </div>
         )}
 
