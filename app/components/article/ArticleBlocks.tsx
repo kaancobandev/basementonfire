@@ -669,13 +669,32 @@ export function ArticleQuiz({ accent: accentProp, bg: bgProp }: { accent?: strin
               {paylasim === 'paylasildi' ? (
                 <p className="text-sm font-bold" style={{ color: accent }}>Akışta paylaşıldı ✓</p>
               ) : (
+                /* ⚠ DOLGULU, çerçeveli DEĞİL. İlk sürüm ince çerçeveli ve
+                   aksan renkli metindi; kullanıcı "normal bir cümle gibi
+                   duruyor, düğme olduğu anlaşılmıyor" diye bildirdi. Artık
+                   dolgu + basılabilir kenar + ikon: üçü birden "bu tıklanır"
+                   diyor. Kenar rengi aksanın koyusundan türüyor, yani her
+                   makalenin kendi renginde kalıyor. */
                 <button
                   onClick={skoruPaylas}
                   disabled={paylasim === 'gonderiliyor'}
-                  className="rounded-full border px-5 py-2 text-sm font-bold"
-                  style={{ borderColor: accent, color: accent, opacity: paylasim === 'gonderiliyor' ? 0.6 : 1 }}
+                  className="rounded-full px-6 py-3 text-sm font-bold"
+                  style={{
+                    background: accent,
+                    color: bg,
+                    boxShadow: `0 4px 0 color-mix(in srgb, ${accent} 62%, black)`,
+                    marginBottom: 4,
+                    opacity: paylasim === 'gonderiliyor' ? 0.6 : 1,
+                    transition: 'transform 80ms ease-out, box-shadow 80ms ease-out',
+                  }}
+                  onPointerDown={(e) => {
+                    e.currentTarget.style.transform = 'translateY(4px)';
+                    e.currentTarget.style.boxShadow = `0 0 0 color-mix(in srgb, ${accent} 62%, black)`;
+                  }}
+                  onPointerUp={(e) => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = `0 4px 0 color-mix(in srgb, ${accent} 62%, black)`; }}
+                  onPointerLeave={(e) => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = `0 4px 0 color-mix(in srgb, ${accent} 62%, black)`; }}
                 >
-                  {paylasim === 'gonderiliyor' ? 'Paylaşılıyor…' : `Skorunu paylaş · ${score}/${questions.length}`}
+                  {paylasim === 'gonderiliyor' ? 'Paylaşılıyor…' : `📣 Skorunu paylaş · ${score}/${questions.length}`}
                 </button>
               )}
               {paylasim === 'hata' && (
@@ -684,7 +703,11 @@ export function ArticleQuiz({ accent: accentProp, bg: bgProp }: { accent?: strin
             </div>
           )}
 
-          <button onClick={restart} className="rounded-full px-6 py-2.5 text-sm font-bold" style={{ background: accent, color: bg }}>↻ Tekrar dene</button>
+          {/* Paylaş dolgulu olunca bu İKİNCİL oldu: iki dolgulu düğme yan yana
+              hangisinin asıl eylem olduğunu belirsizleştiriyordu. Giriş
+              yapmamış okurda paylaş düğmesi hiç yok, orada bu tek düğme
+              olarak zaten öne çıkıyor. */}
+          <button onClick={restart} className="rounded-full border px-6 py-2.5 text-sm font-bold" style={{ borderColor: accent, color: accent }}>↻ Tekrar dene</button>
         </div>
       )}
     </div>

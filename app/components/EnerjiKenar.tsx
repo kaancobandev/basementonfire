@@ -29,6 +29,9 @@ export default function EnerjiKenar() {
          göre neredeyim) ve sağ panelde kendi widget'ı var. */
       href="/profile"
       prefetch={false}
+      /* Uçan XP çipinin hedefi. Masaüstünde bu görünür, telefonda kenar
+         çubuğu gizli olduğu için ölçüsü sıfır kalır ve çip karttaki bara gider. */
+      data-bof-enerji-kenar=""
       aria-label={`Seviye ${p.level}, ${p.intoLevel} / ${p.perLevel} XP, ${p.current_streak} günlük seri`}
       style={{
         display: 'block', margin: '4px 0 8px', padding: '10px 12px',

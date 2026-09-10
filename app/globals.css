@@ -727,6 +727,26 @@ body {
 .bof-lig-satir .pt { font-weight: 800; font-size: 0.9rem; color: var(--color-success-ink); }
 .bof-lig-satir.ben .pt { color: var(--color-text); }
 
+/* "Devam et" düğmesi de basılabilir dilin parçası. */
+.bof-devam-btn {
+  box-shadow: 0 4px 0 var(--bof-edge-primary); margin-bottom: 4px;
+  transition: transform var(--bof-t-press) ease-out, box-shadow var(--bof-t-press) ease-out, background 0.15s;
+}
+.bof-devam-btn:active { transform: translateY(4px); box-shadow: 0 0 0 var(--bof-edge-primary); }
+
+/* ── XP BARI NEREDE DURUR ─────────────────────────────────────────────────
+   Kullanıcı kararı (10.09.2026): masaüstünde XP SOL KENAR ÇUBUĞUNDAKİ bara
+   gitsin, sorunun altında ikinci bir bar OLMASIN. Telefon/tablette kenar
+   çubuğu gizli olduğu için kart içindeki bar KALIR.
+
+   Eşik 700px, çünkü kenar çubuğunun kendi eşiği bu:
+   `@media (max-width: 699px) { .sidebar { display: none } }`. İki sayı
+   AYRI AYRI yazılmamalı — biri değişip öteki unutulursa ya iki bar birden
+   görünür ya da hiçbiri görünmez. */
+@media (min-width: 700px) {
+  .bof-enerji-kart { display: none; }
+}
+
 /* ── ROZET RAFI ───────────────────────────────────────────────────────────
    17 rozetin hepsi; kazanılmayanlar gri ve altında sayaç.
 

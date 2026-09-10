@@ -229,7 +229,12 @@ export default function DailyQuestion() {
        kaydırmış olabilir; çip `position: fixed` yani koordinatlar viewport'a
        göre. Şıkkı istek ÖNCESİNDE ölçseydik çip yanlış yerden kalkardı. */
     const bas = merkez(sikRefs.current[sikIndex]);
-    const hedef = merkez(enerjiRef.current);
+    /* HEDEF EKRANA GÖRE DEĞİŞİR: masaüstünde sol kenar çubuğundaki enerji
+       kartı, telefonda sorunun altındaki.
+       ⚠ Seçim `display:none` üzerinden KENDİLİĞİNDEN oluyor: gizli öğenin
+       ölçüsü sıfır, `merkez()` de sıfır ölçülü öğeye null döndürüyor. Yani
+       burada ayrıca bir medya sorgusu okumaya gerek yok — tek kaynak CSS. */
+    const hedef = merkez(document.querySelector('[data-bof-enerji-kenar]')) ?? merkez(enerjiRef.current);
     if (!bas || !hedef || azHareket()) { uygula(); return; }
     const basNoktasi = bas;
 
@@ -366,8 +371,11 @@ export default function DailyQuestion() {
               </div>
 
               {progress && (
-                /* Uçan çipin hedefi bu kutu; ölçüm için sarmalayıcı ref şart. */
-                <div ref={enerjiRef}>
+                /* ⚠ Masaüstünde GİZLİ (.bof-enerji-kart, globals.css): orada XP
+                   sol kenar çubuğundaki bara gidiyor ve ikinci bir bar
+                   istenmiyor. Telefonda kenar çubuğu olmadığı için burada
+                   kalıyor — uçan çipin hedefi de o zaman burası oluyor. */
+                <div ref={enerjiRef} className="bof-enerji-kart">
                   <EnergyCard
                     level={progress.level}
                     into={progress.intoLevel}
