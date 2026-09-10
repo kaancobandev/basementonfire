@@ -666,9 +666,22 @@ body {
   border: 1.5px solid color-mix(in srgb, var(--color-accent) 45%, transparent);
 }
 
+/* Şıklar da BASILABİLİR: düğme dilinin tamamı burada da geçerli.
+   ⚠ Geçiş burada tanımlı — çağrı yerinde satır içi `transition` YAZILMAMALI,
+   yoksa transform/box-shadow geçişini ezer ve şık çökmez, zıplar.
+   ⚠ Gölge yerleşimde YER KAPLAMAZ: liste `gap`i 8 → 12 yapıldı ki şıklar arası
+   GÖRÜNEN boşluk eskisiyle aynı kalsın. İskeletteki boşluk da aynı anda
+   değiştirildi — ikisi ayrışırsa kart inince akış kayar (CLS). */
+.bof-sik {
+  --bof-sik-edge: var(--bof-edge-neutral);
+  box-shadow: 0 4px 0 var(--bof-sik-edge);
+  transition: transform var(--bof-t-press) ease-out, box-shadow var(--bof-t-press) ease-out,
+              border-color 0.15s, background 0.15s;
+}
+.bof-sik:not(:disabled):active { transform: translateY(4px); box-shadow: 0 0 0 var(--bof-sik-edge); }
 /* Şık geri bildirimi — durum `data-s` attribute'unda, satır içi stille çakışmaz. */
-.bof-sik[data-s="ok"] { animation: bofPop var(--bof-t-pop) var(--bof-ease-spring); }
-.bof-sik[data-s="no"] { animation: bofSalla var(--bof-t-pop) ease-in-out; }
+.bof-sik[data-s="ok"] { --bof-sik-edge: var(--color-success-ink); animation: bofPop var(--bof-t-pop) var(--bof-ease-spring); }
+.bof-sik[data-s="no"] { --bof-sik-edge: var(--color-danger-ink); animation: bofSalla var(--bof-t-pop) ease-in-out; }
 @keyframes bofPop { 0%, 100% { transform: scale(1); } 45% { transform: scale(1.04); } }
 @keyframes bofSalla {
   0%, 100% { transform: translateX(0); } 20% { transform: translateX(-6px); }

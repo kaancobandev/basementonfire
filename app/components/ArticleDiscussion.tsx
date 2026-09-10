@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { kutlamaAc } from '@/app/components/kutlamaOlay';
 import Link from 'next/link';
 import Img from '@/app/components/Img';
 import { toast } from 'sonner';
@@ -63,7 +64,20 @@ export default function ArticleDiscussion({ slug }: { slug: string }) {
         setSt({ phase: 'ready', loggedIn: !!d.loggedIn, saved: !!d.saved, comments: d.comments ?? [] });
         // "Okundu" isareti: bu bolum makalenin EN SONUNDA — buraya ulasmak makaleyi
         // bitirmenin makul vekili. Fire-and-forget; koleksiyon ilerlemesini besler.
-        if (d.loggedIn) fetch(`/api/articles/${slug}/read`, { method: 'POST', keepalive: true }).catch(() => {});
+        /* Yanıt artık OKUNUYOR: kategoriyi tamamlayan okur koleksiyon
+           rozetini O AN kutlamayla görüyor (eskiden rozet sessizce yazılıp
+           ancak bir sonraki profil ziyaretinde fark ediliyordu). Hâlâ
+           fire-and-forget: hata da gecikme de akışı etkilemiyor. */
+        if (d.loggedIn) {
+          fetch(`/api/articles/${slug}/read`, { method: 'POST', keepalive: true })
+            .then((r) => r.json())
+            .then((o) => {
+              if (o?.newBadge) {
+                kutlamaAc({ kicker: 'Yeni rozet', emoji: o.newBadge.emoji, baslik: o.newBadge.name, aciklama: 'Bu kategorinin tüm makalelerini okudun.' });
+              }
+            })
+            .catch(() => {});
+        }
       } catch {
         if (alive) setSt({ phase: 'hidden' });
       }

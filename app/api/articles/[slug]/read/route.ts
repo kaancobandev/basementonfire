@@ -1,5 +1,5 @@
 import { db, getMe } from '@/lib/supabase/server';
-import { NextResponse, after } from 'next/server';
+import { NextResponse } from 'next/server';
 import { ARTICLES, ARTICLE_MAP, isArticleSlug } from '@/lib/articles';
 import { CATEGORY_BADGE_KEYS, BADGE_MAP } from '@/lib/badges';
 
@@ -19,26 +19,38 @@ export async function POST(_req: Request, { params }: { params: Promise<{ slug: 
   const { error } = await db.from('article_reads').insert({ user_id: me.id, article_slug: slug });
   if (error && error.code !== '23505') return json({ available: false }, 503);
 
-  // Koleksiyon kontrolü — yanıt sonrası (okuma beacon'ı bekletilmez).
-  after(async () => {
-    try {
-      const category = ARTICLE_MAP[slug]?.category;
-      const badgeKey = category ? CATEGORY_BADGE_KEYS[category] : null;
-      if (!badgeKey || !BADGE_MAP[badgeKey]) return;
-
+  /* Koleksiyon kontrolü YANIT İÇİNDE (eskiden `after()` ile yanıttan SONRAydı).
+     Sebep: `after()` rozeti yazıyordu ama yanıt yalnız {ok:true} olduğu için
+     istemci rozeti KAZANDIĞINI hiç öğrenemiyordu — kategoriyi tamamlayan okur
+     kutlamayı ancak bir sonraki sayfa yüklemesinde, sessizce görüyordu.
+     ⚠ Bunun okura MALİYETİ YOK: beacon fire-and-forget çağrılıyor
+     (ArticleDiscussion.tsx:66, yanıt okunmadan atılıyordu) ve `after()` de
+     fonksiyonu zaten ayakta tutuyordu. Yani aynı iş, aynı süre — tek fark
+     sonucun artık dönüyor olması.
+     Yaygın durum TEK ek sorgu: kategori en fazla ~8 slug. */
+  let newBadge: { key: string; name: string; emoji: string } | null = null;
+  try {
+    const category = ARTICLE_MAP[slug]?.category;
+    const badgeKey = category ? CATEGORY_BADGE_KEYS[category] : null;
+    if (badgeKey && BADGE_MAP[badgeKey]) {
       const categorySlugs = ARTICLES.filter((a) => a.category === category).map((a) => a.slug);
       const { data: reads } = await db
         .from('article_reads').select('article_slug')
         .eq('user_id', me.id).in('article_slug', categorySlugs);
-      const readCount = new Set((reads ?? []).map((r: any) => r.article_slug)).size;
-      if (readCount < categorySlugs.length) return;
+      const readCount = new Set(((reads ?? []) as { article_slug: string }[]).map((r) => r.article_slug)).size;
+      if (readCount >= categorySlugs.length) {
+        const { data: owned } = await db
+          .from('user_badges').select('badge_key')
+          .eq('user_id', me.id).eq('badge_key', badgeKey).maybeSingle();
+        // Rozet YALNIZ ilk kez yazıldığında bildirilir; her yeniden okumada
+        // kutlama açılsaydı kutlama anlamını yitirirdi.
+        if (!owned) {
+          await db.from('user_badges').insert({ user_id: me.id, badge_key: badgeKey });
+          newBadge = { key: badgeKey, name: BADGE_MAP[badgeKey].name, emoji: BADGE_MAP[badgeKey].emoji };
+        }
+      }
+    }
+  } catch { /* rozet best-effort — okuma işareti yine de yazıldı */ }
 
-      const { data: owned } = await db
-        .from('user_badges').select('badge_key')
-        .eq('user_id', me.id).eq('badge_key', badgeKey).maybeSingle();
-      if (!owned) await db.from('user_badges').insert({ user_id: me.id, badge_key: badgeKey });
-    } catch { /* rozet best-effort */ }
-  });
-
-  return json({ ok: true });
+  return json({ ok: true, newBadge });
 }

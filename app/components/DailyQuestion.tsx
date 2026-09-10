@@ -254,9 +254,12 @@ export default function DailyQuestion() {
                 bu satir pratikte HER ZAMAN cizilir; yeri kosulsuz ayrilir. */}
             <div style={{ height: KAYNAK_SATIR_YUKSEK, width: '45%', borderRadius: 5, background: 'var(--color-border)', opacity: 0.4, marginBottom: KAYNAK_SATIR_BOSLUK }} />
             <div style={{ height: 21, width: '75%', borderRadius: 6, background: 'var(--color-border)', opacity: 0.5, marginBottom: 14 }} />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {/* İskelet gerçek şıkla BİREBİR: aynı gap (12) ve aynı 4px kenar.
+                Ayrışırsa kart yerine oturunca akış kayar — home CLS 0,236
+                ölçümünün kaynağı tam olarak buydu. */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {[0, 1, 2, 3].map((i) => (
-                <div key={i} style={{ height: 48, borderRadius: 11, border: '1px solid var(--color-border)' }} />
+                <div key={i} style={{ height: 48, borderRadius: 11, border: '1px solid var(--color-border)', boxShadow: '0 4px 0 var(--bof-edge-neutral)' }} />
               ))}
             </div>
           </div>
@@ -283,7 +286,10 @@ export default function DailyQuestion() {
           <KaynakSatiri q={q} />
           <p style={{ margin: '0 0 14px', fontSize: '0.96rem', fontWeight: 700, lineHeight: 1.45, color: 'var(--color-text)' }}>{q.question}</p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {/* gap 8 değil 12: her şıkkın 4px'lik basılabilir kenarı yerleşimde
+              yer kaplamıyor, boşluğun içine biniyor. 12 = 4 kenar + 8 görünen.
+              ⚠ Aşağıdaki İSKELET de aynı değeri kullanmalı. */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {q.options.map((opt, i) => {
               const isCorrect = answered && i === st.correctIndex;
               const isWrongPick = answered && i === st.selectedIndex && i !== st.correctIndex;
@@ -307,7 +313,9 @@ export default function DailyQuestion() {
                     display: 'flex', alignItems: 'center', gap: 11, textAlign: 'left',
                     padding: '11px 13px', borderRadius: 11, border, background: bg, color,
                     fontSize: '0.88rem', fontFamily: 'inherit', fontWeight: 500,
-                    cursor: answered ? 'default' : 'pointer', transition: 'border-color 0.15s, background 0.15s', width: '100%',
+                    /* ⚠ `transition` BURADA YOK: .bof-sik kuralı sahibi. Satır içi
+                       yazılsaydı basma geçişini ezerdi (inline > stylesheet). */
+                    cursor: answered ? 'default' : 'pointer', width: '100%',
                   }}
                 >
                   <span style={{

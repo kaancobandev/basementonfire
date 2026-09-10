@@ -614,7 +614,9 @@ function TikIkon() {
 function TikRozeti() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" style={{ flex: 'none', marginLeft: 10 }} aria-hidden>
-      <circle cx="8" cy="8" r="8" fill="var(--color-success)" />
+      {/* Daire success DEĞİL success-ink: beyaz tik #22c55e üstünde 2,28:1
+          ölçülüyordu (WCAG ikon eşiği 3:1). -ink tonuyla 5,02:1. */}
+      <circle cx="8" cy="8" r="8" fill="var(--color-success-ink)" />
       <path d="M4.6 8.3 7 10.6l4.4-4.7" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
