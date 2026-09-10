@@ -611,6 +611,77 @@ body {
 /* Basınca gerçekten çöker: 4px iner, kenar sıfırlanır — toplam yükseklik sabit. */
 .post-btn:active { transform: translateY(4px); box-shadow: 0 0 0 var(--bof-edge-primary); }
 
+/* ── ÖDÜL ANI: enerji kartı + uçan XP çipi + şık geri bildirimi ───────────
+   Kaynak: yon4-karma.html. Sıra: çip uçar → bar/küre/sayı dolar → şık pop/shake.
+
+   ⚠ Bu katman framer KULLANMAZ: Günün Sorusu, HomeFeed'in
+   `<LazyMotion strict>` ağacının İÇİNDE render ediliyor, orada `motion.*`
+   invariant fırlatır. İş zaten ölçüm + zamanlama, CSS yetiyor. */
+
+/* Küre yüzdesini ANIMASYONLA çevirebilmek için tipli özel özellik.
+   ⚠ Bu kayıt olmadan `conic-gradient` içindeki yüzde geçiş yapmaz, SIÇRAR —
+   mock'ta bu kayıt YOK, yani mock'un küresi sıçrıyor. Hatayı kopyalama. */
+@property --bof-p { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
+
+.bof-enerji { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; }
+.bof-orb {
+  width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0;
+  background: conic-gradient(var(--color-primary) var(--bof-p), var(--color-primary-soft) 0);
+  transition: --bof-p 600ms var(--bof-ease-out);
+}
+.bof-orb > b {
+  width: 34px; height: 34px; border-radius: 50%; background: var(--color-surface);
+  display: grid; place-items: center; font-size: 0.78rem; font-weight: 800; color: var(--color-text);
+}
+/* Bar: dolgu KIRPILMAZ (uçtaki parıltı taşsın diye), o yüzden overflow gizli değil
+   ve yuvarlak uçlar dolgunun kendi border-radius'undan gelir. */
+.bof-bar { position: relative; height: 8px; border-radius: 9999px; background: var(--color-border); }
+.bof-bar > i {
+  display: block; height: 100%; border-radius: 9999px; position: relative;
+  background: linear-gradient(90deg, var(--color-success), var(--color-primary));
+  transition: width var(--bof-t-fill) var(--bof-ease-out);
+}
+.bof-bar > i::after {
+  content: ''; position: absolute; right: -3px; top: -3px; width: 14px; height: 14px;
+  border-radius: 50%; background: var(--color-primary);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--color-primary) 65%, transparent);
+}
+.bof-enerji[data-surge] .bof-bar > i::after { animation: bofNabiz 620ms var(--bof-ease-out); }
+@keyframes bofNabiz { 0%, 100% { transform: scale(1); } 45% { transform: scale(1.5); } }
+.bof-zipla { animation: bofZipla var(--bof-t-bump) var(--bof-ease-spring); }
+@keyframes bofZipla { 0%, 100% { transform: scale(1); } 40% { transform: scale(1.28); } }
+
+/* Uçan çip — document.body'ye eklenir, ASLA kartın içine.
+   Sebep: transform almış bir ata, `position: fixed`i kendi kutusuna hapseder;
+   akış kartları framer ile transform alıyor. */
+.bof-cip {
+  position: fixed; z-index: 9998; pointer-events: none; left: 0; top: 0;
+  padding: 4px 10px; border-radius: 9999px; white-space: nowrap;
+  font-family: inherit; font-size: 0.78rem; font-weight: 800; line-height: 1;
+  background: var(--color-primary); color: var(--color-on-primary);
+  box-shadow: var(--shadow-md);
+}
+.bof-cip--seri {
+  background: var(--color-accent-soft); color: var(--color-accent-ink);
+  border: 1.5px solid color-mix(in srgb, var(--color-accent) 45%, transparent);
+}
+
+/* Şık geri bildirimi — durum `data-s` attribute'unda, satır içi stille çakışmaz. */
+.bof-sik[data-s="ok"] { animation: bofPop var(--bof-t-pop) var(--bof-ease-spring); }
+.bof-sik[data-s="no"] { animation: bofSalla var(--bof-t-pop) ease-in-out; }
+@keyframes bofPop { 0%, 100% { transform: scale(1); } 45% { transform: scale(1.04); } }
+@keyframes bofSalla {
+  0%, 100% { transform: translateX(0); } 20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); }
+}
+/* Doğru şıkka yapışan çıkartma */
+.bof-cikartma { display: inline-block; animation: bofYapis var(--bof-t-slap) var(--bof-ease-spring); }
+@keyframes bofYapis {
+  0% { transform: scale(3) rotate(-25deg); opacity: 0; }
+  60% { transform: scale(0.92) rotate(6deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0); }
+}
+
 /* ── AKIŞ SEKMESİ GÖSTERGESİ ──────────────────────────────────────────────
    Her sekmenin KENDİ alt kenarlığı yerine TEK bir çubuk: o yüzden kayabiliyor.
    İki sekme de `flex: 1` (basis 0) olduğu için genişlik tam %50 ve ikinci

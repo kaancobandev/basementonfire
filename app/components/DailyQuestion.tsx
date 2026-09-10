@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import EnergyCard from '@/app/components/EnergyCard';
+import { azHareket, merkez, ucanCip, bekle } from '@/app/components/rewardMotion';
 
 type Q = {
   id: number;
@@ -58,6 +60,12 @@ type State =
   | { phase: 'ready'; q: Q; loggedIn: boolean; progress: Progress | null }
   | { phase: 'answered'; q: Q; selectedIndex: number; correctIndex: number; explanation: string | null; articleSlug: string | null; progress: Progress | null };
 
+/* Ödül anı üç perdeye yayılıyor: çip uçar → bar/küre/sayı dolar → şık oynar.
+   Bunun için EKRANDAKİ ilerleme ile SUNUCUDAN GELEN ilerleme bir süre ayrı
+   tutulur: kart önce ESKİ değerlerle çizilir (çipin uçacağı hedef o), çip
+   varınca yeni değere geçilir. Aynı anda basılsaydı bar zaten dolu belirir,
+   çip de boşluğa uçardı — nedensellik kaybolurdu. */
+
 function ProgressChips({ p }: { p: Progress | null }) {
   if (!p) return null;
   return (
@@ -71,7 +79,10 @@ function ProgressChips({ p }: { p: Progress | null }) {
 export default function DailyQuestion() {
   const [st, setSt] = useState<State>({ phase: 'loading' });
   const [submitting, setSubmitting] = useState(false);
+  const [duyuru, setDuyuru] = useState('');
   const rootRef = useRef<HTMLDivElement>(null);
+  const enerjiRef = useRef<HTMLDivElement>(null);
+  const sikRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [inView, setInView] = useState(false);
 
   // Tembel yukleme: widget gorunure yaklasana kadar /api/daily-question'a
@@ -131,21 +142,68 @@ export default function DailyQuestion() {
       const d = await res.json();
       if (!res.ok && !d.alreadyAnswered) { toast.error(d.error ?? 'Bir hata oluştu'); setSubmitting(false); return; }
       const correctIndex = d.correctIndex ?? -1;
+      const yeniIlerleme: Progress | null = d.progress ?? st.progress;
+      // Kart ESKİ ilerlemeyle çiziliyor; yenisi çip varınca uygulanacak.
       setSt({
         phase: 'answered', q: st.q, selectedIndex: idx, correctIndex,
         explanation: d.explanation ?? null,
         articleSlug: d.article_slug ?? st.q.article_slug,
-        progress: d.progress ?? st.progress,
+        progress: st.progress,
       });
-      if (d.alreadyAnswered) { /* sessiz: zaten bugun cevaplanmis */ }
-      else if (d.isCorrect) toast.success(`Doğru! +${d.xpGained ?? 0} XP`);
-      else toast('Yanlış — yarın yeni soru!', { icon: '📅' });
+
+      if (d.alreadyAnswered) {
+        // Zaten cevaplanmış: ödül yok, koreografi de yok — yalnız durumu göster.
+        setSt((o) => (o.phase === 'answered' ? { ...o, progress: yeniIlerleme } : o));
+      } else {
+        const kazanilan: number = d.xpGained ?? 0;
+        /* Seri bonusu AYRI bir alan olarak dönmüyor; rota kuralının birebir
+           tersi ile çıkarılıyor (route.ts:142-144): bonus = min(seri, 7) ve
+           yalnız doğru cevapta verilir. Böylece API'ye yeni alan eklemeden
+           iki çipi ayırabiliyoruz. */
+        const seri = yeniIlerleme?.current_streak ?? 0;
+        const bonus = d.isCorrect ? Math.min(seri, 7) : 0;
+        const taban = Math.max(0, kazanilan - bonus);
+
+        setDuyuru(d.isCorrect
+          ? `Doğru! ${taban} XP${bonus ? ` ve ${bonus} seri bonusu` : ''} kazandın.`
+          : `Yanlış. Deneme için ${kazanilan} XP senin.`);
+
+        await odulKoreografisi({ sikIndex: idx, taban, bonus, yeniIlerleme });
+      }
       for (const b of (d.newBadges ?? [])) toast.success(`${b.emoji} Yeni rozet: ${b.name}`);
     } catch {
       toast.error('Bağlantı hatası');
     } finally {
       setSubmitting(false);
     }
+  }
+
+  /* Çip(ler) uçar, hedefe varınca ilerleme uygulanır. Toast KALDIRILDI: ödül
+     artık kartın kendi üzerinde anlatılıyor, ekran okuyucuya da aşağıdaki
+     `aria-live` satırından gidiyor. */
+  async function odulKoreografisi(
+    { sikIndex, taban, bonus, yeniIlerleme }:
+    { sikIndex: number; taban: number; bonus: number; yeniIlerleme: Progress | null },
+  ) {
+    const uygula = () => setSt((o) => (o.phase === 'answered' ? { ...o, progress: yeniIlerleme } : o));
+
+    // Hedef enerji kartı DOM'a YENİ giriyor — bir kare bekleyip ölç.
+    await bekle(azHareket() ? 0 : 40);
+    /* ⚠ İKİ NOKTA DA BURADA, AYNI ANDA ölçülüyor. Cevap beklenirken kullanıcı
+       kaydırmış olabilir; çip `position: fixed` yani koordinatlar viewport'a
+       göre. Şıkkı istek ÖNCESİNDE ölçseydik çip yanlış yerden kalkardı. */
+    const bas = merkez(sikRefs.current[sikIndex]);
+    const hedef = merkez(enerjiRef.current);
+    if (!bas || !hedef || azHareket()) { uygula(); return; }
+    const basNoktasi = bas;
+
+    const ucuslar = [ucanCip(`+${taban} XP`, basNoktasi, hedef, 'xp')];
+    if (bonus > 0) {
+      await bekle(120);   // ikinci çip biraz sonra kalksın, üst üste binmesin
+      ucuslar.push(ucanCip(`🔥 +${bonus} seri`, { x: basNoktasi.x + 78, y: basNoktasi.y }, hedef, 'seri'));
+    }
+    await Promise.all(ucuslar);
+    uygula();
   }
 
   if (st.phase === 'hidden') return null;
@@ -211,8 +269,13 @@ export default function DailyQuestion() {
               return (
                 <button
                   key={i}
+                  ref={(el) => { sikRefs.current[i] = el; }}
                   onClick={() => answer(i)}
                   disabled={answered || submitting}
+                  className="bof-sik"
+                  /* Geri bildirim CSS'te, `data-s` üzerinden: satır içi stille
+                     çakışmasın diye animasyon attribute'a bağlı. */
+                  data-s={isCorrect ? 'ok' : isWrongPick ? 'no' : undefined}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 11, textAlign: 'left',
                     padding: '11px 13px', borderRadius: 11, border, background: bg, color,
@@ -227,7 +290,9 @@ export default function DailyQuestion() {
                     color: (isCorrect || isWrongPick) ? '#fff' : 'var(--color-primary)',
                   }}>{String.fromCharCode(65 + i)}</span>
                   {opt}
-                  {isCorrect && <span style={{ marginLeft: 'auto', flexShrink: 0 }}>✓</span>}
+                  {isCorrect && (
+                    <span className="bof-cikartma" style={{ marginLeft: 'auto', flexShrink: 0 }} aria-hidden>✓</span>
+                  )}
                 </button>
               );
             })}
@@ -257,18 +322,26 @@ export default function DailyQuestion() {
               </div>
 
               {progress && (
-                <div style={{ marginTop: 13, paddingTop: 12, borderTop: '1px solid var(--color-border)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.74rem', color: 'var(--color-text-muted)', marginBottom: 5 }}>
-                    <span>Seviye {progress.level}</span>
-                    <span>{progress.intoLevel} / {progress.perLevel} XP</span>
-                  </div>
-                  <div style={{ height: 7, borderRadius: 9999, background: 'var(--color-border)', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${Math.round((progress.intoLevel / progress.perLevel) * 100)}%`, background: 'linear-gradient(90deg,var(--color-success),var(--color-primary))', borderRadius: 9999 }} />
-                  </div>
+                /* Uçan çipin hedefi bu kutu; ölçüm için sarmalayıcı ref şart. */
+                <div ref={enerjiRef}>
+                  <EnergyCard
+                    level={progress.level}
+                    into={progress.intoLevel}
+                    perLevel={progress.perLevel}
+                    streak={progress.current_streak}
+                  />
                 </div>
               )}
             </div>
           )}
+          {/* Ödül artık toast ile DEĞİL kartın üzerinde anlatılıyor; ekran
+              okuyucunun tek kanalı bu satır. Görsel olarak gizli. */}
+          <p
+            aria-live="polite"
+            style={{ position: 'absolute', width: 1, height: 1, margin: -1, padding: 0, overflow: 'hidden', clip: 'rect(0 0 0 0)', whiteSpace: 'nowrap', border: 0 }}
+          >
+            {duyuru}
+          </p>
         </div>
       </article>
     </div>
