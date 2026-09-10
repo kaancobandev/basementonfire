@@ -709,6 +709,18 @@
       if (global.__bofPet) { global.__bofPet.destroy(); global.__bofPet = null; }
     },
     current: function () { return global.__bofPet || null; },
+    /* Odul aninda disaridan ziplatma (XP kazanildiginda). ACTS.hop ve
+       _begin('hop') motorda ZATEN vardi, sadece disa acilmamisti.
+       poke()'un havada-degilken korumasi BIREBIR kopyalandi: havadayken ya da
+       tirmanirken yere bagli bir animasyona cekilmemeli.
+       Maskot kapaliysa __bofPet yok -> sessizce false doner, cagiran kirilmaz. */
+    hop: function () {
+      var p = global.__bofPet;
+      if (!p || !p.running) return false;
+      if (p.y > 0 || p.act === 'climb' || p.act === 'hop') return false;
+      p._begin('hop');
+      return true;
+    },
     defaults: DEFAULTS,
     sheets: PANDA_SHEETS,
     graph: GRAPH

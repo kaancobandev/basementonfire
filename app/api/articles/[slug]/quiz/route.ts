@@ -3,6 +3,7 @@ import { limit, tooMany } from '@/lib/rateLimit';
 import { NextResponse } from 'next/server';
 import { unstable_cache } from 'next/cache';
 import { isArticleSlug } from '@/lib/articles';
+import { earnedBadgeKeys, levelFromXp, BADGE_MAP } from '@/lib/badges';
 
 const json = (data: object, status = 200) => NextResponse.json(data, { status });
 
@@ -138,19 +139,68 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
       return json({ available: false, error: 'Quiz henüz hazır değil.' }, 503);
     }
 
-    // XP: doğru +5 (günün sorusundan küçük — seri/rozet mantığına DOKUNMAZ,
-    // yalnız xp alanı güncellenir; rozetler kendi eşiklerinde kendiliğinden gelir).
+    /* XP: doğru +5 (günün sorusundan küçük).
+       ⛔ current_streak / last_answer_date / total_correct'e DOKUNULMAZ:
+          seri TAKVİM tabanlı (günde bir soru), makale quizi onu bozamaz.
+          total_correct ise hem rozet eşiklerini hem /lig sıralamasını
+          etkiler — makale quizinin oraya sayılıp sayılmayacağı ayrı bir
+          ÜRÜN kararı, sessizce yapılamaz. */
+    const { data: cur } = await db.from('user_progress')
+      .select('xp, current_streak, longest_streak, total_correct, total_answered')
+      .eq('user_id', me.id).maybeSingle();
+    const onceki = cur ?? { xp: 0, current_streak: 0, longest_streak: 0, total_correct: 0, total_answered: 0 };
+
     let xpGained = 0;
+    let xp = onceki.xp ?? 0;
     if (isCorrect) {
       xpGained = 5;
-      const { data: cur } = await db.from('user_progress').select('xp').eq('user_id', me.id).maybeSingle();
+      xp = xp + xpGained;
       await db.from('user_progress').upsert(
-        { user_id: me.id, xp: (cur?.xp ?? 0) + xpGained, updated_at: new Date().toISOString() },
+        { user_id: me.id, xp, updated_at: new Date().toISOString() },
         { onConflict: 'user_id' },
       );
     }
 
-    return json({ isCorrect, correctIndex: q.correct_index, explanation: q.explanation ?? null, xpGained });
+    /* Rozet yazımı günün sorusuyla AYNI (daily-question/route.ts). Eskiden
+       burada HİÇ yoktu: 100 XP eşiğini makale quiziyle geçen kullanıcı
+       `xp_100` rozetini O AN almıyordu — ancak bir sonraki günün sorusunda
+       geliyordu. Şema değişmiyor, yalnız aynı hesap burada da yapılıyor.
+       Seri ve doğru sayısı DEĞİŞMEDİĞİ için pratikte tetiklenebilen tek
+       şey XP eşikleri; diğerleri zaten kazanılmışsa tekrar yazılmaz. */
+    const shouldHave = earnedBadgeKeys({
+      xp,
+      current_streak: onceki.current_streak ?? 0,
+      longest_streak: onceki.longest_streak ?? 0,
+      total_correct: onceki.total_correct ?? 0,
+    });
+    let newBadges: { key: string; name: string; emoji: string }[] = [];
+    if (shouldHave.length) {
+      const { data: owned } = await db.from('user_badges').select('badge_key').eq('user_id', me.id);
+      const ownedKeys = new Set((owned ?? []).map((b: any) => b.badge_key));
+      const toAdd = shouldHave.filter((k) => !ownedKeys.has(k));
+      if (toAdd.length) {
+        await db.from('user_badges').insert(toAdd.map((k) => ({ user_id: me.id, badge_key: k })));
+        newBadges = toAdd.map((k) => ({ key: k, name: BADGE_MAP[k].name, emoji: BADGE_MAP[k].emoji }));
+      }
+    }
+
+    /* Seviye atlama SUNUCUDA hesaplanıyor: eski ve yeni XP'nin ikisi de yalnız
+       burada var. İstemcinin kendi seviye defterini tutması gerekseydi makale
+       sayfası ilerlemeyi ayrıca çekmek zorunda kalırdı. */
+    const leveledUp = levelFromXp(xp).level > levelFromXp(onceki.xp ?? 0).level;
+
+    return json({
+      isCorrect, correctIndex: q.correct_index, explanation: q.explanation ?? null, xpGained, leveledUp,
+      progress: {
+        xp,
+        current_streak: onceki.current_streak ?? 0,
+        longest_streak: onceki.longest_streak ?? 0,
+        total_correct: onceki.total_correct ?? 0,
+        total_answered: onceki.total_answered ?? 0,
+        ...levelFromXp(xp),
+      },
+      newBadges,
+    });
   } catch {
     return json({ available: false }, 503);
   }

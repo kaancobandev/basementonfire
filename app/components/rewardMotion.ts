@@ -86,3 +86,20 @@ export function kisaSinif(el: Element | null | undefined, sinif: string, ms: num
   el.classList.add(sinif);
   setTimeout(() => el.classList.remove(sinif), ms);
 }
+
+/**
+ * Maskotu bir kez zıplatır. Motor `public/pets/pet-engine.js` altında ve
+ * bundle'ın DIŞINDA duruyor, o yüzden global üzerinden çağrılıyor.
+ *
+ * Sessizce hiçbir şey yapmadığı durumlar (hepsi normal): maskot ayarlardan
+ * kapatılmış, motor henüz yüklenmemiş, panda o an havada ya da tırmanıyor.
+ * ⚠ Kutlama modalı AÇIKKEN çağrılmaz: maskot z-index 30, perde 400 — zıplama
+ * perdenin arkasında kalırdı. Zaten sıra öyle: zıplama barla birlikte, modal
+ * 900 ms sonra.
+ */
+export function maskotZipla() {
+  if (typeof window === 'undefined' || azHareket()) return;
+  try {
+    (window as unknown as { BasementPet?: { hop?: () => boolean } }).BasementPet?.hop?.();
+  } catch { /* motor yoksa sorun değil */ }
+}

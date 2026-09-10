@@ -682,6 +682,19 @@ body {
   100% { transform: scale(1) rotate(0); }
 }
 
+/* ── BÜYÜK KUTLAMA ────────────────────────────────────────────────────────
+   Kural: SIRADAN doğru cevapta ekran KESİLMEZ. Perde yalnızca YENİ ROZET ve
+   SEVİYE ATLAMA anında iner — nadir olduğu için özel hissettiriyor.
+   (Duolingo da büyük kutlamayı ders sonuna saklıyor; burada rozet/seviye
+   karşılığı o.) Hareketi azaltanda modal GİZLENMEZ, yalnız hareketi söner —
+   kutlama bilgi taşıyor, süs değil. */
+.bof-kutlama { animation: bofKutlamaGir var(--bof-t-slap) var(--bof-ease-spring); }
+@keyframes bofKutlamaGir {
+  from { transform: scale(0.86); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.bof-kutlama-emoji { animation: bofZipla 620ms var(--bof-ease-spring) 160ms both; }
+
 /* ── AKIŞ SEKMESİ GÖSTERGESİ ──────────────────────────────────────────────
    Her sekmenin KENDİ alt kenarlığı yerine TEK bir çubuk: o yüzden kayabiliyor.
    İki sekme de `flex: 1` (basis 0) olduğu için genişlik tam %50 ve ikinci

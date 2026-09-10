@@ -74,6 +74,7 @@ const fontBodyExt = localFont({
 import AppShell from './components/AppShell';
 import { MediaDockProvider } from './components/MediaDock';
 import CelebrateOnParam from './components/CelebrateOnParam';
+import Kutlama from './components/Kutlama';
 import CookieConsent from './components/CookieConsent';
 import SignupEvent from './components/SignupEvent';
 import PageviewBeacon from './components/PageviewBeacon';
@@ -293,6 +294,10 @@ export default function RootLayout({ children, modal }: { children: React.ReactN
       <body>
         <Suspense fallback={null}>
           <CelebrateOnParam />
+          {/* Rozet/seviye kutlaması — tetikleyen yerler (akıştaki Günün
+              Sorusu, 38 makale sayfasındaki quiz) modala prop zinciriyle
+              bağlanamayacak kadar uzak; olayla konuşuyorlar. */}
+          <Kutlama />
         </Suspense>
         {/* Native scroll. Lenis smooth-scroll KALDIRILDI: tekerlek/touchpad olayını
             yakalayıp (rAF/lenis-stopped durumunda) kaydırmayı engelleyebiliyordu;

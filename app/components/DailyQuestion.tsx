@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import EnergyCard from '@/app/components/EnergyCard';
-import { azHareket, merkez, ucanCip, bekle } from '@/app/components/rewardMotion';
+import { azHareket, merkez, ucanCip, bekle, maskotZipla } from '@/app/components/rewardMotion';
+import { kutlamaAc } from '@/app/components/kutlamaOlay';
 
 type Q = {
   id: number;
@@ -143,6 +144,10 @@ export default function DailyQuestion() {
       if (!res.ok && !d.alreadyAnswered) { toast.error(d.error ?? 'Bir hata oluştu'); setSubmitting(false); return; }
       const correctIndex = d.correctIndex ?? -1;
       const yeniIlerleme: Progress | null = d.progress ?? st.progress;
+      // Seviye atlama, cevaptan ÖNCEKİ seviyeyle karşılaştırılarak bulunur.
+      // `st` bu render'ın kendi değeri (yukarıda phase 'ready' diye doğrulandı),
+      // yani bayat bir closure değeri değil.
+      const eskiSeviye = st.progress?.level ?? 1;
       // Kart ESKİ ilerlemeyle çiziliyor; yenisi çip varınca uygulanacak.
       setSt({
         phase: 'answered', q: st.q, selectedIndex: idx, correctIndex,
@@ -169,8 +174,27 @@ export default function DailyQuestion() {
           : `Yanlış. Deneme için ${kazanilan} XP senin.`);
 
         await odulKoreografisi({ sikIndex: idx, taban, bonus, yeniIlerleme });
+
+        /* ⚠ BÜYÜK KUTLAMA YALNIZ BURADA: sıradan doğru cevapta ekran KESİLMEZ.
+           Perde ancak SEVİYE ATLAMA ya da YENİ ROZET varsa iner. Bekleme,
+           kutladığı şeyin animasyonunun üstünü örtmemek için. */
+        const yeniSeviye = yeniIlerleme?.level ?? eskiSeviye;
+        const rozetler = (d.newBadges ?? []) as { key: string; name: string; emoji: string }[];
+        if (yeniSeviye > eskiSeviye || rozetler.length) {
+          await bekle(azHareket() ? 0 : 900);
+          if (yeniSeviye > eskiSeviye) {
+            kutlamaAc({
+              kicker: 'Seviye atladın', emoji: '⬆️',
+              baslik: `Seviye ${yeniSeviye}`,
+              aciklama: 'Enerjin doldu ve bir üst seviyeye geçtin.',
+            });
+          }
+          // Aynı anda ikisi de olabilir; modal kuyruklu, üst üste yazmaz.
+          for (const b of rozetler) {
+            kutlamaAc({ kicker: 'Yeni rozet', emoji: b.emoji, baslik: b.name, aciklama: 'Rozet rafına eklendi.' });
+          }
+        }
       }
-      for (const b of (d.newBadges ?? [])) toast.success(`${b.emoji} Yeni rozet: ${b.name}`);
     } catch {
       toast.error('Bağlantı hatası');
     } finally {
@@ -185,7 +209,10 @@ export default function DailyQuestion() {
     { sikIndex, taban, bonus, yeniIlerleme }:
     { sikIndex: number; taban: number; bonus: number; yeniIlerleme: Progress | null },
   ) {
-    const uygula = () => setSt((o) => (o.phase === 'answered' ? { ...o, progress: yeniIlerleme } : o));
+    const uygula = () => {
+      setSt((o) => (o.phase === 'answered' ? { ...o, progress: yeniIlerleme } : o));
+      maskotZipla();   // bar dolarken maskot da sevinsin
+    };
 
     // Hedef enerji kartı DOM'a YENİ giriyor — bir kare bekleyip ölç.
     await bekle(azHareket() ? 0 : 40);

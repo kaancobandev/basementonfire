@@ -46,7 +46,7 @@ export interface PetDef {
 /** Motor + sprite önbellek kırıcı. netlify.toml /pets/* için 7 gün cache veriyor;
  *  motoru veya bir sprite'ı DEĞİŞTİRİRSEN bu sayıyı artır, yoksa geri dönen
  *  ziyaretçi bir hafta boyunca eski dosyayı görür. */
-export const PET_VERSION = '4';   // 4: konuşma balonundaki marka adı "basements" → "basementonfire"
+export const PET_VERSION = '5';   // 5: ödül anı için dışa açık hop() · 4: konuşma balonundaki marka adı "basements" → "basementonfire"
                                   // 3: sürüm 12 sanatı — pembe allık + büyük tırmanma karesi
 
 export const PET_ENGINE_SRC = `/pets/pet-engine.js?v=${PET_VERSION}`;

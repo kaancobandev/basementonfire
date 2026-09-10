@@ -23,6 +23,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { articleQuizPollKey } from '@/lib/polls';
+import { kutlamaAc } from '@/app/components/kutlamaOlay';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
@@ -518,6 +519,25 @@ export function ArticleQuiz({ accent: accentProp, bg: bgProp }: { accent?: strin
       if (typeof d.correctIndex !== 'number') { setPick(null); setBusy(false); return; }
       setSonuclar(s => ({ ...s, [qi]: { correctIndex: d.correctIndex, explanation: d.explanation ?? null, xpGained: d.xpGained ?? 0 } }));
       if (sel === d.correctIndex) setScore(s => s + 1);
+
+      /* Makale quizi artık günün sorusuyla AYNI ödül motoruna bağlı: rota
+         rozetleri yazıyor ve seviye atlamayı bildiriyor. Öncesinde 100 XP
+         eşiğini makale quiziyle geçen okur rozetini O AN almıyordu — ancak
+         bir sonraki günün sorusunda geliyordu.
+         ⚠ Kutlama YALNIZ rozet/seviye için; sıradan doğru cevap sayfayı
+         KESMEZ, makale okuma akışı bölünmemeli.
+         ⚠ Tetikleyici bağımsız bir dosyada (kutlamaOlay.ts): BU dosyadan
+         yapılan her import 38 makale sayfasının paketine iniyor. */
+      if (d.leveledUp && d.progress) {
+        kutlamaAc({
+          kicker: 'Seviye atladın', emoji: '⬆️',
+          baslik: `Seviye ${d.progress.level}`,
+          aciklama: 'Makale quizinden gelen XP seni bir üst seviyeye taşıdı.',
+        });
+      }
+      for (const b of (d.newBadges ?? []) as { name: string; emoji: string }[]) {
+        kutlamaAc({ kicker: 'Yeni rozet', emoji: b.emoji, baslik: b.name, aciklama: 'Rozet rafına eklendi.' });
+      }
     } catch {
       setPick(null); // ağ hatasında soruyu kilitli bırakma
     } finally {
@@ -590,16 +610,19 @@ export function ArticleQuiz({ accent: accentProp, bg: bgProp }: { accent?: strin
           )}
           {answered && sonuc && (
             <div className="mt-4">
-              {(sonuc.explanation || pick !== sonuc.correctIndex) && (
-                <div className="rounded-xl border p-4 text-sm leading-relaxed text-slate-200" style={{ borderColor: pick === sonuc.correctIndex ? `color-mix(in srgb, ${accent} 30%, transparent)` : 'rgba(251,191,36,0.3)', background: pick === sonuc.correctIndex ? `color-mix(in srgb, ${accent} 6%, transparent)` : 'rgba(251,191,36,0.06)' }}>
+              {/* ⚠ KOŞUL KALDIRILDI: eskiden `(sonuc.explanation || pick !==
+                  sonuc.correctIndex)` idi. Açıklaması OLMAYAN bir soruyu DOĞRU
+                  cevaplayınca kutu hiç render edilmiyordu — yani "Doğru! +5 XP"
+                  yazısı da, tek geri bildirim de kayboluyordu. Artık cevap
+                  verilmişse kutu her zaman var. */}
+              <div className="rounded-xl border p-4 text-sm leading-relaxed text-slate-200" style={{ borderColor: pick === sonuc.correctIndex ? `color-mix(in srgb, ${accent} 30%, transparent)` : 'rgba(251,191,36,0.3)', background: pick === sonuc.correctIndex ? `color-mix(in srgb, ${accent} 6%, transparent)` : 'rgba(251,191,36,0.06)' }}>
                   <span className="font-bold">
                     {pick === sonuc.correctIndex
                       ? `Doğru! ${sonuc.xpGained > 0 ? `+${sonuc.xpGained} XP ` : ''}`
                       : `Doğru cevap: ${q.options[sonuc.correctIndex]}. `}
                   </span>
                   {sonuc.explanation}
-                </div>
-              )}
+              </div>
               <button onClick={next} className="mt-3 w-full rounded-xl px-4 py-3 text-sm font-bold" style={{ background: accent, color: bg }}>{qi + 1 < questions.length ? 'Sonraki soru →' : 'Sonucu gör 🎉'}</button>
             </div>
           )}
