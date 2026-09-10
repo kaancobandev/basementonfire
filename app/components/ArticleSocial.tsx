@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import { isArticleSlug } from '@/lib/articles';
 import RelatedArticles from './RelatedArticles';
 import ArticleDiscussion from './ArticleDiscussion';
+import ReadProgress from './ReadProgress';
 
 /**
  * Tüm makalelerin ortak SOSYAL AYAĞI — ArticleBibliography'nin hemen ardından
@@ -20,6 +21,9 @@ export default function ArticleSocial() {
 
   return (
     <div className="article-social">
+      {/* Okuma ilerlemesi nişanı — GÖVDENİN BİTTİĞİ NOKTA burası olduğu için
+          ölçüm de burada. Ekranda hiçbir şey çizmez. */}
+      <ReadProgress slug={slug} />
       <RelatedArticles slug={slug} />
       {/* ⚠ QUIZ BURADA DEĞİL. Sitede TEK quiz var ve makalenin GÖVDESİNDE,
           Kaynakça'dan önce duruyor (ArticleBlocks > ArticleQuiz). Burada da

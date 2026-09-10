@@ -19,6 +19,14 @@ export async function POST(_req: Request, { params }: { params: Promise<{ slug: 
   const { error } = await db.from('article_reads').insert({ user_id: me.id, article_slug: slug });
   if (error && error.code !== '23505') return json({ available: false }, 503);
 
+  /* İlerleme de 100'e çekilir. ⚠ ŞART: akıştaki "devam et" kartı satırları
+     TEK koşulla süzüyor (percent < 100). Burası yazılmasaydı, okur makaleyi
+     bitirdikten sonra bile yarım kalmış ilerleme satırı kartta asılı kalır ve
+     kart kullanıcıyı bitirdiği makaleye geri çağırırdı.
+     Hata YUTULUR: "okundu" işareti yukarıda zaten yazıldı, göç çalışmamış
+     olsa bile okuma akışı bundan etkilenmemeli. */
+  await db.rpc('article_progress_kaydet', { p_user_id: me.id, p_slug: slug, p_percent: 100 });
+
   /* Koleksiyon kontrolü YANIT İÇİNDE (eskiden `after()` ile yanıttan SONRAydı).
      Sebep: `after()` rozeti yazıyordu ama yanıt yalnız {ok:true} olduğu için
      istemci rozeti KAZANDIĞINI hiç öğrenemiyordu — kategoriyi tamamlayan okur
