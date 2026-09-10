@@ -4,16 +4,7 @@ import Link from 'next/link';
 import Img from '@/app/components/Img';
 import { avatarSrc } from '@/lib/avatar';
 import { useNavUser } from '@/app/components/NavUserContext';
-
-export type LeagueRow = {
-  rank: number;
-  username: string;
-  display_name: string;
-  avatar: string | null;
-  correct: number;
-  answered: number;
-  xp: number;
-};
+import type { LeagueRow } from '@/lib/lig';
 
 const MADALYA = ['🥇', '🥈', '🥉'];
 

@@ -708,6 +708,25 @@ body {
 }
 .bof-kutlama-emoji { animation: bofZipla 620ms var(--bof-ease-spring) 160ms both; }
 
+/* ── HAFTALIK LİG WIDGET'I (sağ panel) ───────────────────────────────────
+   Satırlar cevaptan sonra yeniden sıralanıyor ve kayış FLIP ile gösteriliyor.
+   Geçiş satır içinde JS tarafından kuruluyor (her satırın kayma miktarı
+   farklı); burada yalnız durağan görünüm ve kayan satırın ışıması var. */
+.bof-lig { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.bof-lig-satir {
+  display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 9px;
+  align-items: center; padding: 7px 9px; border-radius: 12px;
+  border: 1px solid var(--color-border); background: var(--color-surface);
+  text-decoration: none; color: inherit;
+}
+.bof-lig-satir.ben { border-color: var(--color-primary); background: var(--color-primary-soft); }
+/* Yükselen satır kısa süre ışır — hangi satırın kaydığı gözden kaçmasın. */
+.bof-lig-satir.bof-lig-kayan { box-shadow: 0 0 0 1px var(--bof-glow-s), 0 0 24px var(--bof-glow-s); }
+.bof-lig-satir .rk { font-family: var(--font-display); font-weight: 800; font-size: 0.82rem; text-align: center; color: var(--color-text-muted); }
+.bof-lig-satir .ad { font-weight: 700; font-size: 0.86rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bof-lig-satir .pt { font-weight: 800; font-size: 0.9rem; color: var(--color-success-ink); }
+.bof-lig-satir.ben .pt { color: var(--color-text); }
+
 /* ── ROZET RAFI ───────────────────────────────────────────────────────────
    17 rozetin hepsi; kazanılmayanlar gri ve altında sayaç.
 

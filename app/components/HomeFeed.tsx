@@ -24,6 +24,7 @@ import ReportButton from './ReportButton';
 import LikeHeart from '@/app/components/LikeHeart';
 import DevamKarti, { type DevamEdilen } from '@/app/components/DevamKarti';
 import QuizSonucCipi from '@/app/components/QuizSonucCipi';
+import LigWidget from '@/app/components/LigWidget';
 import { toast } from 'sonner';
 import { uploadToStorage } from '@/lib/upload';
 import { useMediaDock } from './MediaDock';
@@ -1375,6 +1376,11 @@ export default function HomeFeed({
             <Link href="/discover" style={{ display: 'block', marginTop: 8, fontSize: '0.8rem', color: 'var(--color-primary)', textDecoration: 'none' }}>Daha fazla göster →</Link>
           </div>
         )}
+        {/* Haftalık lig — Günün Sorusu ile AYNI ekranda olsun diye burada.
+            Cevap verilince satırlar yeniden sıralanıp kayıyor; ayrı bir rotada
+            dursaydı kullanıcı oraya girdiğinde sıra zaten doğru basılı olur ve
+            animasyonun anlatacağı bir şey kalmazdı. */}
+        {currentUser && <LigWidget />}
         <div className="widget-card">
           <h3>Keşfet</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

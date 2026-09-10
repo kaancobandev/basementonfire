@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import EnergyCard from '@/app/components/EnergyCard';
 import { azHareket, merkez, ucanCip, bekle, maskotZipla } from '@/app/components/rewardMotion';
 import { kutlamaAc } from '@/app/components/kutlamaOlay';
+import { ligTazele } from '@/app/components/LigWidget';
 
 type Q = {
   id: number;
@@ -212,6 +213,10 @@ export default function DailyQuestion() {
     const uygula = () => {
       setSt((o) => (o.phase === 'answered' ? { ...o, progress: yeniIlerleme } : o));
       maskotZipla();   // bar dolarken maskot da sevinsin
+      /* Sağ paneldeki lig de tazelensin: doğru cevap haftalık sayıyı artırır,
+         yani sıra DEĞİŞMİŞ olabilir. Widget kendi içinde 400 ms bekliyor —
+         çip uçarken satır kayarsa iki hareket üst üste biner. */
+      ligTazele();
     };
 
     // Hedef enerji kartı DOM'a YENİ giriyor — bir kare bekleyip ölç.
