@@ -55,25 +55,39 @@ export async function GET(req: Request) {
       .select('*, users!quick_facts_user_id_fkey(display_name, username, avatar, is_private), comments(count)')
       .order('created_at', { ascending: false })
       .limit(limit * 2);
-    let postsQ = db.from('posts')
-      .select('*, users!posts_user_id_fkey(display_name, username, avatar, is_private)')
-      .order('created_at', { ascending: false })
-      .limit(limit * 2);
+    /* 🐛 DÜZELTME: burada `post_polls(options)` embed'i EKSİKTİ, oysa
+       lib/feedData.ts:55 onu seçiyor. Sonuç: anketler ISR kabuğundaki ilk
+       kartlarda görünüyor, sonsuz kaydırma ya da sekme değişimiyle BURADAN
+       gelen kartlarda kayboluyordu. İki select'in ayrışması sessiz bir hata —
+       hiçbir yerde patlamıyor, alan yok oluyor.
+       ⚠ Yeni ALAN eklerken (article_slug, quiz_* gibi) bu tuzak yok: onlar
+       posts satırının kendi kolonları ve iki sorgu da `select('*')` yapıyor. */
+    /* Sorgu bir FONKSİYONDAN kuruluyor, çünkü embed hata verirse embed'siz
+       sürümü AYNI filtrelerle tekrar kurmak gerekiyor (lib/feedData.ts:72 ile
+       aynı savunma). Kopyalayıp yapıştırsaydık `following` ve cursor
+       filtrelerinden biri yedekte unutulur, geri düşüş yolu sessizce YANLIŞ
+       veri döndürürdü. */
+    const postsSorgusu = (sec: string) => {
+      let q = db.from('posts').select(sec).order('created_at', { ascending: false }).limit(limit * 2);
+      if (followingIds.length) q = q.in('user_id', followingIds);
+      if (since) q = q.lt('created_at', since);
+      return q;
+    };
+    const POSTS_EMBED = '*, users!posts_user_id_fkey(display_name, username, avatar, is_private), post_polls(options)';
+    const POSTS_SADE = '*, users!posts_user_id_fkey(display_name, username, avatar, is_private)';
 
     // NOT: gizli hesap filtresi ('following' dalında da) AYNEN uygulanır —
     // gizli hesabı takip etmek zaten 403 (follow route: onay akışı gelene kadar
     // reddediliyor), dolayısıyla eski/artık kayıtlar dışında kayıp içerik yok.
-    if (followingIds.length) {
-      factsQ = factsQ.in('user_id', followingIds);
-      postsQ = postsQ.in('user_id', followingIds);
-    }
+    if (followingIds.length) factsQ = factsQ.in('user_id', followingIds);
+    if (since) factsQ = factsQ.lt('created_at', since);
 
-    if (since) {
-      factsQ = factsQ.lt('created_at', since);
-      postsQ = postsQ.lt('created_at', since);
-    }
-
-    const [factsRes, postsRes, blockedSet] = await Promise.all([factsQ, postsQ, blockedP]);
+    const [factsRes, postsIlk, blockedSet] = await Promise.all([factsQ, postsSorgusu(POSTS_EMBED), blockedP]);
+    /* Nadir yol: post_polls tablosu/kolonu yoksa embed'li sorgu hata verir.
+       Bu düşüş OLMASAYDI hata durumunda `data` null kalır ve akıştan YALNIZ
+       anketler değil TÜM GÖNDERİLER kaybolurdu — anket hatasını düzeltirken
+       daha büyüğünü açmış olurduk. */
+    const postsRes = postsIlk.error ? await postsSorgusu(POSTS_SADE) : postsIlk;
     blocked = blockedSet;
     logIfError('feed mixed quick_facts', factsRes.error);
     logIfError('feed mixed posts', postsRes.error);

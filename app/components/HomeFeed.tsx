@@ -23,6 +23,7 @@ import FeedComposer from './FeedComposer';
 import ReportButton from './ReportButton';
 import LikeHeart from '@/app/components/LikeHeart';
 import DevamKarti, { type DevamEdilen } from '@/app/components/DevamKarti';
+import QuizSonucCipi from '@/app/components/QuizSonucCipi';
 import { toast } from 'sonner';
 import { uploadToStorage } from '@/lib/upload';
 import { useMediaDock } from './MediaDock';
@@ -1251,6 +1252,10 @@ export default function HomeFeed({
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: Math.min(index * 0.07, 0.5), ease: 'easeOut' }}
                 >
+                  {/* ⚠ KÖŞE ROZETİ YOK — mock'ta vardı, burada ÖLÇÜLDÜ ve
+                      "Genel/Bilim/Tarih" kategori etiketinin ÜSTÜNE biniyordu
+                      (mock'un kartında o etiket yoktu). Makalenin kendi emojisi
+                      kaybolmadı: aşağıdaki çipin başına taşındı. */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px 0' }}>
                     <Link href={`/u/${item.username}`} style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, textDecoration: 'none', overflow: 'hidden' }}>
                       <Img src={avatarSrc(item.username, item.avatar)} alt="" fixedWidth={76} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -1270,6 +1275,12 @@ export default function HomeFeed({
                         paylaşılan önbelleği kişiselleşmez. */}
                     {Array.isArray(item.poll) && item.poll.length >= 2 && (
                       <PostPoll postId={item.id} options={item.poll} />
+                    )}
+                    {/* Quiz sonucu çipi + makaleye çağrı. Skor SATIRDA duruyor
+                        (posts.quiz_correct/quiz_total) ve sunucuda hesaplandı —
+                        burada join da yok, istemci hesabı da yok. */}
+                    {item.article_slug && (
+                      <QuizSonucCipi slug={item.article_slug} correct={item.quiz_correct} total={item.quiz_total} />
                     )}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 10px 12px' }}>

@@ -443,6 +443,8 @@ export function ArticleQuiz({ accent: accentProp, bg: bgProp }: { accent?: strin
   type Soru = { id: number; question: string; options: string[] };
   const [sorular, setSorular] = useState<Soru[] | null>(null);
   const [girisli, setGirisli] = useState(false);
+  // Skor paylaşımı: 'bos' | 'gonderiliyor' | 'paylasildi' | 'hata'
+  const [paylasim, setPaylasim] = useState<'bos' | 'gonderiliyor' | 'paylasildi' | 'hata'>('bos');
   const [yok, setYok] = useState(false);
   const kokRef = useRef<HTMLDivElement>(null);
   const [gorunur, setGorunur] = useState(false);
@@ -544,10 +546,29 @@ export function ArticleQuiz({ accent: accentProp, bg: bgProp }: { accent?: strin
       setBusy(false);
     }
   }
+  /* Skoru akışta paylaş. 🚨 SKOR GÖNDERİLMEZ — istemci yalnız hangi makale
+     olduğunu söyler, /api/posts skoru article_quiz_answers üzerinden KENDİ
+     hesaplayıp yazar. Buradan sayı göndermek "10/10 yaptım" demeyi herkes için
+     serbest bırakırdı. */
+  async function skoruPaylas() {
+    if (paylasim === 'gonderiliyor' || paylasim === 'paylasildi') return;
+    setPaylasim('gonderiliyor');
+    try {
+      const r = await fetch('/api/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ articleSlug: slug, content: '' }),
+      });
+      setPaylasim(r.ok ? 'paylasildi' : 'hata');
+    } catch {
+      setPaylasim('hata');
+    }
+  }
+
   function next() { if (qi + 1 < questions.length) { setQi(n => n + 1); setPick(null); } else setDone(true); }
   // Tekrar dene YALNIZCA görünümü sıfırlar; cevaplar sunucuda kayıtlı kalır ve
   // aynı soru ikinci kez XP vermez (PK 23505 → rota alreadyAnswered döner).
-  function restart() { setQi(0); setScore(0); setPick(null); setDone(false); setSonuclar({}); }
+  function restart() { setQi(0); setScore(0); setPick(null); setDone(false); setSonuclar({}); setPaylasim('bos'); }
 
   if (yok) return null;
   if (!sorular) return <div ref={kokRef} className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 text-sm text-slate-500 sm:p-6">Quiz yükleniyor…</div>;
@@ -640,6 +661,29 @@ export function ArticleQuiz({ accent: accentProp, bg: bgProp }: { accent?: strin
             </p>
           )}
           {girisli && toplamXp > 0 && <p className="mb-4 text-sm font-bold" style={{ color: accent }}>+{toplamXp} XP kazandın</p>}
+
+          {/* Skoru akışta paylaş — YALNIZ girişliye. Anonim okur zaten gönderi
+              açamıyor; düğmeyi göstermek onu 401'e yürütmek olurdu. */}
+          {girisli && (
+            <div className="mb-4">
+              {paylasim === 'paylasildi' ? (
+                <p className="text-sm font-bold" style={{ color: accent }}>Akışta paylaşıldı ✓</p>
+              ) : (
+                <button
+                  onClick={skoruPaylas}
+                  disabled={paylasim === 'gonderiliyor'}
+                  className="rounded-full border px-5 py-2 text-sm font-bold"
+                  style={{ borderColor: accent, color: accent, opacity: paylasim === 'gonderiliyor' ? 0.6 : 1 }}
+                >
+                  {paylasim === 'gonderiliyor' ? 'Paylaşılıyor…' : `Skorunu paylaş · ${score}/${questions.length}`}
+                </button>
+              )}
+              {paylasim === 'hata' && (
+                <p className="mt-2 text-xs text-slate-400">Paylaşılamadı, tekrar dene.</p>
+              )}
+            </div>
+          )}
+
           <button onClick={restart} className="rounded-full px-6 py-2.5 text-sm font-bold" style={{ background: accent, color: bg }}>↻ Tekrar dene</button>
         </div>
       )}

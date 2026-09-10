@@ -12,6 +12,13 @@ export type Post = {
   avatar: string;
   /** Anket seçenekleri (post_polls). Anketsiz gönderide null/undefined. */
   poll?: string[] | null;
+  /** Gönderinin bağlı olduğu makale (varsa). Makaleler KODDA tanımlı
+   *  (lib/articles.ts), tabloda değil → FK yok, doğrulama rotada. */
+  article_slug?: string | null;
+  /** Quiz skorunun ANLIK GÖRÜNTÜSÜ. ⚠ Kullanıcı beyanı DEĞİL: /api/posts
+   *  bunu article_quiz_answers üzerinden KENDİ hesaplayıp yazıyor. */
+  quiz_correct?: number | null;
+  quiz_total?: number | null;
 };
 
 // w/h: yükleme anında ölçülen piksel boyutları (CLS önlemi — oran SSR'da
