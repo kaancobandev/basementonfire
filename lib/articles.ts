@@ -131,6 +131,21 @@ export const ARTICLES: ArticleMeta[] = [
 
 export const ARTICLE_MAP: Record<string, ArticleMeta> = Object.fromEntries(ARTICLES.map(a => [a.slug, a]));
 
+/** Bir kategoride kac makale okundu / kategoride kac makale var.
+ *
+ * TEK KAYNAK: hem /okuma-listesi raflari hem profildeki koleksiyon rozeti
+ * sayaclari bunu kullaniyor. Ayri ayri hesaplansaydi iki sayfa ayni kullanici
+ * icin FARKLI sayi gosterebilirdi. */
+export function kategoriRaflari(okunanSluglar: Set<string>): Record<string, { read: number; total: number }> {
+  const out: Record<string, { read: number; total: number }> = {};
+  for (const a of ARTICLES) {
+    const k = out[a.category] ?? (out[a.category] = { read: 0, total: 0 });
+    k.total += 1;
+    if (okunanSluglar.has(a.slug)) k.read += 1;
+  }
+  return out;
+}
+
 // ── KATEGORİ SAYFALARI (/discover/<slug>) ───────────────────────────────────
 /**
  * Kategori → URL parçası. ELLE YAZILAN HARİTA, `toLowerCase()` DEĞİL: Türkçe'de

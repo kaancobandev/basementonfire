@@ -13,7 +13,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Caption from '@/app/components/Caption';
 import AnimatedNumber from '@/app/components/AnimatedNumber';
-import { BADGE_MAP, levelFromXp } from '@/lib/badges';
+import BadgeShelf from '@/app/components/BadgeShelf';
+import { levelFromXp } from '@/lib/badges';
 import ReportModal from '@/app/components/ReportModal';
 import ReportButton from '@/app/components/ReportButton';
 import CommentLikeButton from '@/app/components/CommentLikeButton';
@@ -361,7 +362,6 @@ export default function UserProfileClient({ profileUser, bg, followersCount, fol
             İlerleme çubuğu BİLEREK yok: başkasının profilinde hedef değil statü gösterilir. */}
         {progress && (progress.xp > 0 || badgeKeys.length > 0) && (() => {
           const { level } = levelFromXp(progress.xp);
-          const earned = badgeKeys.map(k => BADGE_MAP[k]).filter(Boolean);
           return (
             <div style={{ marginTop: 12, padding: '10px 12px', borderRadius: 14, border: '1px solid var(--color-border)', background: 'linear-gradient(90deg, rgba(16,185,129,0.07), rgba(59,130,246,0.05))' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
@@ -371,15 +371,11 @@ export default function UserProfileClient({ profileUser, bg, followersCount, fol
                 )}
                 <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{progress.total_correct} doğru · {progress.xp} XP</span>
               </div>
-              {earned.length > 0 && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginTop: 9 }}>
-                  {earned.map(b => (
-                    <span key={b.key} title={b.desc} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 9px', borderRadius: 9999, background: 'var(--color-surface)', border: '1px solid var(--color-border)', fontSize: '0.76rem', fontWeight: 700, color: 'var(--color-text)' }}>
-                      <span>{b.emoji}</span>{b.name}
-                    </span>
-                  ))}
-                </div>
-              )}
+              {/* BASKASININ profili: yalniz KAZANILMIS rozetler, kilitli
+                  yok, sayac yok. Buradaki ilerleme cubugunun olmamasi
+                  bilincli bir karardi; korunuyor. Baskasinin neyi
+                  kacirdigini gostermek bizim isimiz degil. */}
+              <BadgeShelf kazanilan={badgeKeys} />
             </div>
           );
         })()}

@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { db, getMe, isAdmin, logIfError } from '@/lib/supabase/server';
 import { bannerGradient } from '@/lib/avatar';
+import { kategoriRaflari } from '@/lib/articles';
 import { getHighlights } from '@/lib/storyHighlights';
 import type { DbUser } from '@/lib/types';
 import ProfileClient from './ProfileClient';
@@ -25,7 +26,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
   // Alan seçimi (select('*') yerine yalnızca kullanılan kolonlar) → daha küçük
   // satırlar, daha hızlı transfer. Limit yok: ızgara sayısı (.length) doğru kalsın
   // (mevcut ölçekte gönderi sayısı küçük; ileride sayfalama gerekirse ayrı count+limit).
-  const [followersRes, followingRes, mediaRes, bookmarksRes, repostsRes, progressRes, badgesRes, articlesRes, okumaRes] = await Promise.all([
+  const [followersRes, followingRes, mediaRes, bookmarksRes, repostsRes, progressRes, badgesRes, articlesRes, okumaRes, okunanRes] = await Promise.all([
     db.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', user.id),
     db.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', user.id),
     db.from('quick_facts').select('id, media_url, media_type, caption, likes, created_at, media').eq('user_id', user.id).order('created_at', { ascending: false }),
@@ -46,6 +47,11 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
     // bulamiyordu. Sekmeye kopru koyabilmek icin sayiyi buradan aliyoruz.
     // head:true -> yalniz sayi doner, satir tasinmaz.
     db.from('article_saves').select('article_slug', { count: 'exact', head: true }).eq('user_id', user.id),
+    // Okunan makale slug'lari — koleksiyon rozetlerinin sayaclari icin
+    // ("Tarih Rafi 4/8"). MEVCUT tablo, yeni SQL yok. Ayni hesap
+    // /okuma-listesi'nde de kullaniliyor; TEK KAYNAK lib/articles.ts
+    // icindeki kategoriRaflari() -> iki sayfa ayni sayiyi verir.
+    db.from('article_reads').select('article_slug').eq('user_id', user.id),
   ]);
   // Öne çıkanlar — tablo yoksa boş (getHighlights defansif); şerit gizli kalır.
   const highlights = await getHighlights(user.id);
@@ -54,6 +60,10 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
   logIfError('profile reposts', repostsRes.error);
 
   const progress = progressRes && !progressRes.error ? (progressRes.data ?? null) : null;
+  const okunanSluglar = new Set<string>(
+    (okunanRes && !okunanRes.error ? (okunanRes.data ?? []) : []).map((r: any) => r.article_slug as string),
+  );
+  const kategoriRaf = kategoriRaflari(okunanSluglar);
   const badgeKeys: string[] = (badgesRes && !badgesRes.error ? (badgesRes.data ?? []) : []).map((b: any) => b.badge_key);
   // ⚠ DEPLOY SIRASI TUZAGI: bu sayfa sorgu hatasini YUTAR. Duzenleme-onayi gocu
   // (sql/features-article-edit-approval.sql) henuz calismadan kod yayina cikarsa
@@ -108,6 +118,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
       isAdmin={isAdmin(user as any)}
       progress={progress}
       badgeKeys={badgeKeys}
+      kategoriRaf={kategoriRaf}
       highlights={highlights}
       error={error ?? null}
       hataSayisi={hataSayisi ?? null}

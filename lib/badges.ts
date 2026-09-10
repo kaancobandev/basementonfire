@@ -7,29 +7,32 @@ import type { ArticleCategory } from '@/lib/articles';
 export type Badge = { key: string; name: string; emoji: string; desc: string };
 
 // Sira onemli: profilde bu sirayla gosterilir.
+// ⛔ `key` ALANLARINA ASLA DOKUNMA: user_badges.badge_key ile eslesiyorlar;
+//    degistirilirse kazanilmis rozetler EKRANDAN KAYBOLUR. `name`/`desc`
+//    yalnizca gosterim, serbestce duzeltilebilir.
 export const BADGES: Badge[] = [
-  { key: 'first_correct', name: 'Ilk Dogru',      emoji: '🎯', desc: 'Ilk dogru cevabini verdin' },
-  { key: 'streak_3',      name: '3 Gun Seri',     emoji: '🔥', desc: '3 gun ust uste cozdun' },
-  { key: 'streak_7',      name: 'Haftalik Azim',  emoji: '📅', desc: '7 gun ust uste cozdun' },
-  { key: 'streak_30',     name: 'Aylik Usta',     emoji: '🏆', desc: '30 gun ust uste cozdun' },
-  { key: 'correct_10',    name: 'Onluk',          emoji: '✅', desc: '10 dogru cevap topladin' },
-  { key: 'correct_50',    name: 'Bilgi Avcisi',   emoji: '🧠', desc: '50 dogru cevap topladin' },
-  { key: 'xp_100',        name: 'Merakli',        emoji: '💡', desc: '100 XP topladin' },
-  { key: 'xp_500',        name: 'Bilge',          emoji: '🦉', desc: '500 XP topladin' },
+  { key: 'first_correct', name: 'İlk Doğru',      emoji: '🎯', desc: 'İlk doğru cevabını verdin' },
+  { key: 'streak_3',      name: '3 Gün Seri',     emoji: '🔥', desc: '3 gün üst üste çözdün' },
+  { key: 'streak_7',      name: 'Haftalık Azim',  emoji: '📅', desc: '7 gün üst üste çözdün' },
+  { key: 'streak_30',     name: 'Aylık Usta',     emoji: '🏆', desc: '30 gün üst üste çözdün' },
+  { key: 'correct_10',    name: 'Onluk',          emoji: '✅', desc: '10 doğru cevap topladın' },
+  { key: 'correct_50',    name: 'Bilgi Avcısı',   emoji: '🧠', desc: '50 doğru cevap topladın' },
+  { key: 'xp_100',        name: 'Meraklı',        emoji: '💡', desc: '100 XP topladın' },
+  { key: 'xp_500',        name: 'Bilge',          emoji: '🦉', desc: '500 XP topladın' },
   // Koleksiyon rozetleri (2026-07-19): bir kategorinin TUM makalelerini okuyana
   // verilir. earnedBadgeKeys() BUNLARI VERMEZ (o yalniz soru ilerlemesine bakar);
   // odul /api/articles/[slug]/read icinde kategori tamamlaninca yazilir.
-  { key: 'koleksiyon_fizik',     name: 'Fizik Rafi',     emoji: '⚛️', desc: 'Tum Fizik makalelerini okudun' },
-  { key: 'koleksiyon_kimya',     name: 'Kimya Rafi',     emoji: '🧪', desc: 'Tum Kimya makalelerini okudun' },
-  { key: 'koleksiyon_tarih',     name: 'Tarih Rafi',     emoji: '🏛️', desc: 'Tum Tarih makalelerini okudun' },
-  { key: 'koleksiyon_biyoloji',  name: 'Biyoloji Rafi',  emoji: '🧬', desc: 'Tum Biyoloji makalelerini okudun' },
-  { key: 'koleksiyon_teknoloji', name: 'Teknoloji Rafi', emoji: '💻', desc: 'Tum Teknoloji makalelerini okudun' },
+  { key: 'koleksiyon_fizik',     name: 'Fizik Rafı',     emoji: '⚛️', desc: 'Tüm Fizik makalelerini okudun' },
+  { key: 'koleksiyon_kimya',     name: 'Kimya Rafı',     emoji: '🧪', desc: 'Tüm Kimya makalelerini okudun' },
+  { key: 'koleksiyon_tarih',     name: 'Tarih Rafı',     emoji: '🏛️', desc: 'Tüm Tarih makalelerini okudun' },
+  { key: 'koleksiyon_biyoloji',  name: 'Biyoloji Rafı',  emoji: '🧬', desc: 'Tüm Biyoloji makalelerini okudun' },
+  { key: 'koleksiyon_teknoloji', name: 'Teknoloji Rafı', emoji: '💻', desc: 'Tüm Teknoloji makalelerini okudun' },
   // 2026-08-01: 'koleksiyon_kultur' KALDIRILDI (Kültür kategorisi artık yok).
   // Kimsenin kazanmadigi DOGRULANDI (user_badges sorgulandi) -> yetim rozet yok.
-  { key: 'koleksiyon_astronomi', name: 'Astronomi Rafi', emoji: '🔭', desc: 'Tum Astronomi makalelerini okudun' },
-  { key: 'koleksiyon_tip',       name: 'Tip Rafi',       emoji: '🩺', desc: 'Tum Tip makalelerini okudun' },
-  { key: 'koleksiyon_sanat',     name: 'Sanat Rafi',     emoji: '🎨', desc: 'Tum Sanat makalelerini okudun' },
-  { key: 'koleksiyon_ekonomi',   name: 'Ekonomi Rafi',   emoji: '📈', desc: 'Tum Ekonomi makalelerini okudun' },
+  { key: 'koleksiyon_astronomi', name: 'Astronomi Rafı', emoji: '🔭', desc: 'Tüm Astronomi makalelerini okudun' },
+  { key: 'koleksiyon_tip',       name: 'Tıp Rafı',       emoji: '🩺', desc: 'Tüm Tıp makalelerini okudun' },
+  { key: 'koleksiyon_sanat',     name: 'Sanat Rafı',     emoji: '🎨', desc: 'Tüm Sanat makalelerini okudun' },
+  { key: 'koleksiyon_ekonomi',   name: 'Ekonomi Rafı',   emoji: '📈', desc: 'Tüm Ekonomi makalelerini okudun' },
 ];
 
 // Kategori adi (lib/articles.ts) → koleksiyon rozeti anahtari.
@@ -79,4 +82,43 @@ export function levelFromXp(xp: number): { level: number; intoLevel: number; per
   const level = Math.floor(xp / perLevel) + 1;
   const intoLevel = xp % perLevel;
   return { level, intoLevel, perLevel };
+}
+
+/** Kilitli bir rozetin ne kadarının tamamlandığı - "5 / 7" gibi. */
+export type RozetIlerleme = { simdi: number; hedef: number };
+
+/**
+ * Bir rozetin ilerlemesi. Ölçülemiyorsa null (o rozetin altında sayaç çizilmez).
+ *
+ * ⚠ Seri rozetleri `longest_streak` ile ölçülür, `current_streak` ile DEĞiL -
+ * `earnedBadgeKeys` de öyle yapıyor. Aksi halde rozet AÇIK görünürken altında
+ * "2 / 7" yazardı: bir gün kaçırınca current düşer ama rozet kalır.
+ *
+ * ⛔ Bu fonksiyon rozet KAZANDIRMAZ; kazanma mantığı yalnız `earnedBadgeKeys`
+ *    ve koleksiyon için okuma rotasıdır. Burası sadece vitrin.
+ */
+export function badgeProgress(
+  key: string,
+  p: ProgressLike | null,
+  kategoriRaf?: Record<string, { read: number; total: number }>,
+): RozetIlerleme | null {
+  if (key.startsWith('koleksiyon_')) {
+    if (!kategoriRaf) return null;
+    const kategori = (Object.keys(CATEGORY_BADGE_KEYS) as ArticleCategory[])
+      .find((k) => CATEGORY_BADGE_KEYS[k] === key);
+    const raf = kategori ? kategoriRaf[kategori] : undefined;
+    return raf && raf.total > 0 ? { simdi: raf.read, hedef: raf.total } : null;
+  }
+  if (!p) return null;
+  switch (key) {
+    case 'first_correct': return { simdi: p.total_correct, hedef: 1 };
+    case 'streak_3':      return { simdi: p.longest_streak, hedef: 3 };
+    case 'streak_7':      return { simdi: p.longest_streak, hedef: 7 };
+    case 'streak_30':     return { simdi: p.longest_streak, hedef: 30 };
+    case 'correct_10':    return { simdi: p.total_correct, hedef: 10 };
+    case 'correct_50':    return { simdi: p.total_correct, hedef: 50 };
+    case 'xp_100':        return { simdi: p.xp, hedef: 100 };
+    case 'xp_500':        return { simdi: p.xp, hedef: 500 };
+    default:              return null;
+  }
 }

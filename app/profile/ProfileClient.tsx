@@ -14,9 +14,10 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import Caption from '@/app/components/Caption';
 import AnimatedNumber from '@/app/components/AnimatedNumber';
+import BadgeShelf from '@/app/components/BadgeShelf';
 import FollowListModal from '@/app/components/FollowListModal';
 import type { DbUser, UserProgress } from '@/lib/types';
-import { BADGE_MAP, levelFromXp } from '@/lib/badges';
+import { levelFromXp } from '@/lib/badges';
 import { toast } from 'sonner';
 import { uploadToStorage } from '@/lib/upload';
 import { profilMesaji } from '@/lib/profileMessages';
@@ -51,6 +52,7 @@ interface Props {
   isAdmin?: boolean;
   progress: UserProgress | null;
   badgeKeys: string[];
+  kategoriRaf?: Record<string, { read: number; total: number }>;
   highlights: { id: number; title: string; cover_url: string | null; count: number }[];
   error: string | null;
   /** Sayı taşıyan mesajlar için (ör. "5 saat sonra"). Bkz. lib/profileMessages.ts */
@@ -59,7 +61,7 @@ interface Props {
 
 const GENDER_LABEL: Record<string, string> = { erkek: 'Erkek', kadin: 'Kadın', diger: 'Diğer' };
 
-export default function ProfileClient({ user, bg, age, followersCount, followingCount, mediaPosts, savedPosts, savedArticleCount, repostedPosts, myArticles, isAdmin, progress, badgeKeys, highlights, error, hataSayisi }: Props) {
+export default function ProfileClient({ user, bg, age, followersCount, followingCount, mediaPosts, savedPosts, savedArticleCount, repostedPosts, myArticles, isAdmin, progress, badgeKeys, kategoriRaf, highlights, error, hataSayisi }: Props) {
   const isMobile = useIsMobile();
   const [tab, setTab] = useState<'posts' | 'saved' | 'reposts' | 'articles'>('posts');
   const [followModal, setFollowModal] = useState<'followers' | 'following' | null>(null);
@@ -222,17 +224,23 @@ export default function ProfileClient({ user, bg, age, followersCount, following
           <FollowListModal username={user.username} type={followModal} loggedIn onClose={() => setFollowModal(null)} />
         )}
 
-        {/* Bilgi & Seri — Günün Sorusu ilerlemesi (XP / seviye / rozet). progress
-            yoksa (henüz çözmemiş ya da SQL çalışmamış) bölüm gizlenir. */}
-        {progress && (() => {
-          const { level, intoLevel, perLevel } = levelFromXp(progress.xp);
-          const earned = badgeKeys.map(k => BADGE_MAP[k]).filter(Boolean);
+        {/* Bilgi & Seri — Günün Sorusu ilerlemesi (XP / seviye / rozet).
+            ⚠ ARTIK `progress` YOKKEN DE ÇİZİLİYOR (sıfırlarla). Eskiden gizliydi
+            ve sonucu şuydu: hiç soru çözmemiş kullanıcı, rozet sisteminin
+            VAR OLDUĞUNU bile görmüyordu. Kilitli rozet rafının bütün amacı o
+            kullanıcıya "neyi hedefleyeceğim"i göstermek, dolayısıyla panelin
+            asıl gerekli olduğu an tam da bu an. */}
+        {(() => {
+          const p = progress ?? { xp: 0, current_streak: 0, longest_streak: 0, total_correct: 0, total_answered: 0 };
+          const { level, intoLevel, perLevel } = levelFromXp(p.xp);
+          // Raf artik 17 rozetin HEPSINI basiyor; kazanilanlar BadgeShelf
+          // icinde anahtar kumesinden bulunuyor.
           return (
             <div style={{ marginTop: 14, padding: 14, borderRadius: 14, border: '1px solid var(--color-border)', background: 'linear-gradient(90deg, rgba(16,185,129,0.07), rgba(59,130,246,0.05))' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: '0.92rem', fontWeight: 800, color: 'var(--color-text)' }}>⭐ Lv {level}</span>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: '0.86rem', fontWeight: 700, color: progress.current_streak > 0 ? '#f97316' : 'var(--color-text-muted)' }}>🔥 {progress.current_streak} gün seri</span>
-                <span style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>{progress.total_correct} doğru · {progress.xp} XP</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: '0.86rem', fontWeight: 700, color: p.current_streak > 0 ? '#f97316' : 'var(--color-text-muted)' }}>🔥 {p.current_streak} gün seri</span>
+                <span style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>{p.total_correct} doğru · {p.xp} XP</span>
               </div>
               <div style={{ marginTop: 10 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--color-text-muted)', marginBottom: 4 }}>
@@ -242,15 +250,10 @@ export default function ProfileClient({ user, bg, age, followersCount, following
                   <div style={{ height: '100%', width: `${Math.round((intoLevel / perLevel) * 100)}%`, background: 'linear-gradient(90deg,var(--color-success),var(--color-primary))', borderRadius: 9999 }} />
                 </div>
               </div>
-              {earned.length > 0 && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
-                  {earned.map(b => (
-                    <span key={b.key} title={b.desc} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 9999, background: 'var(--color-surface)', border: '1px solid var(--color-border)', fontSize: '0.78rem', fontWeight: 700, color: 'var(--color-text)' }}>
-                      <span>{b.emoji}</span>{b.name}
-                    </span>
-                  ))}
-                </div>
-              )}
+              {/* KENDI profilinde 17 rozetin hepsi; kilitliler gri ve
+                  altlarinda sayac ("4/8"). Amac "neyi hedefleyecegim"
+                  sorusunu cevaplamak. */}
+              <BadgeShelf hepsi kazanilan={badgeKeys} ilerleme={p} kategoriRaf={kategoriRaf} />
             </div>
           );
         })()}
