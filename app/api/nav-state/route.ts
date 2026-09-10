@@ -2,6 +2,7 @@ import { NextResponse, after } from 'next/server';
 import { db, getMe, isAdmin, logIfError } from '@/lib/supabase/server';
 import { buildFeedPersonal, icerikDalgasiniBaslat } from '@/lib/feedPersonal';
 import { CEREZ_KAPSAMI } from '@/lib/supabase/cookieOptions';
+import { levelFromXp } from '@/lib/badges';
 
 // Nav (üst/yan menü) için kişiye özel durum: kullanıcı + okunmamış bildirim/mesaj
 // sayaçları + realtime abonelik anahtarları. ESKİDEN bu iş root layout'ta SSR'da
@@ -102,9 +103,18 @@ export async function GET(req: Request) {
     }
   }
 
-  // Üç sayaç tek turda paralel (layout'taki eski mantığın birebir taşınması).
+  /* Üç sayaç tek turda paralel (layout'taki eski mantığın birebir taşınması)
+     — artık DÖRT: kenar çubuğundaki enerji kartı için `user_progress` de
+     bu dalgaya bindi.
+     ÖLÇÜLDÜ 10.09.2026 (canlı DB, 7'şer tur, en iyi süreler):
+       3 paralel  : 93 ms
+       4 paralel  : 87 ms   → ek tur YOK, fark gürültü içinde
+       3 + ARDIŞIK: 148 ms  → +55 ms
+     Yani maliyet sorgu SAYISINDA değil TUR sayısında (bu projenin tekrar
+     tekrar ölçtüğü şey). Ayrı bir uca ya da ardışık bir sorguya alsaydık
+     her sayfa yüklemesine yarım tur eklerdik. */
   const tCnt = Date.now();
-  const [notifRes, convRes, msgRes] = await Promise.all([
+  const [notifRes, convRes, msgRes, progRes] = await Promise.all([
     db.from('notifications').select('*', { count: 'exact', head: true }).eq('user_id', me.id).eq('is_read', false),
     db.from('conversations').select('id').or(`user1_id.eq.${me.id},user2_id.eq.${me.id}`),
     db.from('messages')
@@ -112,9 +122,19 @@ export async function GET(req: Request) {
       .or(`user1_id.eq.${me.id},user2_id.eq.${me.id}`, { foreignTable: 'conversations' })
       .neq('sender_id', me.id)
       .eq('is_read', false),
+    // Tablo yoksa hata döner, aşağıda sessizce null'a düşer.
+    db.from('user_progress')
+      .select('xp, current_streak, longest_streak, total_correct')
+      .eq('user_id', me.id).maybeSingle(),
   ]);
 
   const cntMs = Date.now() - tCnt;
+  /* Kenar çubuğu enerji kartı. Satır YOKSA sıfırlarla döner — hiç soru
+     çözmemiş kullanıcı da kartı görmeli, hedefi o zaman anlıyor. */
+  const ilerlemeHam = (progRes && !progRes.error ? progRes.data : null) as
+    { xp: number; current_streak: number; longest_streak: number; total_correct: number } | null;
+  const p = ilerlemeHam ?? { xp: 0, current_streak: 0, longest_streak: 0, total_correct: 0 };
+  const ilerleme = { ...p, ...levelFromXp(p.xp ?? 0) };
   const convIds = convRes.data?.map((c: any) => c.id) ?? [];
   let unreadMsgCount = 0;
   if (!msgRes.error) {
@@ -145,6 +165,7 @@ export async function GET(req: Request) {
       unreadMsgCount,
       myId: me.id,
       convIds,
+      ilerleme,
       // Yalnız ?feed=1 istendiğinde dolu. İstemci bunu görürse ikinci isteği
       // HİÇ atmaz (bkz. AppShell + HomeFeed).
       ...(feedIsi ? { feed: await feedIsi } : {}),

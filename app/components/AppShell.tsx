@@ -7,7 +7,8 @@ import dynamic from 'next/dynamic';
 import { Toaster, toast } from 'sonner';
 import Logo from './Logo';
 import DesktopCreateMenu from './DesktopCreateMenu';
-import { NavUserProvider, FeedPersonalProvider } from './NavUserContext';
+import { NavUserProvider, FeedPersonalProvider, NavIlerlemeProvider, ILERLEME_OLAYI, type NavIlerleme } from './NavUserContext';
+import EnerjiKenar from './EnerjiKenar';
 import OturumBekcisi from './OturumBekcisi';
 import AdDegistiUyarisi from './AdDegistiUyarisi';
 
@@ -80,6 +81,7 @@ export default function AppShell({ children }: AppShellProps) {
   // Akışın kişisel katı — YALNIZ doğrudan /feed açılışında bu turda gelir.
   // undefined kalırsa HomeFeed kendi isteğini atar (istemci tarafı gezinme yolu).
   const [feedPersonal, setFeedPersonal] = useState<any>(undefined);
+  const [ilerleme, setIlerleme] = useState<NavIlerleme>(undefined);
 
   useEffect(() => {
     // Anonim bekçe: inline auth-hint (layout.tsx) çereze bakıp data-auth'u ilk
@@ -135,10 +137,11 @@ export default function AppShell({ children }: AppShellProps) {
       .then((d: any) => (d && !d.__hata) ? d : kendiIstegim())
       .then((d: { user?: { id: number; username: string; display_name: string } | null; unreadCount?: number; unreadMsgCount?: number; myId?: number | null; convIds?: number[] } | null) => {
         if (!alive) return;
-        if (!d) { setUser(null); return; }
+        if (!d) { setUser(null); setIlerleme(null); return; }
         setUser(d.user ?? null);
         // `feed` alanı yoksa undefined kalır → HomeFeed kendi çeker (geri düşüş).
         if ('feed' in d) setFeedPersonal((d as any).feed ?? null);
+        setIlerleme((d as { ilerleme?: NonNullable<NavIlerleme> }).ilerleme ?? null);
         /* ⚠ KULLANICI O SAYFADAYSA SAYAÇ 0. `/notifications` okundu-işaretlemesini
            `after()` içinde yapıyor, yani YANIT BİTTİKTEN SONRA. Erken istek artık
            o yazmadan ÖNCE sayaç sorgusunu koşabiliyor → uç bayat sayı döner ve
@@ -155,6 +158,14 @@ export default function AppShell({ children }: AppShellProps) {
       })
       .catch(() => { if (alive) setUser(null); });
     return () => { alive = false; };
+  }, []);
+
+  /* Günün Sorusu cevaplanınca kenar çubuğundaki enerji kartı da dolsun.
+     Cevap yanıtı yeni ilerlemeyi zaten taşıyor → ikinci istek YOK. */
+  useEffect(() => {
+    const dinle = (e: Event) => setIlerleme((e as CustomEvent).detail);
+    window.addEventListener(ILERLEME_OLAYI, dinle);
+    return () => window.removeEventListener(ILERLEME_OLAYI, dinle);
   }, []);
 
   // ── Tema durumu (sonner Toaster'ını uygulama temasıyla eşleştirmek için)
@@ -236,10 +247,11 @@ export default function AppShell({ children }: AppShellProps) {
   function closeSheet() { setSheetOpen(false); }
 
   const isAuthPage = pathname === '/login' || pathname === '/register' || pathname === '/forgot-password' || pathname === '/reset-password';
-  if (isAuthPage) return <NavUserProvider value={user}><FeedPersonalProvider value={feedPersonal}>{children}</FeedPersonalProvider></NavUserProvider>;
+  if (isAuthPage) return <NavUserProvider value={user}><NavIlerlemeProvider value={ilerleme}><FeedPersonalProvider value={feedPersonal}>{children}</FeedPersonalProvider></NavIlerlemeProvider></NavUserProvider>;
 
   return (
     <NavUserProvider value={user}>
+    <NavIlerlemeProvider value={ilerleme}>
     <FeedPersonalProvider value={feedPersonal}>
       {/* Tıklama efekti yalnız giriş yapmış kullanıcıda (user truthy). user
           undefined (bilinmiyor) / null (çıkış) → mount olmaz, GSAP inmez. */}
@@ -268,6 +280,12 @@ export default function AppShell({ children }: AppShellProps) {
               </Link>
             ))}
           </nav>
+
+          {/* Enerji kartı — nav'ın hemen altında, "Gönderi Paylaş"ın üstünde.
+              ⚠ Kenar çubuğu 699px altında GİZLİ (globals.css:1406), yani bu
+              kart masaüstüne özel. Telefonda ilerleme Günün Sorusu kartının
+              içinde zaten görünüyor; burası onun yerine geçmiyor, ekliyor. */}
+          <EnerjiKenar />
 
           {/* Giriş yapmış menüsü: oluştur + ayarlar + çıkış. `.auth-in` (globals.css)
               yalnız data-auth="in"'de görünür → inline auth-hint sayesinde ilk
@@ -494,6 +512,7 @@ export default function AppShell({ children }: AppShellProps) {
         />
       )}
     </FeedPersonalProvider>
+    </NavIlerlemeProvider>
     </NavUserProvider>
   );
 }

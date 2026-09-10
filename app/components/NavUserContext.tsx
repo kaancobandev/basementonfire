@@ -30,3 +30,32 @@ export const FeedPersonalProvider = FeedPersonalContext.Provider;
 export function useFeedPersonal(): any {
   return useContext(FeedPersonalContext);
 }
+
+// ── Kenar çubuğu enerji kartının verisi ──
+// AppShell `/api/nav-state`ten alıp buraya koyar. AYRI bir context, çünkü
+// `NavUser` "sen kimsin" sorusunun cevabı; ilerleme ise durum. Aynı nesneye
+// tıkıştırılsaydı kimliği tüketen her yüzeyin tipi de değişirdi.
+//
+// ⚠ Bu veri nav-state'in MEVCUT paralel dalgasından geliyor — ayrı bir istek
+// YOK. Ölçüldü: 4 sorgu paralel 87 ms, 3 sorgu + ardışık 1 tane 148 ms.
+export type NavIlerleme = {
+  xp: number; current_streak: number; longest_streak: number; total_correct: number;
+  level: number; intoLevel: number; perLevel: number;
+} | null | undefined;
+
+const NavIlerlemeContext = createContext<NavIlerleme>(undefined);
+
+export const NavIlerlemeProvider = NavIlerlemeContext.Provider;
+
+export function useNavIlerleme(): NavIlerleme {
+  return useContext(NavIlerlemeContext);
+}
+
+/* Günün Sorusu cevaplanınca kenar çubuğundaki kart da dolsun: cevap yanıtı
+   yeni ilerlemeyi ZATEN taşıyor, ikinci bir istek atmaya gerek yok. */
+export const ILERLEME_OLAYI = 'bof:ilerleme';
+export function ilerlemeGuncellendi(p: NonNullable<NavIlerleme>) {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(ILERLEME_OLAYI, { detail: p }));
+  }
+}

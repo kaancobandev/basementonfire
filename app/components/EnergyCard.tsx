@@ -15,12 +15,15 @@ import { kisaSinif } from '@/app/components/rewardMotion';
  * prop'u state'e dondurmak bu depoda dört kez yanlış değer üretti.
  */
 export default function EnergyCard({
-  level, into, perLevel, streak,
+  level, into, perLevel, streak, style,
 }: {
   level: number;
   into: number;
   perLevel: number;
   streak: number;
+  /** Varsayilan kenar/bosluk Gunun Sorusu karti icindir; kenar cubugundaki
+   *  surum kendi kutusuna sahip oldugu icin bunlari sifirliyor. */
+  style?: React.CSSProperties;
 }) {
   const kutuRef = useRef<HTMLDivElement>(null);
   const seriRef = useRef<HTMLSpanElement>(null);
@@ -51,7 +54,7 @@ export default function EnergyCard({
     <div
       ref={kutuRef}
       className="bof-enerji"
-      style={{ marginTop: 13, paddingTop: 12, borderTop: '1px solid var(--color-border)' }}
+      style={{ marginTop: 13, paddingTop: 12, borderTop: '1px solid var(--color-border)', ...style }}
     >
       <span
         className="bof-orb"
