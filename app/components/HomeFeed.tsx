@@ -22,6 +22,7 @@ import PostPoll from './PostPoll';
 import FeedComposer from './FeedComposer';
 import ReportButton from './ReportButton';
 import LikeHeart from '@/app/components/LikeHeart';
+import DevamKarti, { type DevamEdilen } from '@/app/components/DevamKarti';
 import { toast } from 'sonner';
 import { uploadToStorage } from '@/lib/upload';
 import { useMediaDock } from './MediaDock';
@@ -211,6 +212,9 @@ export default function HomeFeed({
   // AppShell /feed'e doğrudan girildiyse bu yükü nav-state ile AYNI turda aldı.
   // undefined = bu turda gelmedi (istemci tarafı gezinme) → kendimiz çekeriz.
   const feedPersonal = useFeedPersonal();
+  /* Yarım kalan makale — akıştaki "devam et" kartı. Kişisel yükle AYNI
+     turda geliyor (lib/feedPersonal.ts), yani ek istek YOK. */
+  const [devamEdilenler, setDevamEdilenler] = useState<DevamEdilen[]>([]);
 
   /** Gelen kişisel yükü state'e yaz. İki kaynak da (context / fetch) burayı kullanır. */
   const uygula = useCallback((d: any) => {
@@ -221,6 +225,7 @@ export default function HomeFeed({
     setSuggestedUsers(d.suggestedUsers ?? []);
     setOwnStoryUser(d.ownStoryUser ?? null);
     setOtherStoryUsers(d.otherStoryUsers ?? []);
+    setDevamEdilenler(d.devamEdilenler ?? []);
     // Sunucu doğrusu + kullanıcının elle yaptıkları. Küme genelinde değil
     // İD BAZINDA korunuyor; gerekçe birlestir()'in başında.
     const ed = elleDegisen.current;
@@ -912,6 +917,12 @@ export default function HomeFeed({
   // sayfanın daha altında + tembel yüklenir. Feed 4'ten kısaysa son karta düşer.
   const dqSlot = Math.min(3, feedItems.length - 1);
 
+  /* "Devam et" kartı ilk kartın ardında — Günün Sorusu'ndan (4.) yukarıda.
+     Yarım kalan bir okuma, geri dönme niyeti en taze olan şey; aşağıda kalırsa
+     kaydırmadan görülmez. TEK kart basılıyor: yükte 3 satır geliyor ama akışın
+     üstünü işgal etmesin, en son dokunulan yeter. */
+  const devamSlot = devamEdilenler.length ? 0 : -1;
+
   function svTimeAgo(iso: string) {
     const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
     if (s < 60) return `${s}sn`; if (s < 3600) return `${Math.floor(s / 60)}dk`; return `${Math.floor(s / 3600)}sa`;
@@ -1278,6 +1289,7 @@ export default function HomeFeed({
               return (
                 <Fragment key={`${item.kind}-${item.id}`}>
                   {node}
+                  {index === devamSlot && <DevamKarti ilerleme={devamEdilenler[0]} />}
                   {/* Günün Sorusu feed'in içinde (4. kartın ardında) — tembel yüklenir */}
                   {index === dqSlot && <DailyQuestion />}
                 </Fragment>

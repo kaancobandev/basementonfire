@@ -44,6 +44,10 @@ export type FeedPersonal = {
     factComments: Record<number, number>;
     dykLikes: Record<number, number>;
   };
+  /** Yarım kalan makaleler — akıştaki "devam et" kartı. En son dokunulan üstte.
+   *  ⚠ `percent < 100` TEK süzgeç: makale bitince `read` rotası ilerlemeyi
+   *  100'e çekiyor, yani biten makale kendiliğinden bu listeden düşüyor. */
+  devamEdilenler: { slug: string; percent: number }[];
   /** İki dalganın ayrı süreleri (ms) — çağıran Server-Timing'e basar. */
   sure?: { icerik: number; sorgu: number };
 };
@@ -109,7 +113,7 @@ export async function buildFeedPersonal(me: any, onIcerik?: Promise<IcerikYuku>)
   // Fazlası ZARARSIZ: viewer_id=me.id koşulu yalnız kullanıcının KENDİ "gördüm"
   // kayıtlarını döndürür; görünmeyen hikâye filtrelenmiş storyMap'e zaten girmez.
   const tSorgu = Date.now();
-  const [canSeeStory, fr, pr, rr, dl, bm, suggestedUsers, seenRes, tfRes, tpRes, tdRes] = await Promise.all([
+  const [canSeeStory, fr, pr, rr, dl, bm, suggestedUsers, seenRes, tfRes, tpRes, tdRes, devamRes] = await Promise.all([
     audiencePredicate(me.id),
     facts.length ? db.from('fact_likes').select('fact_id').eq('user_id', me.id).in('fact_id', facts.map((f) => f.id)) : Promise.resolve({ data: [] as any[] }),
     posts.length ? db.from('post_likes').select('post_id').eq('user_id', me.id).in('post_id', posts.map((p) => p.id)) : Promise.resolve({ data: [] as any[] }),
@@ -129,6 +133,17 @@ export async function buildFeedPersonal(me: any, onIcerik?: Promise<IcerikYuku>)
     posts.length ? db.from('posts').select('id, likes').in('id', posts.map((p) => p.id)) : Promise.resolve({ data: [] as any[] }),
     // dyk_likes tablosu yoksa embed patlar → aşağıda sessizce boş geçilir.
     dykIds.length ? db.from('did_you_know').select('id, dyk_likes(count)').in('id', dykIds) : Promise.resolve({ data: [] as any[] }),
+    /* Yarım kalan makaleler. Bu Promise.all'un İÇİNDE olduğu için ek TUR
+       maliyeti yok (bu projede gecikme = ardışık tur sayısı). İndeksi var:
+       article_progress_user_updated_idx (user_id, updated_at desc).
+       ⚠ Tablo yoksa (göç çalışmadıysa) error döner ve aşağıda sessizce boş
+       listeye düşer — akış bundan etkilenmez. */
+    db.from('article_progress')
+      .select('article_slug, percent')
+      .eq('user_id', me.id)
+      .lt('percent', 100)
+      .order('updated_at', { ascending: false })
+      .limit(3),
   ]);
   const sorguMs = Date.now() - tSorgu;
 
@@ -156,6 +171,12 @@ export async function buildFeedPersonal(me: any, onIcerik?: Promise<IcerikYuku>)
     storyUserlariImzala(otherStoryUsersHam, IMZA.ISTEK),
   ]);
 
+  /* Tablo yoksa (goc calismadiysa) error doner -> bos liste; kart hic cizilmez. */
+  const devamHam = devamRes as { error?: unknown; data?: { article_slug: string; percent: number }[] } | null;
+  const devamEdilenler = (devamHam?.error ? [] : (devamHam?.data ?? []))
+    .map((r) => ({ slug: String(r.article_slug), percent: Number(r.percent) || 0 }))
+    .filter((r) => r.percent > 0);
+
   return {
       user: { id: me.id, username: me.username, display_name: me.display_name, avatar: me.avatar ?? null },
       canMatch: MATCHING_ENABLED && isAtLeast(me.birthdate, MATCH_MIN_AGE),
@@ -170,6 +191,7 @@ export async function buildFeedPersonal(me: any, onIcerik?: Promise<IcerikYuku>)
         factComments: sayiHaritasi(tfRes, gomuluSayi('comments')),
         dykLikes: sayiHaritasi(tdRes, gomuluSayi('dyk_likes')),
       },
+      devamEdilenler,
       suggestedUsers,
       ownStoryUser: ownStoryImzali,
       otherStoryUsers,
