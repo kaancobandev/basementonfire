@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Img from '@/app/components/Img';
+import LikeHeart from '@/app/components/LikeHeart';
 import { avatarSrc } from '@/lib/avatar';
 import { firstFrameSrc, seekToFirstFrame } from '@/app/components/FeedVideo';
 
@@ -150,11 +151,21 @@ export default function ReelsClient({ reels, loggedIn }: { reels: Reel[]; logged
 
             {/* Sağ eylem rayı */}
             <div style={{ position: 'absolute', right: 10, bottom: 'calc(28px + var(--nav-space, 0px))', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18, zIndex: 3 }}>
-              <button type="button" onClick={() => toggleLike(r.id)} aria-label={ls.liked ? 'Beğeniyi geri al' : 'Beğen'}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, color: ls.liked ? '#ef4444' : '#fff', fontFamily: 'inherit' }}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill={ls.liked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" style={{ filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /></svg>
-                <span style={{ fontSize: '0.72rem', fontWeight: 700, textShadow: '0 1px 3px rgba(0,0,0,0.6)' }} className="tnum">{ls.likes}</span>
-              </button>
+              {/* Boşta BEYAZ (siyah videonun üstünde), beğeninde --color-danger
+                  (#ef4444) — ikisi de renk token'ından, çizim .bof-like'tan.
+                  Okunurluk gölgesini `--ustte` sınıfı veriyor, inline filter yok. */}
+              <LikeHeart
+                liked={ls.liked}
+                count={ls.likes}
+                onToggle={() => toggleLike(r.id)}
+                size={30}
+                className="bof-like--ustte"
+                style={{
+                  flexDirection: 'column', gap: 3,
+                  fontSize: '0.72rem', fontWeight: 700, textShadow: '0 1px 3px rgba(0,0,0,0.6)',
+                  ['--bof-like-idle' as string]: '#fff',
+                }}
+              />
               <Link href={`/p/${r.id}`} aria-label="Yorumlar" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, color: '#fff', textDecoration: 'none' }}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="29" height="29" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
                 <span style={{ fontSize: '0.72rem', fontWeight: 700, textShadow: '0 1px 3px rgba(0,0,0,0.6)' }} className="tnum">{r.comments}</span>

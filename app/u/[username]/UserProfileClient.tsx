@@ -18,6 +18,7 @@ import ReportModal from '@/app/components/ReportModal';
 import ReportButton from '@/app/components/ReportButton';
 import CommentLikeButton from '@/app/components/CommentLikeButton';
 import FollowListModal from '@/app/components/FollowListModal';
+import { HeartGlyph } from '@/app/components/LikeHeart';
 
 interface ProfileUser {
   id: number; username: string; display_name: string; bio: string | null; avatar: string | null;
@@ -446,8 +447,10 @@ export default function UserProfileClient({ profileUser, bg, followersCount, fol
               {factMediaList(post).filter(m => m.type !== 'audio').length > 1 && <MultiBadge />}
               {post.media_type !== 'audio' && factMediaList(post).some(m => m.type === 'audio') && <MusicBadge />}
               <div className="hb-cell-overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.32)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.15s' }}>
+                {/* Kalp beyaz: rengi saran span'in `color: white`ından currentColor
+                    ile geliyor — fotoğrafın üstündeki koyu örtüde doğru olan bu. */}
                 <span style={{ color: 'white', fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                  <HeartGlyph size={14} />
                   {post.likes}
                 </span>
               </div>
@@ -481,8 +484,10 @@ export default function UserProfileClient({ profileUser, bg, followersCount, fol
                   <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{profileUser.display_name}</div>
                   <div style={{ color: 'var(--color-text-muted)', fontSize: '0.78rem' }}>@{profileUser.username}</div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, color: '#ef4444' }}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#ef4444"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                {/* Sabit #ef4444 yerine token: var(--color-danger) AYNI değer, renk
+                    değişmiyor. Kalp de sayı da currentColor'dan bu rengi alıyor. */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, color: 'var(--color-danger)' }}>
+                  <HeartGlyph size={16} />
                   {lightbox.likes}
                 </div>
                 <ReportButton targetType="post" targetId={lightbox.id} subtitle={`@${profileUser.username} gönderisi`} size={30} canReport={!!me && me.id !== profileUser.id} />

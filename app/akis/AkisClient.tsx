@@ -7,6 +7,7 @@ import type { QuickFact } from '@/lib/types';
 import { factMediaList } from '@/lib/types';
 import { MultiBadge, AudioThumb, MusicBadge } from '@/app/components/MediaCarousel';
 import { VideoThumb, PlayBadge } from '@/app/components/FeedVideo';
+import { HeartGlyph } from '@/app/components/LikeHeart';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { celebrate } from '@/lib/confetti';
@@ -259,7 +260,8 @@ export default function AkisClient({ initialPosts, initialNextCursor, initialHas
                 {post.media_type !== 'audio' && factMediaList(post).some(m => m.type === 'audio') && <MusicBadge />}
                 <div className="hb-cell-overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, opacity: 0, transition: 'opacity 0.2s' }}>
                   <span style={{ color: 'white', fontWeight: 700, fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: 5 }}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="white" stroke="white" strokeWidth="1"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                    {/* Fotoğrafın üstündeki salt sayaç: beyazı üstteki span'in color'ından alır. */}
+                    <HeartGlyph size={16} />
                     {post.likes}
                   </span>
                   {post.media_type === 'video' && (

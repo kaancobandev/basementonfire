@@ -21,6 +21,7 @@ import DidYouKnowCard from './DidYouKnowCard';
 import PostPoll from './PostPoll';
 import FeedComposer from './FeedComposer';
 import ReportButton from './ReportButton';
+import LikeHeart from '@/app/components/LikeHeart';
 import { toast } from 'sonner';
 import { uploadToStorage } from '@/lib/upload';
 import { useMediaDock } from './MediaDock';
@@ -71,16 +72,8 @@ function storyAvatarBg(u: string): string {
 // Date.now()'u farklı anlarda okuyup farklı METİN üretiyordu → hidrasyon
 // hatası. Paylaşılan <TimeAgo> bileşeni bunu güvenli yapar.
 
-const HeartFilled = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1">
-    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
-  </svg>
-);
-const HeartEmpty = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
-  </svg>
-);
+// HeartFilled/HeartEmpty BURADAN KALDIRILDI: dolu ve boş kalp iki ayrı bileşen
+// değil, tek bir <LikeHeart> ve onun `aria-pressed`i. Çizim app/components/LikeHeart.tsx'te.
 
 /** Kullanıcı giriş yapmış OLABİLİR mi? — eylem düğmeleri için erken çıkış kapısı.
  *
@@ -1132,29 +1125,31 @@ export default function HomeFeed({
                       <MediaCarousel media={factMediaList(item)} variant="feed" caption={item.caption ?? ''} sizes="(max-width:620px) 100vw, 600px" priority={isFirstMedia} />
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 10px 4px' }}>
-                      <m.button
-                        onClick={() => likePost(item.id, 'fact')}
-                        whileTap={{ scale: 0.80 }}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', borderRadius: '9999px', color: liked ? 'var(--color-danger)' : 'var(--color-text)', fontWeight: 600, fontFamily: 'inherit', transition: 'color 0.15s', fontSize: '0.9rem' }}
-                      >
-                        {/* ⚠ BURADA `AnimatePresence mode="wait"` VARDI — BEĞENİ HATASININ
-                            KAYNAĞI BUYDU. Dolu/boş kalp geçişi, eskisinin ÇIKIŞ animasyonunun
-                            bitmesine bağlıydı. Animasyon tamamlanmazsa React doğru ikonu
-                            commit etse bile ekranda BOŞ kalp kalıyordu: kullanıcı beğeninin
-                            kaydolmadığını sanıp tekrar basıyor, ikinci basış beğeniyi geri
-                            alıyordu. (Belirti: mesajlar sayfasına gidip ana sayfaya dönünce
-                            beğeniler kayıp görünüyor.) Veri yolu ölçüldü ve TEMİZ çıktı —
-                            uç, efekt, tip, state hepsi doğru; kırık olan tek şey bu el
-                            sıkışmasıydı.
-                            Artık kalıcı tek eleman + düz koşullu render: animasyon motoru hiç
-                            çalışmasa bile DOM doğru. Dokunma geri bildirimi zaten butondaki
-                            whileTap'ten geliyor, kaybımız yok.
-                            ⛔ Buraya bir daha AnimatePresence/key tabanlı ikon değişimi koyma. */}
-                        <span style={{ display: 'flex' }}>
-                          {liked ? <HeartFilled /> : <HeartEmpty />}
-                        </span>
-                        <m.span className="tnum" key={likes} initial={sayacAnim} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.2 }}>{likes}</m.span>
-                      </m.button>
+                      {/* ⚠ BURADA `AnimatePresence mode="wait"` VARDI — BEĞENİ HATASININ
+                          KAYNAĞI BUYDU. Dolu/boş kalp geçişi, eskisinin ÇIKIŞ animasyonunun
+                          bitmesine bağlıydı. Animasyon tamamlanmazsa React doğru ikonu
+                          commit etse bile ekranda BOŞ kalp kalıyordu: kullanıcı beğeninin
+                          kaydolmadığını sanıp tekrar basıyor, ikinci basış beğeniyi geri
+                          alıyordu. (Belirti: mesajlar sayfasına gidip ana sayfaya dönünce
+                          beğeniler kayıp görünüyor.) Veri yolu ölçüldü ve TEMİZ çıktı —
+                          uç, efekt, tip, state hepsi doğru; kırık olan tek şey bu el
+                          sıkışmasıydı.
+                          Kalp artık <LikeHeart>'ta (app/components/LikeHeart.tsx): kalıcı TEK
+                          <svg>, dolu/boş yalnız `aria-pressed`ten okunan bir CSS kuralı.
+                          Dersin özü orada da geçerli ve yazılı: GÖRÜNÜM ANİMASYONA BAĞLANMAZ.
+                          Dokunma geri bildirimi whileTap'ten değil `.bof-like:active`ten gelir.
+                          ⛔ Buraya bir daha AnimatePresence/key tabanlı ikon değişimi koyma. */}
+                      {/* Sayaç düğmenin İÇİNDE (children) — `count` prop'u değil, çünkü sayının
+                          kendi 0,2 sn'lik kayma animasyonu (key={likes}) korunuyor. Dışarı
+                          çıkarılırsa sayıya basmak beğenmeyi bırakır ve kalp/sayı/yorum arası
+                          boşluklar kayar (ölçüldü). */}
+                        <LikeHeart
+                          liked={liked}
+                          onToggle={() => likePost(item.id, 'fact')}
+                          style={{ gap: 6, padding: '6px 8px', borderRadius: '9999px', fontWeight: 600, fontSize: '0.9rem' }}
+                        >
+                          <m.span className="tnum" key={likes} initial={sayacAnim} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.2 }}>{likes}</m.span>
+                        </LikeHeart>
                       {/* Yorum butonu YER TUTUCUYDU: /akis'e gidiyordu, yani
                           tıklayan kişi yorumlara değil akış sayfasına düşüyordu.
                           Yorum altyapısının tamamı (ekleme/listeleme/silme +
@@ -1257,17 +1252,15 @@ export default function HomeFeed({
                     )}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 10px 12px' }}>
-                    <m.button
-                      onClick={() => likePost(item.id, 'post')}
-                      whileTap={{ scale: 0.80 }}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', borderRadius: '9999px', color: liked ? 'var(--color-danger)' : 'var(--color-text)', fontWeight: 600, fontFamily: 'inherit', fontSize: '0.9rem', transition: 'color 0.15s' }}
-                    >
-                      {/* AnimatePresence YOK — gerekçe yukarıdaki bilgi kartı kalbinde. */}
-                      <span style={{ display: 'flex' }}>
-                        {liked ? <HeartFilled /> : <HeartEmpty />}
-                      </span>
-                      <m.span className="tnum" key={likes} initial={sayacAnim} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.2 }}>{likes}</m.span>
-                    </m.button>
+                    {/* Sayaç yine düğmenin içinde (children) — gerekçe yukarıdaki bilgi kartı
+                        kalbinde. */}
+                      <LikeHeart
+                        liked={liked}
+                        onToggle={() => likePost(item.id, 'post')}
+                        style={{ gap: 6, padding: '6px 8px', borderRadius: '9999px', fontWeight: 600, fontSize: '0.9rem' }}
+                      >
+                        <m.span className="tnum" key={likes} initial={sayacAnim} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.2 }}>{likes}</m.span>
+                      </LikeHeart>
                   </div>
                 </m.article>
               );

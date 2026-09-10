@@ -9,6 +9,7 @@ import { factMediaList } from '@/lib/types';
 import ReportButton from '@/app/components/ReportButton';
 import CommentLikeButton from '@/app/components/CommentLikeButton';
 import CollectionPicker from '@/app/components/CollectionPicker';
+import LikeHeart from '@/app/components/LikeHeart';
 import { avatarSrc } from '@/lib/avatar';
 import TimeAgo from '@/app/components/TimeAgo';
 import { toast } from 'sonner';
@@ -140,10 +141,9 @@ export default function PostDetailClient({ post, initialComments, commentLikesEn
 
         {/* Aksiyonlar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '2px 16px 8px' }}>
-          <button onClick={toggleLike} style={{ display: 'flex', alignItems: 'center', gap: 7, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.95rem', color: liked ? 'var(--color-danger)' : 'var(--color-text)' }}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /></svg>
-            {likes}
-          </button>
+          {/* Sayaç butonun İÇİNDEydi → count prop'uyla geçiliyor. Boşta/dolu renkleri
+              zaten .bof-like varsayılanları (--color-text / --color-danger). */}
+          <LikeHeart liked={liked} count={likes} onToggle={toggleLike} style={{ gap: 7, fontSize: '0.95rem' }} />
           <button onClick={toggleRepost} aria-label="Repost" title={reposted ? 'Repost geri al' : 'Repost'} style={{ display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', color: reposted ? '#22c55e' : 'var(--color-text)' }}>
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m17 1 4 4-4 4" /><path d="M3 11V9a4 4 0 0 1 4-4h14" /><path d="m7 23-4-4 4-4" /><path d="M21 13v2a4 4 0 0 1-4 4H3" /></svg>
           </button>

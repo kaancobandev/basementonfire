@@ -6,6 +6,7 @@ import Link from 'next/link';
 import type { DidYouKnow } from '@/lib/types';
 import { avatarSrc } from '@/lib/avatar';
 import ReportButton from '@/app/components/ReportButton';
+import LikeHeart from '@/app/components/LikeHeart';
 import { useNavUser } from '@/app/components/NavUserContext';
 
 /**
@@ -152,14 +153,18 @@ export default function DidYouKnowCard({ item, initialLiked = false, guncelLikes
               <span style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)' }}>📚 {item.source_label}</span>
             )
           )}
-          <button
-            type="button"
-            onClick={toggleLike}
-            aria-label={liked ? 'Beğenmekten vazgeç' : 'Beğen'}
-            style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', fontSize: '0.86rem', fontWeight: 700, color: liked ? '#ef4444' : 'var(--color-text-muted)' }}
-          >
-            {liked ? '❤️' : '🤍'}{likes > 0 && <span>{likes}</span>}
-          </button>
+          {/* Sitedeki tek emoji kalp buydu; artık ortak çizim. Boştaki gri
+              (--color-text-muted) custom property ile veriliyor: `color` inline
+              yazılsaydı .bof-like'ın basılı kırmızısını ezer, kalp beğenilince
+              hiç kırmızıya dönmezdi. Sayaç yalnız >0 iken basılıyordu, öyle
+              kalsın diye 0'da undefined geçiyoruz. */}
+          <LikeHeart
+            liked={liked}
+            count={likes > 0 ? likes : undefined}
+            onToggle={toggleLike}
+            size={18}
+            style={{ marginLeft: 'auto', gap: 6, padding: '4px 6px', fontSize: '0.86rem', fontWeight: 700, ['--bof-like-idle' as string]: 'var(--color-text-muted)' }}
+          />
           <ReportButton
             targetType="dyk"
             targetId={item.id}

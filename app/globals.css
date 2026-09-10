@@ -99,8 +99,9 @@
   --bof-edge-spark:   #c81e6f;     /* = --color-spark-ink */
   --bof-edge-neutral: #d4d4d8;     /* zinc-300 — --color-border'ın gölgesi */
 
-  /* Parıltı — beğeni kalbi ve ödül anı için (temaya göre kendi hesaplanır) */
-  --bof-glow-s: color-mix(in srgb, var(--color-spark) 55%, transparent);
+  /* Parıltı (temaya göre kendi hesaplanır, koyu karşılığı gerekmez) */
+  --bof-glow-s: color-mix(in srgb, var(--color-spark) 55%, transparent);  /* ödül anı */
+  --bof-glow-d: color-mix(in srgb, var(--color-danger) 55%, transparent); /* beğeni kalbi */
 
   /* ── Hareket dili ──
      --bof-ease-spring zaten üç kuralda ELLE yazılıydı (.mobile-nav-btn::before,
@@ -609,6 +610,66 @@ body {
 .post-btn:hover { background: var(--color-primary-hover); }
 /* Basınca gerçekten çöker: 4px iner, kenar sıfırlanır — toplam yükseklik sabit. */
 .post-btn:active { transform: translateY(4px); box-shadow: 0 0 0 var(--bof-edge-primary); }
+
+/* ── BEĞENİ KALBİ ─────────────────────────────────────────────────────────
+   Tek çizim, tek kural. Önceden 13 ayrı yerde aynı path elle kopyalanmıştı
+   (5 farklı boyut, 3'ünde token yerine sabit #ef4444) ve dolu/boş geçişi
+   İKİ AYRI React bileşeni arasında yapılıyordu.
+
+   🚨 GÖRÜNÜM SADECE `aria-pressed`İN FONKSİYONU. Hiçbir animasyonun
+   tamamlanmasına bağlı DEĞİL. Sebebi kayıtlı bir hata: kalp bir zamanlar
+   `AnimatePresence mode="wait"` içindeydi, ikon eskisinin ÇIKIŞ animasyonunun
+   bitmesine bağlıydı ve animasyon tamamlanmayınca React doğru ikonu commit
+   etse bile ekranda BOŞ kalp kalıyordu. Bump SADECE eklemeli bir süs:
+   `data-bump` hiç gelmese de kalp doğru boyanır.
+
+   ⚠ Çağrı yeri `color`ı INLINE yazmasın — inline stil bu kuralı ezer ve
+   basılı renk hiç görünmez. Boşta/basılı renkler custom property ile verilir:
+   --bof-like-idle / --bof-like-on. Yerleşim (gap, padding, font) çağrı
+   yerinde kalır, çizim burada. */
+.bof-like {
+  display: inline-flex; align-items: center; cursor: pointer;
+  background: none; border: 0; font-family: inherit;
+  color: var(--bof-like-idle, var(--color-text));
+  transition: color 0.15s;
+}
+.bof-like svg {
+  width: var(--bof-like-size, 22px); height: var(--bof-like-size, 22px);
+  display: block; fill: none; stroke: currentColor; stroke-width: 2;
+  /* bump 1.28x'e büyütüyor — kırpılmasın */
+  overflow: visible;
+  /* stroke-width dolu hâlde de 2: KASITLI. Eskiden akıştaki dolu kalp 1,
+     boş kalp 2 ile çiziliyordu, yani beğenince siluet gözle görülür şekilde
+     inceliyordu. Tek değer → toggle'da siluet OYNAMIYOR. Bedeli: akışın dolu
+     kalbi ~0,5 px şişti, gönderi modalınınki (eskiden 2,5) ~0,25 px inceldi;
+     kalan üç yüzey zaten 2'ydi. */
+}
+.bof-like[aria-pressed="true"] { color: var(--bof-like-on, var(--color-danger)); }
+.bof-like[aria-pressed="true"] svg {
+  fill: currentColor;
+  filter: drop-shadow(0 0 6px var(--bof-glow-d));
+}
+/* Zıplama yalnız beğenirken; attribute açılıp kapandığı için art arda
+   beğen/geri al'da her seferinde yeniden başlar (void offsetWidth gerekmez). */
+.bof-like[aria-pressed="true"] svg[data-bump] {
+  animation: bofKalp var(--bof-t-bump) var(--bof-ease-expo);
+}
+/* Dokunma geri bildirimi: framer `whileTap`in CSS karşılığı.
+   ⚠ NEDEN FRAMER DEĞİL — paylaşılan bileşende iki primitiften de kaçamak yok:
+   depoda TEK bir `<LazyMotion strict>` var (HomeFeed.tsx:922) ve LikeHeart'ın
+   çağrı yerlerinin bir kısmı onun İÇİNDE, çoğu DIŞINDA.
+     • strict ağacın içinde `motion.*` invariant FIRLATIR,
+     • ağacın dışında `m.*` renderer bulamaz ve SESSİZCE animasyonsuz kalır.
+   Yani tek bir paylaşılan bileşen ikisini de güvenle kullanamaz. */
+.bof-like:active svg { transform: scale(0.86); transition: transform 0.09s ease-out; }
+@keyframes bofKalp { 0%, 100% { transform: scale(1); } 40% { transform: scale(1.28); } }
+
+/* Fotoğraf/video üstünde: mevcut okunurluk gölgesi korunur, parıltı ONA EKLENİR
+   (tek `filter` bildirimi ikincisini komple ezer, birleştirmek şart). */
+.bof-like--ustte svg { filter: drop-shadow(0 1px 3px rgba(0,0,0,0.5)); }
+.bof-like--ustte[aria-pressed="true"] svg {
+  filter: drop-shadow(0 0 6px var(--bof-glow-d)) drop-shadow(0 1px 3px rgba(0,0,0,0.5));
+}
 
 /* ── Nav auth-durumu geçişi (flash-free) ──────────────────────────────────
    Root layout artık auth OKUMUYOR (statik sayfa hedefi) → nav'ın giriş/çıkış

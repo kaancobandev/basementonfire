@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import LikeHeart from '@/app/components/LikeHeart';
 
 /**
  * Yorum beğeni düğmesi — kendi iyimser durumunu tutan bağımsız bileşen; üç yorum
@@ -32,10 +33,14 @@ export default function CommentLikeButton({ commentId, initialLikes = 0, initial
   }
 
   return (
-    <button type="button" onClick={toggle} aria-pressed={liked} aria-label={liked ? 'Beğeniyi geri al' : 'Beğen'}
-      style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4, padding: 0, fontFamily: 'inherit', fontSize: '0.72rem', fontWeight: 700, color: liked ? 'var(--color-danger)' : 'var(--color-text-muted)', transition: 'color 0.15s' }}>
-      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /></svg>
-      {likes > 0 && <span className="tnum">{likes}</span>}
-    </button>
+    // Boşta rengi burada diğer yüzeylerden farklı (soluk); `color` inline
+    // yazılamaz (CSS'i ezer) → token custom property ile geçilir.
+    <LikeHeart
+      size={13}
+      liked={liked}
+      onToggle={toggle}
+      count={likes > 0 ? likes : undefined}
+      style={{ ['--bof-like-idle' as string]: 'var(--color-text-muted)', gap: 4, padding: 0, fontSize: '0.72rem', fontWeight: 700 }}
+    />
   );
 }
