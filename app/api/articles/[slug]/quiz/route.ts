@@ -140,43 +140,49 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     }
 
     /* XP: doğru +5 (günün sorusundan küçük).
-       ⛔ current_streak / last_answer_date / total_correct'e DOKUNULMAZ:
-          seri TAKVİM tabanlı (günde bir soru), makale quizi onu bozamaz.
-          total_correct ise hem rozet eşiklerini hem /lig sıralamasını
-          etkiler — makale quizinin oraya sayılıp sayılmayacağı ayrı bir
-          ÜRÜN kararı, sessizce yapılamaz. */
+       ⛔ current_streak / last_answer_date'e DOKUNULMAZ: seri TAKVİM tabanlı
+          (günde bir soru), makale quizi onu bozamaz.
+       ✅ total_correct / total_answered SAYILIR (Kaan'ın kararı, 10.09.2026).
+          Etkisi ÖLÇÜLDÜ ve DAR: /lig bu alanları HİÇ okumuyor — sıralaması
+          `daily_answers`ın HAFTALIK doğrularına, eşitlikte toplam XP'ye
+          bakıyor (app/lig/page.tsx). Değişen tek şey rozet eşikleri
+          (first_correct / correct_10 / correct_50) ve profildeki "N doğru". */
     const { data: cur } = await db.from('user_progress')
       .select('xp, current_streak, longest_streak, total_correct, total_answered')
       .eq('user_id', me.id).maybeSingle();
     const onceki = cur ?? { xp: 0, current_streak: 0, longest_streak: 0, total_correct: 0, total_answered: 0 };
 
-    let xpGained = 0;
-    let xp = onceki.xp ?? 0;
-    if (isCorrect) {
-      xpGained = 5;
-      xp = xp + xpGained;
-      await db.from('user_progress').upsert(
-        { user_id: me.id, xp, updated_at: new Date().toISOString() },
-        { onConflict: 'user_id' },
-      );
-    }
+    const xpGained = isCorrect ? 5 : 0;
+    const xp = (onceki.xp ?? 0) + xpGained;
+    /* Aynı soruya ikinci cevap YUKARIDA 23505 ile dönüyor (PK), yani buraya
+       her soru için EN FAZLA bir kez geliniyor — çift sayım yok. */
+    const totalCorrect = (onceki.total_correct ?? 0) + (isCorrect ? 1 : 0);
+    const totalAnswered = (onceki.total_answered ?? 0) + 1;
+
+    /* Yazma artık YANLIŞ cevapta da yapılıyor: total_answered değişiyor.
+       Aksi halde total_correct, total_answered'ı geçebilir ve veri kendi
+       içinde tutarsız olurdu. */
+    await db.from('user_progress').upsert(
+      { user_id: me.id, xp, total_correct: totalCorrect, total_answered: totalAnswered, updated_at: new Date().toISOString() },
+      { onConflict: 'user_id' },
+    );
 
     /* Rozet yazımı günün sorusuyla AYNI (daily-question/route.ts). Eskiden
        burada HİÇ yoktu: 100 XP eşiğini makale quiziyle geçen kullanıcı
        `xp_100` rozetini O AN almıyordu — ancak bir sonraki günün sorusunda
        geliyordu. Şema değişmiyor, yalnız aynı hesap burada da yapılıyor.
-       Seri ve doğru sayısı DEĞİŞMEDİĞİ için pratikte tetiklenebilen tek
-       şey XP eşikleri; diğerleri zaten kazanılmışsa tekrar yazılmaz. */
+       Doğru sayısı artık burada da arttığı için XP eşiklerinin yanı sıra
+       first_correct / correct_10 / correct_50 de tetiklenebiliyor. */
     const shouldHave = earnedBadgeKeys({
       xp,
       current_streak: onceki.current_streak ?? 0,
       longest_streak: onceki.longest_streak ?? 0,
-      total_correct: onceki.total_correct ?? 0,
+      total_correct: totalCorrect,   // YENİ değer: correct_10/correct_50 buradan da gelebilir
     });
     let newBadges: { key: string; name: string; emoji: string }[] = [];
     if (shouldHave.length) {
       const { data: owned } = await db.from('user_badges').select('badge_key').eq('user_id', me.id);
-      const ownedKeys = new Set((owned ?? []).map((b: any) => b.badge_key));
+      const ownedKeys = new Set(((owned ?? []) as { badge_key: string }[]).map((b) => b.badge_key));
       const toAdd = shouldHave.filter((k) => !ownedKeys.has(k));
       if (toAdd.length) {
         await db.from('user_badges').insert(toAdd.map((k) => ({ user_id: me.id, badge_key: k })));
@@ -195,8 +201,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
         xp,
         current_streak: onceki.current_streak ?? 0,
         longest_streak: onceki.longest_streak ?? 0,
-        total_correct: onceki.total_correct ?? 0,
-        total_answered: onceki.total_answered ?? 0,
+        total_correct: totalCorrect,
+        total_answered: totalAnswered,
         ...levelFromXp(xp),
       },
       newBadges,

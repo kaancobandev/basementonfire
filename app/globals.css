@@ -798,9 +798,14 @@ body {
      kalbi ~0,5 px şişti, gönderi modalınınki (eskiden 2,5) ~0,25 px inceldi;
      kalan üç yüzey zaten 2'ydi. */
 }
-.bof-like[aria-pressed="true"] { color: var(--bof-like-on, var(--color-danger)); }
+/* Basılı hâlde METİN ile ÇİZİM ayrışır (Kaan'ın kararı, 10.09.2026):
+   kalbin kendisi eskisi gibi --color-danger, ama SAYI --color-danger-ink.
+   Sebep ölçüm: #ef4444 beyaz zeminde 3,76:1 — küçük metin için AA'nın altı.
+   -ink tonuyla 6,47:1. Çizim renk DEĞİŞTİRMİYOR, yalnız rakam koyulaşıyor. */
+.bof-like[aria-pressed="true"] { color: var(--bof-like-on, var(--color-danger-ink)); }
 .bof-like[aria-pressed="true"] svg {
-  fill: currentColor;
+  fill: var(--bof-like-cizim, var(--color-danger));
+  stroke: var(--bof-like-cizim, var(--color-danger));
   filter: drop-shadow(0 0 6px var(--bof-glow-d));
 }
 /* Zıplama yalnız beğenirken; attribute açılıp kapandığı için art arda
@@ -821,6 +826,9 @@ body {
 /* Fotoğraf/video üstünde: mevcut okunurluk gölgesi korunur, parıltı ONA EKLENİR
    (tek `filter` bildirimi ikincisini komple ezer, birleştirmek şart). */
 .bof-like--ustte svg { filter: drop-shadow(0 1px 3px rgba(0,0,0,0.5)); }
+/* ⚠ Medya üstünde sayı KOYULAŞMAZ: zemin zaten koyu video/fotoğraf, -ink orada
+   okunmaz. Parlak ton siyah üstünde 5,03:1 ile zaten geçiyor. */
+.bof-like--ustte[aria-pressed="true"] { color: var(--color-danger); }
 .bof-like--ustte[aria-pressed="true"] svg {
   filter: drop-shadow(0 0 6px var(--bof-glow-d)) drop-shadow(0 1px 3px rgba(0,0,0,0.5));
 }
